@@ -19,10 +19,8 @@ from epic_news.crews.reception_crew.reception_crew import ReceptionCrew
 
 class ContentState(BaseModel):
     # Basic request information
-  # "Prepare for a meeting with Swiss Fribourg State internal IT department -  Sitel"
-  # "Create a poem about the powerflex product"
-  # "Search the contact finder with ifage as target company and powerstore as product"
-    user_request: str = "Search the contact finder with Fribourg state IT  as target company and powerflex as product"
+
+    user_request: str = ""
     topic: str = ""  # Will be extracted from user_request if not provided
     selected_crew: str = ""  # Default crew type
     # Content storage for different crew types
@@ -45,8 +43,8 @@ class ContentState(BaseModel):
     current_year: str = str(datetime.now().year)
 
     # Company and product parameters (used by both ContactFinder and MeetingPrep)
-    company: str = "Fribourg state IT"
-    our_product: str = "PowerFlex"
+    company: str = ""
+    our_product: str = "    "
 
     # Meeting prep specific parameters
     participants: list = [
@@ -54,9 +52,9 @@ class ContentState(BaseModel):
             "Jane Smith <jane.smith@fr.ch> - CTO",
             "Bob Johnson <bob.johnson@fr.ch> - Sales Director"
         ]
-    context: str = "Second technical meeting to discuss potential private cloud implementation using powerflex and openshift"
-    objective: str = "Present our product offerings and identify potential collaboration opportunities"
-    prior_interactions: str = "We had a brief call with their CTO last month who expressed interest in our private cloud solutions"
+    context: str = ""
+    objective: str = ""
+    prior_interactions: str = ""
     
     # Dynamic property access for content types
     def __getattr__(self, name):
