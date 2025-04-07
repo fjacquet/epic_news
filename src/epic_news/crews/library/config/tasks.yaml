@@ -1,0 +1,19 @@
+research_task:
+  description: >
+    Conduct a thorough research about {topic}
+    Make sure you find any interesting and relevant information.
+  expected_output: >
+    A list with 10 bullet points of the most relevant information about {topic}
+  agent: researcher
+
+reporting_task:
+  description: >
+    Review the context you got and expand each topic into a full section for a report.
+    Make sure the report is detailed and contains any and all relevant information.
+    Format your output as HTML with proper styling for better readability in emails.
+    Include a title, sections with headings, and a conclusion.
+  expected_output: >
+    A fully fledged report in french formatted as html with the main topics, each with a full section of information.
+    Formatted as HTML with proper styling for better email presentation.
+  agent: reporting_analyst
+  output_file: output/library/book_summary.html

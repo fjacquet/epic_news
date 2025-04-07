@@ -1,0 +1,56 @@
+routing_task:
+  description: >
+    Analyze the user request and determine which specialized crew should handle it.
+    
+    You need to carefully examine the request details including:
+    - The topic or subject matter
+    - The type of content requested
+    - Any specific requirements or formats mentioned
+    
+    Based on your analysis, classify the request into one of the following categories:
+    
+    1. NEWS - If the request is about:
+       - Current events or news topics
+       - Research and analysis of factual information
+       - Verification of sources and facts
+       - News report creation
+       - Topics requiring in-depth research and fact-checking
+    
+    2. POEM - If the request is about:
+       - Creative writing or poetry
+       - Artistic expression
+       - Specific sentence count requirements
+       - Literary or artistic content
+    
+    3. COOKING - If the request is about:
+       - Food, recipes, or culinary topics
+       - Ingredient analysis
+       - Cooking techniques
+       - Cultural food context
+       - Recipe development
+       - Cookbook creation
+       
+    4. UNKNOWN - If the request doesn't clearly fit into any of the above categories:
+       - Requests outside the system's capabilities
+       - Ambiguous or unclear requests
+       - Requests that combine multiple categories without a clear primary focus
+    
+    The user request is: "{request}"
+    The topic is: "{topic}"
+    
+  expected_output: >
+    A clear decision on which crew should handle the request, with the following structure:
+    
+    {
+      "crew_type": "NEWS|POEM|COOKING|UNKNOWN",
+      "confidence": "HIGH|MEDIUM|LOW",
+      "reasoning": "Brief explanation of why this crew is the best fit",
+      "topic": "The specific topic to pass to the crew",
+      "additional_parameters": {
+        "param1": "value1",
+        "param2": "value2"
+      }
+    }
+    
+    The output should be valid JSON that can be parsed programmatically.
+  agent: router

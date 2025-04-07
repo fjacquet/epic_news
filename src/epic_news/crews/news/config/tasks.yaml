@@ -1,0 +1,89 @@
+research_task:
+  description: >
+    Conduct thorough research on the latest news about {topic}.
+    Use multiple search tools to gather comprehensive information from diverse sources.
+    Focus on breaking news, emerging trends, and significant developments.
+    The current year is {current_year}.
+  expected_output: >
+    A detailed research report in french  containing:
+    1. At least 10 key news items related to {topic}
+    2. Sources for each news item
+    3. Date of publication for each item
+    4. Brief summary of each news item
+  agent: researcher
+
+analysis_task:
+  description: >
+    Analyze the research findings to identify patterns, trends, and insights related to {topic}.
+    Look for connections between different news items and their potential implications.
+    Consider financial, social, and political aspects where relevant.
+  expected_output: >
+    An analytical report  in french containing:
+    1. Identified patterns and trends
+    2. Potential implications of the news developments
+    3. Data-backed insights
+    4. Visual representation suggestions (charts, graphs) if applicable
+  agent: analyst
+
+verification_task:
+  description: >
+    Verify the accuracy and reliability of the news information gathered.
+    Check facts against multiple sources.
+    Identify any potential misinformation or biased reporting.
+    Rate the credibility of each news item.
+    
+    IMPORTANT: For each news item that includes a URL or web link:
+    1. Use FIRECRAWL_EXTRACT tool to extract content from the URL and verify it exists
+    2. Confirm that the extracted content actually discusses {topic}
+    3. Extract the actual title from the page content
+    4. If a URL cannot be verified as both existing AND relevant to {topic}, either:
+       a. Find an alternative, verifiable source using search tools
+       b. Remove the URL entirely and clearly mark the information as "Source Needed"
+    5. Do not include generic website homepages (e.g., www.example.com) as sources
+    6. For each verified URL, include a direct quote from the extracted content that supports the claim
+    
+  expected_output: >
+    A verification report  in french containing:
+    1. Fact-check results for each news item
+    2. Credibility rating (1-5 scale) for each source
+    3. Identification of any contradictory information
+    4. List of fully verified facts vs. claims requiring further verification
+    5. For each URL included:
+       a. Confirmation that the URL was checked using FIRECRAWL_EXTRACT
+       b. The actual title extracted from the page
+       c. A direct quote from the source that relates to {topic}
+       d. Date when the URL was last verified
+  agent: fact_checker
+
+editing_task:
+  description: >
+    Compile and organize the verified news information  in french into a comprehensive, actionable report.
+    Prioritize the most important stories based on relevance and impact.
+    Ensure the report is clear, concise, and follows journalistic standards.
+    
+    IMPORTANT: When including links in the final report:
+    1. Only include URLs that have been fully verified by the fact checker
+    2. For each link, use the actual article title as verified by the fact checker
+    3. Include the direct quote from the source that was verified
+    4. Format each source citation consistently with:
+       - Article title (as a link)
+       - Publication date
+       - Source name/publication
+       - A brief quote from the source (in quotation marks)
+    5. Do not include any links that were marked as "Source Needed" by the fact checker
+    6. For any information without a verified link, clearly indicate it as "Based on multiple sources"
+       rather than fabricating a source
+    
+  expected_output: >
+    A professionally edited news report  in french containing:
+    1. Executive summary of key findings
+    2. Organized sections by topic or importance
+    3. Clear presentation of verified facts with proper source attribution
+    4. Contextual information to help understand the significance
+    5. For each included link:
+       - The link must point to a real, accessible page about {topic}
+       - The linked text should be the actual article title
+       - A publication date should be included
+       - A direct quote from the source should be included
+    Formatted as html properly laid out
+  agent: editor

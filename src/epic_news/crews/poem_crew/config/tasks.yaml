@@ -1,0 +1,7 @@
+write_poem:
+  description: >
+    Write a poem in french about how {topic} .
+    Ensure the poem is engaging and adheres to the specified sentence count of {sentence_count}.
+  expected_output: >
+    A beautifully crafted poem about {topic} , with exactly {sentence_count} sentences formated in HTML.
+  agent: poem_writer
