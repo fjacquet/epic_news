@@ -37,9 +37,9 @@ class ContactFinderCrew():
         os.makedirs("output/contact_finder", exist_ok=True)
         
         # Default values
-        self.company = "iFage | Fondation pour la formation des adultes"
-        self.our_product = "PowerStore"
-        self.sendto = "fred.jacquet@gmail.com"
+        self.company = ""
+        self.our_product = ""
+        self.sendto = ""
 
     @agent
     def company_researcher(self) -> Agent:

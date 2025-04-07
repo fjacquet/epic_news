@@ -7,3 +7,5 @@ output/
 checkpoints/
 report.md
 uv.lock
+.venv/
+prompts.txt

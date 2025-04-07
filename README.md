@@ -1,6 +1,6 @@
-# {{crew_name}} Crew
+# Epic News Crew
 
-Welcome to the {{crew_name}} Crew project, powered by [crewAI](https://crewai.com). This template is designed to help you set up a multi-agent AI system with ease, leveraging the powerful and flexible framework provided by crewAI. Our goal is to enable your agents to collaborate effectively on complex tasks, maximizing their collective intelligence and capabilities.
+Welcome to the Epic News Crew project, powered by [crewAI](https://crewai.com). This template is designed to help you set up a multi-agent AI system with ease, leveraging the powerful and flexible framework provided by crewAI. Our goal is to enable your agents to collaborate effectively on complex tasks, maximizing their collective intelligence and capabilities.
 
 ## Installation
 
@@ -22,6 +22,7 @@ crewai install
 ### Customizing
 
 **Add your `OPENAI_API_KEY` into the `.env` file**
+**Add your `COMPOSIO_API_KEY` into the `.env` file**
 
 - Modify `src/epic_news/config/agents.yaml` to define your agents
 - Modify `src/epic_news/config/tasks.yaml` to define your tasks
@@ -33,7 +34,7 @@ crewai install
 To kickstart your flow and begin execution, run this from the root folder of your project:
 
 ```bash
-crewai run
+crewai flow kickoff
 ```
 
 This command initializes the epic-news Flow as defined in your configuration.
