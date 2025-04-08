@@ -124,14 +124,16 @@ class ReceptionFlow(Flow[ContentState]):
             print(f"Generating news about: {self.state.topic}")
             
             # Define the output file path directly
-            self.state.output_file = "output/news/news.html"
+            self.state.output_file = "output/news/report.html"
             
 
             # Generate the news
-            NewsCrew().crew().kickoff(inputs={
+            return NewsCrew().crew().kickoff(inputs={
                 "topic": self.state.topic,
                 "output_file": self.state.output_file,
-                "sentence_count": self.state.sentence_count
+                "sentence_count": self.state.sentence_count,
+                "sendto": self.state.sendto,
+                "current_year": self.state.current_year
             })
               
 

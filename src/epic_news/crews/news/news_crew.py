@@ -1,11 +1,9 @@
+from tabnanny import verbose
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 
 from composio_crewai import ComposioToolSet, App, Action
 from dotenv import load_dotenv
-import os
-
-from epic_news.crews.news.checkpointing import CheckpointManager, task_callback
 
 load_dotenv()
 
@@ -17,17 +15,10 @@ search_tools = toolset.get_tools(actions=['COMPOSIO_SEARCH_TAVILY_SEARCH'],)
 fact_checking_tools = toolset.get_tools(actions=[
     'COMPOSIO_SEARCH_NEWS_SEARCH',
     'COMPOSIO_SEARCH_TAVILY_SEARCH',
+    'COMPOSIO_SEARCH_DUCK_DUCK_GO_SEARCH',
     'FIRECRAWL_EXTRACT'
 ],)
 
-# Set environment variables to increase timeouts
-os.environ["LITELLM_TIMEOUT"] = "300"  # 5 minutes timeout
-os.environ["OPENAI_TIMEOUT"] = "300"   # 5 minutes timeout
-
-# Initialize checkpoint manager
-checkpoint_manager = CheckpointManager(
-    checkpoint_dir=os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../../..", "checkpoints")
-)
 
 @CrewBase
 class NewsCrew:
@@ -39,11 +30,7 @@ class NewsCrew:
     agents_config = 'config/agents.yaml'
     tasks_config = 'config/tasks.yaml'
 
-    def __init__(self):
-        # Create necessary directories
-        os.makedirs("output", exist_ok=True)
 
-        
     # If you would like to add tools to your agents, you can learn more about it here:
     # https://docs.crewai.com/concepts/agents#agent-tools
     @agent
@@ -89,94 +76,52 @@ class NewsCrew:
     def research_task(self) -> Task:
         task_id = "research_task"
         
-        # Check if we have a checkpoint for this task
-        checkpoint = checkpoint_manager.load_checkpoint(task_id)
-        if checkpoint:
-            print(f" Resuming from checkpoint for {task_id}")
-            # Create a task with the checkpoint data
-            return Task(
-                config=self.tasks_config[task_id],
-                output_file='output/research_results.md',
-                description=f"IMPORTANT: Resume from previous work. Previous output: {checkpoint['output']}",
-                callback=task_callback
-            )
-        
         return Task(
             config=self.tasks_config[task_id],
             output_file='output/research_results.md',
-            callback=task_callback
+            verbose=True,
+            llm_timeout=300
         )
 
     @task
     def analysis_task(self) -> Task:
         task_id = "analysis_task"
-        
-        # Check if we have a checkpoint for this task
-        checkpoint = checkpoint_manager.load_checkpoint(task_id)
-        if checkpoint:
-            print(f" Resuming from checkpoint for {task_id}")
-            # Create a task with the checkpoint data
-            return Task(
-                config=self.tasks_config[task_id],
-                context=[self.research_task()],
-                output_file='output/analysis_results.md',
-                description=f"IMPORTANT: Resume from previous work. Previous output: {checkpoint['output']}",
-                callback=task_callback
-            )
+
         
         return Task(
             config=self.tasks_config[task_id],
             context=[self.research_task()],
-            output_file='output/analysis_results.md',
-            callback=task_callback
+            output_file='output/news/analysis_results.md',
+            verbose=True,
+            llm_timeout=300
         )
     
     @task
     def verification_task(self) -> Task:
         task_id = "verification_task"
         
-        # Check if we have a checkpoint for this task
-        checkpoint = checkpoint_manager.load_checkpoint(task_id)
-        if checkpoint:
-            print(f" Resuming from checkpoint for {task_id}")
-            # Create a task with the checkpoint data
-            return Task(
-                config=self.tasks_config[task_id],
-                context=[self.research_task(), self.analysis_task()],
-                output_file='output/verification_results.md',
-                description=f"IMPORTANT: Resume from previous work. Previous output: {checkpoint['output']}",
-                callback=task_callback
-            )
+        
         
         return Task(
             config=self.tasks_config[task_id],
             context=[self.research_task(), self.analysis_task()],
-            output_file='output/verification_results.md',
-            callback=task_callback
+            output_file='output/news/verification_results.md',
+            verbose=True,
+            llm_timeout=300
         )
     
     @task
     def editing_task(self) -> Task:
         task_id = "editing_task"
         
-        # Check if we have a checkpoint for this task
-        checkpoint = checkpoint_manager.load_checkpoint(task_id)
-        if checkpoint:
-            print(f" Resuming from checkpoint for {task_id}")
-            # Create a task with the checkpoint data
-            return Task(
-                config=self.tasks_config[task_id],
-                context=[self.research_task(), self.analysis_task(), self.verification_task()],
-                output_file='output/news_report.md',  # Changed from editing_results.md to news_report.md
-                description=f"IMPORTANT: Resume from previous work. Previous output: {checkpoint['output']}",
-                callback=task_callback
-            )
+    
         
         return Task(
             config=self.tasks_config[task_id],
             context=[self.research_task(), self.analysis_task(), self.verification_task()],
-            output_file='output/news_report.md',  # Changed from editing_results.md to news_report.md
-            callback=task_callback
+            output_file='output/news/report.html',  # Changed from editing_results.md to news_report.md
+            verbose=True,
+            llm_timeout=300
         )
 
     @crew

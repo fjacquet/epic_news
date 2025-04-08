@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 
 class ContentState(BaseModel):
     # Basic request information
-    user_request: str = ""
+    user_request: str = "Find the latest news about Azure Local in 2025"
     topic: str = ""  # Will be extracted from user_request if not provided
     selected_crew: str = ""  # Default crew type
  
