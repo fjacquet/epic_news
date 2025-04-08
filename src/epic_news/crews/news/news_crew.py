@@ -42,7 +42,7 @@ class NewsCrew:
     def __init__(self):
         # Create necessary directories
         os.makedirs("output", exist_ok=True)
-        os.makedirs("checkpoints", exist_ok=True)
+
         
     # If you would like to add tools to your agents, you can learn more about it here:
     # https://docs.crewai.com/concepts/agents#agent-tools

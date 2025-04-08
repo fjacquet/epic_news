@@ -1,54 +1,18 @@
 
 distribution_task:
   description: >
-    Prepare the final content for distribution to the recipient via email.
-    Create a professional email with a concise summary and the full content in the body.
+    Send an email to {recipient_email} with the EXACT content of {output_file} as the email body.
     
-    You have received the following content to distribute:
+    IMPORTANT:
+    1. Read the file {output_file} directly using os.path and open() functions
+    2. Send the EXACT content as HTML in the email body, NOT as an attachment
+    3. Do NOT rewrite or modify the content in any way
+    4. Ensure content is in French as specified
+    5. Do not use markdown formatting with ``` in the email
     
-    NEWS CONTENT:
-    {news}
-    
-    POEM CONTENT:
-    {poem}
-    
-    RECIPE CONTENT:
-    {recipe}
-    
-    BOOK SUMMARY CONTENT:
-    {book_summary}
-    
-    MEETING PREP CONTENT:
-    {meeting_prep}
-    
-    LEAD SCORE CONTENT:
-    {lead_score}
-    
-    CONTACT INFORMATION CONTENT:
-    {contact_info}
-    
-    Include all available content in the email. Some content types may be empty if they weren't generated.
-    
-    Ensure the communication is professional and tailored to the audience.
-    The email and content should be in French.
-    
-    IMPORTANT: When using the GMAIL_SEND_EMAIL tool:
-    1. Do NOT try to attach a file - include all content directly in the email body
-    2. Make sure to set is_html to true if using HTML formatting
-    3. Use a clear and descriptive subject line that includes the content type and date
-    4. Format the email body with proper HTML structure for optimal readability
-    5. Verify that all links in the report are functional before sending
-    6. Include a brief executive summary at the beginning of the email
-    7. Provide an empty string ("") for the attachment parameter to avoid errors
-    8. If a poem is included, format it with appropriate spacing and styling to preserve its structure
-    9. If meeting prep content is included, format it with proper headings and sections for clarity
-    10. If contact information is included, format it with clear sections for company overview, key contacts, and approach strategy
-    
-    The recipient's email address is: {recipient_email}
   expected_output: >
-    A confirmation that the email was sent successfully, including:
     1. The subject line used
-    2. The recipient's email address
-    3. A brief summary of the content that was sent
-    4. Any relevant delivery status information
+    2. The recipient's email address ({recipient_email})
+    3. The delivery status
+    4. Confirmation that the EXACT file content was used
   agent: distributor

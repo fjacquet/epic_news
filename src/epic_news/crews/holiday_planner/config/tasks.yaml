@@ -1,0 +1,98 @@
+
+
+ValidateLocation:
+  description: >
+    "First, validate if '{destination}' is a suitable location for a '{duration}' trip.
+    Identify key attractions and themes that make it interesting for a '{duration}' getaway.
+    Briefly describe the general vibe of {destination}."
+  agent: destination_expert # Agent name
+  # Reference by ROLE
+  expected_output: >
+    "A brief summary validating the location and highlighting key themes and attractions suitable for a '{duration}' trip."
+ 
+ 
+DefineBudget:
+  description: >
+    "Based on research of average family budgets ('{family}') and typical costs in '{destination}',
+    define realistic budget limits for accommodation, activities, food, and transportation for a '{duration}' trip for a normal family.
+    Provide a breakdown of suggested spending limits for each category."
+  agent: budget_navigator # Reference by ROLE
+  context: [ValidateLocation]
+  expected_output: >
+    "A budget breakdown in categories (accommodation, activities, food, transport) with suggested spending limits for each, justified by research."
+
+FindAccommodation:
+  description: >
+    "Find 3-5 excellent accommodation options in '{destination}' that are within the budget defined,
+    family-friendly ('{family}'), comfortable, and well-located.
+    Present options with descriptions, price ranges, and links to booking sites.
+    '{special_needs}')"
+  agent: accommodation_ace # Reference by ROLE
+  context: [DefineBudget]
+  expected_output: "A list of 3-5 accommodation options with descriptions, price ranges, and booking links."
+
+PlanTravel: # Plan Travel Task
+  description: >
+    "Task for the Travel Logistics Planner: Plan the round-trip travel from the family's origin '{origin}' to the '{duration}' destination '{destination}'.
+    Research and recommend the most efficient and budget-friendly transportation options (flights, trains, driving, etc.), considering travel time,
+     convenience for a family, STAYING WITHIN THE TRAVEL BUDGET, AND FULFILLING ANY SPECIAL TRAVEL REQUESTS outlined in the 'special_requests' parameter
+     (e.g., accessible transport, specific travel times).
+     Provide clear details on travel options, booking links or resources, estimated travel times, and how they address any special travel requests
+    '{special_needs}')."
+  agent: travel_logistics_planner # Reference by ROLE
+  expected_output: >
+    "A detailed travel plan outlining round-trip transportation options from '{origin}' to '{destination}',
+    including modes of transport, estimated costs, travel times, booking links/resources, considerations for family travel,
+     AND explicit details on how special travel requests are addressed."
+ 
+CurateActivities:
+  description: >
+    "Research and curate a detailed itinerary of activities and experiences in '{destination}' for a magical '{duration}'.
+    Include a mix of popular attractions and unique, lesser-known options.
+    Ensure activities are engaging, family-friendly (if applicable), and largely within the defined budget.
+    Prioritize experiences that could be considered 'magical'. Provide details on each activity including location, estimated time, and cost.
+    '{special_needs}')"
+  agent: enchantment_architect # Reference by ROLE
+  context: [DefineBudget, PlanTravel]
+  expected_output: "A detailed '{duration}' itinerary with activities, locations, timings, estimated costs, and descriptions for each activity."
+
+RecommendDining:
+  description: >
+    "Recommend a variety of dining options in '{destination}' for breakfast, lunch, and dinner throughout the '{duration}'.
+    Include budget-friendly choices, local cuisine restaurants, and potentially one or two 'special' dining experiences if budget allows.
+    Provide restaurant names, descriptions, cuisine type, price ranges, and addresses.
+    '{special_needs}')"
+  agent: culinary_compass # Reference by ROLE
+  context: [DefineBudget, PlanTravel]
+  expected_output: "A list of dining recommendations for each meal (breakfast, lunch, dinner) throughout the wee'{duration}'kend, including restaurant details and price ranges."
+ 
+LocalInsights:
+  description: >
+    "Provide local insights and hidden gems in '{destination}' that would enhance the '{duration}' experience and make it more authentic and 'magical'.
+    Suggest local customs to be aware of, less crowded times to visit popular spots, or unique local experiences.
+    '{special_needs}')"
+  agent: local_whisperer # Reference by ROLE
+  context: [DefineBudget, PlanTravel]
+  expected_output: "A list of local tips, hidden gems, and cultural insights to enhance the '{duration}' experience."
+
+FinalizeItinerary:
+  description: >
+    Compile all the recommendations from the team into a complete, detailed, and organized '{duration}' itinerary for '{destination}'.
+    Structure the itinerary chronologically (e.g., Day 1, Day 2). Include timings, locations, addresses, and budget notes for each item.
+    Ensure the entire itinerary flows logically and is practical to follow.
+    Review the entire plan to ensure it adheres to the overall budget and creates a truly magical '{duration}' experience.
+    Present the final plan in a clear and easy-to-read format. In french and in markdown:)
+  agent: logistics_liaison # Reference by ROLE
+  context:
+    [DefineBudget, PlanTravel, LocalInsights, RecommendDining, CurateActivities]
+  expected_output: "A finalized, well-formatted '{duration}' itinerary document integrating all team recommendations."
+
+TranslateToFrench:
+  description: >
+    "Translate the finalized '{duration}' itinerary into French.
+    Ensure the translation is accurate, culturally appropriate for a French-speaking audience,
+    and maintains the clarity and tone of the original English itinerary.
+    The itinerary to be translated is the result of the 'FinalizeItinerary' task."
+  agent: itinerary_translator # Reference by ROLE
+  context: [FinalizeItinerary]
+  expected_output: "The complete weekend itinerary translated into French in markdown format"

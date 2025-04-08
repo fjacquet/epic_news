@@ -1,169 +1,52 @@
-from pydantic import BaseModel, Field
-from datetime import datetime
 import os
+import datetime 
+from pydantic import BaseModel, Field
 import re
-import json
-import yaml
 
 from crewai.flow import Flow, listen, start, router, or_
 
+from epic_news.router import RequestRouter
 from epic_news.crews.contact_finder.contact_finder import ContactFinderCrew
 from epic_news.crews.cooking.cooking_crew import CookingCrew
+from epic_news.crews.holiday_planner.holiday_planner import HolidayPlannerCrew
 from epic_news.crews.library.library import LibraryCrew
 from epic_news.crews.meeting_prep.meeting_prep import MeetingPrepCrew
 from epic_news.crews.news.news_crew import NewsCrew
 from epic_news.crews.poem_crew.poem_crew import PoemCrew
 from epic_news.crews.post_crew.post_crew import PostCrew
 from epic_news.crews.reception_crew.reception_crew import ReceptionCrew
+from epic_news.utils.directory_utils import ensure_output_directories
+from epic_news.models import ContentState
 
-
-class ContentState(BaseModel):
-    # Basic request information
-
-    user_request: str = ""
-    topic: str = ""  # Will be extracted from user_request if not provided
-    selected_crew: str = ""  # Default crew type
-    # Content storage for different crew types
-    content: dict = Field(default_factory=lambda: {
-        "news": "",
-        "poem": "",
-        "recipe": "",
-        "post_report": "",
-        "book_summary": "",
-        "meeting_prep": "",
-        "lead_score": "",
-        "contact_info": ""
-    })
-    
-    # Email settings
-    sendto: str = "fred.jacquet@gmail.com"
-    
-    # Additional parameters
-    sentence_count: int = 5
-    current_year: str = str(datetime.now().year)
-
-    # Company and product parameters (used by both ContactFinder and MeetingPrep)
-    company: str = ""
-    our_product: str = "    "
-
-    # Meeting prep specific parameters
-    participants: list = [
-            "John Doe <john.doe@fr.ch> - CEO",
-            "Jane Smith <jane.smith@fr.ch> - CTO",
-            "Bob Johnson <bob.johnson@fr.ch> - Sales Director"
-        ]
-    context: str = ""
-    objective: str = ""
-    prior_interactions: str = ""
-    
-    # Dynamic property access for content types
-    def __getattr__(self, name):
-        """Dynamic getter for content properties"""
-        if name in self.content:
-            return self.content.get(name, "")
-        raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'")
-    
-    def __setattr__(self, name, value):
-        """Dynamic setter for content properties"""
-        if name in getattr(self, "content", {}):
-            self.content[name] = value
-        else:
-            super().__setattr__(name, value)
-
+def init():
+    # Initialize output directories
+    ensure_output_directories()
 
 class ReceptionFlow(Flow[ContentState]):
 
     @start()
     def route_request(self):
+        """Route the request to the appropriate crew"""
+        # Reset the email_sent flag to ensure we send an email each time
+        self.state.email_sent = False
+        
         print(f"Routing request: '{self.state.user_request}' with topic: '{self.state.topic}'")
         
-        # Ensure output directories exist
-        os.makedirs("output", exist_ok=True)
-        os.makedirs("output/meeting", exist_ok=True)
-        os.makedirs("output/lead_scoring", exist_ok=True)
-        os.makedirs("output/contact_finder", exist_ok=True)
+        # Use the RequestRouter to route the request
+        router = RequestRouter()
+        routing_result = router.route(self.state.user_request, self.state.topic)
         
-        # Extract topic from request if not provided
-        if not self.state.topic and self.state.user_request:
-            # Try to extract a meaningful topic from the request
-            request_lower = self.state.user_request.lower()
-            
-            # Look for book titles in quotes
-            book_match = re.search(r"['\"](.+?)['\"]", self.state.user_request)
-            if book_match and any(word in request_lower for word in ["book", "livre", "library", "bibliothèque"]):
-                self.state.topic = book_match.group(1)
-                self.state.selected_crew = "LIBRARY"
-                print(f"Extracted book title from request: '{self.state.topic}'")
-            # Detect meeting prep requests
-            elif any(word in request_lower for word in ["meeting", "prep", "réunion", "préparation", "agenda", "minutes"]):
-                # Extract company name if possible
-                company_match = re.search(r"with\s+([A-Z][a-zA-Z\s]+)", self.state.user_request)
-                if company_match and not self.state.company:
-                    self.state.company = company_match.group(1).strip()
-                    print(f"Extracted company from request: '{self.state.company}'")
-                
-                # If no company was extracted but topic is set, use topic as company
-                if not self.state.company and self.state.topic:
-                    self.state.company = self.state.topic
-                
-                # Set topic if not already set
-                if not self.state.topic:
-                    self.state.topic = self.state.user_request
-                
-                # Directly set the crew type for meeting prep
-                self.state.selected_crew = "MEETING_PREP"
-                print(f"Detected meeting prep request for company: '{self.state.company}'")
-            # Detect lead scoring requests
-            elif any(word in request_lower for word in ["lead", "score", "scoring", "prospect", "qualification"]):
-                # Set topic if not already set
-                if not self.state.topic:
-                    self.state.topic = "Lead Scoring"
-                
-                # Directly set the crew type for lead scoring
-                self.state.selected_crew = "LEAD_SCORING"
-                print(f"Detected lead scoring request")
-            # Detect contact finder requests
-            elif any(word in request_lower for word in ["contact", "find contact", "sales contact", "buyer", "decision maker"]):
-                # Extract company name if possible
-                company_match = re.search(r"for\s+([A-Z][a-zA-Z\s]+)", self.state.user_request)
-                if company_match:
-                    self.state.company = company_match.group(1).strip()
-                    print(f"Extracted target company from request: '{self.state.company}'")
-                
-                # Extract product name if possible
-                product_match = re.search(r"selling\s+([A-Za-z0-9\s]+)", self.state.user_request)
-                if product_match:
-                    self.state.our_product = product_match.group(1).strip()
-                    print(f"Extracted product from request: '{self.state.our_product}'")
-                
-                # Set topic if not already set
-                if not self.state.topic:
-                    self.state.topic = f"Contact Finder for {self.state.company}"
-                
-                # Directly set the crew type for contact finder
-                self.state.selected_crew = "CONTACT_FINDER"
-                print(f"Detected contact finder request for company: '{self.state.company}'")
-            else:
-                # Use the request as the topic
-                self.state.topic = self.state.user_request
-                print(f"Using request as topic: '{self.state.topic}'")
+        # Update state with routing results
+        self.state.selected_crew = routing_result["crew_type"]
         
-        # If no crew is selected yet, try to determine based on the request
-        if not self.state.selected_crew:
-            try:
-                # Use the reception crew to determine which crew should handle the request
-                reception_crew = ReceptionCrew()
-                routing_decision = reception_crew.kickoff(inputs={"request": self.state.user_request})
-                print(f"Routing decision: {routing_decision}")
-                
-                # Extract crew type and update topic if provided
-                self.state.selected_crew = routing_decision.get("crew_type", "UNKNOWN")
-                if routing_decision.get("topic"):
-                    self.state.topic = routing_decision.get("topic")
-            except Exception as e:
-                print(f"Error in AI routing: {str(e)}")
-                # Fallback to keyword-based routing
-                self.determine_crew()
+        # Update topic if provided and not already set
+        if routing_result["topic"] and (not self.state.topic or self.state.topic == self.state.user_request):
+            self.state.topic = routing_result["topic"]
+        
+        # Update any additional parameters
+        for param, value in routing_result.get("parameters", {}).items():
+            if hasattr(self.state, param) and value:
+                setattr(self.state, param, value)
         
         print(f"Selected crew: {self.state.selected_crew}")
         print(f"Updated topic: {self.state.topic}")
@@ -176,421 +59,269 @@ class ReceptionFlow(Flow[ContentState]):
         router_decision = self.state.selected_crew
         print(f"Router determining which crew to use based on: {router_decision}")
         
-        # If no crew type is selected, use keyword-based detection
+        # If no crew type is selected or it's UNKNOWN, try the reception crew
         if not router_decision or router_decision == "UNKNOWN":
-            # Determine crew type based on keywords in the request
-            request_lower = self.state.user_request.lower()
-            
-            if any(word in request_lower for word in ["poeme", "poem", "poetry", "verse", "stanza"]):
-                self.state.selected_crew = "POEM"
-            elif any(word in request_lower for word in ["recette", "recipe", "cooking", "cuisine", "food"]):
-                self.state.selected_crew = "COOKING"
-            elif any(word in request_lower for word in ["news", "actualité", "information", "article", "report"]):
-                self.state.selected_crew = "NEWS"
-            elif any(word in request_lower for word in ["book", "livre", "library", "bibliothèque", "roman", "novel", "author", "auteur"]):
-                self.state.selected_crew = "LIBRARY"
-            elif any(word in request_lower for word in ["meeting", "prep", "réunion", "préparation", "agenda", "minutes"]):
-                self.state.selected_crew = "MEETING_PREP"
-            elif any(word in request_lower for word in ["lead", "score", "scoring", "prospect", "qualification"]):
-                self.state.selected_crew = "LEAD_SCORING"
-            elif any(word in request_lower for word in ["contact", "find contact", "sales contact", "buyer", "decision maker"]):
-                self.state.selected_crew = "CONTACT_FINDER"
+            # Use the reception crew to determine which crew should handle the request
+            routing_decision = ReceptionCrew().crew().kickoff(
+                inputs={
+                    "user_request": self.state.user_request, 
+                    "topic": self.state.topic,
+                }
+            )
+            print(f"Reception crew routing decision: {routing_decision}")
+
+            # Extract crew type and update topic if provided
+            if isinstance(routing_decision, dict) and "crew_type" in routing_decision:
+                self.state.selected_crew = routing_decision["crew_type"]
+                if "topic" in routing_decision and routing_decision["topic"]:
+                    self.state.topic = routing_decision["topic"]
             else:
-                self.state.selected_crew = "UNKNOWN"  # No matching crew for this request
-                
-            print(f"Determined crew type from request: {self.state.selected_crew}")
-            router_decision = self.state.selected_crew
+                print("Warning: Invalid routing decision format. Using default crew type.")
+                # Default to NEWS if reception crew fails
+                self.state.selected_crew = "NEWS"
+        
+        print(f"Final crew selection: {self.state.selected_crew}")
         
         # Map crew types to their respective generation methods
-        if router_decision == "NEWS":
-            return "GENERATE_NEWS"
-        elif router_decision == "POEM":
-            return "GENERATE_POEM"
-        elif router_decision == "COOKING":
-            return "GENERATE_RECIPE"
-        elif router_decision == "LIBRARY":
-            return "GENERATE_BOOK_SUMMARY"
-        elif router_decision == "MEETING_PREP":
-            return "GENERATE_MEETING_PREP"
-        elif router_decision == "CONTACT_FINDER":
-            return "GENERATE_CONTACT_INFO"
-        else:
-            return "UNKNOWN"
+        crew_to_method_map = {
+            "NEWS": "GENERATE_NEWS",
+            "POEM": "GENERATE_POEM",
+            "COOKING": "GENERATE_RECIPE",
+            "LIBRARY": "GENERATE_BOOK_SUMMARY",
+            "MEETING_PREP": "GENERATE_MEETING_PREP",
+            "LEAD_SCORING": "GENERATE_LEAD_SCORE",
+            "CONTACT_FINDER": "GENERATE_CONTACT_INFO",
+            "HOLIDAY_PLANNER": "GENERATE_HOLIDAY_PLAN"
+        }
+        
+        # Get the method name from the map, or default to "UNKNOWN"
+        return crew_to_method_map.get(self.state.selected_crew, "UNKNOWN")
 
-    @listen("GENERATE_POEM")
+    @listen(determine_crew)
     def generate_poem(self):
-        print(f"Generating poem about: {self.state.topic}")
-        
-        # Define the output file path directly
-        output_file = "output/poem/poem.html"
-        
-        # Ensure the output directory exists
-        os.makedirs(os.path.dirname(output_file), exist_ok=True)
-        
-        try:
-            # Create the poem crew
-            poem_crew = PoemCrew()
-            poem_crew.kickoff(inputs={
-                "topic": self.state.user_request,
-                "output_file": output_file,
-                "sentence_count": self.state.sentence_count
-            })
-            
-            # Read the generated poem from the file
-            print("Reading poem from file")
-            with open(output_file, "r") as f:
-                poem_content = f.read()
-        
-            # Store the poem content in both ways to ensure compatibility
-            self.state.poem = poem_content
-            self.state.content["poem"] = poem_content
-                
-            # Directly call generate_post_report to ensure email is sent
-            print("Generating post report for poem...")
-            self.generate_post_report()
-            
-            return "CONTENT_GENERATED"
-        except Exception as e:
-            print(f"Error generating poem: {str(e)}")
-            return "ERROR"
-            
-    @listen("GENERATE_NEWS")
-    def generate_news(self):
-        print(f"Generating news about: {self.state.topic}")
-        
-        # Define the output file path directly
-        output_file = "output/news/news.html"
-        os.makedirs(os.path.dirname(output_file), exist_ok=True)
-        
-        try:
-            # Create the news crew
-            news_crew = NewsCrew()
-            
-            # Generate the news
-            news_crew.kickoff(inputs={
-                "topic": self.state.topic,
-                "output_file": output_file,
-                "sentence_count": self.state.sentence_count
-            })
-            
-            # Read the generated news from the file
-            print("Reading news from file")
-            with open(output_file, "r") as f:
-                news_content = f.read()
-            
-            # Store the news content in both ways to ensure compatibility
-            self.state.news = news_content
-            self.state.content["news"] = news_content
-                
-            # Directly call generate_post_report to ensure email is sent
-            print("Generating post report for news...")
-            self.generate_post_report()
-            
-            return "CONTENT_GENERATED"
-        except Exception as e:
-            print(f"Error generating news: {str(e)}")
-            import traceback
-            traceback.print_exc()
-            error_message = f"Error generating news: {str(e)}"
-            self.state.news = error_message
-            self.state.content["news"] = error_message
-            return "ERROR"
+        if self.state.selected_crew == "POEM":
 
-    @listen("GENERATE_RECIPE")
-    def generate_recipe(self):
-        print(f"Generating recipe for: {self.state.topic}")
-        
-        try:
-            # Create the cooking crew
-            cooking_crew = CookingCrew()
+            """Generate a poem based on the topic"""
+            print(f"Generating poem about: {self.state.topic}")
             
-            # Generate the recipe
-            recipe_content = cooking_crew.kickoff(inputs={
+            # Define the output file path
+            self.state.output_file = "output/poem/poem.html"
+            
+            # Create and kickoff the poem crew
+            result = PoemCrew().crew().kickoff(inputs={
                 "topic": self.state.topic,
+                "user_request": self.state.user_request,
+                "sentence_count": self.state.sentence_count,
+                "output_file": self.state.output_file
+            })
+                
+           
+    @listen(determine_crew)
+    def generate_news(self):
+        if self.state.selected_crew == "NEWS":
+            
+            """Generate news content based on the topic"""
+            print(f"Generating news about: {self.state.topic}")
+            
+            # Define the output file path directly
+            self.state.output_file = "output/news/news.html"
+            
+
+            # Generate the news
+            NewsCrew().crew().kickoff(inputs={
+                "topic": self.state.topic,
+                "output_file": self.state.output_file,
+                "sentence_count": self.state.sentence_count
+            })
+              
+
+    @listen(determine_crew)
+    def generate_recipe(self):
+        if self.state.selected_crew == "COOKING":
+            
+            """Generate a recipe based on the topic"""
+            print(f"Generating recipe for: {self.state.topic}")
+            
+            # Define the output file path directly
+            self.state.output_file = "output/cooking/recipe.html"
+            
+            # try:
+                
+                
+            # Generate the recipe
+            CookingCrew().crew().kickoff(inputs={
+                "topic": self.state.topic,
+                "output_file": self.state.output_file,
                 "sendto": self.state.sendto
             })
-            
-            # Store the recipe content in both ways to ensure compatibility
-            self.state.recipe = recipe_content
-            self.state.content["recipe"] = recipe_content
                 
-            # Directly call generate_post_report to ensure email is sent
-            print("Generating post report for recipe...")
-            self.generate_post_report()
-            
-            return "CONTENT_GENERATED"
-        except Exception as e:
-            print(f"Error generating recipe: {str(e)}")
-            import traceback
-            traceback.print_exc()
-            error_message = f"Error generating recipe: {str(e)}"
-            self.state.recipe = error_message
-            self.state.content["recipe"] = error_message
-            return "ERROR"
-
-    @listen("GENERATE_BOOK_SUMMARY")
+    @listen(determine_crew)
     def generate_book_summary(self):
-        print(f"Generating book summary for: {self.state.topic}")
-        
-        # Define the output file path directly
-        output_file = "output/library/book_summary.html"
-        os.makedirs(os.path.dirname(output_file), exist_ok=True)
-        
-        try:
-            # Create the library crew
-            library_crew = LibraryCrew()
+        if self.state.selected_crew == "LIBRARY":
+            
+            """Generate a book summary based on the topic"""
+            print(f"Generating book summary for: {self.state.topic}")
+            
+            # Define the output file path directly
+            self.state.output_file  = "output/library/book_summary.html"
+
             
             # Generate the book summary
-            library_crew.kickoff(inputs={
-                "book_title": self.state.topic,
-                "output_file": output_file,
-                "sentence_count": self.state.sentence_count
-            })
-            
-            # Read the generated book summary from the file
-            print("Reading book summary from file")
-            with open(output_file, "r") as f:
-                book_summary_content = f.read()
-            
-            # Store the book summary content in both ways to ensure compatibility
-            self.state.book_summary = book_summary_content
-            self.state.content["book_summary"] = book_summary_content
-                
-            # Directly call generate_post_report to ensure email is sent
-            print("Generating post report for book summary...")
-            self.generate_post_report()
-            
-            return "CONTENT_GENERATED"
-        except Exception as e:
-            print(f"Error generating book summary: {str(e)}")
-            import traceback
-            traceback.print_exc()
-            error_message = f"Error generating book summary: {str(e)}"
-            self.state.book_summary = error_message
-            self.state.content["book_summary"] = error_message
-            return "ERROR"
-
-    @listen("GENERATE_MEETING_PREP")
-    def generate_meeting_prep(self):
-        print(f"Generating meeting prep for: {self.state.topic}")
-        
-        # Define the output file path directly
-        output_file = "output/meeting/meeting_prep.html"
-        os.makedirs(os.path.dirname(output_file), exist_ok=True)
-        
-        try:
-            # Create the meeting prep crew
-            meeting_prep_crew = MeetingPrepCrew()
-            
-            # Generate the meeting prep
-            meeting_prep_crew.kickoff(inputs={
-                "company": self.state.company,
-                "participants": self.state.participants,
-                "context": self.state.context,
-                "objective": self.state.objective,
-                "prior_interactions": self.state.prior_interactions,
-                "output_file": output_file
-            })
-            
-            # Read the generated meeting prep from the file
-            print("Reading meeting prep from file")
-            with open(output_file, "r") as f:
-                meeting_prep_content = f.read()
-            
-            # Store the meeting prep content in both ways to ensure compatibility
-            self.state.meeting_prep = meeting_prep_content
-            self.state.content["meeting_prep"] = meeting_prep_content
-                
-            # Directly call generate_post_report to ensure email is sent
-            print("Generating post report for meeting prep...")
-            self.generate_post_report()
-            
-            return "CONTENT_GENERATED"
-        except Exception as e:
-            print(f"Error generating meeting prep: {str(e)}")
-            import traceback
-            traceback.print_exc()
-            error_message = f"Error generating meeting prep: {str(e)}"
-            self.state.meeting_prep = error_message
-            self.state.content["meeting_prep"] = error_message
-            return "ERROR"
-
-    @listen("GENERATE_CONTACT_INFO")
-    def generate_contact_info(self):
-        print(f"Finding contacts at: {self.state.company} for product: {self.state.our_product}")
-        
-        try:
-            # Create the contact finder crew
-            contact_finder = ContactFinderCrew()
-            
-            # Generate the contact information
-            contact_content = contact_finder.kickoff(inputs={
-                "company": self.state.company,
-                "our_product": self.state.our_product,
+            return LibraryCrew().crew().kickoff(inputs={
+                "topic": self.state.topic,
+                "output_file": self.state.output_file,
                 "sendto": self.state.sendto
             })
-            
-            # Store the contact information in both ways to ensure compatibility
-            self.state.contact_info = contact_content
-            self.state.content["contact_info"] = contact_content
                 
-            # Directly call generate_post_report to ensure email is sent
-            print("Generating post report for contact information...")
-            self.generate_post_report()
+    @listen(determine_crew)
+    def generate_meeting_prep(self):
+        if self.state.selected_crew == "MEETING_PREP":
             
-            return "CONTENT_GENERATED"
-        except Exception as e:
-            print(f"Error finding contacts: {str(e)}")
-            import traceback
-            traceback.print_exc()
-            error_message = f"Error finding contacts: {str(e)}"
-            self.state.contact_info = error_message
-            self.state.content["contact_info"] = error_message
-            return "ERROR"
-
-    @listen("UNKNOWN")
-    def handle_unknown(self):
-        print("Unknown request type, cannot process")
-        return "ERROR"
-
-    @listen(or_("CONTENT_GENERATED", "ERROR"))
-    def generate_post_report(self):
-        # Only run if something was generated
-        if not self.state.news and not self.state.recipe and not self.state.poem and not self.state.book_summary and not self.state.meeting_prep and not self.state.lead_score and not self.state.contact_info:
-            print("No content was generated, skipping post report")
-            return
-            
-        print("Generating post report")
+            """
+            Generate meeting preparation content based on the company name
+            """
+            print(f"Generating meeting prep for company: {self.state.company}")
         
-        try:
-            # Create the post crew with required parameters
-            post_crew = PostCrew(
-                topic=self.state.topic,
-                recipient_email=self.state.sendto
-            )
+         # Ensure we have a company name
+            if not self.state.company and self.state.topic:
+                self.state.company = self.state.topic
+                print(f"Using topic as company name: {self.state.company}")
             
-            # Generate the post report
-            result = post_crew.kickoff(inputs={
-                "news": self.state.news,
-                "poem": self.state.poem,
-                "recipe": self.state.recipe,
-                "book_summary": self.state.book_summary,
-                "meeting_prep": self.state.meeting_prep,
-                "lead_score": self.state.lead_score,
-                "contact_info": self.state.contact_info
-            })
-            
-            print("Post report generated successfully")
-            # Store the post report in both ways to ensure compatibility
-            self.state.post_report = result.raw
-            self.state.content["post_report"] = result.raw
-            
-            # Save the post report
-            print("Saving post report")
-        except Exception as e:
-            print(f"Error generating post report: {str(e)}")
-            import traceback
-            traceback.print_exc()
-            self.state.post_report = f"Error generating post report: {str(e)}"
-            self.state.content["post_report"] = f"Error generating post report: {str(e)}"
+            # Define the output file path
+            self.state.output_file = f"output/meeting/meeting_preparation.html"
 
-    @listen(or_("CONTENT_GENERATED", "ERROR"))
+            # Generate the meeting prep
+            return  MeetingPrepCrew().crew().kickoff(inputs={
+                "company": self.state.company,
+                "output_file": self.state.output_file,
+                "sendto": self.state.sendto,
+                "prior_interactions": self.state.prior_interactions,
+                "context": self.state.context,
+                "objective": self.state.objective,
+                "participants": self.state.participants
+            })
+
+
+    @listen(determine_crew)
+    def generate_contact_info(self):
+        if self.state.selected_crew == "CONTACT_FINDER":
+            """Generate contact information for a company"""
+            print(f"Finding contacts at: {self.state.company} for product: {self.state.our_product}")
+            
+            self.state.output_file = "output/contact_finder/approach_strategy.html"
+
+            inputs={
+                "company": self.state.company,
+                "our_product": self.state.our_product,
+                "output_file": self.state.output_file,
+                "sendto": self.state.sendto,
+            }
+
+            return ContactFinderCrew().crew().kickoff(inputs=inputs)
+            
+
+    @listen(determine_crew)
+    def generate_holiday_plan(self):
+        if self.state.selected_crew == "HOLIDAY_PLANNER":
+            
+            # """Generate a holiday plan based on the destination"""
+            # print(f"Generating holiday plan for: {self.state.destination}")
+            
+            # # Extract parameters from the request if not already set
+            # if not self.state.destination and self.state.topic:
+            #     # Try to extract destination from the topic
+            #     self.state.destination = self.state.topic
+            #     print(f"Using topic as destination: {self.state.destination}")
+            
+            #     # Extract duration if not set
+            #     if not self.state.duration and self.state.user_request:
+            #         # Try to extract duration from the request
+            #         duration_match = re.search(r"for\s+a\s+([a-zA-Z0-9\s]+)(?:\s+trip|\s+vacation|\s+holiday)?", self.state.user_request, re.IGNORECASE)
+            #         if duration_match:
+            #             self.state.duration = duration_match.group(1).strip()
+            #             print(f"Extracted duration: {self.state.duration}")
+            #         else:
+            #             # Default to weekend if not specified
+            #             self.state.duration = "weekend"
+                
+            #     # Set default family if not specified
+            #     if not self.state.family:
+            #         self.state.family = "family of 4 (2 adults, 2 children)"
+                
+            #     # Set default origin if not specified
+            #     if not self.state.origin:
+            #         self.state.origin = "Geneva, Switzerland"
+                
+            #     # Create output directory
+            #   
+            #     print(f"Parameters: Destination={self.state.destination}, Duration={self.state.duration}, Family={self.state.family}, Origin={self.state.origin}")
+                
+              
+            #     # Create the holiday planner crew
+            #     holiday_crew = HolidayPlannerCrew()
+            
+            self.state.output_file="output/holiday/destination.md"
+            # Prepare inputs
+            inputs = {
+                "destination": self.state.destination,
+                "duration": self.state.duration,
+                "family": self.state.family,
+                "origin": self.state.origin,
+                "special_needs": self.state.special_needs,
+                "output_file": self.state.output_file,
+            }
+
+            print(f"Starting HolidayPlannerCrew with inputs: {inputs}")
+
+            # Run the crew
+            return HolidayPlannerCrew().crew().kickoff(inputs=inputs)
+                
+
+
+    @listen(or_(generate_holiday_plan,generate_contact_info,generate_meeting_prep,generate_book_summary,generate_recipe,generate_poem,generate_news))
     def send_email(self):
         """Send an email with the generated content"""
-        print(f"Sending email to {self.state.sendto}")
-        print(f"Selected crew: {self.state.selected_crew}")
-        print(f"Content keys: {list(self.state.content.keys())}")
-        print(f"Content values: {[k for k, v in self.state.content.items() if v]}")
-        print(f"Direct poem access: {bool(self.state.poem)}")
         
-        try:
-            # Define content mapping for different crew types
-            content_mapping = {
-                "NEWS": "news",
-                "POEM": "poem",
-                "COOKING": "recipe",
-                "LIBRARY": "book_summary",
-                "MEETING_PREP": "meeting_prep",
-                "LEAD_SCORING": "lead_score",
-                "CONTACT_FINDER": "contact_info"
+        # Reset the email_sent flag to ensure we always send an email
+        # self.state.email_sent = False
+        
+        # Check if we've already sent an email for this flow run
+        if hasattr(self.state, 'email_sent') and self.state.email_sent:
+            print("Email already sent, skipping")
+            return
+        else: 
+            print(f"Sending email to {self.state.sendto}, crew_type: {self.state.selected_crew}, content : {self.state.output_file}")
+            
+            # Initialize PostCrew with the necessary inputs
+            inputs = {
+                'book_summary': self.state.book_summary,
+                'contact_info': self.state.contact_info,
+                'crew_type': self.state.selected_crew,
+                'lead_score': self.state.lead_score,
+                'meeting_prep': self.state.meeting_prep,
+                'news': self.state.news,
+                'output_file': self.state.output_file,
+                'poem': self.state.poem,
+                'recipe': self.state.recipe,
+                'recipient_email': self.state.sendto,
+                'topic': self.state.topic,
             }
             
-            # Include all available content in the email
-            email_content = {}
+            # Mark that we've sent an email
+            self.state.email_sent = True
             
-            # Add content based on the selected crew
-            content_key = content_mapping.get(self.state.selected_crew)
-            print(f"Content key from mapping: {content_key}")
-            
-            if content_key:
-                # Try both access methods
-                content_from_dict = self.state.content.get(content_key)
-                content_direct = getattr(self.state, content_key, "")
-                
-                print(f"Content from dict: {bool(content_from_dict)}")
-                print(f"Content direct: {bool(content_direct)}")
-                
-                if content_from_dict:
-                    email_content[content_key] = content_from_dict
-                elif content_direct:
-                    email_content[content_key] = content_direct
-            
-            # Add post report if available
-            if self.state.post_report:
-                email_content["post_report"] = self.state.post_report
-            
-            # Send the email
-            if email_content:
-                print(f"Sending email with content: {list(email_content.keys())}")
-                
-                # Create a simple HTML email
-                html_content = "<html><body>"
-                
-                # Add the main content
-                for content_type, content in email_content.items():
-                    if content:
-                        if content_type == "post_report":
-                            html_content += f"<h2>Additional Information</h2>{content}"
-                        else:
-                            html_content += content
-                
-                html_content += "</body></html>"
-                
-                # Save the email content to a file for debugging
-                os.makedirs("output/email", exist_ok=True)
-                with open("output/email/email_content.html", "w") as f:
-                    f.write(html_content)
-                
-                print(f"Email content saved to output/email/email_content.html")
-                print(f"Email would be sent to {self.state.sendto}")
-                
-                return "EMAIL_SENT"
-            else:
-                print("No content to send in the email")
-                return "NO_CONTENT"
-        except Exception as e:
-            print(f"Error sending email: {str(e)}")
-            import traceback
-            traceback.print_exc()
-            return "ERROR"
-
+            # Execute the PostCrew to send the email
+            return PostCrew().crew().kickoff(inputs=inputs)
 
 def kickoff():
-    try:
-        reception_flow = ReceptionFlow()
-        reception_flow.kickoff()
-    except KeyboardInterrupt:
-        print("\n\nProcess was interrupted by user. Shutting down gracefully...")
-        return 1
-    except Exception as e:
-        print(f"Error in flow execution: {str(e)}")
-        return 1
-    return 0
+    reception_flow = ReceptionFlow()
+    reception_flow.kickoff()
+    
 
 def plot():
     reception_flow = ReceptionFlow()
     reception_flow.plot()
 
-
 if __name__ == "__main__":
+    init()
     kickoff()

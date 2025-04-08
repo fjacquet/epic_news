@@ -13,12 +13,11 @@ toolset = ComposioToolSet()
 # Get search tools for finding company and contact information
 search_tools = toolset.get_tools(actions=[
     'COMPOSIO_SEARCH_SEARCH',
-    'COMPOSIO_SEARCH_TAVILY_SEARCH',
+    'COMPOSIO_SEARCH_DUCK_DUCK_GO_SEARCH',
+    'COMPOSIO_SEARCH_FINANCE_SEARCH',
+    'COMPOSIO_SEARCH_NEWS_SEARCH',
 ])
 
-# Set environment variables to increase timeouts
-os.environ["LITELLM_TIMEOUT"] = "300"  # 5 minutes timeout
-os.environ["OPENAI_TIMEOUT"] = "300"   # 5 minutes timeout
 
 @CrewBase
 class ContactFinderCrew():
@@ -30,23 +29,12 @@ class ContactFinderCrew():
     agents_config = 'config/agents.yaml'
     tasks_config = 'config/tasks.yaml'
 
-    def __init__(self):
-        """Initialize the ContactFinder crew"""
-        # Create necessary directories
-        os.makedirs("output", exist_ok=True)
-        os.makedirs("output/contact_finder", exist_ok=True)
-        
-        # Default values
-        self.company = ""
-        self.our_product = ""
-        self.sendto = ""
 
     @agent
     def company_researcher(self) -> Agent:
         return Agent(
             config=self.agents_config["company_researcher"],
             tools=search_tools,
-            allow_delegation=False,
             verbose=True,
             llm_timeout=300
         )
@@ -56,7 +44,6 @@ class ContactFinderCrew():
         return Agent(
             config=self.agents_config["org_structure_analyst"],
             tools=search_tools,
-            allow_delegation=False,
             verbose=True,
             llm_timeout=300
         )
@@ -66,7 +53,6 @@ class ContactFinderCrew():
         return Agent(
             config=self.agents_config["contact_finder"],
             tools=search_tools,
-            allow_delegation=False,
             verbose=True,
             llm_timeout=300
         )
@@ -76,7 +62,6 @@ class ContactFinderCrew():
         return Agent(
             config=self.agents_config["sales_strategist"],
             tools=search_tools,
-            allow_delegation=False,
             verbose=True,
             llm_timeout=300
         )
@@ -122,45 +107,7 @@ class ContactFinderCrew():
             process=Process.sequential,
             verbose=True,
             memory=True,
-            # max_rpm=10,  # Rate limiting to avoid overwhelming the API
             manager_llm_timeout=300,  # 5 minutes timeout for manager LLM
             task_timeout=1800,  # 30 minutes timeout for each task
             manager_llm="gpt-4o",
         )
-    
-    def find_contacts(self):
-        """Generate contact information and return the formatted result for email distribution"""
-        # Set default values if not provided
-        company = getattr(self, 'company', "iFage | Fondation pour la formation des adultes")
-        our_product = getattr(self, 'our_product', "PowerStore")
-        
-        # Get the output file path
-        output_file = 'output/contact_finder/key_contacts.md'
-        
-        # Run the crew with inputs
-        self.crew().kickoff(inputs={
-            "company": company,
-            "our_product": our_product
-        })
-        
-        # Return the path to the output file
-        return output_file
-    
-    def kickoff(self, inputs=None):
-        """Start the crew with the given inputs."""
-        if inputs:
-            if 'company' in inputs:
-                self.company = inputs['company']
-            if 'our_product' in inputs:
-                self.our_product = inputs['our_product']
-            if 'sendto' in inputs:
-                self.sendto = inputs['sendto']
-        
-        # Generate the contact information and return the result
-        output_file = self.find_contacts()
-        
-        # Read the generated contact information from the file
-        with open(output_file, "r") as f:
-            contact_content = f.read()
-            
-        return contact_content

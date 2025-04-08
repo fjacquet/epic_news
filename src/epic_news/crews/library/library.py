@@ -1,6 +1,18 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
+from composio_crewai import ComposioToolSet, App, Action
+from dotenv import load_dotenv
 
+load_dotenv()
+
+# Initialize the toolset
+toolset = ComposioToolSet()
+
+search_tools = toolset.get_tools(actions=[
+    'COMPOSIO_SEARCH_SEARCH',
+    'COMPOSIO_SEARCH_TAVILY_SEARCH',
+],
+)
 # If you want to run a snippet of code before or after the crew starts,
 # you can use the @before_kickoff and @after_kickoff decorators
 # https://docs.crewai.com/concepts/crews#example-crew-class-with-decorators
@@ -47,27 +59,7 @@ class LibraryCrew():
             output_file='output/library/book_summary.html'
         )
 
-    def generate_book_summary(self):
-        """Generate a book summary and return the output file path"""
-        # Set default values for book parameters
-        topic = getattr(self, 'topic', "science fiction")
-        sendto = getattr(self, 'sendto', "fred.jacquet@gmail.com")
-        
-        # Define the output file path
-        output_file = 'output/library/book_summary.html'
-        
-        # Create necessary directories
-        import os
-        os.makedirs("output/library", exist_ok=True)
-        
-        # Run the crew with inputs
-        self.crew().kickoff(inputs={
-            "topic": topic,
-            "sendto": sendto
-        })
-        
-        # Return the path to the output file
-        return output_file
+
 
     @crew
     def crew(self) -> Crew:

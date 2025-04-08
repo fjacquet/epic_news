@@ -2,26 +2,18 @@ from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from composio_crewai import ComposioToolSet, App, Action
 from dotenv import load_dotenv
-import os
-
 
 load_dotenv()
 
 # Initialize the toolset
 toolset = ComposioToolSet()
 
-
 search_tools = toolset.get_tools(actions=[
     'COMPOSIO_SEARCH_SEARCH',
     'COMPOSIO_SEARCH_TAVILY_SEARCH',
+    'COMPOSIO_SEARCH_DUCK_DUCK_GO_SEARCH',
 ],
 )
-
-
-# Set environment variables to increase timeouts
-os.environ["LITELLM_TIMEOUT"] = "300"  # 5 minutes timeout
-os.environ["OPENAI_TIMEOUT"] = "300"   # 5 minutes timeout
-
 @CrewBase
 class CookingCrew:
     """Cooking expertise crew for finding recipes, ingredients, and preparation steps"""
@@ -31,11 +23,6 @@ class CookingCrew:
     # Tasks: https://docs.crewai.com/concepts/tasks#yaml-configuration-recommended
     agents_config = 'config/agents.yaml'
     tasks_config = 'config/tasks.yaml'
-
-    def __init__(self):
-        # Create necessary directories
-        os.makedirs("output", exist_ok=True)
-        os.makedirs("output/cooking", exist_ok=True)
 
     # If you would like to add tools to your agents, you can learn more about it here:
     # https://docs.crewai.com/concepts/agents#agent-tools
@@ -98,43 +85,9 @@ class CookingCrew:
                 self.ingredient_listing_task(), 
                 self.preparation_steps_task()
             ],
-            output_file='output/cooking/complete_recipe.html'
+            output_file='output/cooking/recipe.html'
         )
 
-    def generate_recipe(self):
-        """Generate a recipe and return the formatted result for email distribution"""
-        # Set default values for recipe parameters
-        topic = getattr(self, 'topic', "quiche au saumon et asperges vertes")
-        sendto = getattr(self, 'sendto', "fred.jacquet@gmail.com")
-        
-        # Get the output file path directly
-        output_file = 'output/cooking/complete_recipe.html'
-        
-        # Run the crew with simplified inputs
-        self.crew().kickoff(inputs={
-            "topic": topic,
-            "sendto": sendto
-        })
-        
-        # Return the path to the output file
-        return output_file
-        
-    def kickoff(self, inputs=None):
-        """Start the crew with the given inputs."""
-        if inputs:
-            if 'topic' in inputs:
-                self.topic = inputs['topic']
-            if 'sendto' in inputs:
-                self.sendto = inputs['sendto']
-                
-        # Generate the recipe and return the result
-        output_file = self.generate_recipe()
-        
-        # Read the generated recipe from the file
-        with open(output_file, "r") as f:
-            recipe_content = f.read()
-            
-        return recipe_content
 
     @crew
     def crew(self) -> Crew:
@@ -146,7 +99,7 @@ class CookingCrew:
             memory=True,
             verbose=True,
             process=Process.sequential,
-            max_rpm=10,  # Rate limiting to avoid overwhelming the API
+            # max_rpm=10,  # Rate limiting to avoid overwhelming the API
             manager_llm_timeout=300,  # 5 minutes timeout for manager LLM
             task_timeout=1800, # 30 minutes timeout for each task
             manager_llm="gpt-4o",

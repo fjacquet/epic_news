@@ -1,7 +1,37 @@
 write_poem:
   description: >
-    Write a poem in french about how {topic} .
-    Ensure the poem is engaging and adheres to the specified sentence count of {sentence_count}.
+    Write a poem in french about {topic}.
+    The poem should be engaging and have exactly {sentence_count} sentences.
+    
+    Format the poem as a complete HTML document with:
+    - Proper DOCTYPE and HTML structure
+    - UTF-8 charset to support French accents
+    - A descriptive title related to the topic
+    - The poem content wrapped in paragraph tags
+    - Line breaks (<br>) at the end of each line
+    - Appropriate spacing between stanzas if applicable
+    
+    Example structure:
+    ```html
+    <!DOCTYPE html>
+    <html lang="fr">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Poème sur [Topic]</title>
+    </head>
+    <body>
+        <h1>[Appropriate Title]</h1>
+        <p>
+        [First line]<br>
+        [Second line]<br>
+        [Third line]<br>
+        </p>
+    </body>
+    </html>
+    ```
   expected_output: >
-    A beautifully crafted poem about {topic} , with exactly {sentence_count} sentences formated in HTML.
+    A beautifully crafted poem about {topic} in HTML format.
+    Save the poem as an HTML file at {output_file} without the ```html``` tags.
+    Ensure the HTML is properly formatted and will display correctly when sent via email.
   agent: poem_writer

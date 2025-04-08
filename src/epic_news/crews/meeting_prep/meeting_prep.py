@@ -2,7 +2,7 @@ from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from composio_crewai import ComposioToolSet, App, Action
 from dotenv import load_dotenv
-import os
+
 load_dotenv()
 
 # Initialize the toolset
@@ -37,8 +37,7 @@ class MeetingPrepCrew():
         self.objective = ""
         self.prior_interactions = ""
         
-        # Create necessary directories
-        os.makedirs("output/meeting", exist_ok=True)
+
 
     # If you would like to add tools to your agents, you can learn more about it here:
     # https://docs.crewai.com/concepts/agents#agent-tools
@@ -106,7 +105,7 @@ class MeetingPrepCrew():
         return Task(
             config=self.tasks_config["meeting_preparation_task"],
             agent=self.briefing_coordinator_agent(),
-            output_file="output/meeting/meeting_preparation.md"
+            output_file="output/meeting/meeting_preparation.html"
         )
         
     @crew
@@ -120,40 +119,11 @@ class MeetingPrepCrew():
             tasks=self.tasks, # Automatically created by the @task decorator
             process=Process.sequential,
             verbose=True,
+            memory=True,
+            cache=True,
+            llm_timeout=300,
+            llm_model="gpt-4o",
+            
             # process=Process.hierarchical, # In case you wanna use that instead https://docs.crewai.com/how-to/Hierarchical/
         )
-        
-    def generate_meeting_prep(self):
-        """
-        Generate a meeting preparation document and return the output file path.
-        
-        This method runs the MeetingPrepCrew to create a comprehensive meeting
-        preparation document based on the provided parameters.
-        
-        Returns:
-            str: The path to the generated meeting preparation document
-        """
-        # Define the output file path
-        output_file = "output/meeting/meeting_preparation.md"
-        
-        # Format participants list to string if it's a list
-        participants_str = ""
-        if isinstance(self.participants, list) and self.participants:
-            participants_str = ", ".join(self.participants)
-        elif isinstance(self.participants, str):
-            participants_str = self.participants
-        
-        # Create inputs dictionary with all parameters
-        inputs = {
-            "company": self.company or self.topic,  # Use topic as fallback
-            "participants": participants_str or "Not specified",
-            "context": self.context or "General business meeting",
-            "objective": self.objective or "Prepare for the upcoming meeting",
-            "prior_interactions": self.prior_interactions or "No prior interactions"
-        }
-        
-        # Run the crew with the inputs
-        self.crew().kickoff(inputs=inputs)
-        
-        # Return the output file path
-        return output_file
+    
