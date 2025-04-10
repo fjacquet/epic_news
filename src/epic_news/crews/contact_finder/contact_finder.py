@@ -107,6 +107,7 @@ class ContactFinderCrew():
             process=Process.sequential,
             verbose=True,
             memory=True,
+            cache=True,
             manager_llm_timeout=300,  # 5 minutes timeout for manager LLM
             task_timeout=1800,  # 30 minutes timeout for each task
        

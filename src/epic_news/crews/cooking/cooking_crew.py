@@ -96,8 +96,9 @@ class CookingCrew:
         return Crew(
             agents=self.agents, # Automatically created by the @agent decorator
             tasks=self.tasks, # Automatically created by the @task decorator
-            memory=True,
             verbose=True,
+            memory=True,
+            cache=True,
             process=Process.sequential,
             manager_llm_timeout=300,  # 5 minutes timeout for manager LLM
             task_timeout=1800, # 30 minutes timeout for each task

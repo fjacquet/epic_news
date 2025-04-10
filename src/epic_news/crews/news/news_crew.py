@@ -15,8 +15,7 @@ search_tools = toolset.get_tools(actions=['COMPOSIO_SEARCH_TAVILY_SEARCH'],)
 fact_checking_tools = toolset.get_tools(actions=[
     'COMPOSIO_SEARCH_NEWS_SEARCH',
     'COMPOSIO_SEARCH_TAVILY_SEARCH',
-    'COMPOSIO_SEARCH_DUCK_DUCK_GO_SEARCH',
-    'FIRECRAWL_EXTRACT'
+    'COMPOSIO_SEARCH_DUCK_DUCK_GO_SEARCH'
 ],)
 
 
@@ -113,8 +112,6 @@ class NewsCrew:
     @task
     def editing_task(self) -> Task:
         task_id = "editing_task"
-        
-    
         
         return Task(
             config=self.tasks_config[task_id],

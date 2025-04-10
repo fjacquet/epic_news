@@ -31,4 +31,6 @@ class ReceptionCrew:
             tasks=self.tasks,
             process=Process.sequential,
             verbose=True,
+            memory=True,
+            cache=True,
         )

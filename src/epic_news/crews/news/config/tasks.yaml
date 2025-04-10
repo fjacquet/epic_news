@@ -33,14 +33,13 @@ verification_task:
     Rate the credibility of each news item.
     
     IMPORTANT: For each news item that includes a URL or web link:
-    1. Use FIRECRAWL_EXTRACT tool to extract content from the URL and verify it exists
-    2. Confirm that the extracted content actually discusses {topic}
-    3. Extract the actual title from the page content
-    4. If a URL cannot be verified as both existing AND relevant to {topic}, either:
+    1. Confirm that the extracted content actually discusses {topic}
+    2. Extract the actual title from the page content
+    3. If a URL cannot be verified as both existing AND relevant to {topic}, either:
        a. Find an alternative, verifiable source using search tools
        b. Remove the URL entirely and clearly mark the information as "Source Needed"
-    5. Do not include generic website homepages (e.g., www.example.com) as sources
-    6. For each verified URL, include a direct quote from the extracted content that supports the claim
+    4. Do not include generic website homepages (e.g., www.example.com) as sources
+    5. For each verified URL, include a direct quote from the extracted content that supports the claim
     
   expected_output: >
     A verification report  in french containing:
@@ -49,10 +48,9 @@ verification_task:
     3. Identification of any contradictory information
     4. List of fully verified facts vs. claims requiring further verification
     5. For each URL included:
-       a. Confirmation that the URL was checked using FIRECRAWL_EXTRACT
-       b. The actual title extracted from the page
-       c. A direct quote from the source that relates to {topic}
-       d. Date when the URL was last verified
+       a. The actual title extracted from the page
+       b. A direct quote from the source that relates to {topic}
+       c. Date when the URL was last verified
   agent: fact_checker
 
 editing_task:
