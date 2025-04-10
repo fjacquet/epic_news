@@ -109,5 +109,5 @@ class ContactFinderCrew():
             memory=True,
             manager_llm_timeout=300,  # 5 minutes timeout for manager LLM
             task_timeout=1800,  # 30 minutes timeout for each task
-            manager_llm="gpt-4o",
+       
         )

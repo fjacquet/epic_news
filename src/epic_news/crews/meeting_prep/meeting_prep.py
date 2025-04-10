@@ -122,7 +122,6 @@ class MeetingPrepCrew():
             memory=True,
             cache=True,
             llm_timeout=300,
-            llm_model="gpt-4o",
             
             # process=Process.hierarchical, # In case you wanna use that instead https://docs.crewai.com/how-to/Hierarchical/
         )

@@ -99,8 +99,6 @@ class CookingCrew:
             memory=True,
             verbose=True,
             process=Process.sequential,
-            # max_rpm=10,  # Rate limiting to avoid overwhelming the API
             manager_llm_timeout=300,  # 5 minutes timeout for manager LLM
             task_timeout=1800, # 30 minutes timeout for each task
-            manager_llm="gpt-4o",
         )

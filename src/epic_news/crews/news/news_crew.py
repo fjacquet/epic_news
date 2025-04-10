@@ -135,8 +135,6 @@ class NewsCrew:
             memory=True,
             verbose=True,  
             process=Process.sequential,
-            manager_llm="gpt-4o",
-            max_rpm=5,  # Reduced rate limiting to avoid overwhelming the API
             manager_llm_timeout=600,  # 10 minutes timeout for manager LLM (increased from 5 minutes)
             task_timeout=3600,  # 60 minutes timeout for each task (increased from 30 minutes)
             max_retries=3  # Add retries for failed tasks
