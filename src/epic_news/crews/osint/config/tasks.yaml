@@ -1,17 +1,57 @@
-research_task:
-  description: >
-    Conduct a thorough research about {topic}
-    Make sure you find any interesting and relevant information given
-    the current year is {current_year}.
-  expected_output: >
-    A list with 10 bullet points of the most relevant information about {topic}
-  agent: researcher
+# research_task:
+#   description: >
+#     Conduct a thorough research about {topic}
+#     Make sure you find any interesting and relevant information given
+#     the current year is {current_year}.
+#   expected_output: >
+#     A list with 10 bullet points of the most relevant information about {topic}
+#   agent: researcher
 
-reporting_task:
+# reporting_task:
+#   description: >
+#     Review the context you got and expand each topic into a full section for a report.
+#     Make sure the report is detailed and contains any and all relevant information.
+#   expected_output: >
+#     A fully fledged report with the main topics, each with a full section of information.
+#     Formatted as markdown without '```'
+#   agent: reporting_analyst
+
+company_profile_task:
   description: >
-    Review the context you got and expand each topic into a full section for a report.
-    Make sure the report is detailed and contains any and all relevant information.
+    Create a company profile for {company_name}.
+    Make sure to include the company's mission, vision, values, and any other relevant information.
   expected_output: >
-    A fully fledged report with the main topics, each with a full section of information.
-    Formatted as markdown without '```'
-  agent: reporting_analyst
+    A company profile for {company_name} formatted as markdown without '```'
+  agent: company_profile_analyst
+
+financial_task:
+  description: >
+    Create a financial report for {company_name}.
+    Make sure to include the company's financial statements, ratios, and any other relevant information.
+  expected_output: >
+    A financial report for {company_name} formatted as markdown without '```'
+  agent: financial_analyst
+
+job_tech_task:
+  description: >
+    Create a job description for a job_title position at {company_name}.
+    Make sure to include the job's responsibilities, requirements, and any other relevant information.
+  expected_output: >
+    A job description for a job_title position at {company_name} formatted as markdown without '```'
+  agent: job_tech_analyst
+
+industry_innovation_task:
+  description: >
+    Collect patents and industry insights for {company_name}
+    Make sure to include the industry's trends, innovations, and any other relevant information.
+  expected_output: >
+    An industry innovation report for {company_name} formatted as markdown without '```'
+  agent: industry_innovation_analyst
+
+chief_coordinator_task:
+  description: >
+    Coordinate the tasks for the team.
+    Make sure to assign tasks to the team members and ensure that the tasks are completed on time.
+  expected_output: >
+    Compile OSINT report for {company_name} in Markdown format
+  agent: chief_coordinator

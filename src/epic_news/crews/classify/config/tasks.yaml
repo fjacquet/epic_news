@@ -1,0 +1,17 @@
+classification_task:
+  description: >
+    Analyze the provided user request: "{user_request}" and classify it into the most appropriate
+    category from the following options:
+    
+    {categories}
+    
+    Your task is to determine which specialized team should handle this request.
+    Consider the content, intent, and subject matter of the request.
+    
+    Provide your final classification decision along with a brief explanation of your reasoning.
+  expected_output: >
+    CATEGORY_NAME
+    
+    Where CATEGORY_NAME is one of the provided category options. Your response must start with the category name on the first line.
+  agent: classifier
+  output_file: output/classify/decision.md

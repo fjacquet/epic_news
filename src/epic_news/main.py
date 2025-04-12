@@ -1,103 +1,121 @@
 import os
-import datetime 
+import datetime
+import select 
 from pydantic import BaseModel, Field
-import re
+import re   
 
 from crewai.flow import Flow, listen, start, router, or_
-
-from epic_news.router import RequestRouter
-from epic_news.crews.contact_finder.contact_finder import ContactFinderCrew
+# from epic_news.router import RequestRouter
+from epic_news.crews.contact_finder.contact_finder_crew import ContactFinderCrew
 from epic_news.crews.cooking.cooking_crew import CookingCrew
-from epic_news.crews.holiday_planner.holiday_planner import HolidayPlannerCrew
-from epic_news.crews.library.library import LibraryCrew
-from epic_news.crews.meeting_prep.meeting_prep import MeetingPrepCrew
+from epic_news.crews.holiday_planner.holiday_planner_crew import HolidayPlannerCrew
+from epic_news.crews.library.library_crew import LibraryCrew
+from epic_news.crews.meeting_prep.meeting_prep_crew import MeetingPrepCrew
 from epic_news.crews.news.news_crew import NewsCrew
-from epic_news.crews.poem_crew.poem_crew import PoemCrew
-from epic_news.crews.post_crew.post_crew import PostCrew
-from epic_news.crews.reception_crew.reception_crew import ReceptionCrew
+from epic_news.crews.osint.osint_crew import OsintCrew
+from epic_news.crews.poem.poem_crew import PoemCrew
+from epic_news.crews.post.post_crew import PostCrew
+from epic_news.crews.reception.reception_crew import ReceptionCrew
+from epic_news.crews.classify.classify_crew import ClassifyCrew
+from epic_news.crews.topic_extractor.topic_extractor_crew import TopicExtractorCrew
 from epic_news.utils.directory_utils import ensure_output_directories
 from epic_news.models import ContentState
+
 
 def init():
     # Initialize output directories
     ensure_output_directories()
 
+
+"""                                                                                      """ 
+"""                                                                                      """ 
+"""                     All the magic is here                                            """ 
+"""                                                                                      """ 
+
+user_request = "trouve moi la recette du meilleur burger maison"
+
+"""                                                                                      """ 
+"""                                                                                      """ 
+"""                                                                                      """ 
+
+
 class ReceptionFlow(Flow[ContentState]):
 
     @start()
-    def route_request(self):
-        """Route the request to the appropriate crew"""
+    def request_classify(self):
+        """Classify the user request and route it to the appropriate crew"""
+
         # Reset the email_sent flag to ensure we send an email each time
         self.state.email_sent = False
-        
+        self.state.user_request = user_request
         print(f"Routing request: '{self.state.user_request}' with topic: '{self.state.topic}'")
-        
-        # Use the RequestRouter to route the request
-        router = RequestRouter()
-        routing_result = router.route(self.state.user_request, self.state.topic)
-        
-        # Update state with routing results
-        self.state.selected_crew = routing_result["crew_type"]
-        
-        # Update topic if provided and not already set
-        if routing_result["topic"] and (not self.state.topic or self.state.topic == self.state.user_request):
-            self.state.topic = routing_result["topic"]
-        
-        # Update any additional parameters
-        for param, value in routing_result.get("parameters", {}).items():
-            if hasattr(self.state, param) and value:
-                setattr(self.state, param, value)
-        
-        print(f"Selected crew: {self.state.selected_crew}")
-        print(f"Updated topic: {self.state.topic}")
-        
-        return self.state.selected_crew
+        # Define the output file path directly
+        self.state.output_file = "output/classify/decision.md"
 
-    @router(route_request)
-    def determine_crew(self):
-        """Determine which crew to use based on the request"""
-        router_decision = self.state.selected_crew
-        print(f"Router determining which crew to use based on: {router_decision}")
-        
-        # If no crew type is selected or it's UNKNOWN, try the reception crew
-        if not router_decision or router_decision == "UNKNOWN":
-            # Use the reception crew to determine which crew should handle the request
-            routing_decision = ReceptionCrew().crew().kickoff(
-                inputs={
-                    "user_request": self.state.user_request, 
-                    "topic": self.state.topic,
-                }
-            )
-            print(f"Reception crew routing decision: {routing_decision}")
-
-            # Extract crew type and update topic if provided
-            if isinstance(routing_decision, dict) and "crew_type" in routing_decision:
-                self.state.selected_crew = routing_decision["crew_type"]
-                if "topic" in routing_decision and routing_decision["topic"]:
-                    self.state.topic = routing_decision["topic"]
-            else:
-                print("Warning: Invalid routing decision format. Using default crew type.")
-                # Default to NEWS if reception crew fails
-                self.state.selected_crew = "NEWS"
-        
-        print(f"Final crew selection: {self.state.selected_crew}")
-        
-        # Map crew types to their respective generation methods
-        crew_to_method_map = {
-            "NEWS": "GENERATE_NEWS",
-            "POEM": "GENERATE_POEM",
-            "COOKING": "GENERATE_RECIPE",
-            "LIBRARY": "GENERATE_BOOK_SUMMARY",
-            "MEETING_PREP": "GENERATE_MEETING_PREP",
-            "LEAD_SCORING": "GENERATE_LEAD_SCORE",
-            "CONTACT_FINDER": "GENERATE_CONTACT_INFO",
-            "HOLIDAY_PLANNER": "GENERATE_HOLIDAY_PLAN"
+        # Prepare input data for classification
+        inputs = {
+            "user_request": self.state.user_request,
+            "output_file": self.state.output_file,
+            "categories": self.state.categories,
+            "selected_crew": self.state.selected_crew
         }
-        
-        # Get the method name from the map, or default to "UNKNOWN"
-        return crew_to_method_map.get(self.state.selected_crew, "UNKNOWN")
 
-    @listen(determine_crew)
+        # Run the classification crew
+        classify_crew = ClassifyCrew()
+        result = classify_crew.crew().kickoff(inputs=inputs)
+        
+        # Extract the selected category from the result
+        selected_category = classify_crew.parse_result(result, self.state.categories)
+        print(f"returned result: {selected_category}")
+        # Update the state with the selected category
+        self.state.selected_crew = selected_category
+        
+        print(f"Classification complete. Selected category: {self.state.selected_crew}")
+
+        # Extract the topic from the user request using standard CrewAI pattern
+        topic_extractor = TopicExtractorCrew()
+        topic = topic_extractor.crew().kickoff(inputs={"user_request": self.state.user_request})
+
+        # Update the state with the extracted topic
+        self.state.topic = str(topic)
+        print(f"Extracted topic: '{self.state.topic}'")
+        
+        return result
+
+    @router(request_classify)
+    def determine_crew(self):
+
+        """Route based on relationship type to personalize greetings."""
+        if self.state.selected_crew == "CONTACT_FINDER":
+            return generate_contact_info
+        elif self.state.selected_crew == "HOLIDAY_PLANNER":
+            return "generate_holiday_plan"
+        elif self.state.selected_crew == "MEETING_PREP":
+            return "generate_meeting_prep"
+        elif self.state.selected_crew == "LIBRARY":
+            return "generate_book_summary"
+        elif self.state.selected_crew == "COOKING":
+            return "generate_recipe"       
+        elif self.state.selected_crew == "POEM":
+            return "generate_poem"
+        elif self.state.selected_crew == "NEWS":
+            return "generate_news"
+        elif self.state.selected_crew == "LEAD_SCORING":
+            return "generate_leads"
+        elif self.state.selected_crew == "OPEN_SOURCE_INTELLIGENCE":
+            return "generate_osint"
+        else:
+            return "go_unknown"
+
+
+
+    @listen("go_unknown")
+    def go_unknown(self):
+        print("I don't know how to do that sorry")
+        exit(0)
+
+
+    @listen("generate_poem")
     def generate_poem(self):
         if self.state.selected_crew == "POEM":
 
@@ -116,7 +134,7 @@ class ReceptionFlow(Flow[ContentState]):
             })
                 
            
-    @listen(determine_crew)
+    @listen("generate_news")
     def generate_news(self):
         if self.state.selected_crew == "NEWS":
             
@@ -137,7 +155,7 @@ class ReceptionFlow(Flow[ContentState]):
             })
               
 
-    @listen(determine_crew)
+    @listen("generate_recipe")
     def generate_recipe(self):
         if self.state.selected_crew == "COOKING":
             
@@ -146,10 +164,7 @@ class ReceptionFlow(Flow[ContentState]):
             
             # Define the output file path directly
             self.state.output_file = "output/cooking/recipe.html"
-            
-            # try:
-                
-                
+
             # Generate the recipe
             CookingCrew().crew().kickoff(inputs={
                 "topic": self.state.topic,
@@ -157,7 +172,7 @@ class ReceptionFlow(Flow[ContentState]):
                 "sendto": self.state.sendto
             })
                 
-    @listen(determine_crew)
+    @listen("generate_book_summary")
     def generate_book_summary(self):
         if self.state.selected_crew == "LIBRARY":
             
@@ -175,7 +190,7 @@ class ReceptionFlow(Flow[ContentState]):
                 "sendto": self.state.sendto
             })
                 
-    @listen(determine_crew)
+    @listen("generate_meeting_prep")
     def generate_meeting_prep(self):
         if self.state.selected_crew == "MEETING_PREP":
             
@@ -204,7 +219,7 @@ class ReceptionFlow(Flow[ContentState]):
             })
 
 
-    @listen(determine_crew)
+    @listen("generate_contact_info")
     def generate_contact_info(self):
         if self.state.selected_crew == "CONTACT_FINDER":
             """Generate contact information for a company"""
@@ -222,46 +237,29 @@ class ReceptionFlow(Flow[ContentState]):
             return ContactFinderCrew().crew().kickoff(inputs=inputs)
             
 
-    @listen(determine_crew)
+
+    @listen("generate_osint")
+    def generate_osint(self):
+        if self.state.selected_crew == "OPEN_SOURCE_INTELLIGENCE":
+            """Generate contact information for a company"""
+            print(f"Finding contacts at: {self.state.company} ")
+            
+            self.state.output_file = "output/osint/osfindings.html"
+
+            inputs={
+                "company": self.state.company,
+                "output_file": self.state.output_file,
+                "sendto": self.state.sendto,
+            }
+
+            return OsintCrew().crew().kickoff(inputs=inputs)
+            
+
+    @listen("generate_holiday_plan")
     def generate_holiday_plan(self):
         if self.state.selected_crew == "HOLIDAY_PLANNER":
             
-            # """Generate a holiday plan based on the destination"""
-            # print(f"Generating holiday plan for: {self.state.destination}")
-            
-            # # Extract parameters from the request if not already set
-            # if not self.state.destination and self.state.topic:
-            #     # Try to extract destination from the topic
-            #     self.state.destination = self.state.topic
-            #     print(f"Using topic as destination: {self.state.destination}")
-            
-            #     # Extract duration if not set
-            #     if not self.state.duration and self.state.user_request:
-            #         # Try to extract duration from the request
-            #         duration_match = re.search(r"for\s+a\s+([a-zA-Z0-9\s]+)(?:\s+trip|\s+vacation|\s+holiday)?", self.state.user_request, re.IGNORECASE)
-            #         if duration_match:
-            #             self.state.duration = duration_match.group(1).strip()
-            #             print(f"Extracted duration: {self.state.duration}")
-            #         else:
-            #             # Default to weekend if not specified
-            #             self.state.duration = "weekend"
-                
-            #     # Set default family if not specified
-            #     if not self.state.family:
-            #         self.state.family = "family of 4 (2 adults, 2 children)"
-                
-            #     # Set default origin if not specified
-            #     if not self.state.origin:
-            #         self.state.origin = "Geneva, Switzerland"
-                
-            #     # Create output directory
-            #   
-            #     print(f"Parameters: Destination={self.state.destination}, Duration={self.state.duration}, Family={self.state.family}, Origin={self.state.origin}")
-                
-              
-            #     # Create the holiday planner crew
-            #     holiday_crew = HolidayPlannerCrew()
-            
+           
             self.state.output_file="output/holiday/destination.md"
             # Prepare inputs
             inputs = {
@@ -280,7 +278,7 @@ class ReceptionFlow(Flow[ContentState]):
                 
 
 
-    @listen(or_(generate_holiday_plan,generate_contact_info,generate_meeting_prep,generate_book_summary,generate_recipe,generate_poem,generate_news))
+    @listen(or_(generate_holiday_plan,generate_contact_info,generate_meeting_prep,generate_book_summary,generate_recipe,generate_poem,generate_news,generate_osint))
     def send_email(self):
         """Send an email with the generated content"""
         
@@ -302,6 +300,7 @@ class ReceptionFlow(Flow[ContentState]):
                 'lead_score': self.state.lead_score,
                 'meeting_prep': self.state.meeting_prep,
                 'news': self.state.news,
+                'osfindings': self.state.osfindings,
                 'output_file': self.state.output_file,
                 'poem': self.state.poem,
                 'recipe': self.state.recipe,
@@ -314,6 +313,11 @@ class ReceptionFlow(Flow[ContentState]):
             
             # Execute the PostCrew to send the email
             return PostCrew().crew().kickoff(inputs=inputs)
+
+    @listen(or_(go_unknown,send_email))
+    def this_is_the_end(self):
+        # exit(0)
+        pass
 
 def kickoff():
     reception_flow = ReceptionFlow()

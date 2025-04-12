@@ -9,11 +9,19 @@ load_dotenv()
 
 # Initialize the toolset
 toolset = ComposioToolSet()
-search_tools = toolset.get_tools(actions=['COMPOSIO_SEARCH_TAVILY_SEARCH'],)
-
-
-fact_checking_tools = toolset.get_tools(actions=[
+search_tools = toolset.get_tools(actions=[ 
+    'FIRECRAWL_SEARCH',
+    'COMPOSIO_SEARCH_SEARCH',
+    'COMPOSIO_SEARCH_DUCK_DUCK_GO_SEARCH',
     'COMPOSIO_SEARCH_NEWS_SEARCH',
+    'COMPOSIO_SEARCH_TAVILY_SEARCH',
+    'COMPOSIO_SEARCH_TRENDS_SEARCH',
+    'COMPOSIO_SEARCH_EVENT_SEARCH'],
+    )
+
+
+# Use only available tools for fact checking
+fact_checking_tools = toolset.get_tools(actions=[
     'COMPOSIO_SEARCH_TAVILY_SEARCH',
     'COMPOSIO_SEARCH_DUCK_DUCK_GO_SEARCH'
 ],)
@@ -85,11 +93,9 @@ class NewsCrew:
     @task
     def analysis_task(self) -> Task:
         task_id = "analysis_task"
-
-        
         return Task(
             config=self.tasks_config[task_id],
-            context=[self.research_task()],
+            # context=[self.research_task()],
             output_file='output/news/analysis_results.md',
             verbose=True,
             llm_timeout=300
@@ -98,12 +104,9 @@ class NewsCrew:
     @task
     def verification_task(self) -> Task:
         task_id = "verification_task"
-        
-        
-        
         return Task(
             config=self.tasks_config[task_id],
-            context=[self.research_task(), self.analysis_task()],
+            # context=[self.research_task(), self.analysis_task()],
             output_file='output/news/verification_results.md',
             verbose=True,
             llm_timeout=300
@@ -115,8 +118,8 @@ class NewsCrew:
         
         return Task(
             config=self.tasks_config[task_id],
-            context=[self.research_task(), self.analysis_task(), self.verification_task()],
-            output_file='output/news/report.html',  # Changed from editing_results.md to news_report.md
+            # context=[self.research_task(), self.analysis_task(), self.verification_task()],
+            output_file='output/news/report.html',  
             verbose=True,
             llm_timeout=300
         )
@@ -126,13 +129,16 @@ class NewsCrew:
         """Creates the News monitoring crew"""
 
         return Crew(
-            agents=self.agents, # Automatically created by the @agent decorator
-            tasks=self.tasks, # Automatically created by the @task decorator
+            agents=self.agents, 
+            tasks=self.tasks, 
             allow_delegation=True,
-            memory=True,
+            memory=False,
+            cache=False,
+            max_rpm=12,
             verbose=True,  
-            process=Process.sequential,
-            manager_llm_timeout=600,  # 10 minutes timeout for manager LLM (increased from 5 minutes)
-            task_timeout=3600,  # 60 minutes timeout for each task (increased from 30 minutes)
-            max_retries=3  # Add retries for failed tasks
+            respect_context_window=True,
+            process=Process.hierarchical,
+            manager_llm_timeout=600,  
+            task_timeout=3600,  
+            max_retries=3  
         )

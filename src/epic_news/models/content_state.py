@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 
 class ContentState(BaseModel):
     # Basic request information
-    user_request: str = "Find the latest news about openshift and dell in 2025"
+    user_request: str = "Create a Poem on Paris in the night"
     topic: str = ""  # Will be extracted from user_request if not provided
     selected_crew: str = ""  # Default crew type
  
@@ -20,7 +20,18 @@ class ContentState(BaseModel):
     family: str = ""  # Family details
     origin: str = ""  # Origin of the holiday
     special_needs: str = ""  # Special needs of the holiday
-    
+    categories:  dict = Field(default_factory=lambda: {
+        "CONTACT_FINDER": "CONTACT_FINDER",
+        "COOKING": "COOKING",
+        "HOLIDAY_PLANNER": "HOLIDAY_PLANNER",
+        "LEAD_SCORING": "LEAD_SCORING",
+        "LIBRARY": "LIBRARY",
+        "MEETING_PREP": "MEETING_PREP",
+        "NEWS": "NEWS",
+        "OPEN_SOURCE_INTELLIGENCE": "OPEN_SOURCE_INTELLIGENCE",
+        "POEM": "POEM",
+        "UNKNOWN": "UNKNOWN",
+    })
     # Output file path
     output_file: str = ""
 
@@ -56,6 +67,7 @@ class ContentState(BaseModel):
         "meeting_prep": "",
         "lead_score": "",
         "contact_info": "",
+        "osfindings": "",
         "holiday_plan": ""
     })
     

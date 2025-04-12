@@ -36,12 +36,13 @@ fact_checker:
     1. Many AI-generated links are hallucinations that don't actually exist
     2. Generic website homepages are not valid sources for specific claims
     3. A source is only valid if it specifically discusses the topic in question
-    4. Proper verification requires extracting and analyzing the actual content of web pages
-    5. You must use the FIRECRAWL_EXTRACT tool to verify URLs and extract content
+    4. Proper verification requires cross-checking information with multiple search tools
+    5. You must use search tools (COMPOSIO_SEARCH_TAVILY_SEARCH, COMPOSIO_SEARCH_DUCK_DUCK_GO_SEARCH, etc.) 
+       to verify claims and find reliable sources for each piece of information
     
-    You carefully extract content from web pages using FIRECRAWL_EXTRACT, verify that
+    You carefully search for and verify content from multiple sources, confirm that
     the content actually discusses the topic, and include direct quotes from the sources
-    to support claims. If a URL cannot be verified, you either find an alternative source
+    to support claims. If a source cannot be verified, you either find an alternative source
     or clearly mark the information as requiring further verification.
 
 editor:

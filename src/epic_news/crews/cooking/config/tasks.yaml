@@ -1,74 +1,6 @@
-recipe_finding_task:
+comprehensive_recipe_task:
   description: >
-    Find the most authentic and highly-rated recipe for {topic}.
-    Focus exclusively on:
-    - Identifying 1-3 definitive versions of the recipe from reputable sources
-    - Determining which version is considered most authentic or highest quality
-    - Noting any critical elements that define a proper {topic}
-    - Selecting the single best recipe to recommend
-  expected_output: >
-    A concise report in French containing:
-    1. The definitive recipe for {topic} with brief context on why it was selected
-    2. Source information for the recipe (chef, cookbook, website, etc.)
-    3. Brief notes on what makes this version authentic or superior
-    4. Any variations that might be considered equally authentic
-  agent: recipe_finder
-
-ingredient_listing_task:
-  description: >
-    Create a complete ingredient list for the selected {topic} recipe.
-    For each ingredient:
-    - Provide exact measurements (metric and imperial if possible)
-    - Note the quality indicators for key ingredients
-    - Suggest practical substitutions for hard-to-find items
-    - Organize ingredients in order of use in the recipe
-  expected_output: >
-    A detailed ingredient list in French including:
-    1. Complete shopping list with precise measurements
-    2. Quality indicators for critical ingredients
-    3. Practical substitutions for specialty items
-    4. Notes on ingredient preparation (washing, chopping, etc.)
-    5. Estimated total preparation time
-  agent: ingredient_specialist
-
-preparation_steps_task:
-  description: >
-    Document clear, step-by-step preparation instructions for {topic}.
-    Include:
-    - Precise, sequential cooking steps with timing information
-    - Temperature guidelines and cooking methods
-    - Equipment requirements and alternatives
-    - Visual cues to identify when each step is complete
-    - Critical techniques that ensure success
-  expected_output: >
-    A detailed preparation guide in French including:
-    1. Numbered, sequential steps from start to finish
-    2. Precise timing, temperature, and technique information
-    3. Equipment requirements with practical alternatives
-    4. Troubleshooting tips for common issues
-    5. Serving suggestions and presentation tips
-  agent: preparation_expert
-
-complete_recipe_task:
-  description: >
-    Compile the recipe findings, ingredient list, and preparation steps into a complete, easy-to-follow recipe for {topic}.
-    The recipe should:
-    - Be formatted in a standard recipe structure
-    - Include all necessary information for successful preparation
-    - Be written in clear, concise language
-    - Focus exclusively on practical cooking information
-  expected_output: >
-    A complete recipe in French formatted in HTML including:
-    1. Recipe title and brief introduction
-    2. Complete ingredient list with measurements
-    3. Step-by-step preparation instructions
-    4. Cooking times and temperatures
-    5. Serving suggestions and yield information
-  agent: preparation_expert
-
-consolidated_recipe_task:
-  description: >
-    Create a complete, authentic recipe for {topic} from start to finish.
+    Create a complete, authentic recipe for {topic} with Thermomix optimization when appropriate.
     Your task includes:
     
     1. RESEARCH: Find the most authentic and highly-rated recipe for {topic}
@@ -77,7 +9,7 @@ consolidated_recipe_task:
        - Note what makes this version superior
     
     2. INGREDIENTS: Create a complete ingredient list
-       - Provide exact measurements (metric and imperial)
+       - Provide exact measurements (metric preferred, with imperial in parentheses)
        - Note quality indicators for key ingredients
        - Suggest practical substitutions for hard-to-find items
        - Organize ingredients in order of use
@@ -85,7 +17,10 @@ consolidated_recipe_task:
     3. PREPARATION: Document clear, step-by-step instructions
        - Include precise cooking steps with timing information
        - Provide temperature guidelines and cooking methods
-       - List equipment requirements and alternatives
+       - List equipment requirements with Thermomix alternatives where applicable
+       - When appropriate, include specific Thermomix settings (speed, temperature, time)
+       - For steps that benefit from Thermomix, provide detailed instructions
+       - For steps better done manually, clearly indicate this
        - Include visual cues to identify when each step is complete
     
     4. FINAL RECIPE: Compile everything into a professional, easy-to-follow format
@@ -93,71 +28,18 @@ consolidated_recipe_task:
        - Well-organized sections for ingredients and instructions
        - Clear, concise language throughout
        - Serving suggestions and yield information
+       - Note which steps are optimized for Thermomix
   expected_output: >
     A complete, professional recipe in French that includes:
     1. Recipe title and brief introduction with context on authenticity
     2. Complete ingredient list with precise measurements and substitution options
-    3. Step-by-step preparation instructions with timing and temperature details
-    4. Equipment requirements and alternatives
-    5. Troubleshooting tips for common issues
-    6. Serving suggestions and presentation tips
-    7. Source information and any relevant cultural context
+    3. Step-by-step preparation instructions with:
+       - Clear indication of which steps use Thermomix (with settings) and which are manual
+       - Timing and temperature details
+       - Equipment requirements
+    4. Troubleshooting tips for common issues
+    5. Serving suggestions and presentation tips
+    6. Source information and any relevant cultural context
     
     The recipe should be formatted in HTML for optimal readability.
-  agent: preparation_expert
-
-technique_documentation_task:
-  description: >
-    Document the traditional cooking techniques essential to {topic}.
-    For each technique:
-    - Provide step-by-step instructions with clear explanations
-    - Explain the cultural significance and historical context
-    - Identify the specialized equipment or tools required
-    - Note common pitfalls and how to avoid them
-    - Suggest modern adaptations while preserving authenticity
-  expected_output: >
-    A technical cooking guide in french  including:
-    1. Detailed explanations of 8-12 essential cooking techniques
-    2. Visual references or descriptions of proper execution
-    3. Equipment guide with traditional and modern alternatives
-    4. Troubleshooting section for common technique challenges
-    5. Skill progression path from basic to advanced techniques
-  agent: preparation_expert
-
-cultural_context_task:
-  description: >
-    Explore the cultural, historical, and social context of {topic}.
-    Research:
-    - How this cuisine reflects cultural identity and values
-    - Traditional meal structures, dining customs, and food rituals
-    - Historical influences including trade, migration, and colonization
-    - Symbolic meanings of specific dishes or ingredients
-    - Contemporary cultural significance and global influence
-  expected_output: >
-    A cultural analysis  in french including:
-    1. Historical timeline of {topic}'s development
-    2. Analysis of cultural factors shaping the cuisine
-    3. Description of traditional dining customs and etiquette
-    4. Explanation of symbolic and ceremonial food traditions
-    5. Discussion of how globalization has affected this cuisine
-  agent: recipe_finder
-
-comprehensive_cookbook_task:
-  description: >
-    Compile all research, analysis, and recipes into a comprehensive {topic} cookbook.
-    The cookbook should:
-    - Be logically organized and user-friendly
-    - Balance authentic traditions with practical accessibility
-    - Include cultural context alongside technical instruction
-    - Provide a cohesive narrative about {topic} cooking
-    - Be suitable for both beginners and experienced cooks
-  expected_output: >
-    A complete cookbook manuscript in french including:
-    1. Introduction to {topic} with cultural and historical context
-    2. Ingredient guide with sourcing and substitution information
-    3. Technique section with detailed instructions
-    4. Recipe collection organized by meal course or cooking method
-    5. Glossary, index, and recommended resources
-    Formatted as HTML with proper structure and organization
-    Ready for publication or digital distribution
-  agent: preparation_expert
+  agent: recipe_expert
