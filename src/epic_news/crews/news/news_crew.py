@@ -14,7 +14,6 @@ search_tools = toolset.get_tools(actions=[
     'COMPOSIO_SEARCH_SEARCH',
     'COMPOSIO_SEARCH_DUCK_DUCK_GO_SEARCH',
     'COMPOSIO_SEARCH_NEWS_SEARCH',
-    'COMPOSIO_SEARCH_TAVILY_SEARCH',
     'COMPOSIO_SEARCH_TRENDS_SEARCH',
     'COMPOSIO_SEARCH_EVENT_SEARCH'],
     )
@@ -22,7 +21,6 @@ search_tools = toolset.get_tools(actions=[
 
 # Use only available tools for fact checking
 fact_checking_tools = toolset.get_tools(actions=[
-    'COMPOSIO_SEARCH_TAVILY_SEARCH',
     'COMPOSIO_SEARCH_DUCK_DUCK_GO_SEARCH'
 ],)
 

@@ -1,0 +1,19 @@
+extract_destination_task:
+  description: >
+    Analyze the provided user request: "{user_request}" and extract the destination location of the travel.
+    
+    The destination is the end point or final location of the travel. It may be mentioned explicitly 
+    or implied in the context of the request.
+    
+    For example:
+    - From "I need to book a trip from New York to Paris" → "Paris"
+    - From "Plan a journey starting in London heading to Tokyo" → "Tokyo"
+    - From "We're traveling from our home in San Francisco to visit relatives in Chicago" → "Chicago"
+    
+    If no destination is mentioned or can be reasonably inferred, respond with "No destination specified".
+    
+    If there are multiple possible destinations mentioned (like in a multi-city trip), extract the final destination only.
+  expected_output: >
+    Return ONLY the destination location as a concise place name, with no additional explanation, 
+    formatting, or context. Output should not include any prefixes or punctuation at the end.
+  agent: destination_extractor

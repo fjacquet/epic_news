@@ -9,3 +9,4 @@ report.md
 uv.lock
 .venv/
 prompts.txt
+.vscode/settings.json

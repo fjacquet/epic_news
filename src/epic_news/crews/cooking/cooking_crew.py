@@ -9,8 +9,8 @@ load_dotenv()
 toolset = ComposioToolSet()
 
 search_tools = toolset.get_tools(actions=[
-    'COMPOSIO_SEARCH_SEARCH',
     'COMPOSIO_SEARCH_DUCK_DUCK_GO_SEARCH',
+    # 'COMPOSIO_SEARCH_SEARCH',
 ],
 )
 

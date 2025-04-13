@@ -1,0 +1,23 @@
+extract_duration_task:
+  description: >
+    Analyze the provided user input: "{user_request}" and extract all information about the travel duration.
+    
+    Focus on identifying:
+    - Length of stay (number of days, weeks, months)
+    - Specific dates (departure and return dates)
+    - Time periods (weekend, week, month, season)
+    - Special temporal constraints (business hours, specific events, holidays)
+    - Any other time-related information relevant to the trip duration
+    
+    For example:
+    - From "I need a 5-day trip to Paris" → "5 days"
+    - From "Planning a weekend getaway to the mountains" → "weekend"
+    - From "Looking for a vacation from July 10-25" → "July 10-25 (16 days)"
+    - From "We want to travel for two weeks in December" → "two weeks in December"
+    
+    If no duration information is specified, respond with "the next week-end".
+  expected_output: >
+    Return a concise description of the travel duration, including exact dates when available, 
+    or approximate duration (days, weeks, etc.) otherwise. Format should be simple and direct 
+    without additional explanations.
+  agent: duration_extractor

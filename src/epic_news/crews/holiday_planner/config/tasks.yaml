@@ -1,98 +1,140 @@
-
-
-ValidateLocation:
+research_destination:
   description: >
-    "First, validate if '{destination}' is a suitable location for a '{duration}' trip.
-    Identify key attractions and themes that make it interesting for a '{duration}' getaway.
-    Briefly describe the general vibe of {destination}."
-  agent: destination_expert # Agent name
-  # Reference by ROLE
+    Conduct comprehensive research on {destination} for a {duration} trip,
+    including:
+    - Validate if {destination} is suitable for a {duration} stay
+    - Research key attractions, activities, and points of interest
+    - Identify local culture, customs, and unique experiences
+    - Research transportation options from {origin} to {destination},
+      including costs and logistics
+    - Consider special needs and requirements: {special_needs}
+    - Research local transportation options within the destination
+    - Identify seasonal considerations, weather, and optimal visiting times
+
+    Your research should be thorough and detailed, covering both practical
+    logistics and the unique appeal of the destination. Consider the needs
+    of {family} in your research.
+  agent: travel_researcher
   expected_output: >
-    "A brief summary validating the location and highlighting key themes and attractions suitable for a '{duration}' trip."
- 
- 
-DefineBudget:
+    Comprehensive destination research document covering all key aspects of
+    {destination} for a {duration} trip, including transportation from
+    {origin}, main attractions, local insights, and practical information.
+
+plan_accommodation_and_dining:
   description: >
-    "Based on research of average family budgets ('{family}') and typical costs in '{destination}',
-    define realistic budget limits for accommodation, activities, food, and transportation for a '{duration}' trip for a normal family.
-    Provide a breakdown of suggested spending limits for each category."
-  agent: budget_navigator # Reference by ROLE
-  context: [ValidateLocation]
+    Based on the destination research, develop detailed accommodation and
+    dining recommendations:
+
+    ACCOMMODATION:
+    - Identify 3-5 excellent accommodation options in {destination} suitable
+      for {family}
+    - Consider location, amenities, accessibility, and {special_needs}
+    - Provide detailed descriptions, price ranges, and booking information
+    - Focus on accommodations that offer excellent value for money and enhance
+      the travel experience
+
+    DINING:
+    - Recommend a variety of dining options for each day of the {duration}
+      trip
+    - Include a mix of authentic local cuisine, family-friendly options, and
+      special dining experiences
+    - Provide restaurant names, descriptions, cuisine types, price ranges, and
+      addresses
+    - Include recommendations for breakfast, lunch, and dinner as appropriate
+    - Consider any dietary requirements mentioned in {special_needs}
+
+    Your recommendations should be specific, detailed, and practical,
+    balancing quality and budget considerations.
+  agent: accommodation_specialist
+  context: [research_destination]
   expected_output: >
-    "A budget breakdown in categories (accommodation, activities, food, transport) with suggested spending limits for each, justified by research."
+    Detailed accommodation and dining plan with 3-5 well-researched
+    accommodation options and comprehensive dining recommendations for the
+    entire {duration} trip, including all relevant details and pricing
+    information.
 
-FindAccommodation:
+create_detailed_itinerary:
   description: >
-    "Find 3-5 excellent accommodation options in '{destination}' that are within the budget defined,
-    family-friendly ('{family}'), comfortable, and well-located.
-    Present options with descriptions, price ranges, and links to booking sites.
-    '{special_needs}')"
-  agent: accommodation_ace # Reference by ROLE
-  context: [DefineBudget]
-  expected_output: "A list of 3-5 accommodation options with descriptions, price ranges, and booking links."
+    Develop a comprehensive day-by-day itinerary for a {duration} trip to
+    {destination} that incorporates:
 
-PlanTravel: # Plan Travel Task
-  description: >
-    "Task for the Travel Logistics Planner: Plan the round-trip travel from the family's origin '{origin}' to the '{duration}' destination '{destination}'.
-    Research and recommend the most efficient and budget-friendly transportation options (flights, trains, driving, etc.), considering travel time,
-     convenience for a family, STAYING WITHIN THE TRAVEL BUDGET, AND FULFILLING ANY SPECIAL TRAVEL REQUESTS outlined in the 'special_requests' parameter
-     (e.g., accessible transport, specific travel times).
-     Provide clear details on travel options, booking links or resources, estimated travel times, and how they address any special travel requests
-    '{special_needs}')."
-  agent: travel_logistics_planner # Reference by ROLE
+    - Logical flow of activities organized by day and time
+    - Balanced mix of major attractions and hidden gems
+    - Activities that create "magical" and memorable experiences
+    - Realistic timing that accounts for travel between locations
+    - Incorporation of recommended dining options at appropriate times
+    - Consideration of {family} dynamics and {special_needs}
+    - Practical logistics including opening hours, admission costs, and
+      booking requirements
+    - Local insights and tips to enhance the experience
+
+    Your itinerary should be meticulously detailed, including precise
+    timing, locations, costs, and descriptions for each element. Ensure the
+    schedule is realistic and allows for some flexibility. Focus on creating
+    a cohesive experience that captures the essence of {destination}.
+  agent: itinerary_architect
+  context: [research_destination, plan_accommodation_and_dining]
   expected_output: >
-    "A detailed travel plan outlining round-trip transportation options from '{origin}' to '{destination}',
-    including modes of transport, estimated costs, travel times, booking links/resources, considerations for family travel,
-     AND explicit details on how special travel requests are addressed."
- 
-CurateActivities:
-  description: >
-    "Research and curate a detailed itinerary of activities and experiences in '{destination}' for a magical '{duration}'.
-    Include a mix of popular attractions and unique, lesser-known options.
-    Ensure activities are engaging, family-friendly (if applicable), and largely within the defined budget.
-    Prioritize experiences that could be considered 'magical'. Provide details on each activity including location, estimated time, and cost.
-    '{special_needs}')"
-  agent: enchantment_architect # Reference by ROLE
-  context: [DefineBudget, PlanTravel]
-  expected_output: "A detailed '{duration}' itinerary with activities, locations, timings, estimated costs, and descriptions for each activity."
+    Exhaustively detailed day-by-day itinerary with precise timing,
+    locations, descriptions, and logistics for all activities, meals, and
+    transportation throughout the {duration} trip.
 
-RecommendDining:
+optimize_budget:
   description: >
-    "Recommend a variety of dining options in '{destination}' for breakfast, lunch, and dinner throughout the '{duration}'.
-    Include budget-friendly choices, local cuisine restaurants, and potentially one or two 'special' dining experiences if budget allows.
-    Provide restaurant names, descriptions, cuisine type, price ranges, and addresses.
-    '{special_needs}')"
-  agent: culinary_compass # Reference by ROLE
-  context: [DefineBudget, PlanTravel]
-  expected_output: "A list of dining recommendations for each meal (breakfast, lunch, dinner) throughout the wee'{duration}'kend, including restaurant details and price ranges."
- 
-LocalInsights:
-  description: >
-    "Provide local insights and hidden gems in '{destination}' that would enhance the '{duration}' experience and make it more authentic and 'magical'.
-    Suggest local customs to be aware of, less crowded times to visit popular spots, or unique local experiences.
-    '{special_needs}')"
-  agent: local_whisperer # Reference by ROLE
-  context: [DefineBudget, PlanTravel]
-  expected_output: "A list of local tips, hidden gems, and cultural insights to enhance the '{duration}' experience."
+    Review and optimize the complete itinerary to ensure it adheres to
+    reasonable budget constraints while maintaining high-quality experiences:
 
-FinalizeItinerary:
-  description: >
-    Compile all the recommendations from the team into a complete, detailed, and organized '{duration}' itinerary for '{destination}'.
-    Structure the itinerary chronologically (e.g., Day 1, Day 2). Include timings, locations, addresses, and budget notes for each item.
-    Ensure the entire itinerary flows logically and is practical to follow.
-    Review the entire plan to ensure it adheres to the overall budget and creates a truly magical '{duration}' experience.
-    Present the final plan in a clear and easy-to-read format. In french and in markdown:)
-  agent: logistics_liaison # Reference by ROLE
-  context:
-    [DefineBudget, PlanTravel, LocalInsights, RecommendDining, CurateActivities]
-  expected_output: "A finalized, well-formatted '{duration}' itinerary document integrating all team recommendations."
+    - Analyze costs across all categories: accommodation, dining, activities,
+      and transportation
+    - Provide a detailed budget breakdown showing estimated costs for each
+      element of the trip
+    - Identify areas where costs can be reduced without sacrificing experience
+      quality
+    - Suggest budget-conscious alternatives where appropriate
+    - Ensure the overall plan delivers excellent value for money
+    - Consider the needs of {family} and {special_needs} in your budget
+      optimization
 
-TranslateToFrench:
+    Your output should include a comprehensive budget analysis with specific
+    cost estimates and optimization recommendations. Be realistic about costs
+    while maximizing experience value.
+  agent: budget_manager
+  context: [create_detailed_itinerary]
+  expected_output: >
+    Detailed budget analysis and optimization report with comprehensive cost
+    breakdown, value-maximizing recommendations, and specific cost estimates
+    for all itinerary elements.
+
+format_and_translate:
   description: >
-    "Translate the finalized '{duration}' itinerary into French.
-    Ensure the translation is accurate, culturally appropriate for a French-speaking audience,
-    and maintains the clarity and tone of the original English itinerary.
-    The itinerary to be translated is the result of the 'FinalizeItinerary' task."
-  agent: itinerary_translator # Reference by ROLE
-  context: [FinalizeItinerary]
-  expected_output: "The complete weekend itinerary translated into French in markdown format"
+    Create a COMPREHENSIVE and EXHAUSTIVELY DETAILED travel guide that
+    includes ALL information from previous tasks. The guide must include:
+
+    - Complete introduction to {destination} and its appeal for a {duration}
+      trip
+    - Full day-by-day itinerary with precise timings and logical flow
+    - Complete accommodation details including amenities, location
+      advantages, and booking links
+    - Comprehensive dining recommendations with menu highlights and price
+      ranges
+    - Detailed activity descriptions including historical/cultural context
+    - Complete logistics information including transit options, addresses,
+      and contact information
+    - Practical tips for navigating the destination with {family} and
+      addressing {special_needs}
+    - Detailed budget breakdown and money-saving tips
+    - Local insights and cultural guidance
+
+    Format the guide as a highly detailed, professional travel document in
+    clean HTML (no markdown code blocks). Then translate the entire guide
+    into impeccable French while preserving ALL details and maintaining the
+    clarity, tone, and comprehensive nature of the original.
+
+    Do not sacrifice ANY detail or practical information in your formatting
+    or translation.
+  agent: content_formatter
+  context: [research_destination, plan_accommodation_and_dining, create_detailed_itinerary, optimize_budget]
+  expected_output: >
+    Complete, exhaustively detailed travel guide in HTML format, translated
+    into French with all information preserved. The guide should be
+    comprehensive enough to serve as a complete reference for the entire trip.
