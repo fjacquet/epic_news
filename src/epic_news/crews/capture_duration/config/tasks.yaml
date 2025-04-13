@@ -15,7 +15,7 @@ extract_duration_task:
     - From "Looking for a vacation from July 10-25" → "July 10-25 (16 days)"
     - From "We want to travel for two weeks in December" → "two weeks in December"
     
-    If no duration information is specified, respond with "the next week-end".
+    If no duration information is specified, respond with "No duration specified".
   expected_output: >
     Return a concise description of the travel duration, including exact dates when available, 
     or approximate duration (days, weeks, etc.) otherwise. Format should be simple and direct 

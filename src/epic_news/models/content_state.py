@@ -26,6 +26,7 @@ class ContentState(BaseModel):
         "HOLIDAY_PLANNER": "HOLIDAY_PLANNER",
         "LEAD_SCORING": "LEAD_SCORING",
         "LIBRARY": "LIBRARY",
+        "LOCATION": "LOCATION",
         "MEETING_PREP": "MEETING_PREP",
         "NEWS": "NEWS",
         "OPEN_SOURCE_INTELLIGENCE": "OPEN_SOURCE_INTELLIGENCE",
@@ -60,6 +61,7 @@ class ContentState(BaseModel):
     # Content storage for different crew types
     content: dict = Field(default_factory=lambda: {
         "news": "",
+        "location": "",
         "poem": "",
         "recipe": "",
         "post_report": "",

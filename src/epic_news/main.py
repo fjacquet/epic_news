@@ -17,6 +17,7 @@ from epic_news.crews.contact_finder.contact_finder_crew import ContactFinderCrew
 from epic_news.crews.cooking.cooking_crew import CookingCrew
 from epic_news.crews.holiday_planner.holiday_planner_crew import HolidayPlannerCrew
 from epic_news.crews.library.library_crew import LibraryCrew
+from epic_news.crews.find_location.find_location_crew import FindLocationCrew
 from epic_news.crews.meeting_prep.meeting_prep_crew import MeetingPrepCrew
 from epic_news.crews.news.news_crew import NewsCrew
 from epic_news.crews.osint.osint_crew import OsintCrew
@@ -57,13 +58,72 @@ class ReceptionFlow(Flow[ContentState]):
         self.state.user_request = user_request
         return "initialize"
         
-    @start("go_classify")
+
+
+    @start("go_find_destination")  
+    def find_destination(self):
+        self.state.user_request = user_request        
+        # Extract the destination from the user request
+        destination = CaptureDestinationCrew().crew().kickoff(inputs={"user_request": self.state.user_request})
+        self.state.destination = str(destination)
+        return "find_destination"
+
+    @start("go_find_origin")
+    def find_origin(self):
+        self.state.user_request = user_request
+
+        # Extract the origin from the user request
+        origin = CaptureOriginCrew().crew().kickoff(inputs={"user_request": user_request})
+        self.state.origin = str(origin)
+        return "find_origin"
+ 
+    @start("go_find_needs")
+    def find_needs(self):
+        self.state.user_request = user_request
+
+        # Extract the needs from the user request
+        needs = CaptureNeedsCrew().crew().kickoff(inputs={"user_request": user_request})
+        self.state.special_needs = str(needs)
+        return "find_needs"
+ 
+    @start("go_find_travelers")
+    def find_travelers(self):
+        self.state.user_request = user_request
+
+        # Extract the travelers from the user request
+        travelers = CaptureTravelersCrew().crew().kickoff(inputs={"user_request": user_request})
+        self.state.family = str(travelers)
+        return "find_travelers"
+
+    @start("go_find_duration")
+    def find_duration(self):
+        self.state.user_request = user_request
+
+        # Extract the duration from the user request
+        duration = CaptureDurationCrew().crew().kickoff(inputs={"user_request": user_request})
+        self.state.duration = str(duration)
+        return "find_duration"
+
+    @start("go_find_topic")
+    def find_topic(self):
+        self.state.user_request = user_request
+
+        # Extract the topic from the user request
+        topic = CaptureTopicCrew().crew().kickoff(inputs={"user_request": user_request})
+        self.state.topic = str(topic)
+        return "find_topic"
+
+    @listen(and_("find_topic", "find_destination", "find_origin", "find_needs", "find_travelers", "find_duration"))
+    def finalize_preparation (self):
+        pass
+
+    @listen("finalize_preparation")
     def classify(self):
         """Classify the user request and route it to the appropriate crew"""
-
-      
-        self.state.user_request = user_request
-        print(f"Routing request: '{self.state.user_request}' with topic: '{self.state.topic}'")
+        # self.state.user_request = user_request
+        print(
+            "Routing request: '{self.state.user_request}' with topic: '{self.state.topic}'"
+        )
         # Define the output file path directly
         self.state.output_file = "output/classify/decision.md"
 
@@ -85,64 +145,9 @@ class ReceptionFlow(Flow[ContentState]):
         # Update the state with the selected category
         self.state.selected_crew = selected_category
 
-        return "classify"
+        return "determine_crew"
 
-
-    @start("go_find_destination")  
-    def find_destination(self):
-        self.state.user_request = user_request
- 
-        # Extract the destination from the user request
-        find_destination = CaptureDestinationCrew()
-        destination = find_destination.crew().kickoff(inputs={"user_request": self.state.user_request})
-        self.state.destination = str(destination)
-        return "find_destination"
-
-    @start("go_find_origin")
-    def find_origin(self):
-        self.state.user_request = user_request
-
-        # Extract the origin from the user request
-        find_origin = CaptureOriginCrew()
-        origin = find_origin.crew().kickoff(inputs={"user_request": user_request})
-        self.state.origin = str(origin)
-        return "find_origin"
- 
-    @start("go_find_needs")
-    def find_needs(self):
-        self.state.user_request = user_request
-
-        # Extract the needs from the user request
-        find_needs = CaptureNeedsCrew()
-        needs = find_needs.crew().kickoff(inputs={"user_request": user_request})
-        self.state.special_needs = str(needs)
-        return "find_needs"
- 
-    @start("go_find_travelers")
-    def find_travelers(self):
-        self.state.user_request = user_request
-
-        # Extract the travelers from the user request
-        find_travelers = CaptureTravelersCrew()
-        travelers = find_travelers.crew().kickoff(inputs={"user_request": user_request})
-        self.state.family = str(travelers)
-        return "find_travelers"
-
-    @start("go_find_duration")
-    def find_duration(self):
-        self.state.user_request = user_request
-
-        # Extract the duration from the user request
-        find_duration = CaptureDurationCrew()
-        duration = find_duration.crew().kickoff(inputs={"user_request": user_request})
-        self.state.duration = str(duration)
-        return "find_duration"
-
-    @listen(and_("classify", "find_destination", "find_origin", "find_needs", "find_travelers", "find_duration"))
-    def finalize_preparation (self):
-        return "finalize_preparation"
-
-    @router("finalize_preparation")
+    @router("classify")
     def determine_crew(self):
 
         """Route based on relationship type to personalize greetings."""
@@ -162,6 +167,8 @@ class ReceptionFlow(Flow[ContentState]):
             return "go_generate_news"
         elif self.state.selected_crew == "LEAD_SCORING":
             return "go_generate_leads"
+        elif self.state.selected_crew == "LOCATION":
+            return "go_find_location"
         elif self.state.selected_crew == "OPEN_SOURCE_INTELLIGENCE":
             return "go_generate_osint"
         else:
@@ -213,6 +220,28 @@ class ReceptionFlow(Flow[ContentState]):
             })
             return "finish"
               
+
+
+    @listen("go_find_location")
+    def find_location(self):
+        if self.state.selected_crew == "LOCATION":
+            
+            """Find a location based on the topic"""
+            print(f"Finding location for: {self.state.topic}")
+            
+            # Define the output file path directly
+            self.state.output_file = "output/location/location.html"
+
+            # Generate the location
+            FindLocationCrew().crew().kickoff(inputs={
+                "topic": self.state.topic,
+                "user_request": self.state.user_request,
+                "output_file": self.state.output_file,
+                "sendto": self.state.sendto,
+                "current_year": self.state.current_year,
+            })
+            return "finish"
+
 
     @listen("go_generate_recipe")
     def generate_recipe(self):
@@ -338,7 +367,7 @@ class ReceptionFlow(Flow[ContentState]):
             HolidayPlannerCrew().crew().kickoff(inputs=inputs)
             return "finish"
     
-    @listen(or_("generate_holiday_plan", "generate_meeting_prep", "generate_book_summary", "generate_recipe", "generate_poem", "generate_news", "generate_osint"))
+    @listen(or_("find_location", "generate_holiday_plan", "generate_meeting_prep", "generate_book_summary", "generate_recipe", "generate_poem", "generate_news", "generate_osint"))
     def send_email(self):
         """Send an email with the generated content"""
         
