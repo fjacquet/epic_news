@@ -31,5 +31,5 @@ location_recommendation_task:
   expected_output: >
     A comprehensive location guide with ranked recommendations, each with
     detailed information, highlights, and justification for why it meets the user's requirements.
-    Include practical tips for visiting each location. Format as HTML without code fences.
+    Include practical tips for visiting each location. Format in french as HTML without code fences with relevant emojis.
   agent: location_recommendations_specialist

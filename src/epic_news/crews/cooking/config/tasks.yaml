@@ -41,5 +41,5 @@ comprehensive_recipe_task:
     5. Serving suggestions and presentation tips
     6. Source information and any relevant cultural context
     
-    The recipe should be formatted in HTML for optimal readability.
+    The recipe should be formatted in HTML for optimal readability with relevant emojis.
   agent: recipe_expert

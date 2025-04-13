@@ -135,6 +135,6 @@ format_and_translate:
   agent: content_formatter
   context: [research_destination, plan_accommodation_and_dining, create_detailed_itinerary, optimize_budget]
   expected_output: >
-    Complete, exhaustively detailed travel guide in HTML format, translated
+    Complete, exhaustively detailed travel guide in HTML format with relevant emojis, translated
     into French with all information preserved. The guide should be
     comprehensive enough to serve as a complete reference for the entire trip.

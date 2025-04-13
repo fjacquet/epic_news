@@ -72,7 +72,7 @@ meeting_preparation_task:
     The document will be sent via email, so ensure it's properly formatted for email viewing.
 
   expected_output: >
-    A comprehensive HTML-formatted briefing document for the meeting with {company} that includes sections for meeting participant-only bios,
+    A comprehensive HTML-formatted briefing document with relevant emojis in french for the meeting with {company} that includes sections for meeting participant-only bios,
     industry overview, talking points, and strategic recommendations. The document should be structured in a logical
     and engaging manner to facilitate a productive and insightful meeting, and be properly formatted for email delivery.
   output_file: "output/meeting/meeting_preparation.md"

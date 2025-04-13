@@ -31,7 +31,7 @@ write_poem:
     </html>
     ```
   expected_output: >
-    A beautifully crafted poem about {topic} in HTML format.
+    A beautifully crafted poem about {topic} in HTML format with relevant emojis.
     Save the poem as an HTML file at {output_file} without the ```html``` tags.
     Ensure the HTML is properly formatted and will display correctly when sent via email.
   agent: poem_writer

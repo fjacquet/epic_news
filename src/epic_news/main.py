@@ -39,9 +39,7 @@ def init():
 """                                                                                      """ 
 
 user_request = (
-    "find a restaurant for 4 adults and 4 children on a sunday at 20:00 "
-    "near the sacre coeur of Paris in april. only find the restaurant."
-    "all the rest is not needed"
+    "create my a poem on Paris in spring"
 )
 
 """                                                                                      """ 

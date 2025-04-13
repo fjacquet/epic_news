@@ -14,6 +14,6 @@ reporting_task:
     Include a title, sections with headings, and a conclusion.
   expected_output: >
     A fully fledged report in french formatted as html with the main topics, each with a full section of information.
-    Formatted as HTML with proper styling for better email presentation.
+    Formatted as HTML with relevant emojis and proper styling for better email presentation.
   agent: reporting_analyst
   output_file: output/library/book_summary.html

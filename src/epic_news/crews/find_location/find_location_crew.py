@@ -48,21 +48,27 @@ class FindLocationCrew():
     @task
     def requirements_analysis_task(self) -> Task:
         return Task(
-            config=self.tasks_config['requirements_analysis_task']
+            config=self.tasks_config['requirements_analysis_task'],
+            agent=self.location_requirements_analyst(),
+            output_file="output/find_location/location_requirements.md",
         )
 
     @task
     def location_research_task(self) -> Task:
         return Task(
             config=self.tasks_config['location_research_task'],
-            depends_on=[self.requirements_analysis_task]
+            depends_on=[self.requirements_analysis_task],
+            agent=self.location_researcher(),
+            output_file="output/find_location/location_research.md",
         )
 
     @task
     def location_recommendation_task(self) -> Task:
         return Task(
             config=self.tasks_config['location_recommendation_task'],
-            depends_on=[self.location_research_task]
+            depends_on=[self.location_research_task],
+            agent=self.location_recommendations_specialist(),
+            output_file="output/location/location.html",
         )
 
     @crew

@@ -104,5 +104,5 @@ editing_task:
        - A publication date should be included (day, month, year whenever possible)
        - A direct quote from the source should be included
        - No sources marked as "Source Needed" by the verification team should appear as verified
-    Formatted as html properly laid out
+    Formatted as html properly laid out with relevant emojis
   agent: editor
