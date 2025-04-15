@@ -1,18 +1,31 @@
 
 distribution_task:
   description: >
-    Send an email to {recipient_email} with the EXACT content of {output_file} as the email body.
+    Send an email to {recipient_email} with the content of {output_file} as the email body.
     
-    IMPORTANT:
-    1. Read the file {output_file} directly using os.path and open() functions
-    2. Send the EXACT content as HTML in the email body, NOT as an attachment
-    3. Do NOT rewrite or modify the content in any way
-    4. Ensure content is in French as specified
-    5. Do not use markdown formatting with ``` in the email
+    Your responsibilities:
+    - Read the file at {output_file} and use its EXACT content as the email body
+    - Preserve ALL HTML formatting - do not convert HTML to plain text
+    - Preserve ALL language as written - do not translate French recipes to English
+    - Keep ALL emojis and special formatting intact
+    - Create a professional subject line related to {topic}
+    - When attachment_file is provided, or when {attachment} exists,
+      include it as an email attachment (not in the body)
+    - For Paprika recipe files (YAML format), ensure they are properly attached
+      with the correct filename to enable direct import into the Paprika recipe app
+    - Do NOT summarize, modify or rewrite ANY content - maintain 100% integrity
+    
+    IMPORTANT: 
+    - Use the Gmail API correctly to send the HTML content with proper encoding
+    - Make sure to set Content-Type to text/html in your email
+    - When sending recipe emails, preserve their original language (French)
+    - The attachment should be distinctly separate from the email body
     
   expected_output: >
-    1. The subject line used
-    2. The recipient's email address ({recipient_email})
-    3. The delivery status
-    4. Confirmation that the EXACT file content was used
+    A summary report of the email delivery, including:
+    - Confirmation of delivery
+    - The recipient and subject
+    - Any attachments that were included with their file names
+    - Confirmation that HTML formatting was preserved
+    - Confirmation that original language was preserved
   agent: distributor

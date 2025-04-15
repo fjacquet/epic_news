@@ -32,10 +32,21 @@ class CookingCrew:
         )
     
     @task
-    def comprehensive_recipe_task(self) -> Task:
+    def html_recipe_task(self) -> Task:
         return Task(
-            config=self.tasks_config['comprehensive_recipe_task'],
-            output_file='output/cooking/recipe.html'
+            config=self.tasks_config['html_recipe_task'],
+            output_file='output/cooking/recipe.html',
+            verbose=True,
+            llm_timeout=300,
+        )
+
+    @task
+    def paprika_yaml_task(self) -> Task:
+        return Task(
+            config=self.tasks_config['paprika_yaml_task'],
+            output_file='output/cooking/paprika_recipe.yaml',
+            verbose=True,
+            llm_timeout=300,
         )
 
     @crew

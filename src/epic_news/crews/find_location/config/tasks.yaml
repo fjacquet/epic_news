@@ -1,35 +1,39 @@
 requirements_analysis_task:
   description: >
     Analyze the user's location request: "{user_request}".
-    Extract all key requirements such as preferred location type, desired activities, 
-    accessibility needs, atmosphere (urban/rural/coastal), and any other specific preferences.
+    Identify specifically what type of location the user is looking for (restaurant, hotel, cafe, etc.).
+    Extract key requirements such as preferred cuisine, price range, atmosphere, or any other specific criteria.
     Consider the topic "{topic}" as the main focus of the location search.
   expected_output: >
-    A structured analysis of all identified location requirements, including:
-    - Preferred location types (urban, rural, coastal, etc.)
-    - Expected activities or points of interest
-    - Desired atmosphere
-    - Any special requirements or considerations
+    A clear identification of:
+    - The exact type of location being requested (restaurant, hotel, museum, etc.)
+    - Specific criteria to filter options (cuisine type, price range, amenities, etc.)
+    - Any other requirements that will help find precise location matches
   agent: location_requirements_analyst
 
 location_research_task:
   description: >
-    Based on the identified requirements, research potential locations that match the criteria.
-    Focus on finding options that best satisfy all the key requirements in "{topic}".
-    Include specific places, neighborhoods, or areas that would be ideal.
+    Based on the identified requirements, find exactly 5 specific location options that match the criteria.
+    Focus solely on the specific type of location requested (restaurants, hotels, etc.) related to "{topic}".
+    Do not research general area information or create a travel guide.
   expected_output: >
-    A detailed list of at least 3-5 locations that match the requirements, with 
-    information about each location's characteristics, attractions, atmosphere, 
-    and how well each matches the specified requirements in "{user_request}".
+    A list of exactly 5 specific locations matching the requirements, with:
+    - Name and precise location
+    - Key features relevant to the request
+    - What makes each option stand out
+    - How well each matches the specific requirements in "{user_request}"
   agent: location_researcher
 
 location_recommendation_task:
   description: >
-    Based on the research, create a final recommendation report with the best location options.
-    Provide a clear rationale for each recommendation and include specific details about
-    what makes each location special and suitable for the user's needs related to "{topic}".
+    Create a focused report on the 5 specific locations found, with detailed information about each option.
+    Do not include general area information, travel tips, or comprehensive guides.
+    Focus only on the requested location type with specific, practical details about each option.
   expected_output: >
-    A comprehensive location guide with ranked recommendations, each with
-    detailed information, highlights, and justification for why it meets the user's requirements.
-    Include practical tips for visiting each location. Format in french as HTML without code fences with relevant emojis.
+    A concise, focused guide with exactly 5 recommended options. For each option include:
+    - Name and exact location
+    - Key features
+    - Why it matches the user's specific requirements
+    - Relevant practical details (hours, prices, etc.)
+    Format in French as HTML with relevant emojis, but keep it simple and focused.
   agent: location_recommendations_specialist

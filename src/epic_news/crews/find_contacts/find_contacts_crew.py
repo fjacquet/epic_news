@@ -20,8 +20,8 @@ search_tools = toolset.get_tools(actions=[
 
 
 @CrewBase
-class ContactFinderCrew():
-    """ContactFinder crew for finding sales contacts at target companies"""
+class FindContactsCrew():
+    """FindContacts crew for finding sales contacts at target companies"""
 
     # Learn more about YAML configuration files here:
     # Agents: https://docs.crewai.com/concepts/agents#yaml-configuration-recommended
@@ -106,8 +106,8 @@ class ContactFinderCrew():
             tasks=self.tasks, # Automatically created by the @task decorator
             process=Process.sequential,
             verbose=True,
-            memory=True,
-            cache=True,
+            memory=False,
+            cache=False,
             manager_llm_timeout=300,  # 5 minutes timeout for manager LLM
             task_timeout=1800,  # 30 minutes timeout for each task
        

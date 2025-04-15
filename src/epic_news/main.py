@@ -1,11 +1,5 @@
-import os
-import datetime
-import select 
-from pydantic import BaseModel, Field
-import re   
-
 from crewai.flow import Flow, listen, start, router, or_, and_ 
-# from epic_news.router import RequestRouter
+
 from epic_news.crews.capture_destination.capture_destination_crew import CaptureDestinationCrew
 from epic_news.crews.capture_duration.capture_duration_crew import CaptureDurationCrew
 from epic_news.crews.capture_needs.capture_needs_crew import CaptureNeedsCrew
@@ -13,7 +7,7 @@ from epic_news.crews.capture_origin.capture_origin_crew import CaptureOriginCrew
 from epic_news.crews.capture_travelers.capture_travelers_crew import CaptureTravelersCrew
 from epic_news.crews.capture_topic.capture_topic_crew import CaptureTopicCrew
 from epic_news.crews.classify.classify_crew import ClassifyCrew
-from epic_news.crews.contact_finder.contact_finder_crew import ContactFinderCrew
+from epic_news.crews.find_contacts.find_contacts_crew import FindContactsCrew
 from epic_news.crews.cooking.cooking_crew import CookingCrew
 from epic_news.crews.holiday_planner.holiday_planner_crew import HolidayPlannerCrew
 from epic_news.crews.library.library_crew import LibraryCrew
@@ -26,7 +20,7 @@ from epic_news.crews.post.post_crew import PostCrew
 from epic_news.crews.reception.reception_crew import ReceptionCrew
 from epic_news.utils.directory_utils import ensure_output_directories
 from epic_news.models import ContentState
-
+import os
 
 def init():
     # Initialize output directories
@@ -39,7 +33,7 @@ def init():
 """                                                                                      """ 
 
 user_request = (
-    "create my a poem on Paris in spring"
+    "Donne moi la recette des Thielles sietoise"
 )
 
 """                                                                                      """ 
@@ -142,7 +136,6 @@ class ReceptionFlow(Flow[ContentState]):
         # print(f"returned result: {selected_category}")
         # Update the state with the selected category
         self.state.selected_crew = selected_category
-
         return "determine_crew"
 
     @router("classify")
@@ -179,44 +172,44 @@ class ReceptionFlow(Flow[ContentState]):
 
     @listen("go_generate_poem")
     def generate_poem(self):
-        if self.state.selected_crew == "POEM":
+        # if self.state.selected_crew == "POEM":
 
-            """Generate a poem based on the topic"""
-            print(f"Generating poem about: {self.state.topic}")
-            
-            # Define the output file path
-            self.state.output_file = "output/poem/poem.html"
-            
-            # Create and kickoff the poem crew
-            PoemCrew().crew().kickoff(inputs={
-                "topic": self.state.topic,
-                "user_request": self.state.user_request,
-                "sentence_count": self.state.sentence_count,
-                "output_file": self.state.output_file
-            })
-            return "finish"
+        """Generate a poem based on the topic"""
+        print(f"Generating poem about: {self.state.topic}")
+        
+        # Define the output file path
+        self.state.output_file = "output/poem/poem.html"
+        
+        # Create and kickoff the poem crew
+        PoemCrew().crew().kickoff(inputs={
+            "topic": self.state.topic,
+            "user_request": self.state.user_request,
+            "sentence_count": self.state.sentence_count,
+            "output_file": self.state.output_file
+        })
+        return "send_email"
                 
            
     @listen("go_generate_news")
     def generate_news(self):
-        if self.state.selected_crew == "NEWS":
+        # if self.state.selected_crew == "NEWS":
             
-            """Generate news content based on the topic"""
-            print(f"Generating news about: {self.state.topic}")
-            
-            # Define the output file path directly
-            self.state.output_file = "output/news/report.html"
-            
+        """Generate news content based on the topic"""
+        print(f"Generating news about: {self.state.topic}")
+        
+        # Define the output file path directly
+        self.state.output_file = "output/news/report.html"
+        
 
-            # Generate the news
-            NewsCrew().crew().kickoff(inputs={
-                "topic": self.state.topic,
-                "output_file": self.state.output_file,
-                "sentence_count": self.state.sentence_count,
-                "sendto": self.state.sendto,
-                "current_year": self.state.current_year
-            })
-            return "finish"
+        # Generate the news
+        NewsCrew().crew().kickoff(inputs={
+            "topic": self.state.topic,
+            "output_file": self.state.output_file,
+            "sentence_count": self.state.sentence_count,
+            "sendto": self.state.sendto,
+            "current_year": self.state.current_year
+        })
+        return "send_email"
               
 
 
@@ -238,26 +231,29 @@ class ReceptionFlow(Flow[ContentState]):
                 "sendto": self.state.sendto,
                 "current_year": self.state.current_year,
             })
-            return "finish"
+            return "send_email"
 
 
     @listen("go_generate_recipe")
     def generate_recipe(self):
-        if self.state.selected_crew == "COOKING":
+        # if self.state.selected_crew == "COOKING":
             
-            """Generate a recipe based on the topic"""
-            print(f"Generating recipe for: {self.state.topic}")
-            
-            # Define the output file path directly
-            self.state.output_file = "output/cooking/recipe.html"
+        """Generate a recipe based on the topic"""
+        print(f"Generating recipe for: {self.state.topic}")
+        
+        # Define the output file path directly
+        self.state.output_file = "output/cooking/recipe.html"
+        # Define the additional output file for Paprika recipe format
+        self.state.attachment_file = 'output/cooking/paprika_recipe.yaml'
 
-            # Generate the recipe
-            CookingCrew().crew().kickoff(inputs={
-                "topic": self.state.topic,
-                "output_file": self.state.output_file,
-                "sendto": self.state.sendto
-            })
-            return "finish"
+        # Generate the recipe
+        CookingCrew().crew().kickoff(inputs={
+            "topic": self.state.topic,
+            "output_file": self.state.output_file,
+            "attachment_file": self.state.attachment_file,
+            "sendto": self.state.sendto
+        })
+        return "send_email"
                 
     @listen("go_generate_book_summary")
     def generate_book_summary(self):
@@ -276,7 +272,7 @@ class ReceptionFlow(Flow[ContentState]):
                 "output_file": self.state.output_file,
                 "sendto": self.state.sendto
             })
-            return "finish"
+            return "send_email"
                 
     @listen("go_generate_meeting_prep")
     def generate_meeting_prep(self):
@@ -305,44 +301,44 @@ class ReceptionFlow(Flow[ContentState]):
                 "objective": self.state.objective,
                 "participants": self.state.participants
             })
-            return "finish"
+            return "send_email"
 
 
     @listen("go_contact_finder")  
     def generate_contact_info(self):
-        if self.state.selected_crew == "CONTACT_FINDER":
-            """Generate contact information for a company"""
-            print(f"Finding contacts at: {self.state.company} for product: {self.state.our_product}")
-            
-            self.state.output_file = "output/contact_finder/approach_strategy.html"
+        # if self.state.selected_crew == "CONTACT_FINDER":
+        """Generate contact information for a company"""
+        print(f"Finding contacts at: {self.state.company} for product: {self.state.our_product}")
+        
+        self.state.output_file = "output/contact_finder/approach_strategy.html"
 
-            inputs={
-                "company": self.state.company,
-                "our_product": self.state.our_product,
-                "output_file": self.state.output_file,
-                "sendto": self.state.sendto,
-            }
+        inputs={
+            "company": self.state.company,
+            "our_product": self.state.our_product,
+            "output_file": self.state.output_file,
+            "sendto": self.state.sendto,
+        }
 
-            ContactFinderCrew().crew().kickoff(inputs=inputs)
-            return "finish"  
+        FindContactsCrew().crew().kickoff(inputs=inputs)
+        return "send_email"  
             
 
     @listen("go_generate_osint")
     def generate_osint(self):
-        if self.state.selected_crew == "OPEN_SOURCE_INTELLIGENCE":
-            """Generate contact information for a company"""
-            print(f"Finding contacts at: {self.state.company} ")
-            
-            self.state.output_file = "output/osint/osfindings.html"
+        # if self.state.selected_crew == "OPEN_SOURCE_INTELLIGENCE":
+        """Generate contact information for a company"""
+        print(f"Finding contacts at: {self.state.company} ")
+        
+        self.state.output_file = "output/osint/osfindings.html"
 
-            inputs={
-                "company": self.state.company,
-                "output_file": self.state.output_file,
-                "sendto": self.state.sendto,
-            }
+        inputs={
+            "company": self.state.company,
+            "output_file": self.state.output_file,
+            "sendto": self.state.sendto,
+        }
 
-            OsintCrew().crew().kickoff(inputs=inputs)
-            return "finish"
+        OsintCrew().crew().kickoff(inputs=inputs)
+        return "send_email"
             
 
     @listen("go_generate_holiday_plan")
@@ -363,43 +359,75 @@ class ReceptionFlow(Flow[ContentState]):
 
             # Run the crew
             HolidayPlannerCrew().crew().kickoff(inputs=inputs)
-            return "finish"
+            return "send_email"
     
-    @listen(or_("find_location", "generate_holiday_plan", "generate_meeting_prep", "generate_book_summary", "generate_recipe", "generate_poem", "generate_news", "generate_osint"))
+    @listen(or_(
+        "generate_recipe", 
+        "find_location", 
+        "generate_book_summary",
+        "generate_contact_info",
+        "generate_holiday_plan",
+        "generate_meeting_prep", 
+        "generate_news", 
+        "generate_osint",
+        "generate_poem", 
+     ))
     def send_email(self):
         """Send an email with the generated content"""
-        
-        # Reset the email_sent flag to ensure we always send an email
-        # self.state.email_sent = False
         
         # Check if we've already sent an email for this flow run
         if hasattr(self.state, 'email_sent') and self.state.email_sent:
             print("Email already sent, skipping")
             return
-        else: 
-            print(f"Sending email to {self.state.sendto}, crew_type: {self.state.selected_crew}, content : {self.state.output_file}")
             
-            # Initialize PostCrew with the necessary inputs
-            inputs = {
-                'book_summary': self.state.book_summary,
-                'contact_info': self.state.contact_info,
-                'crew_type': self.state.selected_crew,
-                'lead_score': self.state.lead_score,
-                'meeting_prep': self.state.meeting_prep,
-                'news': self.state.news,
-                'osfindings': self.state.osfindings,
-                'output_file': self.state.output_file,
-                'poem': self.state.poem,
-                'recipe': self.state.recipe,
-                'recipient_email': self.state.sendto,
-                'topic': self.state.topic,
+        print(f"Sending email to: {self.state.sendto}")
+        
+        # Get attachment path if it exists for this crew type
+        attachment_path = None
+        if self.state.selected_crew == "COOKING" and hasattr(self.state, 'attachment_file'):
+            # Explicitly check both files exist
+            recipe_html = self.state.output_file
+            recipe_yaml = self.state.attachment_file
+            
+            if os.path.exists(recipe_yaml):
+                attachment_path = recipe_yaml
+                print(f"Including attachment: {attachment_path}")
+            else:
+                print(f"Warning: Attachment file not found: {recipe_yaml}")
+                
+            # Double check the HTML file as well
+            if not os.path.exists(recipe_html):
+                print(f"Warning: HTML file not found: {recipe_html}")
+
+         # Initialize PostCrew with the necessary inputs
+        inputs = {
+            'book_summary': self.state.book_summary,
+            'contact_info': self.state.contact_info,
+            'crew_type': self.state.selected_crew,
+            'lead_score': self.state.lead_score,
+            'meeting_prep': self.state.meeting_prep,
+            'news': self.state.news,
+            'osfindings': self.state.osfindings,
+            'output_file': self.state.output_file,
+            'poem': self.state.poem,
+            'recipe': self.state.recipe,
+            'recipient_email': self.state.sendto,
+            'topic': self.state.topic,
+        }
+        
+        # Add attachment file for specific crew types
+        if attachment_path:
+            inputs['attachment'] = attachment_path
+            inputs['attachment_file'] = attachment_path
+            inputs['additional_output_files'] = {
+                'attachment': attachment_path
             }
-            
-            # Mark that we've sent an email
-            self.state.email_sent = True
-            
-            # Execute the PostCrew to send the email
-            PostCrew().crew().kickoff(inputs=inputs)
+        
+        # Mark that we've sent an email
+        self.state.email_sent = True
+        
+        # Execute the PostCrew to send the email
+        PostCrew().crew().kickoff(inputs=inputs)
 
 
 def kickoff():

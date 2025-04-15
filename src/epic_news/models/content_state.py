@@ -12,7 +12,7 @@ class ContentState(BaseModel):
     user_request: str = "Create a Poem on Paris in the night"
     topic: str = ""  # Will be extracted from user_request if not provided
     selected_crew: str = ""  # Default crew type
- 
+    attachment_file: str = ""  # Attachment file for specific crew types
     # Holiday planner parameters
     duration: str = ""  # Duration of the holiday
     current_year: str = str(datetime.datetime.now().year)  # Current year

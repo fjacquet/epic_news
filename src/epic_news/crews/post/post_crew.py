@@ -44,7 +44,8 @@ class PostCrew:
     def distributor(self):
         return Agent(
             config=self.agents_config['distributor'],
-            verbose=True
+            verbose=True,
+            llm_timeout=300
         )
     
     @task
@@ -54,6 +55,7 @@ class PostCrew:
             agent=self.distributor(),
             tools=send_tools + [read_file_content],
             verbose=True,
+            llm_timeout=300
         )
 
     @crew
@@ -65,4 +67,6 @@ class PostCrew:
             verbose=True,
             memory=False,
             cache=False,
+            manager_llm_timeout=300,  # 5 minutes timeout for manager LLM
+            task_timeout=600,  # 10 minutes timeout for each task
         )

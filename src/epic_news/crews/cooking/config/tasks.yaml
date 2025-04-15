@@ -1,36 +1,25 @@
-comprehensive_recipe_task:
+html_recipe_task:
   description: >
     Create a complete, authentic recipe for {topic} with Thermomix optimization when appropriate.
     Your task includes:
-    
     1. RESEARCH: Find the most authentic and highly-rated recipe for {topic}
-       - Identify 1-3 definitive versions from reputable sources
-       - Select the single best recipe based on authenticity and quality
-       - Note what makes this version superior
-    
     2. INGREDIENTS: Create a complete ingredient list
-       - Provide exact measurements (metric preferred, with imperial in parentheses)
-       - Note quality indicators for key ingredients
-       - Suggest practical substitutions for hard-to-find items
-       - Organize ingredients in order of use
-    
     3. PREPARATION: Document clear, step-by-step instructions
-       - Include precise cooking steps with timing information
-       - Provide temperature guidelines and cooking methods
-       - List equipment requirements with Thermomix alternatives where applicable
-       - When appropriate, include specific Thermomix settings (speed, temperature, time)
-       - For steps that benefit from Thermomix, provide detailed instructions
-       - For steps better done manually, clearly indicate this
-       - Include visual cues to identify when each step is complete
-    
     4. FINAL RECIPE: Compile everything into a professional, easy-to-follow format
-       - Standard recipe structure with title and introduction
-       - Well-organized sections for ingredients and instructions
-       - Clear, concise language throughout
-       - Serving suggestions and yield information
-       - Note which steps are optimized for Thermomix
+    - Standard recipe structure with title and introduction
+    - Well-organized sections for ingredients and instructions
+    - Clear, concise language throughout
+    - Serving suggestions and yield information
+    - Note which steps are optimized for Thermomix
+
+    IMPORTANT: 
+    - Your output MUST be complete HTML markup with proper tags (<html>, <body>, etc.)
+    - The recipe MUST be written in French (not English)
+    - Use appropriate emojis throughout to enhance readability (🍆, 🍅, ⏱️, etc.)
+    - Include proper HTML formatting with sections, headings, and lists
+    - Do not output placeholder text about the recipe - output the actual recipe content
   expected_output: >
-    A complete, professional recipe in French that includes:
+    A complete, professional recipe in French in recipe.html that includes:
     1. Recipe title and brief introduction with context on authenticity
     2. Complete ingredient list with precise measurements and substitution options
     3. Step-by-step preparation instructions with:
@@ -40,6 +29,42 @@ comprehensive_recipe_task:
     4. Troubleshooting tips for common issues
     5. Serving suggestions and presentation tips
     6. Source information and any relevant cultural context
+
+    The recipe MUST be formatted in complete HTML with proper tags, written in French language, 
+    and include relevant emojis for visual appeal.
+    Send the original url for the recipe on intenet
+  agent: recipe_expert
+
+paprika_yaml_task:
+  description: >
+    Create a complete, authentic recipe for {topic} in YAML format compatible with the Paprika 3 app.
+    Your task includes:
+    1. RESEARCH: Find the most authentic and highly-rated recipe for {topic}
+    2. STRUCTURE: Format the output STRICTLY according to the Paprika 3 YAML specification.
+       - Use ONLY the following top-level keys: `name`, `source`, `source_url`, `prep_time`, `cook_time`, `servings`, `categories` (as a list), `notes`, `ingredients`, `directions`.
+       - The `ingredients` value MUST be a single block string (using `|`) with each ingredient on a new line.
+       - The `directions` value MUST be a single block string (using `|`) with each step on a new line (step titles can be included).
+       - `prep_time`, `cook_time` should be strings like "10 min", "1 hr 30 min".
+       - `servings` should be a string like "4 servings" or "4-6 servings".
+    IMPORTANT:
+    - Output MUST be valid YAML.
+    - The recipe MUST be written in French (not English).
+    - DO NOT include keys like `Keywords`, `Description`, `TotalTime`, `photo`, `Image`, `Yield`, `Instructions`, or any other unsupported keys.
+    - DO NOT use complex nested structures for ingredients or directions; use the required block string format.
+    - Do not output placeholder text about the recipe - output the actual recipe content.
+  expected_output: >
+    A complete, professional recipe in French, formatted as valid YAML strictly compatible with Paprika 3 import. 
+    The YAML MUST include:
+    - `name`: (string)
+    - `source`: (string, e.g., "Website Name")
+    - `source_url`: (string, the URL)
+    - `prep_time`: (string, e.g., "15 min")
+    - `cook_time`: (string, e.g., "1 hr")
+    - `servings`: (string, e.g., "4-6 servings")
+    - `categories`: (list of strings)
+    - `notes`: (block string using `|`)
+    - `ingredients`: (REQUIRED block string using `|`, each ingredient on a new line)
+    - `directions`: (REQUIRED block string using `|`, each step on a new line)
     
-    The recipe should be formatted in HTML for optimal readability with relevant emojis.
+    The output MUST NOT contain any keys other than those listed above. Indentation and formatting must be valid YAML.
   agent: recipe_expert
