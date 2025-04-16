@@ -10,6 +10,8 @@ toolset = ComposioToolSet()
 
 search_tools = toolset.get_tools(actions=[
     'COMPOSIO_SEARCH_SEARCH',
+    'COMPOSIO_SEARCH_DUCK_DUCK_GO_SEARCH',
+    'COMPOSIO_SEARCH_SHOPPING_SEARCH',
 ],
 )
 # If you want to run a snippet of code before or after the crew starts,

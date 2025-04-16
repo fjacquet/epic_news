@@ -32,6 +32,7 @@ class ContentState(BaseModel):
         "OPEN_SOURCE_INTELLIGENCE": "OPEN_SOURCE_INTELLIGENCE",
         "POEM": "POEM",
         "UNKNOWN": "UNKNOWN",
+        "MARKETING_WRITERS": "MARKETING_WRITERS",
     })
     # Output file path
     output_file: str = ""

@@ -22,7 +22,8 @@ def ensure_output_directories():
         "library",
         "poem",
         "email",
-        "holiday"
+        "holiday",
+        "marketing",    
     ]
     
     # Create all output subdirectories

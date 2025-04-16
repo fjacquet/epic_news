@@ -17,6 +17,7 @@ from epic_news.crews.news.news_crew import NewsCrew
 from epic_news.crews.osint.osint_crew import OsintCrew
 from epic_news.crews.poem.poem_crew import PoemCrew
 from epic_news.crews.post.post_crew import PostCrew
+from epic_news.crews.marketing_writers.marketing_writers_crew import MarketingWritersCrew
 from epic_news.crews.reception.reception_crew import ReceptionCrew
 from epic_news.utils.directory_utils import ensure_output_directories
 from epic_news.models import ContentState
@@ -33,7 +34,7 @@ def init():
 """                                                                                      """ 
 
 user_request = (
-    "Donne moi la recette des Thielles sietoise"
+""
 )
 
 """                                                                                      """ 
@@ -162,6 +163,8 @@ class ReceptionFlow(Flow[ContentState]):
             return "go_find_location"
         elif self.state.selected_crew == "OPEN_SOURCE_INTELLIGENCE":
             return "go_generate_osint"
+        elif self.state.selected_crew == "MARKETING_WRITERS":
+            return "go_generate_marketing"
         else:
             return "go_unknown"
 
@@ -263,8 +266,8 @@ class ReceptionFlow(Flow[ContentState]):
             print(f"Generating book summary for: {self.state.topic}")
             
             # Define the output file path directly
-            self.state.output_file  = "output/library/book_summary.html"
-
+            self.state.output_file  = 'output/library/book_summary.html'
+            self.state.attachment_file = 'output/library/research_results.md'
             
             # Generate the book summary
             LibraryCrew().crew().kickoff(inputs={
@@ -361,6 +364,25 @@ class ReceptionFlow(Flow[ContentState]):
             HolidayPlannerCrew().crew().kickoff(inputs=inputs)
             return "send_email"
     
+    @listen("go_generate_marketing")
+    def generate_marketing_content(self):
+        """Generate enhanced marketing content in French based on the original message"""
+        print(f"Enhancing marketing message about: {self.state.topic}")
+        
+        # Define the output file path
+        self.state.output_file = "output/marketing/enhanced_message.html"
+        inputs = {
+            "topic": self.state.topic,
+            "user_request": self.state.user_request,
+            "original_message": self.state.user_request,
+            "target_audience": self.state.target_audience if hasattr(self.state, "target_audience") else "clients potentiels",
+            "output_file": self.state.output_file
+        }
+      
+        # Create and kickoff the marketing writers crew
+        MarketingWritersCrew().crew().kickoff(inputs=inputs)
+        return "send_email" 
+
     @listen(or_(
         "generate_recipe", 
         "find_location", 
@@ -371,6 +393,7 @@ class ReceptionFlow(Flow[ContentState]):
         "generate_news", 
         "generate_osint",
         "generate_poem", 
+        "generate_marketing_content",
      ))
     def send_email(self):
         """Send an email with the generated content"""
@@ -384,49 +407,40 @@ class ReceptionFlow(Flow[ContentState]):
         
         # Get attachment path if it exists for this crew type
         attachment_path = None
-        if self.state.selected_crew == "COOKING" and hasattr(self.state, 'attachment_file'):
-            # Explicitly check both files exist
-            recipe_html = self.state.output_file
-            recipe_yaml = self.state.attachment_file
+        # if self.state.selected_crew == "COOKING" and hasattr(self.state, 'attachment_file'):
+        #     # Explicitly check both files exist
+        #     recipe_html = self.state.output_file
+        #     recipe_yaml = self.state.attachment_file
             
-            if os.path.exists(recipe_yaml):
-                attachment_path = recipe_yaml
-                print(f"Including attachment: {attachment_path}")
-            else:
-                print(f"Warning: Attachment file not found: {recipe_yaml}")
+        #     if os.path.exists(recipe_yaml):
+        #         attachment_path = recipe_yaml
+        #         print(f"Including attachment: {attachment_path}")
+        #     else:
+        #         print(f"Warning: Attachment file not found: {recipe_yaml}")
                 
-            # Double check the HTML file as well
-            if not os.path.exists(recipe_html):
-                print(f"Warning: HTML file not found: {recipe_html}")
+        #     # Double check the HTML file as well
+        #     if not os.path.exists(recipe_html):
+        #         print(f"Warning: HTML file not found: {recipe_html}")
 
          # Initialize PostCrew with the necessary inputs
+                     # 'book_summary': self.state.book_summary,
+            # 'contact_info': self.state.contact_info,
+            # 'crew_type': self.state.selected_crew,
+            # 'lead_score': self.state.lead_score,
+            # 'meeting_prep': self.state.meeting_prep,
+            # 'news': self.state.news,
+            # 'osfindings': self.state.osfindings,
+            # 'poem': self.state.poem,
+            # 'recipe': self.state.recipe,
         inputs = {
-            'book_summary': self.state.book_summary,
-            'contact_info': self.state.contact_info,
-            'crew_type': self.state.selected_crew,
-            'lead_score': self.state.lead_score,
-            'meeting_prep': self.state.meeting_prep,
-            'news': self.state.news,
-            'osfindings': self.state.osfindings,
             'output_file': self.state.output_file,
-            'poem': self.state.poem,
-            'recipe': self.state.recipe,
             'recipient_email': self.state.sendto,
             'topic': self.state.topic,
+            'attachment': self.state.attachment_file,
+            'attachment_file': self.state.attachment_file,
         }
         
-        # Add attachment file for specific crew types
-        if attachment_path:
-            inputs['attachment'] = attachment_path
-            inputs['attachment_file'] = attachment_path
-            inputs['additional_output_files'] = {
-                'attachment': attachment_path
-            }
-        
-        # Mark that we've sent an email
-        self.state.email_sent = True
-        
-        # Execute the PostCrew to send the email
+
         PostCrew().crew().kickoff(inputs=inputs)
 
 

@@ -129,6 +129,14 @@ Conducts open-source intelligence (OSINT) research and reporting, useful for inv
 "Investigate recent cybersecurity incidents affecting European banks."
 ```
 
+### MarketingWritersCrew
+Enhances French marketing messages to make them more persuasive and engaging for potential customers, using specialized marketing and copywriting expertise.
+
+**Example:**
+```text
+"Améliorer ce message marketing: 'Découvrez notre nouveau produit qui vous aide à gagner du temps.'"
+```
+
 ### ClassifyCrew
 Classifies user content into predefined categories using a classification agent and task.
 

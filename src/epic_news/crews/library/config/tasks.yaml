@@ -5,15 +5,24 @@ research_task:
   expected_output: >
     A list with 10 bullet points of the most relevant information about {topic}
   agent: researcher
+  output_file: 'output/library/research_results.md'
 
 reporting_task:
   description: >
-    Review the context you got and expand each topic into a full section for a report.
-    Make sure the report is detailed and contains any and all relevant information.
-    Format your output as HTML with proper styling for better readability in emails.
-    Include a title, sections with headings, and a conclusion.
+    Using the research findings provided, write an actual, complete HTML document in French about "{topic}".
+    Your output must be valid HTML code starting with <!DOCTYPE html> and containing:
+      - Complete <html>, <head> and <body> tags with proper structure
+      - CSS styles embedded in a <style> tag in the <head>
+      - A clickable table of contents with <a href="#section-id"> links
+      - Distinct sections with colored headings using inline CSS
+      - Emojis within the content where appropriate
+      - Citations formatted properly
+      - A clear conclusion section
+
+    Do NOT respond with a description of what the HTML would look like. Your entire response must be valid, 
+    executable HTML code that could be directly saved to a file and opened in a browser.
   expected_output: >
-    A fully fledged report in french formatted as html with the main topics, each with a full section of information.
-    Formatted as HTML with relevant emojis and proper styling for better email presentation.
+    The complete HTML document with all required tags, styles, and content sections. 
+    Must be valid HTML that can be directly rendered in a browser, not a description.
   agent: reporting_analyst
-  output_file: output/library/book_summary.html
+  output_file: 'output/library/book_summary.html'
