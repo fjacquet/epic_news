@@ -2,6 +2,7 @@ from crewai.flow import Flow, listen, start, router, or_, and_
 
 from epic_news.crews.capture_destination.capture_destination_crew import CaptureDestinationCrew
 from epic_news.crews.capture_duration.capture_duration_crew import CaptureDurationCrew
+from epic_news.crews.capture_company.capture_company_crew import CaptureCompanyCrew
 from epic_news.crews.capture_needs.capture_needs_crew import CaptureNeedsCrew
 from epic_news.crews.capture_origin.capture_origin_crew import CaptureOriginCrew
 from epic_news.crews.capture_travelers.capture_travelers_crew import CaptureTravelersCrew
@@ -35,8 +36,7 @@ def init():
 """                                                                                      """
 
 user_request = (
-"Cree un week-end de 4 jours dans le Berry depuis Bourges en France en 2025 pour un homme et son enfant de 10 ans, "
-"il doit inclure la station de Radioastronomie de Nançay,on peut ajouter Sancerre, le village de la Borne."
+"Conducts open-source intelligence research and reporting around the company Dell Technologies and its competitors."
 )
 
 """                                                                                      """
@@ -71,6 +71,15 @@ class ReceptionFlow(Flow[ContentState]):
         origin = CaptureOriginCrew().crew().kickoff(inputs={"user_request": user_request})
         self.state.origin = str(origin)
         return "find_origin"
+
+    @start("go_find_company")
+    def find_company(self):
+        self.state.user_request = user_request
+
+        # Extract the company from the user request
+        company = CaptureCompanyCrew().crew().kickoff(inputs={"user_request": user_request})
+        self.state.company = str(company)
+        return "find_company"
 
     @start("go_find_needs")
     def find_needs(self):
@@ -108,7 +117,7 @@ class ReceptionFlow(Flow[ContentState]):
         self.state.topic = str(topic)
         return "find_topic"
 
-    @listen(and_("find_topic", "find_destination", "find_origin", "find_needs", "find_travelers", "find_duration"))
+    @listen(and_("find_topic", "find_destination", "find_origin", "find_needs", "find_travelers", "find_duration", "find_company"))
     def finalize_preparation (self):
         pass
 
@@ -283,51 +292,51 @@ class ReceptionFlow(Flow[ContentState]):
 
     @listen("go_generate_book_summary")
     def generate_book_summary(self):
-        if self.state.selected_crew == "LIBRARY":
+        # if self.state.selected_crew == "LIBRARY":
 
-            """Generate a book summary based on the topic"""
-            print(f"Generating book summary for: {self.state.topic}")
+        """Generate a book summary based on the topic"""
+        print(f"Generating book summary for: {self.state.topic}")
 
-            # Define the output file path directly
-            self.state.output_file  = 'output/library/book_summary.html'
-            self.state.attachment_file = 'output/library/research_results.md'
+        # Define the output file path directly
+        self.state.output_file  = 'output/library/book_summary.html'
+        self.state.attachment_file = 'output/library/research_results.md'
 
-            # Generate the book summary
-            LibraryCrew().crew().kickoff(inputs={
-                "topic": self.state.topic,
-                "output_file": self.state.output_file,
-                "sendto": self.state.sendto
-            })
-            return "send_email"
+        # Generate the book summary
+        LibraryCrew().crew().kickoff(inputs={
+            "topic": self.state.topic,
+            "output_file": self.state.output_file,
+            "sendto": self.state.sendto
+        })
+        return "send_email"
 
     @listen("go_generate_meeting_prep")
     def generate_meeting_prep(self):
-        if self.state.selected_crew == "MEETING_PREP":
+        # if self.state.selected_crew == "MEETING_PREP":
 
-            """
-            Generate meeting preparation content based on the company name
-            """
-            print(f"Generating meeting prep for company: {self.state.company}")
+        """
+        Generate meeting preparation content based on the company name
+        """
+        print(f"Generating meeting prep for company: {self.state.company}")
 
-         # Ensure we have a company name
-            if not self.state.company and self.state.topic:
-                self.state.company = self.state.topic
-                print(f"Using topic as company name: {self.state.company}")
+        # Ensure we have a company name
+        if not self.state.company and self.state.topic:
+            self.state.company = self.state.topic
+            print(f"Using topic as company name: {self.state.company}")
 
-            # Define the output file path
-            self.state.output_file = f"output/meeting/meeting_preparation.html"
+        # Define the output file path
+        self.state.output_file = f"output/meeting/meeting_preparation.html"
 
-            # Generate the meeting prep
-            return  MeetingPrepCrew().crew().kickoff(inputs={
-                "company": self.state.company,
-                "output_file": self.state.output_file,
-                "sendto": self.state.sendto,
-                "prior_interactions": self.state.prior_interactions,
-                "context": self.state.context,
-                "objective": self.state.objective,
-                "participants": self.state.participants
-            })
-            return "send_email"
+        # Generate the meeting prep
+        return  MeetingPrepCrew().crew().kickoff(inputs={
+            "company": self.state.company,
+            "output_file": self.state.output_file,
+            "sendto": self.state.sendto,
+            "prior_interactions": self.state.prior_interactions,
+            "context": self.state.context,
+            "objective": self.state.objective,
+            "participants": self.state.participants
+        })
+        return "send_email"
 
 
     @listen("go_contact_finder")
@@ -355,14 +364,17 @@ class ReceptionFlow(Flow[ContentState]):
         """Generate contact information for a company"""
         print(f"Finding contacts at: {self.state.company} ")
 
-        self.state.output_file = "output/osint/osfindings.html"
+        self.state.output_file = "output/osint/final.html"
 
         inputs={
             "company": self.state.company,
             "output_file": self.state.output_file,
             "sendto": self.state.sendto,
+            "topic": self.state.topic,
+            "user_request": self.state.user_request,
+            "current_year": self.state.current_year,
+            
         }
-
         OsintCrew().crew().kickoff(inputs=inputs)
         return "send_email"
 

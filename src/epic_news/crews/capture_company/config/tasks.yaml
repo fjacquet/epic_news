@@ -1,0 +1,17 @@
+extract_company_task:
+  description: >
+    Analyze the provided user input: "{user_request}" and extract the main company name mentioned.
+    
+    Focus on identifying:
+    - The primary company or business entity referenced (e.g., for OSINT, research, or reporting)
+    - If possible, list major competitors mentioned or implied
+    
+    For example:
+    - From "Conducts OSINT research around Bobst SA and its competitors" → "Bobst SA"
+    - From "Gather information about Nestlé and rivals" → "Nestlé"
+    - From "Report on LVMH, Kering, and Hermès" → "LVMH, Kering, Hermès"
+    
+    If no company is specified, respond with "No company specified".
+  expected_output: >
+    Return a concise list of company names extracted from the user request. Only include company names, separated by commas if there are several. No explanations, just the names.
+  agent: company_extractor
