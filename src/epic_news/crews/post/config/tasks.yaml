@@ -26,6 +26,7 @@ distribution_task:
     - Confirmation of delivery
     - The recipient and subject
     - Any attachments that were included with their file names
+    - send the message as HTML
     - Confirmation that HTML formatting was preserved
     - Confirmation that original language was preserved
   agent: distributor

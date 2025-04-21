@@ -33,6 +33,7 @@ class ContentState(BaseModel):
         "POEM": "POEM",
         "UNKNOWN": "UNKNOWN",
         "MARKETING_WRITERS": "MARKETING_WRITERS",
+        "POST_ONLY": "POST_ONLY",
     })
     # Output file path
     output_file: str = ""

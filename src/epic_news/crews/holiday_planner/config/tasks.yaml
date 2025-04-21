@@ -1,140 +1,56 @@
 research_destination:
   description: >
-    Conduct comprehensive research on {destination} for a {duration} trip,
-    including:
-    - Validate if {destination} is suitable for a {duration} stay
-    - Research key attractions, activities, and points of interest
-    - Identify local culture, customs, and unique experiences
-    - Research transportation options from {origin} to {destination},
-      including costs and logistics
-    - Consider special needs and requirements: {special_needs}
-    - Research local transportation options within the destination
-    - Identify seasonal considerations, weather, and optimal visiting times
-
-    Your research should be thorough and detailed, covering both practical
-    logistics and the unique appeal of the destination. Consider the needs
-    of {family} in your research.
+    Research all aspects of {destination} for a {duration} trip for {family}, including:
+    - Suitability for {duration}
+    - Attractions, activities, local culture, customs
+    - Transportation from {origin} and within {destination}
+    - Seasonal/weather considerations
+    - Special needs: {special_needs}
   agent: travel_researcher
   expected_output: >
-    Comprehensive destination research document covering all key aspects of
-    {destination} for a {duration} trip, including transportation from
-    {origin}, main attractions, local insights, and practical information.
+    Detailed research document covering all key aspects above, including practical logistics and unique appeal.
 
-plan_accommodation_and_dining:
+recommend_accommodation_and_dining:
   description: >
-    Based on the destination research, develop detailed accommodation and
-    dining recommendations:
-
-    ACCOMMODATION:
-    - Identify 3-5 excellent accommodation options in {destination} suitable
-      for {family}
-    - Consider location, amenities, accessibility, and {special_needs}
-    - Provide detailed descriptions, price ranges, and booking information
-    - Focus on accommodations that offer excellent value for money and enhance
-      the travel experience
-
-    DINING:
-    - Recommend a variety of dining options for each day of the {duration}
-      trip
-    - Include a mix of authentic local cuisine, family-friendly options, and
-      special dining experiences
-    - Provide restaurant names, descriptions, cuisine types, price ranges, and
-      addresses
-    - Include recommendations for breakfast, lunch, and dinner as appropriate
-    - Consider any dietary requirements mentioned in {special_needs}
-
-    Your recommendations should be specific, detailed, and practical,
-    balancing quality and budget considerations.
+    Using the research, recommend:
+    - 3-5 accommodations with details, prices, booking info, accessibility, value
+    - Dining options for each day (breakfast, lunch, dinner), with names, cuisines, prices, addresses, and special needs
   agent: accommodation_specialist
   context: [research_destination]
   expected_output: >
-    Detailed accommodation and dining plan with 3-5 well-researched
-    accommodation options and comprehensive dining recommendations for the
-    entire {duration} trip, including all relevant details and pricing
-    information.
+    Detailed accommodation and dining plan, with all relevant info for the entire trip.
 
-create_detailed_itinerary:
+plan_itinerary:
   description: >
-    Develop a comprehensive day-by-day itinerary for a {duration} trip to
-    {destination} that incorporates:
-
-    - Logical flow of activities organized by day and time
-    - Balanced mix of major attractions and hidden gems
-    - Activities that create "magical" and memorable experiences
-    - Realistic timing that accounts for travel between locations
-    - Incorporation of recommended dining options at appropriate times
-    - Consideration of {family} dynamics and {special_needs}
-    - Practical logistics including opening hours, admission costs, and
-      booking requirements
-    - Local insights and tips to enhance the experience
-
-    Your itinerary should be meticulously detailed, including precise
-    timing, locations, costs, and descriptions for each element. Ensure the
-    schedule is realistic and allows for some flexibility. Focus on creating
-    a cohesive experience that captures the essence of {destination}.
+    Create a day-by-day itinerary that:
+    - Organizes activities, meals, and logistics by day/time
+    - Balances highlights and hidden gems
+    - Considers family/special needs and practical constraints (openings, costs, bookings)
+    - Includes local tips and flexibility
   agent: itinerary_architect
-  context: [research_destination, plan_accommodation_and_dining]
+  context: [research_destination, recommend_accommodation_and_dining]
   expected_output: >
-    Exhaustively detailed day-by-day itinerary with precise timing,
-    locations, descriptions, and logistics for all activities, meals, and
-    transportation throughout the {duration} trip.
+    Exhaustively detailed itinerary, with precise timing, locations, logistics, and descriptions for each element.
 
-optimize_budget:
+analyze_and_optimize_budget:
   description: >
-    Review and optimize the complete itinerary to ensure it adheres to
-    reasonable budget constraints while maintaining high-quality experiences:
-
-    - Analyze costs across all categories: accommodation, dining, activities,
-      and transportation
-    - Provide a detailed budget breakdown showing estimated costs for each
-      element of the trip
-    - Identify areas where costs can be reduced without sacrificing experience
-      quality
-    - Suggest budget-conscious alternatives where appropriate
-    - Ensure the overall plan delivers excellent value for money
-    - Consider the needs of {family} and {special_needs} in your budget
-      optimization
-
-    Your output should include a comprehensive budget analysis with specific
-    cost estimates and optimization recommendations. Be realistic about costs
-    while maximizing experience value.
+    Review the itinerary and provide:
+    - Detailed budget breakdown (accommodation, dining, activities, transport)
+    - Value-maximizing recommendations and savings tips
+    - Realistic cost estimates for all elements
   agent: budget_manager
-  context: [create_detailed_itinerary]
+  context: [plan_itinerary]
   expected_output: >
-    Detailed budget analysis and optimization report with comprehensive cost
-    breakdown, value-maximizing recommendations, and specific cost estimates
-    for all itinerary elements.
+    Comprehensive budget report, with breakdowns, optimization, and value tips.
 
-format_and_translate:
+format_and_translate_guide:
   description: >
-    Create a COMPREHENSIVE and EXHAUSTIVELY DETAILED travel guide that
-    includes ALL information from previous tasks. The guide must include:
-
-    - Complete introduction to {destination} and its appeal for a {duration}
-      trip
-    - Full day-by-day itinerary with precise timings and logical flow
-    - Complete accommodation details including amenities, location
-      advantages, and booking links
-    - Comprehensive dining recommendations with menu highlights and price
-      ranges
-    - Detailed activity descriptions including historical/cultural context
-    - Complete logistics information including transit options, addresses,
-      and contact information
-    - Practical tips for navigating the destination with {family} and
-      addressing {special_needs}
-    - Detailed budget breakdown and money-saving tips
-    - Local insights and cultural guidance
-
-    Format the guide as a highly detailed, professional travel document in
-    clean HTML (no markdown code blocks). Then translate the entire guide
-    into impeccable French while preserving ALL details and maintaining the
-    clarity, tone, and comprehensive nature of the original.
-
-    Do not sacrifice ANY detail or practical information in your formatting
-    or translation.
+    Compile ALL previous outputs into a single, highly detailed travel guide:
+    - Clean, professional HTML (not markdown)
+    - All sections: intro, itinerary, accommodation, dining, activities, logistics, tips, budget, local insights
+    - The guide must be written ONLY in impeccable French, preserving all detail and clarity
+    - Use relevant emojis for clarity and engagement
   agent: content_formatter
-  context: [research_destination, plan_accommodation_and_dining, create_detailed_itinerary, optimize_budget]
+  context: [research_destination, recommend_accommodation_and_dining, plan_itinerary, analyze_and_optimize_budget]
   expected_output: >
-    Complete, exhaustively detailed travel guide in HTML format with relevant emojis, translated
-    into French with all information preserved. The guide should be
-    comprehensive enough to serve as a complete reference for the entire trip.
+    Guide de voyage complet, exhaustif et détaillé, en HTML, rédigé uniquement en français, avec toutes les sections demandées et les emojis appropriés.

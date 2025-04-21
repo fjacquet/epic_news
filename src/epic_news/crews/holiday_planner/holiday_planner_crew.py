@@ -80,27 +80,27 @@ class HolidayPlannerCrew():
         )
 
     @task
-    def plan_accommodation_and_dining(self) -> Task:
+    def recommend_accommodation_and_dining(self) -> Task:
         return Task(
-            config=self.tasks_config['plan_accommodation_and_dining'],
+            config=self.tasks_config['recommend_accommodation_and_dining'],
         )
 
     @task
-    def create_detailed_itinerary(self) -> Task:
+    def plan_itinerary(self) -> Task:
         return Task(
-            config=self.tasks_config['create_detailed_itinerary'],
+            config=self.tasks_config['plan_itinerary'],
         )
 
     @task
-    def optimize_budget(self) -> Task:
+    def analyze_and_optimize_budget(self) -> Task:
         return Task(
-            config=self.tasks_config['optimize_budget'],
+            config=self.tasks_config['analyze_and_optimize_budget'],
         )
 
     @task
-    def format_and_translate(self) -> Task:
+    def format_and_translate_guide(self) -> Task:
         return Task(
-            config=self.tasks_config['format_and_translate'],
+            config=self.tasks_config['format_and_translate_guide'],
             output_file='output/travel_guides/itinerary.html'
         )
 
@@ -114,7 +114,7 @@ class HolidayPlannerCrew():
             agents=self.agents, # Automatically created by the @agent decorator
             tasks=self.tasks, # Automatically created by the @task decorator
             process=Process.sequential,
-            memory=True,
-            cache=True,
+            memory=False,
+            cache=False,
             verbose=True,
         )
