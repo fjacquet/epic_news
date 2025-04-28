@@ -136,6 +136,7 @@ class NewsCrew:
             verbose=True,  
             respect_context_window=True,
             process=Process.hierarchical,
+            manager_llm="gpt-4.1-mini",  # Editor is the manager agent
             manager_llm_timeout=600,  
             task_timeout=3600,  
             max_retries=3  

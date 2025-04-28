@@ -1,11 +1,15 @@
 from crewai.flow import Flow, listen, start, router, or_, and_
 
-from epic_news.crews.capture_destination.capture_destination_crew import CaptureDestinationCrew
+from epic_news.crews.capture_destination.capture_destination_crew import (
+    CaptureDestinationCrew,
+)
 from epic_news.crews.capture_duration.capture_duration_crew import CaptureDurationCrew
 from epic_news.crews.capture_company.capture_company_crew import CaptureCompanyCrew
 from epic_news.crews.capture_needs.capture_needs_crew import CaptureNeedsCrew
 from epic_news.crews.capture_origin.capture_origin_crew import CaptureOriginCrew
-from epic_news.crews.capture_travelers.capture_travelers_crew import CaptureTravelersCrew
+from epic_news.crews.capture_travelers.capture_travelers_crew import (
+    CaptureTravelersCrew,
+)
 from epic_news.crews.capture_topic.capture_topic_crew import CaptureTopicCrew
 from epic_news.crews.classify.classify_crew import ClassifyCrew
 from epic_news.crews.find_contacts.find_contacts_crew import FindContactsCrew
@@ -18,12 +22,15 @@ from epic_news.crews.news.news_crew import NewsCrew
 from epic_news.crews.osint.osint_crew import OsintCrew
 from epic_news.crews.poem.poem_crew import PoemCrew
 from epic_news.crews.post.post_crew import PostCrew
-from epic_news.crews.marketing_writers.marketing_writers_crew import MarketingWritersCrew
+from epic_news.crews.marketing_writers.marketing_writers_crew import (
+    MarketingWritersCrew,
+)
 from epic_news.crews.post_only.post_only_crew import PostOnlyCrew
 from epic_news.crews.reception.reception_crew import ReceptionCrew
 from epic_news.utils.directory_utils import ensure_output_directories
 from epic_news.models import ContentState
 import os
+
 
 def init():
     # Initialize output directories
@@ -36,16 +43,22 @@ def init():
 """                                                                                      """
 
 user_request = (
-"Conducts open-source intelligence research and reporting around the company Dell Technologies and its competitors."
+    "Plan a 7 days ski week in Austria from Montreux switerzerland during february "
+    "ski holidays 2026 with cultural and food experiences."
+    "it will be a 2 families with a total of 4 adults and 3 children."
+    "all families have swiss half fare reduction as well as accor and radisson blu hotels."
+    "A flat would be better that hotel nevertheless. We like to be close to the ski lifts."
+    "We like the formula of holiday village like Reka in Switzerland."
+    "ideally a swimming pool would enhance the experience."
 )
 
 """                                                                                      """
 """                                                                                      """
 """                                                                                      """
 
+
 #
 class ReceptionFlow(Flow[ContentState]):
-
     @start("go_initialize")
     def initialize(self):
         # Reset the email_sent flag to ensure we send an email each time
@@ -53,13 +66,15 @@ class ReceptionFlow(Flow[ContentState]):
         self.state.user_request = user_request
         return "initialize"
 
-
-
     @start("go_find_destination")
     def find_destination(self):
         self.state.user_request = user_request
         # Extract the destination from the user request
-        destination = CaptureDestinationCrew().crew().kickoff(inputs={"user_request": self.state.user_request})
+        destination = (
+            CaptureDestinationCrew()
+            .crew()
+            .kickoff(inputs={"user_request": self.state.user_request})
+        )
         self.state.destination = str(destination)
         return "find_destination"
 
@@ -68,7 +83,9 @@ class ReceptionFlow(Flow[ContentState]):
         self.state.user_request = user_request
 
         # Extract the origin from the user request
-        origin = CaptureOriginCrew().crew().kickoff(inputs={"user_request": user_request})
+        origin = (
+            CaptureOriginCrew().crew().kickoff(inputs={"user_request": user_request})
+        )
         self.state.origin = str(origin)
         return "find_origin"
 
@@ -77,7 +94,9 @@ class ReceptionFlow(Flow[ContentState]):
         self.state.user_request = user_request
 
         # Extract the company from the user request
-        company = CaptureCompanyCrew().crew().kickoff(inputs={"user_request": user_request})
+        company = (
+            CaptureCompanyCrew().crew().kickoff(inputs={"user_request": user_request})
+        )
         self.state.company = str(company)
         return "find_company"
 
@@ -95,7 +114,9 @@ class ReceptionFlow(Flow[ContentState]):
         self.state.user_request = user_request
 
         # Extract the travelers from the user request
-        travelers = CaptureTravelersCrew().crew().kickoff(inputs={"user_request": user_request})
+        travelers = (
+            CaptureTravelersCrew().crew().kickoff(inputs={"user_request": user_request})
+        )
         self.state.family = str(travelers)
         return "find_travelers"
 
@@ -104,7 +125,9 @@ class ReceptionFlow(Flow[ContentState]):
         self.state.user_request = user_request
 
         # Extract the duration from the user request
-        duration = CaptureDurationCrew().crew().kickoff(inputs={"user_request": user_request})
+        duration = (
+            CaptureDurationCrew().crew().kickoff(inputs={"user_request": user_request})
+        )
         self.state.duration = str(duration)
         return "find_duration"
 
@@ -117,8 +140,18 @@ class ReceptionFlow(Flow[ContentState]):
         self.state.topic = str(topic)
         return "find_topic"
 
-    @listen(and_("find_topic", "find_destination", "find_origin", "find_needs", "find_travelers", "find_duration", "find_company"))
-    def finalize_preparation (self):
+    @listen(
+        and_(
+            "find_topic",
+            "find_destination",
+            "find_origin",
+            "find_needs",
+            "find_travelers",
+            "find_duration",
+            "find_company",
+        )
+    )
+    def finalize_preparation(self):
         pass
 
     @listen("finalize_preparation")
@@ -136,7 +169,7 @@ class ReceptionFlow(Flow[ContentState]):
             "user_request": self.state.user_request,
             "output_file": self.state.output_file,
             "categories": self.state.categories,
-            "selected_crew": self.state.selected_crew
+            "selected_crew": self.state.selected_crew,
         }
 
         # Run the classification crew
@@ -152,7 +185,6 @@ class ReceptionFlow(Flow[ContentState]):
 
     @router("classify")
     def determine_crew(self):
-
         """Route based on relationship type to personalize greetings."""
         if self.state.selected_crew == "CONTACT_FINDER":
             return "go_contact_finder"
@@ -193,16 +225,18 @@ class ReceptionFlow(Flow[ContentState]):
         print(f"Generating post-only about: {self.state.topic}")
 
         # Define the output file path
-        self.state.output_file="output/travel_guides/itinerary.html"
+        self.state.output_file = "output/travel_guides/itinerary.html"
 
         # Create and kickoff the post-only crew
-        PostOnlyCrew().crew().kickoff(inputs={
-            "topic": self.state.topic,
-            "user_request": self.state.user_request,
-            "output_file": self.state.output_file,
-            "sendto": self.state.sendto,
-            "current_year": self.state.current_year,
-        })
+        PostOnlyCrew().crew().kickoff(
+            inputs={
+                "topic": self.state.topic,
+                "user_request": self.state.user_request,
+                "output_file": self.state.output_file,
+                "sendto": self.state.sendto,
+                "current_year": self.state.current_year,
+            }
+        )
         return "send_email"
 
     @listen("go_generate_poem")
@@ -216,14 +250,15 @@ class ReceptionFlow(Flow[ContentState]):
         self.state.output_file = "output/poem/poem.html"
 
         # Create and kickoff the poem crew
-        PoemCrew().crew().kickoff(inputs={
-            "topic": self.state.topic,
-            "user_request": self.state.user_request,
-            "sentence_count": self.state.sentence_count,
-            "output_file": self.state.output_file
-        })
+        PoemCrew().crew().kickoff(
+            inputs={
+                "topic": self.state.topic,
+                "user_request": self.state.user_request,
+                "sentence_count": self.state.sentence_count,
+                "output_file": self.state.output_file,
+            }
+        )
         return "send_email"
-
 
     @listen("go_generate_news")
     def generate_news(self):
@@ -235,23 +270,21 @@ class ReceptionFlow(Flow[ContentState]):
         # Define the output file path directly
         self.state.output_file = "output/news/report.html"
 
-
         # Generate the news
-        NewsCrew().crew().kickoff(inputs={
-            "topic": self.state.topic,
-            "output_file": self.state.output_file,
-            "sentence_count": self.state.sentence_count,
-            "sendto": self.state.sendto,
-            "current_year": self.state.current_year
-        })
+        NewsCrew().crew().kickoff(
+            inputs={
+                "topic": self.state.topic,
+                "output_file": self.state.output_file,
+                "sentence_count": self.state.sentence_count,
+                "sendto": self.state.sendto,
+                "current_year": self.state.current_year,
+            }
+        )
         return "send_email"
-
-
 
     @listen("go_find_location")
     def find_location(self):
         if self.state.selected_crew == "LOCATION":
-
             """Find a location based on the topic"""
             print(f"Finding location for: {self.state.topic}")
 
@@ -259,15 +292,16 @@ class ReceptionFlow(Flow[ContentState]):
             self.state.output_file = "output/location/location.html"
 
             # Generate the location
-            FindLocationCrew().crew().kickoff(inputs={
-                "topic": self.state.topic,
-                "user_request": self.state.user_request,
-                "output_file": self.state.output_file,
-                "sendto": self.state.sendto,
-                "current_year": self.state.current_year,
-            })
+            FindLocationCrew().crew().kickoff(
+                inputs={
+                    "topic": self.state.topic,
+                    "user_request": self.state.user_request,
+                    "output_file": self.state.output_file,
+                    "sendto": self.state.sendto,
+                    "current_year": self.state.current_year,
+                }
+            )
             return "send_email"
-
 
     @listen("go_generate_recipe")
     def generate_recipe(self):
@@ -279,15 +313,17 @@ class ReceptionFlow(Flow[ContentState]):
         # Define the output file path directly
         self.state.output_file = "output/cooking/recipe.html"
         # Define the additional output file for Paprika recipe format
-        self.state.attachment_file = 'output/cooking/paprika_recipe.yaml'
+        self.state.attachment_file = "output/cooking/paprika_recipe.yaml"
 
         # Generate the recipe
-        CookingCrew().crew().kickoff(inputs={
-            "topic": self.state.topic,
-            "output_file": self.state.output_file,
-            "attachment_file": self.state.attachment_file,
-            "sendto": self.state.sendto
-        })
+        CookingCrew().crew().kickoff(
+            inputs={
+                "topic": self.state.topic,
+                "output_file": self.state.output_file,
+                "attachment_file": self.state.attachment_file,
+                "sendto": self.state.sendto,
+            }
+        )
         return "send_email"
 
     @listen("go_generate_book_summary")
@@ -298,15 +334,17 @@ class ReceptionFlow(Flow[ContentState]):
         print(f"Generating book summary for: {self.state.topic}")
 
         # Define the output file path directly
-        self.state.output_file  = 'output/library/book_summary.html'
-        self.state.attachment_file = 'output/library/research_results.md'
+        self.state.output_file = "output/library/book_summary.html"
+        self.state.attachment_file = "output/library/research_results.md"
 
         # Generate the book summary
-        LibraryCrew().crew().kickoff(inputs={
-            "topic": self.state.topic,
-            "output_file": self.state.output_file,
-            "sendto": self.state.sendto
-        })
+        LibraryCrew().crew().kickoff(
+            inputs={
+                "topic": self.state.topic,
+                "output_file": self.state.output_file,
+                "sendto": self.state.sendto,
+            }
+        )
         return "send_email"
 
     @listen("go_generate_meeting_prep")
@@ -324,30 +362,37 @@ class ReceptionFlow(Flow[ContentState]):
             print(f"Using topic as company name: {self.state.company}")
 
         # Define the output file path
-        self.state.output_file = f"output/meeting/meeting_preparation.html"
+        self.state.output_file = "output/meeting/meeting_preparation.html"
 
         # Generate the meeting prep
-        return  MeetingPrepCrew().crew().kickoff(inputs={
-            "company": self.state.company,
-            "output_file": self.state.output_file,
-            "sendto": self.state.sendto,
-            "prior_interactions": self.state.prior_interactions,
-            "context": self.state.context,
-            "objective": self.state.objective,
-            "participants": self.state.participants
-        })
+        return (
+            MeetingPrepCrew()
+            .crew()
+            .kickoff(
+                inputs={
+                    "company": self.state.company,
+                    "output_file": self.state.output_file,
+                    "sendto": self.state.sendto,
+                    "prior_interactions": self.state.prior_interactions,
+                    "context": self.state.context,
+                    "objective": self.state.objective,
+                    "participants": self.state.participants,
+                }
+            )
+        )
         return "send_email"
-
 
     @listen("go_contact_finder")
     def generate_contact_info(self):
         # if self.state.selected_crew == "CONTACT_FINDER":
         """Generate contact information for a company"""
-        print(f"Finding contacts at: {self.state.company} for product: {self.state.our_product}")
+        print(
+            f"Finding contacts at: {self.state.company} for product: {self.state.our_product}"
+        )
 
         self.state.output_file = "output/contact_finder/approach_strategy.html"
 
-        inputs={
+        inputs = {
             "company": self.state.company,
             "our_product": self.state.our_product,
             "output_file": self.state.output_file,
@@ -357,7 +402,6 @@ class ReceptionFlow(Flow[ContentState]):
         FindContactsCrew().crew().kickoff(inputs=inputs)
         return "send_email"
 
-
     @listen("go_generate_osint")
     def generate_osint(self):
         # if self.state.selected_crew == "OPEN_SOURCE_INTELLIGENCE":
@@ -366,23 +410,21 @@ class ReceptionFlow(Flow[ContentState]):
 
         self.state.output_file = "output/osint/final.html"
 
-        inputs={
+        inputs = {
             "company": self.state.company,
             "output_file": self.state.output_file,
             "sendto": self.state.sendto,
             "topic": self.state.topic,
             "user_request": self.state.user_request,
             "current_year": self.state.current_year,
-            
         }
         OsintCrew().crew().kickoff(inputs=inputs)
         return "send_email"
 
-
     @listen("go_generate_holiday_plan")
     def generate_holiday_plan(self):
         # if self.state.selected_crew == "HOLIDAY_PLANNER":
-        self.state.output_file="output/travel_guides/itinerary.html"
+        self.state.output_file = "output/travel_guides/itinerary.html"
         inputs = {
             "destination": self.state.destination,
             "duration": self.state.duration,
@@ -410,27 +452,31 @@ class ReceptionFlow(Flow[ContentState]):
             "topic": self.state.topic,
             "user_request": self.state.user_request,
             "original_message": self.state.user_request,
-            "target_audience": self.state.target_audience if hasattr(self.state, "target_audience") else "clients potentiels",
-            "output_file": self.state.output_file
+            "target_audience": self.state.target_audience
+            if hasattr(self.state, "target_audience")
+            else "clients potentiels",
+            "output_file": self.state.output_file,
         }
 
         # Create and kickoff the marketing writers crew
         MarketingWritersCrew().crew().kickoff(inputs=inputs)
         return "send_email"
 
-    @listen(or_(
-        "generate_recipe",
-        "find_location",
-        "generate_book_summary",
-        "generate_contact_info",
-        "generate_holiday_plan",
-        "generate_meeting_prep",
-        "generate_news",
-        "generate_osint",
-        "generate_poem",
-        "generate_post_only",
-        "generate_marketing_content",
-     ))
+    @listen(
+        or_(
+            "generate_recipe",
+            "find_location",
+            "generate_book_summary",
+            "generate_contact_info",
+            "generate_holiday_plan",
+            "generate_meeting_prep",
+            "generate_news",
+            "generate_osint",
+            "generate_poem",
+            "generate_post_only",
+            "generate_marketing_content",
+        )
+    )
     def send_email(self):
         """Send an email with the generated content"""
 
@@ -442,11 +488,11 @@ class ReceptionFlow(Flow[ContentState]):
         print(f"Sending email to: {self.state.sendto}")
 
         inputs = {
-            'output_file': self.state.output_file,
-            'recipient_email': self.state.sendto,
-            'topic': self.state.topic,
-            'attachment': self.state.attachment_file,
-            'attachment_file': self.state.attachment_file,
+            "output_file": self.state.output_file,
+            "recipient_email": self.state.sendto,
+            "topic": self.state.topic,
+            "attachment": self.state.attachment_file,
+            "attachment_file": self.state.attachment_file,
         }
 
         print(f"Inputs: {inputs}")
@@ -461,6 +507,7 @@ def kickoff():
 def plot():
     reception_flow = ReceptionFlow()
     reception_flow.plot()
+
 
 if __name__ == "__main__":
     init()
