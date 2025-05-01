@@ -17,7 +17,8 @@ class CaptureTopicCrew():
     def topic_extractor(self) -> Agent:
         return Agent(
             config=self.agents_config['topic_extractor'],
-            verbose=True
+            verbose=True,
+            respect_context_window=True
         )
 
     @task

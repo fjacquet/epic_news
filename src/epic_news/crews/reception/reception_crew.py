@@ -16,7 +16,8 @@ class ReceptionCrew:
     def router(self) -> Agent:
         return Agent(
             config=self.agents_config['router'],
-            verbose=True
+            verbose=True,
+            respect_context_window=True
         )
 
     @task
@@ -34,6 +35,5 @@ class ReceptionCrew:
             tasks=self.tasks,
             process=Process.sequential,
             verbose=True,
-            memory=True,
-            cache=True,
+            # process=Process.hierarchical, # In case you wanna use that instead https://docs.crewai.com/how-to/Hierarchical/
         )

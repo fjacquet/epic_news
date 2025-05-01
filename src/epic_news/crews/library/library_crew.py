@@ -34,14 +34,16 @@ class LibraryCrew():
     def researcher(self) -> Agent:
         return Agent(
             config=self.agents_config['researcher'],
-            verbose=True
+            verbose=True,
+            respect_context_window=True
         )
 
     @agent
     def reporting_analyst(self) -> Agent:
         return Agent(
             config=self.agents_config['reporting_analyst'],
-            verbose=True
+            verbose=True,
+            respect_context_window=True
         )
 
     # To learn more about structured task outputs,
@@ -73,7 +75,5 @@ class LibraryCrew():
             tasks=self.tasks, # Automatically created by the @task decorator
             process=Process.sequential,
             verbose=True,
-            memory=True,
-            cache=True,
             # process=Process.hierarchical, # In case you wanna use that instead https://docs.crewai.com/how-to/Hierarchical/
         )

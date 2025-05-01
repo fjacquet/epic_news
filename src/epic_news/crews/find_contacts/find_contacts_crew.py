@@ -36,7 +36,8 @@ class FindContactsCrew():
             config=self.agents_config["company_researcher"],
             tools=search_tools,
             verbose=True,
-            llm_timeout=300
+            llm_timeout=300,
+            respect_context_window=True
         )
 
     @agent
@@ -45,7 +46,8 @@ class FindContactsCrew():
             config=self.agents_config["org_structure_analyst"],
             tools=search_tools,
             verbose=True,
-            llm_timeout=300
+            llm_timeout=300,
+            respect_context_window=True
         )
 
     @agent
@@ -54,7 +56,8 @@ class FindContactsCrew():
             config=self.agents_config["contact_finder"],
             tools=search_tools,
             verbose=True,
-            llm_timeout=300
+            llm_timeout=300,
+            respect_context_window=True
         )
 
     @agent
@@ -63,7 +66,8 @@ class FindContactsCrew():
             config=self.agents_config["sales_strategist"],
             tools=search_tools,
             verbose=True,
-            llm_timeout=300
+            llm_timeout=300,
+            respect_context_window=True
         )
 
     @task

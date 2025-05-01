@@ -48,6 +48,7 @@ class MeetingPrepCrew():
             tools=search_tools, 
             allow_delegation=False,
             verbose=True,
+            respect_context_window=True
         )
 
     @agent
@@ -57,6 +58,7 @@ class MeetingPrepCrew():
             tools=search_tools, 
             allow_delegation=False,
             verbose=True,
+            respect_context_window=True
         )
 
     @agent
@@ -65,6 +67,7 @@ class MeetingPrepCrew():
             config=self.agents_config["sales_strategist_agent"],
             tools=search_tools, 
             verbose=True,
+            respect_context_window=True
         )
 
     @agent
@@ -73,6 +76,7 @@ class MeetingPrepCrew():
             config=self.agents_config["briefing_coordinator_agent"],
             tools=[],
             verbose=True,
+            respect_context_window=True
         )
 
 
@@ -119,8 +123,6 @@ class MeetingPrepCrew():
             tasks=self.tasks, # Automatically created by the @task decorator
             process=Process.sequential,
             verbose=True,
-            memory=True,
-            cache=True,
             llm_timeout=300,
             
             # process=Process.hierarchical, # In case you wanna use that instead https://docs.crewai.com/how-to/Hierarchical/

@@ -26,7 +26,8 @@ class FindLocationCrew():
         return Agent(
             config=self.agents_config['location_requirements_analyst'],
             tools=search_tools,
-            verbose=True
+            verbose=True,
+            respect_context_window=True
         )
 
     @agent
@@ -34,7 +35,8 @@ class FindLocationCrew():
         return Agent(
             config=self.agents_config['location_researcher'],
             tools=search_tools,
-            verbose=True
+            verbose=True,
+            respect_context_window=True
         )
 
     @agent
@@ -42,7 +44,8 @@ class FindLocationCrew():
         return Agent(
             config=self.agents_config['location_recommendations_specialist'],
             tools=search_tools,
-            verbose=True
+            verbose=True,
+            respect_context_window=True
         )
 
     @task

@@ -44,7 +44,8 @@ class NewsCrew:
             config=self.agents_config['researcher'],
             tools=search_tools,
             # verbose=True,
-            llm_timeout=300
+            llm_timeout=300,
+            respect_context_window=True
         )
 
     @agent
@@ -53,7 +54,8 @@ class NewsCrew:
             config=self.agents_config['analyst'],
             tools=search_tools,
             # verbose=True,
-            llm_timeout=300
+            llm_timeout=300,
+            respect_context_window=True
         )
     
     @agent
@@ -62,7 +64,8 @@ class NewsCrew:
             config=self.agents_config['fact_checker'],
             tools=fact_checking_tools,
             # verbose=True,
-            llm_timeout=300
+            llm_timeout=300,
+            respect_context_window=True
         )
     
     @agent
@@ -71,7 +74,8 @@ class NewsCrew:
             config=self.agents_config['editor'],
             tools=search_tools,
             # verbose=True,
-            llm_timeout=300
+            llm_timeout=300,
+            respect_context_window=True
         )
 
     # To learn more about structured task outputs,

@@ -28,7 +28,8 @@ class CookingCrew:
             config=self.agents_config['recipe_expert'],
             tools=search_tools,
             verbose=True,
-            llm_timeout=300
+            llm_timeout=300,
+            respect_context_window=True
         )
     
     @task

@@ -23,7 +23,8 @@ class MarketingWritersCrew:
             config=self.agents_config["marketing_specialist"],
             tools=marketing_tools,
             verbose=True,
-            llm_timeout=300
+            llm_timeout=300,
+            respect_context_window=True
         )
     
     @agent
@@ -32,7 +33,8 @@ class MarketingWritersCrew:
             config=self.agents_config["copywriter"],
             tools=marketing_tools,
             verbose=True,
-            llm_timeout=300
+            llm_timeout=300,
+            respect_context_window=True
         )
 
     @task
@@ -62,6 +64,5 @@ class MarketingWritersCrew:
             tasks=self.tasks,
             process=Process.sequential,
             verbose=True,
-            memory=True,
-            cache=True,
+            # process=Process.hierarchical, # In case you wanna use that instead https://docs.crewai.com/how-to/Hierarchical/
         )

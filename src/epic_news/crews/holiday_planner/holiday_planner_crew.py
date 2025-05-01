@@ -1,8 +1,7 @@
-from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
+from crewai import Agent, Crew, Process, Task
 
-from composio_crewai import ComposioToolSet, App, Action
-import os
+from composio_crewai import ComposioToolSet
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -40,6 +39,8 @@ class HolidayPlannerCrew():
         return Agent(
             config=self.agents_config['travel_researcher'],
             tools=search_tools,
+            verbose=True,
+            respect_context_window=True
         )
 
     @agent
@@ -47,6 +48,8 @@ class HolidayPlannerCrew():
         return Agent(
             config=self.agents_config['accommodation_specialist'],
             tools=search_tools,
+            verbose=True,
+            respect_context_window=True
         )
 
     @agent
@@ -54,6 +57,8 @@ class HolidayPlannerCrew():
         return Agent(
             config=self.agents_config['itinerary_architect'],
             tools=search_tools,
+            verbose=True,
+            respect_context_window=True
         )
 
     @agent
@@ -61,13 +66,16 @@ class HolidayPlannerCrew():
         return Agent(
             config=self.agents_config['budget_manager'],
             tools=search_tools,
+            verbose=True,
+            respect_context_window=True
         )
 
     @agent
     def content_formatter(self) -> Agent:
         return Agent(
             config=self.agents_config['content_formatter'],
-
+            verbose=True,
+            respect_context_window=True
         )
 
     # To learn more about structured task outputs,

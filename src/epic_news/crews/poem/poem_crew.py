@@ -14,7 +14,9 @@ class PoemCrew:
     @agent
     def poem_writer(self) -> Agent:
         return Agent(
-            config=self.agents_config["poem_writer"],   
+            config=self.agents_config["poem_writer"],
+            respect_context_window=True,
+            verbose=True
         )
 
     @task
@@ -32,6 +34,5 @@ class PoemCrew:
             tasks=self.tasks,
             process=Process.sequential,
             verbose=True,
-            memory=True,
-            cache=True,
+            # process=Process.hierarchical, # In case you wanna use that instead https://docs.crewai.com/how-to/Hierarchical/
         )

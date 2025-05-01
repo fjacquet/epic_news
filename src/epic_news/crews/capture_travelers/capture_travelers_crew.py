@@ -26,7 +26,8 @@ class CaptureTravelersCrew():
     def travelers_extractor(self) -> Agent:
         return Agent(
             config=self.agents_config['travelers_extractor'],
-            verbose=True
+            verbose=True,
+            respect_context_window=True
         )
 
     # To learn more about structured task outputs,

@@ -32,6 +32,7 @@ from epic_news.models import ContentState
 
 from dotenv import load_dotenv
 
+
 load_dotenv()
 
 
@@ -46,8 +47,8 @@ def init():
 """                                                                                      """
 
 user_request = (
-    "create a report of the company Banque Reyl covering: "
-    "- its structure," 
+    "create a report of the company Audemars Piguet covering: "
+    "- its structure,"
     "- its activities, "
     "- its products and services, "
     "- its competitors "

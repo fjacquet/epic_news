@@ -26,7 +26,8 @@ class CaptureNeedsCrew():
     def special_needs_extractor(self) -> Agent:
         return Agent(
             config=self.agents_config['special_needs_extractor'],
-            verbose=True
+            verbose=True,
+            respect_context_window=True
         )
 
     # To learn more about structured task outputs,

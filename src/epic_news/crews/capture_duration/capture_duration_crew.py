@@ -24,7 +24,8 @@ class CaptureDurationCrew():
     def duration_extractor(self) -> Agent:
         return Agent(
             config=self.agents_config['duration_extractor'],
-            verbose=True
+            verbose=True,
+            respect_context_window=True
         )
 
     # To learn more about structured task outputs,

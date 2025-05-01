@@ -24,14 +24,16 @@ class PostOnlyCrew():
     def researcher(self) -> Agent:
         return Agent(
             config=self.agents_config['researcher'],
-            verbose=True
+            verbose=True,
+            respect_context_window=True
         )
 
     @agent
     def reporting_analyst(self) -> Agent:
         return Agent(
             config=self.agents_config['reporting_analyst'],
-            verbose=True
+            verbose=True,
+            respect_context_window=True
         )
 
     # To learn more about structured task outputs,

@@ -25,7 +25,8 @@ class CaptureOriginCrew():
     def origin_extractor(self) -> Agent:
         return Agent(
             config=self.agents_config['origin_extractor'],
-            verbose=True
+            verbose=True,
+            respect_context_window=True
         )
 
     # To learn more about structured task outputs,
