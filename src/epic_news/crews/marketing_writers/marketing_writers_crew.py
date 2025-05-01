@@ -1,7 +1,9 @@
 from crewai import Agent, Crew, Task, Process
 from crewai.project import CrewBase, agent, crew, task
 from composio_crewai import ComposioToolSet
-import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Set up the tools for marketing tasks
 toolset = ComposioToolSet()

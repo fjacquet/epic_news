@@ -29,7 +29,10 @@ from epic_news.crews.post_only.post_only_crew import PostOnlyCrew
 from epic_news.crews.reception.reception_crew import ReceptionCrew
 from epic_news.utils.directory_utils import ensure_output_directories
 from epic_news.models import ContentState
-import os
+
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 def init():
@@ -43,13 +46,14 @@ def init():
 """                                                                                      """
 
 user_request = (
-    "Plan a 7 days ski week in Austria from Montreux switerzerland during february "
-    "ski holidays 2026 with cultural and food experiences."
-    "it will be a 2 families with a total of 4 adults and 3 children."
-    "all families have swiss half fare reduction as well as accor and radisson blu hotels."
-    "A flat would be better that hotel nevertheless. We like to be close to the ski lifts."
-    "We like the formula of holiday village like Reka in Switzerland."
-    "ideally a swimming pool would enhance the experience."
+    "create a report of the company Banque Reyl covering: "
+    "- its structure," 
+    "- its activities, "
+    "- its products and services, "
+    "- its competitors "
+    "- its market position."
+    "Please give me sources, ensure the report is in french and is easy to read."
+    "make it as detailed as possible."
 )
 
 """                                                                                      """
