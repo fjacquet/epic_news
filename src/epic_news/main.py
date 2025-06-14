@@ -47,14 +47,13 @@ def init():
 """                                                                                      """
 
 user_request = (
-    "create a report of the company Audemars Piguet covering: "
-    "- its structure,"
-    "- its activities, "
-    "- its products and services, "
-    "- its competitors "
-    "- its market position."
-    "Please give me sources, ensure the report is in french and is easy to read."
-    "make it as detailed as possible."
+    "Can you create a 7 days  ski holidays in in Mozine, France from Montreux switerzerland "
+    "during february ski holidays 2026 with cultural and food experiences."
+    "it will be a 2 families with a total of 4 adults and 2 children."
+    "We like to be close to the ski lifts, with a holiday village formula not hotel."
+    "Ideally a swimming pool would enhance the experience but is not a must."
+    "Budget is not unlimited, keep it in mind."
+    "PLEASE GIVE YOUR SOURCES !!!"
 )
 
 """                                                                                      """

@@ -1,13 +1,14 @@
-.env
 __pycache__/
-lib/
-.DS_Store
-# @/
 .composio.lock
+.DS_Store
+.env
+.venv/
+.vscode/settings.json
+# @/
 checkpoints/
+db/
+lib/
+output/
+prompts.txt
 report.md
 uv.lock
-.venv/
-prompts.txt
-.vscode/settings.json
-output/

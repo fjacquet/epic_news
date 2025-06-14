@@ -3,84 +3,80 @@ from crewai import Agent, Crew, Process, Task
 
 from composio_crewai import ComposioToolSet
 from dotenv import load_dotenv
+
 load_dotenv()
 
-# Initialize the toolset
+# Initialize the toolset with specialized tool groups
 toolset = ComposioToolSet()
-search_tools = toolset.get_tools(actions=[
-    'COMPOSIO_SEARCH_NEWS_SEARCH',
-    'COMPOSIO_SEARCH_DUCK_DUCK_GO_SEARCH',
-    'COMPOSIO_SEARCH_SEARCH',
-    'COMPOSIO_SEARCH_SHOPPING_SEARCH',
+travel_tools = toolset.get_tools(actions=[
     'COMPOSIO_SEARCH_GOOGLE_MAPS_SEARCH',
-    'COMPOSIO_SEARCH_TRENDS_SEARCH',
-    'YOUTUBE_SEARCH_YOU_TUBE',
-],)
+    'COMPOSIO_SEARCH_SEARCH',
+    'YOUTUBE_SEARCH_YOU_TUBE'
+])
 
-# If you want to run a snippet of code before or after the crew starts,
-# you can use the @before_kickoff and @after_kickoff decorators
-# https://docs.crewai.com/concepts/crews#example-crew-class-with-decorators
+accommodation_tools = toolset.get_tools(actions=[
+    'COMPOSIO_SEARCH_SHOPPING_SEARCH',
+    'COMPOSIO_SEARCH_TRENDS_SEARCH'
+])
+
+content_tools = toolset.get_tools(actions=[
+    'COMPOSIO_SEARCH_NEWS_SEARCH',
+    'COMPOSIO_SEARCH_DUCK_DUCK_GO_SEARCH'
+])
 
 @CrewBase
 class HolidayPlannerCrew():
     """HolidayPlanner crew"""
 
-    # Learn more about YAML configuration files here:
-    # Agents: https://docs.crewai.com/concepts/agents#yaml-configuration-recommended
-    # Tasks: https://docs.crewai.com/concepts/tasks#yaml-configuration-recommended
     agents_config = 'config/agents.yaml'
     tasks_config = 'config/tasks.yaml'
 
-
-    # If you would like to add tools to your agents, you can learn more about it here:
-    # https://docs.crewai.com/concepts/agents#agent-tools
     @agent
     def travel_researcher(self) -> Agent:
         return Agent(
-            config=self.agents_config['travel_researcher'],
-            tools=search_tools,
+            config=self.agents_config["travel_researcher"],
+            tools=travel_tools,
             verbose=True,
-            respect_context_window=True
+            max_iter=15,
+            allow_delegation=True
         )
 
     @agent
     def accommodation_specialist(self) -> Agent:
         return Agent(
-            config=self.agents_config['accommodation_specialist'],
-            tools=search_tools,
+            config=self.agents_config["accommodation_specialist"],
+            tools=accommodation_tools,
             verbose=True,
-            respect_context_window=True
+            allow_delegation=True,
         )
 
     @agent
     def itinerary_architect(self) -> Agent:
         return Agent(
-            config=self.agents_config['itinerary_architect'],
-            tools=search_tools,
+            config=self.agents_config["itinerary_architect"],
+            tools=travel_tools + accommodation_tools,  # Combines both tool sets
             verbose=True,
-            respect_context_window=True
+            allow_delegation=True,
         )
 
     @agent
     def budget_manager(self) -> Agent:
         return Agent(
-            config=self.agents_config['budget_manager'],
-            tools=search_tools,
+            config=self.agents_config["budget_manager"],
+            tools=accommodation_tools,  # Focus on shopping/trends for deals
             verbose=True,
-            respect_context_window=True
+            allow_delegation=True,
         )
 
     @agent
     def content_formatter(self) -> Agent:
         return Agent(
-            config=self.agents_config['content_formatter'],
+            config=self.agents_config["content_formatter"],
+            tools=content_tools,
             verbose=True,
-            respect_context_window=True
+            allow_delegation=True,
         )
 
-    # To learn more about structured task outputs,
-    # task dependencies, and task callbacks, check out the documentation:
-    # https://docs.crewai.com/concepts/tasks#overview-of-a-task
     @task
     def research_destination(self) -> Task:
         return Task(
@@ -115,14 +111,14 @@ class HolidayPlannerCrew():
     @crew
     def crew(self) -> Crew:
         """Creates the HolidayPlanner crew"""
-        # To learn how to add knowledge sources to your crew, check out the documentation:
-        # https://docs.crewai.com/concepts/knowledge#what-is-knowledge
-
+        # Use a minimal LLM configuration that relies on environmental defaults
         return Crew(
-            agents=self.agents, # Automatically created by the @agent decorator
-            tasks=self.tasks, # Automatically created by the @task decorator
-            process=Process.sequential,
-            memory=False,
-            cache=False,
-            verbose=True,
+            agents=self.agents,  # Automatically created by the @agent decorator
+            tasks=self.tasks,  # Automatically created by the @task decorator
+            process=Process.hierarchical,
+            manager_llm="openai/gpt-4o",
+            memory=True,
+            cache=True,
+            max_retry_limit=5,
+            max_rpm=30,  # Rate limiting to avoid API issues
         )
