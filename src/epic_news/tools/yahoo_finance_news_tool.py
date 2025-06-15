@@ -2,9 +2,9 @@
 Tool for fetching Yahoo Finance News.
 """
 import datetime
+import json
 
 import yfinance as yf
-import json
 from crewai.tools import BaseTool
 from pydantic import BaseModel, Field
 

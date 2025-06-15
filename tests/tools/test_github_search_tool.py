@@ -1,9 +1,10 @@
-import pytest
 import json
 import os
-from unittest.mock import patch, MagicMock, ANY
+from unittest.mock import ANY, MagicMock, patch
 
-from epic_news.tools.github_search_tool import GitHubSearchTool, GitHubSearchInput
+import pytest
+
+from epic_news.tools.github_search_tool import GitHubSearchInput, GitHubSearchTool
 
 TEST_GITHUB_TOKEN = "ghp_test_token_for_search_tool"
 GITHUB_SEARCH_URL_BASE = "https://api.github.com/search/"

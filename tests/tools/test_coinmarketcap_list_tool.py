@@ -1,9 +1,10 @@
 # tests/tools/test_coinmarketcap_list_tool.py
 import json
 import os
+from unittest.mock import ANY, MagicMock, patch
+
 import pytest
 import requests
-from unittest.mock import patch, MagicMock
 
 from epic_news.tools.coinmarketcap_list_tool import (
     CoinMarketCapListTool,
@@ -202,5 +203,4 @@ def test_run_json_decode_error(mock_requests_get):
     assert "error" in result_data
     assert "Error retrieving cryptocurrency list: Malformed JSON" in result_data["error"]
 
-# For mock_requests_get.assert_called_once_with(ANY, headers=ANY, params=expected_params)
-from unittest.mock import ANY
+

@@ -1,6 +1,7 @@
 """Base classes and common functionality for search tools."""
-from typing import Dict, Any, Optional, TypeVar
 import logging
+from typing import Any, Dict, Optional, TypeVar
+
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry

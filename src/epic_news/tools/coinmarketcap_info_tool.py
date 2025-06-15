@@ -2,17 +2,19 @@
 CoinMarketCap API tool for cryptocurrency detailed information.
 """
 
-import os
-import requests
 import json
-from crewai.tools import BaseTool
-from pydantic import BaseModel, Field
 
 # Assuming epic_news.tools.logger is accessible. If not, adjust or remove.
 # from epic_news.tools.logger import get_logger
 # logger = get_logger(__name__)
 # For now, using standard logging if epic_news.tools.logger is an issue for standalone tool
 import logging
+import os
+
+import requests
+from crewai.tools import BaseTool
+from pydantic import BaseModel, Field
+
 logger = logging.getLogger(__name__)
 
 

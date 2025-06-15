@@ -1,11 +1,11 @@
 """
 Tool for fetching Yahoo Finance Ticker History.
 """
-import datetime
 
-import yfinance as yf
 import json
+
 import pandas as pd
+import yfinance as yf
 from crewai.tools import BaseTool
 from pydantic import BaseModel, Field
 

@@ -1,12 +1,14 @@
 """Delegating email search tool that routes to specific providers."""
 import json
-from pydantic import BaseModel, Field
+
 from crewai.tools import BaseTool
 from dotenv import load_dotenv
+from pydantic import BaseModel, Field
 
 from epic_news.utils.logger import get_logger
-from .hunter_io_tool import HunterIOTool # Import the actual tool
-from .serper_email_search_tool import SerperEmailSearchTool # Import the actual tool
+
+from .hunter_io_tool import HunterIOTool  # Import the actual tool
+from .serper_email_search_tool import SerperEmailSearchTool  # Import the actual tool
 
 # Load environment variables from .env file
 load_dotenv()

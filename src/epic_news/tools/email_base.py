@@ -1,10 +1,12 @@
 """Base classes and common functionality for email search tools."""
-from typing import Set, Optional
 import re
+from typing import Optional, Set
+
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
-from epic_news.utils.logger import get_logger # Added project logger
+
+from epic_news.utils.logger import get_logger  # Added project logger
 
 # Use project's logger
 logger = get_logger(__name__)

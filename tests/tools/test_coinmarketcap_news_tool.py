@@ -1,9 +1,10 @@
 # tests/tools/test_coinmarketcap_news_tool.py
 import json
 import os
+from unittest.mock import ANY, MagicMock, patch
+
 import pytest
 import requests
-from unittest.mock import patch, MagicMock, ANY
 
 from epic_news.tools.coinmarketcap_news_tool import (
     CoinMarketCapNewsTool,

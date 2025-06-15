@@ -1,10 +1,15 @@
-import pytest
 import json
 import os
-from unittest.mock import patch, MagicMock
+import unittest.mock
+from unittest.mock import MagicMock, patch
 
-from epic_news.tools.serper_email_search_tool import SerperEmailSearchTool, SerperSearchInput # Will be updated next
+import pytest
+
 from epic_news.tools.email_base import EmailSearchTool
+from epic_news.tools.serper_email_search_tool import (  # Will be updated next
+    SerperEmailSearchTool,
+    SerperSearchInput,
+)
 
 TEST_SERPER_API_KEY = "test_serper_key_for_email_search"
 SERPER_API_URL = "https://google.serper.dev/search"
@@ -134,5 +139,4 @@ def test_run_query_cleaning_and_formatting(mock_make_request, mock_env_serper_ke
         json={"q": expected_search_q}
     )
 
-# Need to import unittest.mock for ANY if not already done
-import unittest.mock
+

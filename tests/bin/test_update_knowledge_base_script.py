@@ -1,8 +1,6 @@
-import pytest
-from unittest.mock import patch, MagicMock, call
-import datetime
+from unittest.mock import MagicMock, call, patch
 
-from epic_news.bin.update_knowledge_base import update_market_data, prune_outdated_knowledge, main
+from epic_news.bin.update_knowledge_base import main, prune_outdated_knowledge, update_market_data
 from epic_news.rag_config import DEFAULT_RAG_CONFIG
 
 # Sample yfinance info data for mocking

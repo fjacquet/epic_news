@@ -8,7 +8,7 @@ with fresh financial data and prune outdated information.
 
 import datetime
 import logging
-from typing import Dict, List, Optional
+from typing import List, Optional
 
 import yfinance as yf
 from crewai_tools import RagTool

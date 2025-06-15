@@ -1,12 +1,13 @@
 """GitHub search tool implementation."""
-from typing import Dict, Any
 import json
-from pydantic import BaseModel, Field
-from crewai.tools import BaseTool
 import os
+from typing import Dict
+
+from crewai.tools import BaseTool
+from dotenv import load_dotenv
+from pydantic import BaseModel, Field
 
 from .github_base import GitHubBaseTool
-from dotenv import load_dotenv
 
 # Load environment variables from .env file
 load_dotenv()

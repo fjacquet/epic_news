@@ -1,9 +1,9 @@
 # tests/tools/test_alpha_vantage_tool.py
 import json
 import os
-import pytest
-import requests # Added import
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
+import requests  # Added import
 
 from epic_news.tools.alpha_vantage_tool import AlphaVantageCompanyOverviewTool, CompanyOverviewInput
 

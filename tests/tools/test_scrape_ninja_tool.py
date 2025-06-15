@@ -1,10 +1,12 @@
-import pytest
 import json
 import os
-from unittest.mock import patch, MagicMock
+import unittest.mock
+from unittest.mock import MagicMock, patch
+
+import pytest
 import requests
 
-from epic_news.tools.scrape_ninja_tool import ScrapeNinjaTool, ScrapeNinjaInput
+from epic_news.tools.scrape_ninja_tool import ScrapeNinjaInput, ScrapeNinjaTool
 
 TEST_RAPIDAPI_KEY = "test_rapidapi_key_for_ninja"
 SCRAPENINJA_API_URL = "https://scrapeninja.p.rapidapi.com/scrape"
@@ -147,5 +149,4 @@ def test_run_http_error(mock_requests_post, mock_env_rapidapi_key):
     expected_error = {"error": f"Error scraping {url_to_scrape}: {error_message}"}
     assert json.loads(result_str) == expected_error
 
-# Need to import unittest.mock for ANY if not already done
-import unittest.mock
+

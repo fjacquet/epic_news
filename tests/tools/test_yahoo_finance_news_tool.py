@@ -1,10 +1,11 @@
-import pytest
-import json
 import datetime
-from unittest.mock import patch, MagicMock
+import json
+from unittest.mock import MagicMock, patch
 
-import yfinance as yf # To mock yf.Ticker
-from epic_news.tools.yahoo_finance_news_tool import YahooFinanceNewsTool, GetTickerNewsInput
+import pytest
+
+from epic_news.tools.yahoo_finance_news_tool import GetTickerNewsInput, YahooFinanceNewsTool
+
 
 @pytest.fixture
 def tool_instance():

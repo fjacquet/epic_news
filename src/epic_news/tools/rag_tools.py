@@ -5,11 +5,12 @@ This module provides tools for Retrieval Augmented Generation (RAG)
 to enable crews to store and retrieve knowledge across sessions.
 """
 
-from typing import List, Optional, Dict, Any
-import copy # Add import for deepcopy
+import copy  # Add import for deepcopy
+from typing import List, Optional
 
-from crewai_tools import RagTool
 from crewai.tools import BaseTool as Tool
+from crewai_tools import RagTool
+
 from epic_news.rag_config import DEFAULT_RAG_CONFIG
 from epic_news.tools.save_to_rag_tool import SaveToRagTool
 

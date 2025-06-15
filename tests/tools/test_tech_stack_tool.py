@@ -1,10 +1,11 @@
-import pytest
 import json
 import os
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
+import pytest
 
 # Assuming tests are run from the project root or 'src' is in PYTHONPATH
-from epic_news.tools.tech_stack_tool import TechStackTool, TechStackInput
+from epic_news.tools.tech_stack_tool import TechStackInput, TechStackTool
 
 # Sample SERPER API Key for tests
 TEST_SERPER_API_KEY = "test_serper_api_key_123"

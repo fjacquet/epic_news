@@ -1,9 +1,10 @@
-import pytest
 import json
 import os
-from unittest.mock import patch, MagicMock, ANY
+from unittest.mock import ANY, MagicMock, patch
 
-from epic_news.tools.github_org_tool import GitHubOrgSearchTool, GitHubOrgSearchInput
+import pytest
+
+from epic_news.tools.github_org_tool import GitHubOrgSearchInput, GitHubOrgSearchTool
 
 TEST_GITHUB_TOKEN = "ghp_test_token_12345"
 TEST_SERPER_API_KEY = "serper_test_key_67890"

@@ -1,10 +1,11 @@
-import pytest
 import json
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
+import pytest
 
 from epic_news.tools.yahoo_finance_ticker_info_tool import (
-    YahooFinanceTickerInfoTool,
     GetTickerInfoInput,
+    YahooFinanceTickerInfoTool,
 )
 
 

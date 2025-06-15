@@ -1,10 +1,12 @@
-import pytest
 import json
 import os
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
+import pytest
 import requests
 
-from epic_news.tools.web_search_tool import WebSearchTool, WebSearchInput
+from epic_news.tools.web_search_tool import WebSearchInput, WebSearchTool
+
 # Assuming logger is correctly mocked or not essential for output validation here
 
 TEST_SERPAPI_API_KEY = "test_serpapi_key_for_web_search"

@@ -1,70 +1,49 @@
 html_recipe_task:
-  description: >
-    Create a complete, authentic recipe for {topic} with Thermomix optimization when appropriate.
+  description: |
+    Create a complete, authentic, and professionally styled HTML recipe for {topic}, with Thermomix optimization when appropriate.
     Your task includes:
-    1. RESEARCH: Find the most authentic and highly-rated recipe for {topic}
-    2. INGREDIENTS: Create a complete ingredient list
-    3. PREPARATION: Document clear, step-by-step instructions
-    4. FINAL RECIPE: Compile everything into a professional, easy-to-follow format
-    - Standard recipe structure with title and introduction
-    - Well-organized sections for ingredients and instructions
-    - Clear, concise language throughout
-    - Serving suggestions and yield information
-    - Note which steps are optimized for Thermomix
+    1. RESEARCH: Find the most authentic and highly-rated recipe for {topic}.
+    2. CONTENT: Create a complete ingredient list, clear step-by-step instructions, serving suggestions, and yield information.
+    3. THERMOMIX: Clearly note which steps are optimized for Thermomix.
+    4. STYLING: The final output MUST be a single HTML file with inline CSS for a professional, modern, and visually appealing presentation.
+       - Use a clean and readable font family (e.g., Arial, Helvetica, sans-serif).
+       - Implement a pleasing color scheme. Consider a light background with dark text for readability.
+       - Ensure proper spacing and layout for all elements (headings, paragraphs, lists).
+       - Style headings (h1, h2, h3) consistently.
+       - Make lists (ul, ol) easy to read.
+       - Optionally, use subtle borders or background colors to differentiate sections.
 
-    IMPORTANT: 
-    - Your output MUST be complete HTML markup with proper tags (<html>, <body>, etc.)
-    - The recipe MUST be written in French (not English)
-    - Use appropriate emojis throughout to enhance readability (🍆, 🍅, ⏱️, etc.)
-    - Include proper HTML formatting with sections, headings, and lists
-    - Do not output placeholder text about the recipe - output the actual recipe content
-  expected_output: >
-    A complete, professional recipe in French in recipe.html that includes:
-    1. Recipe title and brief introduction with context on authenticity
-    2. Complete ingredient list with precise measurements and substitution options
-    3. Step-by-step preparation instructions with:
-       - Clear indication of which steps use Thermomix (with settings) and which are manual
-       - Timing and temperature details
-       - Equipment requirements
-    4. Troubleshooting tips for common issues
-    5. Serving suggestions and presentation tips
-    6. Source information and any relevant cultural context
-
-    The recipe MUST be formatted in complete HTML with proper tags, written in French language, 
-    and include relevant emojis for visual appeal.
-    Send the original url for the recipe on intenet
+    IMPORTANT:
+    - The output MUST be ONLY the raw HTML content, starting with '<!DOCTYPE html>' or '<html>' and ending with '</html>'.
+    - Do NOT include any markdown, introductory text, or explanations outside of the HTML tags.
+    - The recipe MUST be written in French.
+    - Use appropriate emojis throughout to enhance readability (e.g., 🍆, 🍅, ⏱️).
+    - Do not output placeholder text; provide the actual recipe content.
+  expected_output: |
+    A single, complete HTML file (recipe.html) containing a professionally styled recipe in French. The HTML must include inline CSS for a modern, visually appealing, and easy-to-read layout. The recipe should feature:
+    1. Recipe title and a brief, engaging introduction (with authenticity context if applicable).
+    2. A well-organized ingredient list with precise measurements.
+    3. Step-by-step preparation instructions, clearly indicating Thermomix steps (with settings) versus manual steps.
+    4. Details on timing, temperature, and equipment.
+    5. Serving suggestions and presentation tips.
+    6. The original URL of the base recipe if sourced from the internet.
+    The entire output must be valid HTML with inline CSS, ready for direct viewing in a browser.
   agent: recipe_expert
+  output_file: output/cooking/recipe.html
 
 paprika_yaml_task:
-  description: >
-    Create a complete, authentic recipe for {topic} in YAML format compatible with the Paprika 3 app.
-    Your task includes:
-    1. RESEARCH: Find the most authentic and highly-rated recipe for {topic}
-    2. STRUCTURE: Format the output STRICTLY according to the Paprika 3 YAML specification.
-       - Use ONLY the following top-level keys: `name`, `source`, `source_url`, `prep_time`, `cook_time`, `servings`, `categories` (as a list), `notes`, `ingredients`, `directions`.
-       - The `ingredients` value MUST be a single block string (using `|`) with each ingredient on a new line.
-       - The `directions` value MUST be a single block string (using `|`) with each step on a new line (step titles can be included).
-       - `prep_time`, `cook_time` should be strings like "10 min", "1 hr 30 min".
-       - `servings` should be a string like "4 servings" or "4-6 servings".
-    IMPORTANT:
-    - Output MUST be valid YAML.
-    - The recipe MUST be written in French (not English).
-    - DO NOT include keys like `Keywords`, `Description`, `TotalTime`, `photo`, `Image`, `Yield`, `Instructions`, or any other unsupported keys.
-    - DO NOT use complex nested structures for ingredients or directions; use the required block string format.
-    - Do not output placeholder text about the recipe - output the actual recipe content.
-  expected_output: >
-    A complete, professional recipe in French, formatted as valid YAML strictly compatible with Paprika 3 import. 
-    The YAML MUST include:
-    - `name`: (string)
-    - `source`: (string, e.g., "Website Name")
-    - `source_url`: (string, the URL)
-    - `prep_time`: (string, e.g., "15 min")
-    - `cook_time`: (string, e.g., "1 hr")
-    - `servings`: (string, e.g., "4-6 servings")
-    - `categories`: (list of strings)
-    - `notes`: (block string using `|`)
-    - `ingredients`: (REQUIRED block string using `|`, each ingredient on a new line)
-    - `directions`: (REQUIRED block string using `|`, each step on a new line)
-    
-    The output MUST NOT contain any keys other than those listed above. Indentation and formatting must be valid YAML.
+  description: |
+    Convert the provided recipe (from context) into a YAML format compatible with the Paprika 3 app. The recipe MUST be in French.
+    CRITICAL: The output MUST be ONLY the raw YAML content.
+    - Start directly with the first YAML key (e.g., 'name:').
+    - End directly with the last value of the last key.
+    - Do NOT include ANY introductory text, concluding text, explanations, apologies, or markdown formatting (like ```yaml) around the YAML block.
+    - The entire output string must be parsable as valid YAML.
+  expected_output: |
+    A single, complete, and valid YAML string representing the recipe, formatted for Paprika 3. This string must be directly parsable as YAML without any modifications.
+    The YAML structure should include fields like 'name', 'source', 'source_url', 'prep_time', 'cook_time', 'servings', 'categories', 'notes', 'ingredients', and 'directions'.
+    All textual content within the YAML (e.g., values for 'notes', 'ingredients', 'directions') MUST be in French.
+    Example of a VALID start: "name: Recette Exemple"
+    Example of an INVALID start: "Okay, here is the YAML: ```yaml\nname: Recette Exemple"
   agent: recipe_expert
+  output_file: output/cooking/recipe.yaml

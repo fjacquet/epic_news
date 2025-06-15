@@ -1,6 +1,7 @@
 """Base classes and common functionality for GitHub-related tools."""
-from typing import Optional
 import logging
+from typing import Optional
+
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry

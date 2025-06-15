@@ -1,10 +1,11 @@
-import pytest
 import json
 import os
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
-from epic_news.tools.hunter_io_tool import HunterIOTool, HunterIOInput
+import pytest
+
 from epic_news.tools.email_base import EmailSearchTool
+from epic_news.tools.hunter_io_tool import HunterIOInput, HunterIOTool
 
 TEST_HUNTER_API_KEY = "test_hunter_key_123"
 HUNTER_API_URL = "https://api.hunter.io/v2/domain-search"

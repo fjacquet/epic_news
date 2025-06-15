@@ -1,9 +1,10 @@
 """
 Tool for fetching Yahoo Finance ETF Holdings.
 """
-import yfinance as yf
 import json
-import pandas as pd # Required for pd.isna()
+
+import pandas as pd  # Required for pd.isna()
+import yfinance as yf
 from crewai.tools import BaseTool
 from pydantic import BaseModel, Field
 

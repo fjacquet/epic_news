@@ -2,14 +2,16 @@
 CoinMarketCap API tool for listing top cryptocurrencies.
 """
 
-import os
-import requests
 import json
-from crewai.tools import BaseTool
-from pydantic import BaseModel, Field
 
 # Using standard logging
 import logging
+import os
+
+import requests
+from crewai.tools import BaseTool
+from pydantic import BaseModel, Field
+
 logger = logging.getLogger(__name__)
 
 # Base URL for CoinMarketCap API

@@ -1,10 +1,10 @@
-import pytest
-from unittest.mock import patch, MagicMock
 import copy
+from unittest.mock import patch
 
 from crewai_tools import RagTool
-from epic_news.tools.save_to_rag_tool import SaveToRagTool
+
 from epic_news.tools.rag_tools import get_rag_tools
+from epic_news.tools.save_to_rag_tool import SaveToRagTool
 
 # Make a deep copy of the original DEFAULT_RAG_CONFIG for testing
 # to avoid modifying the actual global config during tests.

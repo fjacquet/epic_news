@@ -1,6 +1,6 @@
-import pytest
 import json
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
 import requests
 
 from epic_news.tools.kraken_api_tool import KrakenTickerInfoTool, TickerInfoInput

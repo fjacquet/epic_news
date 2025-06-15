@@ -1,9 +1,9 @@
 # tests/tools/test_coinmarketcap_historical_tool.py
 import json
 import os
+from unittest.mock import MagicMock, patch
+
 import pytest
-import requests
-from unittest.mock import patch, MagicMock
 
 from epic_news.tools.coinmarketcap_historical_tool import (
     CoinMarketCapHistoricalTool,

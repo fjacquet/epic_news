@@ -7,13 +7,13 @@ financial data tools for use in epic_news crews.
 
 from crewai.tools import BaseTool
 
+from epic_news.tools.alpha_vantage_tool import AlphaVantageCompanyOverviewTool
+from epic_news.tools.kraken_api_tool import KrakenTickerInfoTool
 from epic_news.tools.yahoo_finance_company_info_tool import YahooFinanceCompanyInfoTool
 from epic_news.tools.yahoo_finance_etf_holdings_tool import YahooFinanceETFHoldingsTool
 from epic_news.tools.yahoo_finance_history_tool import YahooFinanceHistoryTool
 from epic_news.tools.yahoo_finance_news_tool import YahooFinanceNewsTool
-from epic_news.tools.alpha_vantage_tool import AlphaVantageCompanyOverviewTool
 from epic_news.tools.yahoo_finance_ticker_info_tool import YahooFinanceTickerInfoTool
-from epic_news.tools.kraken_api_tool import KrakenTickerInfoTool
 
 
 def get_yahoo_finance_tools() -> list[BaseTool]:

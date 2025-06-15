@@ -6,8 +6,6 @@ for use by the epic_news crews.
 """
 
 from crewai_tools import (
-    FirecrawlScrapeWebsiteTool,
-    FirecrawlSearchTool,
     SerperDevTool,
     YoutubeVideoSearchTool,
 )
@@ -22,7 +20,7 @@ def get_search_tools():
     """
     return [
         SerperDevTool(n_results=25, search_type="search"),
-        FirecrawlSearchTool(limit=25, save_file=True),
+        # FirecrawlSearchTool(limit=25, save_file=True),
     ]
 
 
@@ -45,8 +43,11 @@ def get_scrape_tools():
     Returns:
         list: A list of web scraping tool instances.
     """
+    from epic_news.tools.scrape_ninja_tool import ScrapeNinjaTool
+    
     return [
-        FirecrawlScrapeWebsiteTool(limit=25, save_file=True),
+        ScrapeNinjaTool(),
+        # FirecrawlScrapeWebsiteTool(limit=25, save_file=True),
     ]
 
 

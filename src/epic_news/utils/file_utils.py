@@ -4,6 +4,7 @@ Utility functions for handling file operations.
 
 import os
 
+
 def read_file_content(file_path):
     """
     Read the content of a file and return it as a string.

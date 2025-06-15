@@ -1,10 +1,11 @@
-import pytest
 import json
 from unittest.mock import MagicMock, patch
 
+import pytest
+from crewai_tools import RagTool  # For type hinting and potentially mocking its instantiation
+
 # Assuming tests are run from the project root or 'src' is in PYTHONPATH
-from epic_news.tools.save_to_rag_tool import SaveToRagTool, SaveToRagInput
-from crewai_tools import RagTool # For type hinting and potentially mocking its instantiation
+from epic_news.tools.save_to_rag_tool import SaveToRagInput, SaveToRagTool
 
 # Mock DEFAULT_RAG_CONFIG as it's imported by save_to_rag_tool
 # We need to patch it where it's looked up by save_to_rag_tool

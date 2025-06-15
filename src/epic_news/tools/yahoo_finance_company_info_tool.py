@@ -1,8 +1,9 @@
 """
 Tool for fetching Yahoo Finance Company Information.
 """
-import yfinance as yf
 import json
+
+import yfinance as yf
 from crewai.tools import BaseTool
 from pydantic import BaseModel, Field
 

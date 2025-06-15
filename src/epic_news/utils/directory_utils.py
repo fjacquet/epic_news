@@ -4,6 +4,7 @@ Utility functions for directory management in Epic News application.
 
 import os
 
+
 def ensure_output_directories():
     """
     Ensure all required output directories exist.

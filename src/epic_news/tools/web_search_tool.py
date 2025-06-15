@@ -1,12 +1,14 @@
 """Web search tool implementation using SerpAPI."""
-from typing import Optional
-from pydantic import BaseModel, Field
-from crewai.tools import BaseTool
-import os
-import requests
 import json
+import os
+from typing import Optional
+
+import requests
+from crewai.tools import BaseTool
 from dotenv import load_dotenv
-from epic_news.utils.logger import get_logger # Added project logger
+from pydantic import BaseModel, Field
+
+from epic_news.utils.logger import get_logger  # Added project logger
 
 # Load environment variables from .env file
 load_dotenv()

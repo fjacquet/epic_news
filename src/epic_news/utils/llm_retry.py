@@ -7,8 +7,7 @@ might cause "Invalid response from LLM call - None or empty" errors.
 """
 
 import asyncio
-from collections.abc import Callable
-from typing import Any, Optional
+from typing import Any
 
 from langchain_core.callbacks import CallbackManagerForLLMRun
 from langchain_core.language_models.llms import BaseLLM
@@ -20,7 +19,7 @@ from tenacity import (
     wait_exponential,
 )
 
-from epic_news.utils.logger import get_logger # Adjusted import path
+from epic_news.utils.logger import get_logger  # Adjusted import path
 
 # Get logger for this module
 logger = get_logger(__name__)

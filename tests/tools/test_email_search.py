@@ -1,9 +1,10 @@
-import pytest
 import json
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
+import pytest
 
 # Tool to be tested
-from epic_news.tools.email_search import DelegatingEmailSearchTool, DelegatingEmailSearchInput
+from epic_news.tools.email_search import DelegatingEmailSearchInput, DelegatingEmailSearchTool
 
 # Actual tools that will be mocked at the point of import within email_search.py
 # We don't need to import them directly here for these tests, but it's good to be aware

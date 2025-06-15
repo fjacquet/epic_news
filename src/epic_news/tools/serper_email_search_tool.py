@@ -1,12 +1,12 @@
 """Serper.dev email search tool implementation."""
-from typing import List, Dict, Any, Optional
 import json
 import os
+
 from crewai.tools import BaseTool
+from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 
 from .email_base import EmailSearchTool
-from dotenv import load_dotenv
 
 # Load environment variables from .env file
 load_dotenv()

@@ -1,10 +1,11 @@
-from crewai.tools import BaseTool
-from typing import Type, List, Optional
-from pydantic import BaseModel, Field
-import requests
 import json
 import os
+from typing import List, Optional, Type
+
+import requests
+from crewai.tools import BaseTool
 from dotenv import load_dotenv
+from pydantic import BaseModel, Field
 
 # Load environment variables from .env file
 load_dotenv()

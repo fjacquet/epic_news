@@ -7,10 +7,11 @@ which are now defined in their respective separate files.
 
 from crewai.tools import BaseTool
 
+from .coinmarketcap_historical_tool import CoinMarketCapHistoricalTool
+
 # Import tool classes from their new locations
 from .coinmarketcap_info_tool import CoinMarketCapInfoTool
 from .coinmarketcap_list_tool import CoinMarketCapListTool
-from .coinmarketcap_historical_tool import CoinMarketCapHistoricalTool
 from .coinmarketcap_news_tool import CoinMarketCapNewsTool
 
 

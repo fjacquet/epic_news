@@ -1,14 +1,14 @@
 # tests/tools/test_coinmarketcap_info_tool.py
 import json
 import os
+from unittest.mock import MagicMock, patch
+
 import pytest
 import requests
-from unittest.mock import patch, MagicMock
 
 from epic_news.tools.coinmarketcap_info_tool import (
-    CoinMarketCapInfoTool,
     CoinInfoInput,
-    CoinMarketCapException, # Though not explicitly raised by _run, good to have if tool evolves
+    CoinMarketCapInfoTool,
 )
 
 TEST_CMC_API_KEY = "test_cmc_api_key_info_123"

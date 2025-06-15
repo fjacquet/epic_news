@@ -1,9 +1,9 @@
-from typing import Optional, Type, Any
-
-from crewai_tools import RagTool
-from crewai.tools import BaseTool
-from pydantic import BaseModel, Field
 import json
+from typing import Any, Optional, Type
+
+from crewai.tools import BaseTool
+from crewai_tools import RagTool
+from pydantic import BaseModel, Field
 
 from epic_news.rag_config import DEFAULT_RAG_CONFIG
 
