@@ -71,7 +71,8 @@ format_and_translate_guide:
     - Emergency contacts and local phrases 
     - Packing checklist 
     - Translated sections if needed
-
+    - ensure all amount are in the same currency (swiss franc ideally)
+    - ensure all prices are up to date
   agent: content_formatter
   expected_output: >
     A comprehensive, richly detailed, and visually appealing travel guide in a
@@ -82,17 +83,31 @@ format_and_translate_guide:
     using clear HTML structure (e.g., H1, H2, H3 for headings; UL/OL for lists;
     TABLEs for budget summaries or comparisons). Ensure a clean, modern aesthetic
     with ample white space for readability. The guide must include:
-    1.  A detailed introduction to the destination, its culture, and key highlights relevant to the user's interests.
-    2.  A full day-by-day itinerary with vivid descriptions for each activity, including estimated timings, travel notes between locations, and any booking information.
-    3.  Detailed hotel/accommodation information: For each recommended option, include name, address, contact/booking link, approximate price range, and a brief explanation of why it's suitable for the user's party and preferences. If no specific options were finalized by the accommodation specialist, clearly state this and provide guidance on how the user can search based on the gathered criteria (e.g., preferred areas, budget, amenities sought).
-    4.  In-depth sections on recommended dining experiences, covering various meal times and cuisines, with justifications for choices.
+    1.  A detailed introduction to the destination, its culture, and key highlights 
+    relevant to the user's interests.
+    2.  A full day-by-day itinerary with vivid descriptions for each activity, 
+    including estimated timings, travel notes between locations, and any booking information.
+    3.  Detailed hotel/accommodation information: For each recommended option, i
+    nclude name, address, contact/booking link, approximate price range, and a 
+    brief explanation of why it's suitable for the user's party and preferences. 
+    If no specific options were finalized by the accommodation specialist, clearly 
+    state this and provide guidance on how the user can search based on the gathered 
+    criteria (e.g., preferred areas, budget, amenities sought).
+    4.  In-depth sections on recommended dining experiences, covering various meal 
+    times and cuisines, with justifications for choices.
     5.  A complete and itemized budget breakdown and analysis, presented clearly (e.g., using a table).
     6.  Practical information: 
-        a. A comprehensive and categorized packing checklist (e.g., clothing, toiletries, documents, electronics, ski-specific gear if applicable, items for children).
+        a. A comprehensive and categorized packing checklist (e.g., clothing, toiletries, 
+        documents, electronics, ski-specific gear if applicable, items for children).
         b. Safety tips and relevant local customs.
         c. Emergency contacts (local emergency numbers, embassy/consulate if applicable).
         d. Useful local phrases if applicable.
-    7.  Source Attribution: The guide must include all relevant links (for bookings, attractions, official tourism sites, and other sources used by previous agents). 
-    8.  Media: Where appropriate and if high-quality images or video links were identified by previous research tasks and stored in RAG, these should be tastefully incorporated (e.g., embedded if possible and lightweight) or clearly linked to enhance the guide.
-    The final HTML should be well-structured, easy to navigate, and ready for the user, written in French with appropriate emojis, suitable for printing or digital use. The tone should be engaging and helpful.
+    7.  Source Attribution: The guide must include all relevant links (for bookings, attractions,
+     official tourism sites, and other sources used by previous agents). 
+    8.  Media: Where appropriate and if high-quality images or video links were identified by 
+    previous research tasks and stored in RAG, these should be tastefully incorporated 
+    (e.g., embedded if possible and lightweight) or clearly linked to enhance the guide.
+    The final HTML should be well-structured, easy to navigate, and ready for the user, 
+    written in French with appropriate emojis, suitable for printing or digital use. 
+    The tone should be engaging and helpful.
   output_file: output/travel_guides/itinerary.html
