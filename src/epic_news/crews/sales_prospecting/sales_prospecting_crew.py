@@ -1,6 +1,7 @@
 
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
+from crewai_tools import DirectoryReadTool, FileReadTool
 from dotenv import load_dotenv
 
 from epic_news.tools.email_search import get_email_search_tools
@@ -24,14 +25,17 @@ class SalesProspectingCrew():
         # but specialized tools are essential for finding specific information like emails.
         self.search_tools = get_search_tools()
         self.email_search_tools = get_email_search_tools()
+        self.read_tools = [FileReadTool(), DirectoryReadTool("output/sales_prospecting")]
 
     @agent
     def company_researcher(self) -> Agent:
         return Agent(
             config=self.agents_config["company_researcher"],
-            tools=self.search_tools,
+            tools=[*self.search_tools, *self.email_search_tools, *self.read_tools],
             verbose=True,
             llm_timeout=300,
+            reasoning=True,     
+            max_reasoning_attempts=5,
             respect_context_window=True
         )
 
@@ -39,8 +43,10 @@ class SalesProspectingCrew():
     def org_structure_analyst(self) -> Agent:
         return Agent(
             config=self.agents_config["org_structure_analyst"],
-            tools=self.search_tools,
+            tools=[*self.search_tools, *self.email_search_tools, *self.read_tools],
             verbose=True,
+            reasoning=True,     
+            max_reasoning_attempts=5,
             llm_timeout=300,
             respect_context_window=True
         )
@@ -49,8 +55,10 @@ class SalesProspectingCrew():
     def contact_finder(self) -> Agent:
         return Agent(
             config=self.agents_config["contact_finder"],
-            tools=[*self.search_tools, *self.email_search_tools],
+            tools=[*self.search_tools, *self.email_search_tools, *self.read_tools],
             verbose=True,
+            reasoning=True,     
+            max_reasoning_attempts=5,
             llm_timeout=300,
             respect_context_window=True
         )
@@ -59,8 +67,10 @@ class SalesProspectingCrew():
     def sales_strategist(self) -> Agent:
         return Agent(
             config=self.agents_config["sales_strategist"],
-            tools=self.search_tools,
+            tools=[*self.search_tools, *self.email_search_tools, *self.read_tools],
             verbose=True,
+            reasoning=True,     
+            max_reasoning_attempts=5,
             llm_timeout=300,
             respect_context_window=True
         )
@@ -101,7 +111,7 @@ class SalesProspectingCrew():
             tasks=self.tasks, # Automatically created by the @task decorator
             process=Process.sequential,
             verbose=True,
-reasoning=True,
+            reasoning=True,     
             max_reasoning_attempts=5,
             max_iter=5,
             max_retry_limit=3,

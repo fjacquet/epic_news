@@ -5,7 +5,7 @@ for the application during execution.
 """
 
 import datetime
-from typing import Optional, Any
+from typing import Any, Optional
 
 from pydantic import BaseModel, Field
 
@@ -48,6 +48,7 @@ class ContentState(BaseModel):
     recipe: Optional[Any] = None
     book_summary: Optional[Any] = None
     meeting_prep_report: Optional[Any] = None
+    final_report: Optional[str] = None  # Stores the final consolidated report or error message
     contact_info_report: Optional[Any] = None # Renamed from contacts_report
     holiday_plan: Optional[Any] = None
     marketing_report: Optional[Any] = None

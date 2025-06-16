@@ -2,31 +2,65 @@
 distribution_task:
   description: >
     Send an email to {recipient_email} with the content of {output_file} as the email body.
+    If {attachment_path} is provided and valid, include it as an email attachment.
     
     Your responsibilities:
-    - Read the file at {output_file} and use its EXACT content as the email body
-    - Preserve ALL HTML formatting - do not convert HTML to plain text
-    - Preserve ALL language as written - do not translate French recipes to English
-    - Keep ALL emojis and special formatting intact
-    - Create a professional subject line related to {topic}
-    - When attachment_file is provided, or when {attachment} exists,
-      include it as an email attachment (not in the body)
-    - For Paprika recipe files (YAML format), ensure they are properly attached
-      with the correct filename to enable direct import into the Paprika recipe app
-    - Do NOT summarize, modify or rewrite ANY content - maintain 100% integrity
+    - Read the file at {output_file} and use its EXACT content as the email body.
+    - Preserve ALL HTML formatting. Ensure the email is sent as HTML (e.g., by setting Content-Type 
+    to text/html or using appropriate tool parameters for HTML content).
+    - Preserve ALL language as written (e.g., do not translate French recipes to English).
+    - Keep ALL emojis and special formatting intact.
+    - Create a professional and relevant subject line for the email, related to {topic}.
+    - If {attachment_path} is provided, validate its existence. If it exists, include the file
+     as an email attachment (not in the body).
+    - For specific file types like Paprika recipe files (YAML format), ensure they are properly 
+    attached with the correct filename to enable direct import into specialized applications.
+    - Do NOT summarize, modify, or rewrite ANY content from {output_file} or the attachment – maintain 100% integrity.
     
-    IMPORTANT: 
-    - Use the Gmail API correctly to send the HTML content with proper encoding
-    - Make sure to set Content-Type to text/html in your email
-    - When sending recipe emails, preserve their original language (French)
-    - The attachment should be distinctly separate from the email body
-    
+    IMPORTANT:
+    - Utilize the Composio Gmail tool effectively. If the tool has parameters to specify HTML 
+    content (e.g., `is_html=true`), ensure you use them.
+    - The attachment, if any, must be distinctly separate from the email body.
+    - If reading {output_file} or {attachment_path} fails, clearly state this in your final 
+    report and do not attempt to send the email if critical content is missing.
+
   expected_output: >
-    A summary report of the email delivery, including:
-    - Confirmation of delivery
-    - The recipient and subject
-    - Any attachments that were included with their file names
-    - send the message as HTML
-    - Confirmation that HTML formatting was preserved
-    - Confirmation that original language was preserved
+    A JSON string summarizing the email delivery attempt. The JSON object should include:
+    - "status": "success" or "failure"
+    - "recipient_email": "{recipient_email}"
+    - "subject": "[The subject line you created]"
+    - "html_preserved": true/false (true if HTML content from {output_file} was sent as HTML)
+    - "language_preserved": true/false (true if original language was maintained)
+    - "attachment_sent": true/false
+    - "attachment_path_provided": "{attachment_path if provided, else 'N/A'}"
+    - "attachment_filename": "[filename of the attachment if sent, else 'N/A']"
+    - "error_message": "[Details of any error encountered, otherwise 'None']"
+    Example for success:
+    ```json
+    {
+      "status": "success",
+      "recipient_email": "example@example.com",
+      "subject": "Votre Recette de Crème Brûlée et Fichier Paprika",
+      "html_preserved": true,
+      "language_preserved": true,
+      "attachment_sent": true,
+      "attachment_path_provided": "path/to/creme_brulee.yaml",
+      "attachment_filename": "creme_brulee.yaml",
+      "error_message": "None"
+    }
+    ```
+    Example for failure (e.g., output_file not found):
+    ```json
+    {
+      "status": "failure",
+      "recipient_email": "example@example.com",
+      "subject": "Attempted: Votre Recette de Crème Brûlée",
+      "html_preserved": false,
+      "language_preserved": false,
+      "attachment_sent": false,
+      "attachment_path_provided": "path/to/creme_brulee.yaml",
+      "attachment_filename": "N/A",
+      "error_message": "Failed to read content from output_file: /path/to/nonexistent_file.html"
+    }
+    ```
   agent: distributor

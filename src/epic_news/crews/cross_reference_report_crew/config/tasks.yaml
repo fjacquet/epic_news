@@ -98,7 +98,7 @@ global_reporting:
   description: >
     Create a comprehensive and extensive global intelligence report on {target} by
      aggregating all information from the 'output/osint' directory.
-      This report must be extremely detailed and maintain the full depth of 
+      This report must be in french, extremely detailed and maintain the full depth of 
       information from all source reports, including:
     - A thorough executive summary capturing all key findings
     - Exhaustive presentation of all intelligence gathered, maintaining the original level of detail

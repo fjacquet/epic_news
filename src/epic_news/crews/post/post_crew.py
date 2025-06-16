@@ -1,9 +1,10 @@
-from crewai import Agent, Crew, Process, Task
-from crewai.tools import tool
-from crewai.project import CrewBase, agent, crew, task
-from composio_crewai import ComposioToolSet
-from dotenv import load_dotenv
 import os
+
+from composio_crewai import ComposioToolSet
+from crewai import Agent, Crew, Process, Task
+from crewai.project import CrewBase, agent, crew, task
+from crewai.tools import tool
+from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()
