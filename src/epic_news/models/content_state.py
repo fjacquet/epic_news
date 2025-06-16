@@ -20,7 +20,7 @@ class ContentState(BaseModel):
     attachment_file: str = ""  # Attachment file for specific crew types
     current_year: str = str(datetime.datetime.now().year)  # Current year
     categories:  dict = Field(default_factory=lambda: {
-        "CONTACT_FINDER": "CONTACT_FINDER",
+        "SALES_PROSPECTING": "SALES_PROSPECTING",
         "COOKING": "COOKING",
         "HOLIDAY_PLANNER": "HOLIDAY_PLANNER",
         "LEAD_SCORING": "LEAD_SCORING",

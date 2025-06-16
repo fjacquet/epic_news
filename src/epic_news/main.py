@@ -5,8 +5,7 @@ from epic_news.crews.classify.classify_crew import ClassifyCrew
 from epic_news.crews.company_profiler.company_profiler_crew import CompanyProfilerCrew
 from epic_news.crews.cooking.cooking_crew import CookingCrew
 from epic_news.crews.cross_reference_report_crew.cross_reference_report_crew import CrossReferenceReportCrew
-from epic_news.crews.find_contacts.find_contacts_crew import FindContactsCrew
-from epic_news.crews.find_location.find_location_crew import FindLocationCrew
+from epic_news.crews.sales_prospecting.sales_prospecting_crew import SalesProspectingCrew
 from epic_news.crews.geospatial_analysis.geospatial_analysis_crew import GeospatialAnalysisCrew
 from epic_news.crews.holiday_planner.holiday_planner_crew import HolidayPlannerCrew
 from epic_news.crews.hr_intelligence.hr_intelligence_crew import HRIntelligenceCrew
@@ -18,7 +17,6 @@ from epic_news.crews.meeting_prep.meeting_prep_crew import MeetingPrepCrew
 from epic_news.crews.news.news_crew import NewsCrew
 from epic_news.crews.poem.poem_crew import PoemCrew
 from epic_news.crews.post.post_crew import PostCrew
-from epic_news.crews.post_only.post_only_crew import PostOnlyCrew
 from epic_news.crews.tech_stack.tech_stack_crew import TechStackCrew
 from epic_news.crews.web_presence.web_presence_crew import WebPresenceCrew
 from epic_news.models import ContentState
@@ -38,8 +36,8 @@ def init():
 """                                                                                      """
 
 user_request = (
-    "find osint  about the company ''"
-    "PLEASE GIVE YOUR SOURCES !!!"
+    "Find IT management contacts at Hopital du Valais in Switzerland."
+
 )
 
 """                                                                                      """
@@ -109,8 +107,8 @@ class ReceptionFlow(Flow[ContentState]):
     @router("classify")
     def determine_crew(self):
         """Route based on selected crew type using a map."""
-        if self.state.selected_crew == "CONTACT_FINDER":
-            return "go_generate_contact_info"
+        if self.state.selected_crew == "SALES_PROSPECTING":
+            return "go_generate_sales_prospecting_report"
         elif self.state.selected_crew == "HOLIDAY_PLANNER":
             return "go_generate_holiday_plan"
         elif self.state.selected_crew == "POST_ONLY":
@@ -166,15 +164,7 @@ class ReceptionFlow(Flow[ContentState]):
         self.state.news_report = NewsCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
         # return "generate_news"
 
-    @listen("go_find_location")
-    def find_location(self):
-        """Find a location based on the topic"""
-        self.state.output_file = "output/location/location.html"
-        print(f"Finding location for: {self.state.to_crew_inputs().get('topic', 'N/A')}")
 
-        # Generate the location
-        self.state.location_report = FindLocationCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
-        # return "find_location"
 
     @listen("go_generate_recipe")
     def generate_recipe(self):
@@ -218,16 +208,16 @@ class ReceptionFlow(Flow[ContentState]):
         self.state.meeting_prep_report = MeetingPrepCrew().crew().kickoff(inputs=current_inputs)
         # return "generate_meeting_prep"
 
-    @listen("go_generate_contact_info")
-    def generate_contact_info(self):
-        """Generate contact information for a company"""
-        self.state.output_file = "output/contact_finder/approach_strategy.html"
+    @listen("go_generate_sales_prospecting_report")
+    def generate_sales_prospecting_report(self):
+        """Generate a sales prospecting report for a company"""
+        self.state.output_file = "output/sales_prospecting/approach_strategy.html"
         company = self.state.to_crew_inputs().get('target_company')
         print(
             f"Finding contacts at: {company} for product: {self.state.to_crew_inputs().get('our_product', 'N/A')}"
         )
 
-        self.state.contact_info_report = FindContactsCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
+        self.state.contact_info_report = SalesProspectingCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
         # return "generate_contact_info"
 
     @listen("go_generate_osint")
@@ -339,9 +329,8 @@ class ReceptionFlow(Flow[ContentState]):
         self.state.marketing_report = MarketingWritersCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
         # return "generate_marketing_content"
 
-    @listen(or_("find_location",
-                "generate_book_summary", 
-                "generate_contact_info", 
+    @listen(or_("generate_book_summary", 
+                "generate_sales_prospecting_report", 
                 "generate_holiday_plan",
                 "generate_leads", 
                 "generate_marketing_content",

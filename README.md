@@ -116,7 +116,7 @@ Finds books and generates book summaries, leveraging search tools and compositio
 "Summarize 'Le Petit Prince' and suggest similar books."
 ```
 
-### FindContactsCrew
+### SalesProspectingCrew
 
 Identifies and researches sales contacts at target companies, using a combination of research agents and search tools.
 
@@ -124,16 +124,6 @@ Identifies and researches sales contacts at target companies, using a combinatio
 
 ```text
 "Find sales contacts at OpenAI in France."
-```
-
-### FindLocationCrew
-
-Analyzes user requirements to recommend suitable locations, combining requirements analysis and research agents.
-
-**Example:**
-
-```text
-"Suggest a family-friendly vacation spot in Italy."
 ```
 
 ### HolidayPlannerCrew

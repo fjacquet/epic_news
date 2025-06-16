@@ -54,6 +54,11 @@ class DelegatingEmailSearchTool(BaseTool):
             logger.error(f"Error running email search with provider '{provider}' for query '{query}': {e}")
             return json.dumps({"error": f"Failed to execute search with {provider}: {str(e)}"})
 
+def get_email_search_tools() -> list[BaseTool]:
+    """Returns a list of email search tools."""
+    return [DelegatingEmailSearchTool()]
+
+
 # Example usage (optional, for testing the router)
 if __name__ == "__main__":
     # Ensure .env is loaded if you're running this directly and API keys are needed

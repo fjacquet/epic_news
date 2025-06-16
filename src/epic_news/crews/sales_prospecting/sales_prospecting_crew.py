@@ -1,40 +1,35 @@
+
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
-from composio_crewai import ComposioToolSet, App, Action
 from dotenv import load_dotenv
-import os
-import datetime
+
+from epic_news.tools.email_search import get_email_search_tools
+from epic_news.tools.web_tools import get_search_tools
 
 load_dotenv()
 
-# Initialize the toolset
-toolset = ComposioToolSet()
-
-# Get search tools for finding company and contact information
-search_tools = toolset.get_tools(actions=[
-    'COMPOSIO_SEARCH_SEARCH',
-    'COMPOSIO_SEARCH_DUCK_DUCK_GO_SEARCH',
-    'COMPOSIO_SEARCH_FINANCE_SEARCH',
-    'COMPOSIO_SEARCH_NEWS_SEARCH',
-])
-
 
 @CrewBase
-class FindContactsCrew():
-    """FindContacts crew for finding sales contacts at target companies"""
-
-    # Learn more about YAML configuration files here:
-    # Agents: https://docs.crewai.com/concepts/agents#yaml-configuration-recommended
-    # Tasks: https://docs.crewai.com/concepts/tasks#yaml-configuration-recommended
+class SalesProspectingCrew():
+    """Sales Prospecting crew for finding sales contacts at target companies"""
     agents_config = 'config/agents.yaml'
     tasks_config = 'config/tasks.yaml'
 
+    def __init__(self) -> None:
+        self._init_tools()
+
+    def _init_tools(self) -> None:
+        """Initialize tools for the crew."""
+        # It's crucial to have a variety of tools. General search is good for context,
+        # but specialized tools are essential for finding specific information like emails.
+        self.search_tools = get_search_tools()
+        self.email_search_tools = get_email_search_tools()
 
     @agent
     def company_researcher(self) -> Agent:
         return Agent(
             config=self.agents_config["company_researcher"],
-            tools=search_tools,
+            tools=self.search_tools,
             verbose=True,
             llm_timeout=300,
             respect_context_window=True
@@ -44,7 +39,7 @@ class FindContactsCrew():
     def org_structure_analyst(self) -> Agent:
         return Agent(
             config=self.agents_config["org_structure_analyst"],
-            tools=search_tools,
+            tools=self.search_tools,
             verbose=True,
             llm_timeout=300,
             respect_context_window=True
@@ -54,7 +49,7 @@ class FindContactsCrew():
     def contact_finder(self) -> Agent:
         return Agent(
             config=self.agents_config["contact_finder"],
-            tools=search_tools,
+            tools=[*self.search_tools, *self.email_search_tools],
             verbose=True,
             llm_timeout=300,
             respect_context_window=True
@@ -64,7 +59,7 @@ class FindContactsCrew():
     def sales_strategist(self) -> Agent:
         return Agent(
             config=self.agents_config["sales_strategist"],
-            tools=search_tools,
+            tools=self.search_tools,
             verbose=True,
             llm_timeout=300,
             respect_context_window=True
@@ -74,45 +69,41 @@ class FindContactsCrew():
     def research_company_task(self) -> Task:
         return Task(
             config=self.tasks_config["research_company_task"],
-            agent=self.company_researcher(),
-            output_file="output/contact_finder/company_research.md",
+            async_execution=True,
         )
 
     @task
     def analyze_org_structure_task(self) -> Task:
         return Task(
             config=self.tasks_config["analyze_org_structure_task"],
-            agent=self.org_structure_analyst(),
-            output_file="output/contact_finder/organization_structure.md",
+            async_execution=True,
         )
 
     @task
     def find_key_contacts_task(self) -> Task:
         return Task(
             config=self.tasks_config["find_key_contacts_task"],
-            agent=self.contact_finder(),
-            output_file="output/contact_finder/key_contacts.md",
+            async_execution=True,
         )
 
     @task
     def develop_approach_strategy_task(self) -> Task:
         return Task(
             config=self.tasks_config["develop_approach_strategy_task"],
-            agent=self.sales_strategist(),
-            output_file="output/contact_finder/approach_strategy.html",
+            async_execution=False,
         )
 
     @crew
     def crew(self) -> Crew:
-        """Creates the ContactFinder crew"""
+        """Creates the Sales Prospecting crew"""
         return Crew(
             agents=self.agents, # Automatically created by the @agent decorator
             tasks=self.tasks, # Automatically created by the @task decorator
             process=Process.sequential,
             verbose=True,
-            memory=False,
-            cache=False,
-            manager_llm_timeout=300,  # 5 minutes timeout for manager LLM
-            task_timeout=1800,  # 30 minutes timeout for each task
-       
+reasoning=True,
+            max_reasoning_attempts=5,
+            max_iter=5,
+            max_retry_limit=3,
+            max_rpm=10, 
         )
