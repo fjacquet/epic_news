@@ -1,0 +1,119 @@
+web_presence_audit:
+  description: >
+    Conduct a comprehensive audit of {company}'s web presence, including: -
+    Primary website analysis (structure, content, functionality) - Secondary
+    websites and microsites - Regional or country-specific websites - Landing
+    pages and marketing campaigns - SEO performance indicators - Website
+    traffic estimates if available - Mobile responsiveness and user experience
+
+    Use the RAG tools to save your findings for later use by other agents.
+    Format your findings in a clear, structured, and comprehensive Markdown
+    document, ensuring all relevant details are included for a precise and
+    extensive final report.
+  expected_output: >
+    A comprehensive Markdown document detailing {company}'s web presence
+    audit, with proper formatting, headings, and organization. The report
+    should be as detailed and extensive as possible. Save your findings to the
+    RAG database for use by other agents.
+  agent: web_presence_investigator
+  output_file: output/osint/{company}_web_presence_audit.md
+
+social_media_footprint:
+  description: >
+    Analyze {company}'s social media footprint across platforms, including: -
+    Official accounts on major platforms (Twitter, LinkedIn, Facebook,
+    Instagram, etc.) - Engagement metrics and follower counts - Content themes
+    and posting frequency - Brand voice and messaging consistency - Customer
+    interaction patterns - Employee social media presence related to the
+    company
+
+    Use the RAG tools to retrieve any relevant information already collected
+    and save your findings for later use by other agents. Format your findings
+    in a clear, structured, and comprehensive Markdown document, ensuring all
+    relevant details are included for a precise and extensive final report.
+  expected_output: >
+    A comprehensive Markdown document analyzing {company}'s social media
+    footprint, with proper formatting, headings, and organization. The report
+    should be as detailed and extensive as possible. Save your findings to the
+    RAG database for use by other agents.
+  agent: web_presence_investigator
+  output_file: output/osint/{company}_social_media_footprint.md
+
+domain_infrastructure_analysis:
+  description: >
+    Analyze {company}'s domain infrastructure and technical footprint,
+    including: - Domain registration information and history - Subdomains and
+    related domains - DNS records and hosting information - SSL/TLS
+    certificate details - Email security configurations (SPF, DKIM, DMARC) -
+    Content delivery networks and third-party services
+
+    Use the RAG tools to retrieve any relevant information already collected
+    and save your findings for later use by other agents. Format your findings
+    in a clear, structured, and comprehensive Markdown document, ensuring all
+    relevant details are included for a precise and extensive final report.
+  expected_output: >
+    A comprehensive Markdown document analyzing {company}'s domain
+    infrastructure, with proper formatting, headings, and organization. The
+    report should be as detailed and extensive as possible. Save your findings
+    to the RAG database for use by other agents.
+  agent: web_presence_investigator
+  output_file: output/osint/{company}_domain_infrastructure_analysis.md
+
+data_leak_analysis:
+  description: >
+    Analyze potential data leaks and breaches related to {company}, including:
+    - Public data breach records involving the company - Exposed credentials
+    or sensitive information - GitHub repositories with potential leaked
+    information - Exposed API keys or configuration files - Employee email
+    addresses in data breach databases
+
+    Use the RAG tools to retrieve any relevant information already collected
+    and save your findings for later use by other agents. Format your findings
+    in a clear, structured, and comprehensive Markdown document, ensuring all
+    relevant details are included for a precise and extensive final report.
+  expected_output: >
+    A comprehensive Markdown document analyzing potential data leaks related
+    to {company}, with proper formatting, headings, and organization. The
+    report should be as detailed and extensive as possible. Save your findings
+    to the RAG database for use by other agents.
+  agent: web_presence_investigator
+  output_file: output/osint/{company}_data_leak_analysis.md
+
+competitive_web_presence_analysis:
+  description: >
+    Analyze the web presence of {company}'s competitors to identify best
+    practices, including: - Comparative website analysis - Social media
+    strategy differences - Content marketing approaches - Online reputation
+    management - Digital marketing tactics
+
+    Use the RAG tools to retrieve any relevant information already collected
+    and save your findings for later use by other agents. Format your findings
+    in a clear, structured, and comprehensive Markdown document, ensuring all
+    relevant details are included for a precise and extensive final report.
+  expected_output: >
+    A comprehensive Markdown document analyzing competitors' web presence
+    compared to {company}, with proper formatting, headings, and organization.
+    The report should be as detailed and extensive as possible. Save your
+    findings to the RAG database for use by other agents.
+  agent: web_presence_investigator
+  output_file: output/osint/{company}_competitive_web_presence_analysis.md
+
+consolidate_web_presence_report:
+  description: >
+    Consolidate all findings about {company}'s web presence into a
+    comprehensive report, including: - Executive summary of online presence -
+    Website analysis and recommendations - Social media strategy assessment -
+    Technical infrastructure evaluation - Security and data leak concerns -
+    Competitive positioning online
+
+    Use the RAG tools to retrieve all previously collected information and
+    create a consolidated, well-structured report. Format your report as a
+    complete, comprehensive Markdown document, ensuring all relevant details
+    are included for a precise and extensive final report.
+  expected_output: >
+    A comprehensive Markdown document consolidating all web presence findings
+    about {company}, with proper formatting, headings, and organization. The
+    report should be as detailed and extensive as possible. Save your
+    consolidated report to the RAG database for use by other agents.
+  agent: web_presence_investigator
+  output_file: output/osint/{company}_consolidate_web_presence_report.md

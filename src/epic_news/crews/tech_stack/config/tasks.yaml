@@ -1,0 +1,98 @@
+tech_stack_identification:
+  description: >
+    Identify the technology stack used by {company}, including: - Programming
+    languages - Frameworks and libraries - Databases and data storage
+    solutions - Cloud services and hosting infrastructure - DevOps tools and
+    practices - Front-end technologies - Back-end technologies - Mobile
+    development technologies (if applicable)
+
+    Use the RAG tools to save your findings for later use by other agents.
+    Format your findings in a clear, structured, and comprehensive Markdown
+    document, ensuring all relevant details are included for a precise and
+    extensive final report.
+  expected_output: >
+    A comprehensive Markdown document identifying the technology stack of
+    {company}, with proper formatting, headings, and organization. The report
+    should be as detailed and extensive as possible. Save your findings to the
+    RAG database for use by other agents.
+  agent: tech_stack_analyst
+  output_file: output/osint/{company}_tech_stack_identification.md
+
+tech_stack_analysis:
+  description: >
+    Analyze the technology stack of {company}, including: - Strengths and
+    weaknesses of their technical choices - How their stack compares to
+    industry standards and competitors - Technical debt indicators -
+    Scalability and performance considerations - Security implications -
+    Recent or planned technology migrations
+
+    Use the RAG tools to retrieve any relevant information already collected
+    and save your findings for later use by other agents. Format your findings
+    in a clear, structured, and comprehensive Markdown document, ensuring all
+    relevant details are included for a precise and extensive final report.
+  expected_output: >
+    A comprehensive Markdown document analyzing the technology stack of
+    {company}, with proper formatting, headings, and organization. The report
+    should be as detailed and extensive as possible. Save your findings to the
+    RAG database for use by other agents.
+  agent: tech_stack_analyst
+  output_file: output/osint/{company}_tech_stack_analysis.md
+
+open_source_contributions:
+  description: >
+    Research and analyze {company}'s open source contributions, including: -
+    GitHub repositories and activity - Contributions to open source projects -
+    Technical blog posts and documentation - Conference presentations and
+    technical talks - Developer advocacy initiatives
+
+    Use the RAG tools to retrieve any relevant information already collected
+    and save your findings for later use by other agents. Format your findings
+    in a clear, structured, and comprehensive Markdown document, ensuring all
+    relevant details are included for a precise and extensive final report.
+  expected_output: >
+    A comprehensive Markdown document analyzing the open source contributions
+    of {company}, with proper formatting, headings, and organization. The
+    report should be as detailed and extensive as possible. Save your findings
+    to the RAG database for use by other agents.
+  agent: tech_stack_analyst
+  output_file: output/osint/{company}_open_source_contributions.md
+
+tech_talent_assessment:
+  description: >
+    Assess the technical talent at {company}, including: - Technical
+    leadership profiles - Engineering team structure and organization -
+    Technical hiring patterns and job requirements - Technical skill sets
+    emphasized in job postings - Engineering culture indicators - Technical
+    career growth opportunities
+
+    Use the RAG tools to retrieve any relevant information already collected
+    and save your findings for later use by other agents. Format your findings
+    in a clear, structured, and comprehensive Markdown document, ensuring all
+    relevant details are included for a precise and extensive final report.
+  expected_output: >
+    A comprehensive Markdown document assessing the technical talent at
+    {company}, with proper formatting, headings, and organization. The report
+    should be as detailed and extensive as possible. Save your findings to the
+    RAG database for use by other agents.
+  agent: tech_stack_analyst
+  output_file: output/osint/{company}_tech_talent_assessment.md
+
+consolidate_tech_stack_report:
+  description: >
+    Consolidate all findings about {company}'s technology stack into a
+    comprehensive report, including: - Executive summary of technical
+    capabilities - Detailed technology stack breakdown - Technical strengths
+    and weaknesses - Open source presence and contributions - Technical talent
+    assessment - Recommendations for further technical investigation
+
+    Use the RAG tools to retrieve all previously collected information and
+    create a consolidated, well-structured report. Format your report as a
+    complete, comprehensive Markdown document, ensuring all relevant details
+    are included for a precise and extensive final report.
+  expected_output: >
+    A comprehensive Markdown document consolidating all tech stack findings
+    about {company}, with proper formatting, headings, and organization. The
+    report should be as detailed and extensive as possible. Save your
+    consolidated report to the RAG database for use by other agents.
+  agent: tech_stack_analyst
+  output_file: output/osint/{company}_consolidate_tech_stack_report.md

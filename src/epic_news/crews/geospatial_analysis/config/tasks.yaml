@@ -1,0 +1,76 @@
+physical_location_mapping:
+  description: >
+    Map the physical locations of {company}, including: - Headquarters and
+    regional offices - Manufacturing or production facilities - Distribution
+    centers and warehouses - Retail locations (if applicable) - Data centers
+    and technical infrastructure - Research and development facilities
+
+    Use the RAG tools to save your findings for later use by other agents.
+    Format your findings in a clear, structured, and comprehensive Markdown
+    document, ensuring all relevant details are included for a precise and
+    extensive final report.
+  expected_output: >
+    A comprehensive Markdown document mapping {company}'s physical locations,
+    with proper formatting, headings, and organization. The report should be
+    as detailed and extensive as possible. Save your findings to the RAG
+    database for use by other agents.
+  agent: geospatial_analyst
+  output_file: output/osint/{company}_physical_location_mapping.md
+
+geospatial_risk_assessment:
+  description: >
+    Assess geospatial risks for {company}'s locations, including: - Natural
+    disaster exposure - Political stability in operating regions -
+    Infrastructure reliability by location - Local regulatory environments -
+    Proximity to potential hazards - Climate change impact projections
+
+    Use the RAG tools to retrieve any relevant information already collected
+    and save your findings for later use by other agents. Format your findings
+    in a clear, structured, and comprehensive Markdown document, ensuring all
+    relevant details are included for a precise and extensive final report.
+  expected_output: >
+    A comprehensive Markdown document assessing geospatial risks for
+    {company}, with proper formatting, headings, and organization. The report
+    should be as detailed and extensive as possible. Save your findings to the
+    RAG database for use by other agents.
+  agent: geospatial_analyst
+  output_file: output/osint/{company}_geospatial_risk_assessment.md
+
+supply_chain_mapping:
+  description: >
+    Map {company}'s supply chain geospatially, including: - Key supplier
+    locations - Transportation routes and logistics hubs - Raw material
+    sources - Manufacturing partner locations - Distribution networks -
+    Last-mile delivery infrastructure
+
+    Use the RAG tools to retrieve any relevant information already collected
+    and save your findings for later use by other agents. Format your findings
+    in a clear, structured, and comprehensive Markdown document, ensuring all
+    relevant details are included for a precise and extensive final report.
+  expected_output: >
+    A comprehensive Markdown document mapping {company}'s supply chain
+    geospatially, with proper formatting, headings, and organization. The
+    report should be as detailed and extensive as possible. Save your findings
+    to the RAG database for use by other agents.
+  agent: geospatial_analyst
+  output_file: output/osint/{company}_supply_chain_mapping.md
+
+geospatial_intelligence_for_mergers_acquisitions:
+  description: >
+    Provide geospatial intelligence for {company}'s mergers and acquisitions,
+    including: - Geographic expansion patterns - Location-based synergies with
+    acquisition targets - Regional market penetration strategies -
+    Post-acquisition geographic integration challenges - Location-based
+    competitive advantages - Geographic diversification opportunities
+
+    Use the RAG tools to retrieve any relevant information already collected
+    and save your findings for later use by other agents. Format your findings
+    in a clear, structured, and comprehensive Markdown document, ensuring all
+    relevant details are included for a precise and extensive final report.
+  expected_output: >
+    A comprehensive Markdown document providing geospatial intelligence for
+    {company}'s M&A activities, with proper formatting, headings, and
+    organization. The report should be as detailed and extensive as possible.
+    Save your findings to the RAG database for use by other agents.
+  agent: geospatial_analyst
+  output_file: output/osint/{company}_geospatial_intelligence_for_mergers_acquisitions.md

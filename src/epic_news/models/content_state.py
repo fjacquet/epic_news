@@ -5,21 +5,20 @@ for the application during execution.
 """
 
 import datetime
+from typing import Optional, Any
+
 from pydantic import BaseModel, Field
+
+from epic_news.models.extracted_info import ExtractedInfo
+
 
 class ContentState(BaseModel):
     # Basic request information
     user_request: str = "Create a Poem on Paris in the night"
-    topic: str = ""  # Will be extracted from user_request if not provided
+    extracted_info: Optional[ExtractedInfo] = None
     selected_crew: str = ""  # Default crew type
     attachment_file: str = ""  # Attachment file for specific crew types
-    # Holiday planner parameters
-    duration: str = ""  # Duration of the holiday
     current_year: str = str(datetime.datetime.now().year)  # Current year
-    destination: str = "Paris, FR"  # Destination of the holiday
-    family: str = ""  # Family details
-    origin: str = ""  # Origin of the holiday
-    special_needs: str = ""  # Special needs of the holiday
     categories:  dict = Field(default_factory=lambda: {
         "CONTACT_FINDER": "CONTACT_FINDER",
         "COOKING": "COOKING",
@@ -38,6 +37,28 @@ class ContentState(BaseModel):
     # Output file path
     output_file: str = ""
 
+    # Crew results
+    company_profile: Optional[Any] = None
+    tech_stack: Optional[Any] = None # Stores direct output from TechStackCrew
+    geospatial_analysis: Optional[Any] = None
+    post_report: Optional[Any] = None
+    poem: Optional[Any] = None
+    news_report: Optional[Any] = None
+    location_report: Optional[Any] = None
+    recipe: Optional[Any] = None
+    book_summary: Optional[Any] = None
+    meeting_prep_report: Optional[Any] = None
+    contact_info_report: Optional[Any] = None # Renamed from contacts_report
+    holiday_plan: Optional[Any] = None
+    marketing_report: Optional[Any] = None
+    osint_report: Optional[Any] = None # Potentially for a consolidated OSINT report
+    tech_stack_report: Optional[Any] = None # Potentially for a formatted tech stack report
+    hr_intelligence_report: Optional[Any] = None
+    legal_analysis_report: Optional[Any] = None
+    web_presence_report: Optional[Any] = None
+    cross_reference_report: Optional[Any] = None
+    lead_score_report: Optional[Any] = None # Added from the duplicated block
+
     # Email settings
     sendto: str = "fred.jacquet@gmail.com"
     email_sent: bool = False
@@ -47,7 +68,6 @@ class ContentState(BaseModel):
     sentence_count: int = 5
 
     # Company and product parameters (used by both ContactFinder and MeetingPrep)
-    company: str = ""
     our_product: str = ""
 
     # Meeting prep specific parameters
@@ -60,31 +80,43 @@ class ContentState(BaseModel):
     objective: str = ""
     prior_interactions: str = ""
     
-    # Content storage for different crew types
-    content: dict = Field(default_factory=lambda: {
-        "news": "",
-        "location": "",
-        "poem": "",
-        "recipe": "",
-        "post_report": "",
-        "book_summary": "",
-        "meeting_prep": "",
-        "lead_score": "",
-        "contact_info": "",
-        "osfindings": "",
-        "holiday_plan": ""
-    })
-    
-    # Dynamic property access for content types
-    def __getattr__(self, name):
-        """Dynamic getter for content properties"""
-        if name in self.content:
-            return self.content.get(name, "")
-        raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'")
-    
-    def __setattr__(self, name, value):
-        """Dynamic setter for content properties"""
-        if name in getattr(self, "content", {}):
-            self.content[name] = value
-        else:
-            super().__setattr__(name, value)
+
+
+    def to_crew_inputs(self) -> dict:
+        """
+        Prepares a flattened dictionary of state properties suitable for CrewAI task inputs.
+        This method combines top-level state attributes with nested data from the
+        'extracted_info' model, providing a simple, flat key-value structure.
+        """
+        # Start with a dump of the top-level model, excluding the nested part.
+        inputs = self.model_dump(exclude={"extracted_info"})
+
+        # If extracted_info exists, flatten its contents into the inputs dictionary.
+        if self.extracted_info:
+            extracted_data = self.extracted_info.model_dump()
+            # Map from the Pydantic model field names to the keys crews expect.
+            mapping = {
+                "main_subject_or_activity": "topic",
+                "target_company": "company",
+                "destination_location": "destination",
+                "event_or_trip_duration": "duration",
+                "traveler_details": "family",
+                "origin_location": "origin",
+                "user_preferences_and_constraints": "special_needs",
+                "participants": "participants",
+                "meeting_context": "context",
+                "meeting_objective": "objective",
+                "prior_interactions": "prior_interactions",
+            }
+            for source_key, target_key in mapping.items():
+                if source_key in extracted_data:
+                    inputs[target_key] = extracted_data[source_key]
+
+        # Add a generic 'target' field for crews that need it.
+        if inputs.get("company"):
+            inputs["target"] = inputs["company"]
+        elif inputs.get("topic"):
+            inputs["target"] = inputs["topic"]
+
+        # Return a clean dictionary, removing any keys that have None values.
+        return {k: v for k, v in inputs.items() if v is not None}

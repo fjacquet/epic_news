@@ -1,37 +1,28 @@
-from crewai.flow import Flow, listen, start, router, or_, and_
-
-from epic_news.crews.capture_destination.capture_destination_crew import (
-    CaptureDestinationCrew,
-)
-from epic_news.crews.capture_duration.capture_duration_crew import CaptureDurationCrew
-from epic_news.crews.capture_company.capture_company_crew import CaptureCompanyCrew
-from epic_news.crews.capture_needs.capture_needs_crew import CaptureNeedsCrew
-from epic_news.crews.capture_origin.capture_origin_crew import CaptureOriginCrew
-from epic_news.crews.capture_travelers.capture_travelers_crew import (
-    CaptureTravelersCrew,
-)
-from epic_news.crews.capture_topic.capture_topic_crew import CaptureTopicCrew
-from epic_news.crews.classify.classify_crew import ClassifyCrew
-from epic_news.crews.find_contacts.find_contacts_crew import FindContactsCrew
-from epic_news.crews.cooking.cooking_crew import CookingCrew
-from epic_news.crews.holiday_planner.holiday_planner_crew import HolidayPlannerCrew
-from epic_news.crews.library.library_crew import LibraryCrew
-from epic_news.crews.find_location.find_location_crew import FindLocationCrew
-from epic_news.crews.meeting_prep.meeting_prep_crew import MeetingPrepCrew
-from epic_news.crews.news.news_crew import NewsCrew
-from epic_news.crews.osint.osint_crew import OsintCrew
-from epic_news.crews.poem.poem_crew import PoemCrew
-from epic_news.crews.post.post_crew import PostCrew
-from epic_news.crews.marketing_writers.marketing_writers_crew import (
-    MarketingWritersCrew,
-)
-from epic_news.crews.post_only.post_only_crew import PostOnlyCrew
-from epic_news.crews.reception.reception_crew import ReceptionCrew
-from epic_news.utils.directory_utils import ensure_output_directories
-from epic_news.models import ContentState
-
+from crewai.flow import Flow, and_, listen, or_, router, start
 from dotenv import load_dotenv
 
+from epic_news.crews.classify.classify_crew import ClassifyCrew
+from epic_news.crews.company_profiler.company_profiler_crew import CompanyProfilerCrew
+from epic_news.crews.cooking.cooking_crew import CookingCrew
+from epic_news.crews.cross_reference_report_crew.cross_reference_report_crew import CrossReferenceReportCrew
+from epic_news.crews.find_contacts.find_contacts_crew import FindContactsCrew
+from epic_news.crews.find_location.find_location_crew import FindLocationCrew
+from epic_news.crews.geospatial_analysis.geospatial_analysis_crew import GeospatialAnalysisCrew
+from epic_news.crews.holiday_planner.holiday_planner_crew import HolidayPlannerCrew
+from epic_news.crews.hr_intelligence.hr_intelligence_crew import HRIntelligenceCrew
+from epic_news.crews.information_extraction.information_extraction_crew import InformationExtractionCrew
+from epic_news.crews.legal_analysis.legal_analysis_crew import LegalAnalysisCrew
+from epic_news.crews.library.library_crew import LibraryCrew
+from epic_news.crews.marketing_writers.marketing_writers_crew import MarketingWritersCrew
+from epic_news.crews.meeting_prep.meeting_prep_crew import MeetingPrepCrew
+from epic_news.crews.news.news_crew import NewsCrew
+from epic_news.crews.poem.poem_crew import PoemCrew
+from epic_news.crews.post.post_crew import PostCrew
+from epic_news.crews.post_only.post_only_crew import PostOnlyCrew
+from epic_news.crews.tech_stack.tech_stack_crew import TechStackCrew
+from epic_news.crews.web_presence.web_presence_crew import WebPresenceCrew
+from epic_news.models import ContentState
+from epic_news.utils.directory_utils import ensure_output_directories
 
 load_dotenv()
 
@@ -47,12 +38,7 @@ def init():
 """                                                                                      """
 
 user_request = (
-    "Can you create a 7 days  ski holidays in in Mozine, France from Montreux switerzerland "
-    "during february ski holidays 2026 with cultural and food experiences."
-    "it will be a 2 families with a total of 4 adults and 2 children."
-    "We like to be close to the ski lifts, with a holiday village formula not hotel."
-    "Ideally a swimming pool would enhance the experience but is not a must."
-    "Budget is not unlimited, keep it in mind."
+    "find osint  about the company ''"
     "PLEASE GIVE YOUR SOURCES !!!"
 )
 
@@ -63,135 +49,68 @@ user_request = (
 
 #
 class ReceptionFlow(Flow[ContentState]):
-    @start("go_initialize")
-    def initialize(self):
+
+
+    @start()
+    def feed_user_request(self):
         # Reset the email_sent flag to ensure we send an email each time
         self.state.email_sent = False
         self.state.user_request = user_request
-        return "initialize"
+        # return "feed_user_request"
 
-    @start("go_find_destination")
-    def find_destination(self):
-        self.state.user_request = user_request
-        # Extract the destination from the user request
-        destination = (
-            CaptureDestinationCrew()
-            .crew()
-            .kickoff(inputs={"user_request": self.state.user_request})
+    @listen("feed_user_request")
+    def extract_info(self):
+        """Extract all necessary information from the user request in a single step."""
+        print("🤖 Kicking off Information Extraction Crew...")
+        # Instantiate and run the information extraction crew
+        extraction_crew = InformationExtractionCrew()
+        extracted_data = extraction_crew.crew().kickoff(
+            inputs={"user_request": self.state.user_request}
         )
-        self.state.destination = str(destination)
-        return "find_destination"
 
-    @start("go_find_origin")
-    def find_origin(self):
-        self.state.user_request = user_request
+        # Update the state with the extracted information
+        if extracted_data:
+            self.state.extracted_info = extracted_data.pydantic
+            print("✅ Information extraction complete.")
+        else:
+            print("⚠️ Information extraction failed or returned no data.")
 
-        # Extract the origin from the user request
-        origin = (
-            CaptureOriginCrew().crew().kickoff(inputs={"user_request": user_request})
-        )
-        self.state.origin = str(origin)
-        return "find_origin"
+        # return "extract_info"
 
-    @start("go_find_company")
-    def find_company(self):
-        self.state.user_request = user_request
-
-        # Extract the company from the user request
-        company = (
-            CaptureCompanyCrew().crew().kickoff(inputs={"user_request": user_request})
-        )
-        self.state.company = str(company)
-        return "find_company"
-
-    @start("go_find_needs")
-    def find_needs(self):
-        self.state.user_request = user_request
-
-        # Extract the needs from the user request
-        needs = CaptureNeedsCrew().crew().kickoff(inputs={"user_request": user_request})
-        self.state.special_needs = str(needs)
-        return "find_needs"
-
-    @start("go_find_travelers")
-    def find_travelers(self):
-        self.state.user_request = user_request
-
-        # Extract the travelers from the user request
-        travelers = (
-            CaptureTravelersCrew().crew().kickoff(inputs={"user_request": user_request})
-        )
-        self.state.family = str(travelers)
-        return "find_travelers"
-
-    @start("go_find_duration")
-    def find_duration(self):
-        self.state.user_request = user_request
-
-        # Extract the duration from the user request
-        duration = (
-            CaptureDurationCrew().crew().kickoff(inputs={"user_request": user_request})
-        )
-        self.state.duration = str(duration)
-        return "find_duration"
-
-    @start("go_find_topic")
-    def find_topic(self):
-        self.state.user_request = user_request
-
-        # Extract the topic from the user request
-        topic = CaptureTopicCrew().crew().kickoff(inputs={"user_request": user_request})
-        self.state.topic = str(topic)
-        return "find_topic"
-
-    @listen(
-        and_(
-            "find_topic",
-            "find_destination",
-            "find_origin",
-            "find_needs",
-            "find_travelers",
-            "find_duration",
-            "find_company",
-        )
-    )
-    def finalize_preparation(self):
-        pass
-
-    @listen("finalize_preparation")
+    @listen("extract_info")
     def classify(self):
         """Classify the user request and route it to the appropriate crew"""
-        # self.state.user_request = user_request
+        topic = (
+            self.state.extracted_info.main_subject_or_activity
+            if self.state.extracted_info
+            else ""
+        )
         print(
-            "Routing request: '{self.state.user_request}' with topic: '{self.state.topic}'"
+            f"Routing request: '{self.state.user_request}' with topic: '{topic}'"
         )
         # Define the output file path directly
         self.state.output_file = "output/classify/decision.md"
 
-        # Prepare input data for classification
-        inputs = {
-            "user_request": self.state.user_request,
-            "output_file": self.state.output_file,
-            "categories": self.state.categories,
-            "selected_crew": self.state.selected_crew,
-        }
+        # Prepare input data for classification using the centralized method
+        inputs = self.state.to_crew_inputs()
 
-        # Run the classification crew
+        # Instantiate and run the classification crew
         classify_crew = ClassifyCrew()
-        result = classify_crew.crew().kickoff(inputs=inputs)
+        classification_result = classify_crew.crew().kickoff(inputs=inputs)
 
-        # Extract the selected category from the result
-        selected_category = classify_crew.parse_result(result, self.state.categories)
-        # print(f"returned result: {selected_category}")
-        # Update the state with the selected category
-        self.state.selected_crew = selected_category
-        return "determine_crew"
+        # Parse the result and update the state
+        self.state.selected_crew = classify_crew.parse_result(
+            classification_result, self.state.categories
+        )
+        print(f"✅ Classification complete. Selected crew: {self.state.selected_crew}")
+
+        # return "classify"
 
     @router("classify")
     def determine_crew(self):
-        """Route based on relationship type to personalize greetings."""
+        """Route based on selected crew type using a map."""
         if self.state.selected_crew == "CONTACT_FINDER":
-            return "go_contact_finder"
+            return "go_generate_contact_info"
         elif self.state.selected_crew == "HOLIDAY_PLANNER":
             return "go_generate_holiday_plan"
         elif self.state.selected_crew == "POST_ONLY":
@@ -213,294 +132,272 @@ class ReceptionFlow(Flow[ContentState]):
         elif self.state.selected_crew == "OPEN_SOURCE_INTELLIGENCE":
             return "go_generate_osint"
         elif self.state.selected_crew == "MARKETING_WRITERS":
-            return "go_generate_marketing"
+            return "go_generate_marketing_content"
         else:
             return "go_unknown"
 
-    @listen("go_unknown")
-    def unknown_crew(self):
-        print("I don't know how to do that sorry")
-
     @listen("go_generate_post_only")
     def generate_post_only(self):
-        # if self.state.selected_crew == "POST_ONLY":
-
         """Generate a post-only based on the topic"""
-        print(f"Generating post-only about: {self.state.topic}")
-
-        # Define the output file path
         self.state.output_file = "output/travel_guides/itinerary.html"
+        print(f"Generating post-only about: {self.state.to_crew_inputs().get('topic', 'N/A')}")
 
         # Create and kickoff the post-only crew
-        PostOnlyCrew().crew().kickoff(
-            inputs={
-                "topic": self.state.topic,
-                "user_request": self.state.user_request,
-                "output_file": self.state.output_file,
-                "sendto": self.state.sendto,
-                "current_year": self.state.current_year,
-            }
-        )
-        return "send_email"
+        self.state.post_report = PostOnlyCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
+        # return "generate_post_only"
 
     @listen("go_generate_poem")
     def generate_poem(self):
-        # if self.state.selected_crew == "POEM":
-
         """Generate a poem based on the topic"""
-        print(f"Generating poem about: {self.state.topic}")
-
-        # Define the output file path
         self.state.output_file = "output/poem/poem.html"
+        print(f"Generating poem about: {self.state.to_crew_inputs().get('topic', 'N/A')}")
 
-        # Create and kickoff the poem crew
-        PoemCrew().crew().kickoff(
-            inputs={
-                "topic": self.state.topic,
-                "user_request": self.state.user_request,
-                "sentence_count": self.state.sentence_count,
-                "output_file": self.state.output_file,
-            }
-        )
-        return "send_email"
+        # Generate the poem
+        self.state.poem = PoemCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
+        # return "generate_poem"
 
     @listen("go_generate_news")
     def generate_news(self):
-        # if self.state.selected_crew == "NEWS":
-
         """Generate news content based on the topic"""
-        print(f"Generating news about: {self.state.topic}")
-
-        # Define the output file path directly
         self.state.output_file = "output/news/report.html"
+        print(f"Generating news about: {self.state.to_crew_inputs().get('topic', 'N/A')}")
 
         # Generate the news
-        NewsCrew().crew().kickoff(
-            inputs={
-                "topic": self.state.topic,
-                "output_file": self.state.output_file,
-                "sentence_count": self.state.sentence_count,
-                "sendto": self.state.sendto,
-                "current_year": self.state.current_year,
-            }
-        )
-        return "send_email"
+        self.state.news_report = NewsCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
+        # return "generate_news"
 
     @listen("go_find_location")
     def find_location(self):
-        if self.state.selected_crew == "LOCATION":
-            """Find a location based on the topic"""
-            print(f"Finding location for: {self.state.topic}")
+        """Find a location based on the topic"""
+        self.state.output_file = "output/location/location.html"
+        print(f"Finding location for: {self.state.to_crew_inputs().get('topic', 'N/A')}")
 
-            # Define the output file path directly
-            self.state.output_file = "output/location/location.html"
-
-            # Generate the location
-            FindLocationCrew().crew().kickoff(
-                inputs={
-                    "topic": self.state.topic,
-                    "user_request": self.state.user_request,
-                    "output_file": self.state.output_file,
-                    "sendto": self.state.sendto,
-                    "current_year": self.state.current_year,
-                }
-            )
-            return "send_email"
+        # Generate the location
+        self.state.location_report = FindLocationCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
+        # return "find_location"
 
     @listen("go_generate_recipe")
     def generate_recipe(self):
-        # if self.state.selected_crew == "COOKING":
-
         """Generate a recipe based on the topic"""
-        print(f"Generating recipe for: {self.state.topic}")
-
-        # Define the output file path directly
         self.state.output_file = "output/cooking/recipe.html"
-        # Define the additional output file for Paprika recipe format
         self.state.attachment_file = "output/cooking/paprika_recipe.yaml"
+        print(f"Generating recipe for: {self.state.to_crew_inputs().get('topic', 'N/A')}")
 
         # Generate the recipe
-        CookingCrew().crew().kickoff(
-            inputs={
-                "topic": self.state.topic,
-                "output_file": self.state.output_file,
-                "attachment_file": self.state.attachment_file,
-                "sendto": self.state.sendto,
-            }
-        )
-        return "send_email"
+        self.state.recipe = CookingCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
+        # return "generate_recipe"
 
     @listen("go_generate_book_summary")
     def generate_book_summary(self):
-        # if self.state.selected_crew == "LIBRARY":
-
         """Generate a book summary based on the topic"""
-        print(f"Generating book summary for: {self.state.topic}")
-
-        # Define the output file path directly
         self.state.output_file = "output/library/book_summary.html"
         self.state.attachment_file = "output/library/research_results.md"
+        print(f"Generating book summary for: {self.state.to_crew_inputs().get('topic', 'N/A')}")
 
         # Generate the book summary
-        LibraryCrew().crew().kickoff(
-            inputs={
-                "topic": self.state.topic,
-                "output_file": self.state.output_file,
-                "sendto": self.state.sendto,
-            }
-        )
-        return "send_email"
+        self.state.book_summary = LibraryCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
+        # return "generate_book_summary"
 
     @listen("go_generate_meeting_prep")
     def generate_meeting_prep(self):
-        # if self.state.selected_crew == "MEETING_PREP":
-
         """
         Generate meeting preparation content based on the company name
         """
-        print(f"Generating meeting prep for company: {self.state.company}")
-
-        # Ensure we have a company name
-        if not self.state.company and self.state.topic:
-            self.state.company = self.state.topic
-            print(f"Using topic as company name: {self.state.company}")
-
-        # Define the output file path
         self.state.output_file = "output/meeting/meeting_preparation.html"
+        # Prepare inputs and handle company fallback
+        current_inputs = self.state.to_crew_inputs()
+        company = current_inputs.get('company')
+        if not company:
+            company = current_inputs.get('topic')
+            current_inputs['company'] = company # Modify the dict before passing
+            print(f"Using topic as company name: {company}")
+
+        print(f"Generating meeting prep for company: {company}")
 
         # Generate the meeting prep
-        return (
-            MeetingPrepCrew()
-            .crew()
-            .kickoff(
-                inputs={
-                    "company": self.state.company,
-                    "output_file": self.state.output_file,
-                    "sendto": self.state.sendto,
-                    "prior_interactions": self.state.prior_interactions,
-                    "context": self.state.context,
-                    "objective": self.state.objective,
-                    "participants": self.state.participants,
-                }
-            )
-        )
-        return "send_email"
+        self.state.meeting_prep_report = MeetingPrepCrew().crew().kickoff(inputs=current_inputs)
+        # return "generate_meeting_prep"
 
-    @listen("go_contact_finder")
+    @listen("go_generate_contact_info")
     def generate_contact_info(self):
-        # if self.state.selected_crew == "CONTACT_FINDER":
         """Generate contact information for a company"""
+        self.state.output_file = "output/contact_finder/approach_strategy.html"
+        company = self.state.to_crew_inputs().get('target_company')
         print(
-            f"Finding contacts at: {self.state.company} for product: {self.state.our_product}"
+            f"Finding contacts at: {company} for product: {self.state.to_crew_inputs().get('our_product', 'N/A')}"
         )
 
-        self.state.output_file = "output/contact_finder/approach_strategy.html"
-
-        inputs = {
-            "company": self.state.company,
-            "our_product": self.state.our_product,
-            "output_file": self.state.output_file,
-            "sendto": self.state.sendto,
-        }
-
-        FindContactsCrew().crew().kickoff(inputs=inputs)
-        return "send_email"
+        self.state.contact_info_report = FindContactsCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
+        # return "generate_contact_info"
 
     @listen("go_generate_osint")
     def generate_osint(self):
-        # if self.state.selected_crew == "OPEN_SOURCE_INTELLIGENCE":
-        """Generate contact information for a company"""
-        print(f"Finding contacts at: {self.state.company} ")
+        """Generate OSINT report for a company"""
+        pass 
+        # return "generate_osint"
+        
+        
+        
+    @listen("generate_osint")
+    def generate_company_profile(self):
+        """Generate company profile based on the company name"""
+        # self.state.output_file = "output/osint/company_profile.html"
+        print(f"Generating company profile for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}")
 
-        self.state.output_file = "output/osint/final.html"
+        # Get company name from state inputs
 
-        inputs = {
-            "company": self.state.company,
-            "output_file": self.state.output_file,
-            "sendto": self.state.sendto,
-            "topic": self.state.topic,
-            "user_request": self.state.user_request,
-            "current_year": self.state.current_year,
-        }
-        OsintCrew().crew().kickoff(inputs=inputs)
-        return "send_email"
+        self.state.company_profile = CompanyProfilerCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
+        # return "generate_company_profile"
+            
+    @listen("generate_osint")
+    def generate_tech_stack(self):
+        """Generate company profile based on the company name"""
+        # self.state.output_file = "output/osint/tech_stack.html"
+        print(f"Generating Tech Stack for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}")
+
+        # Get company name from state inputs
+        self.state.tech_stack = TechStackCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
+        # return "generate_company_profile"
+
+    @listen("generate_osint")
+    def generate_web_presence(self):
+        """Generate company profile based on the company name"""
+        # self.state.output_file = "output/osint/web_presence.html"
+        print(f"Generating Web Presence for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}")
+
+        # Get company name from state inputs
+        company_name = self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'Unknown Company')
+        self.state.web_presence_report = WebPresenceCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
+        # return "generate_company_profile"
+        
+    @listen("generate_osint")
+    def generate_hr_intelligence(self):
+        """Generate company profile based on the company name"""
+        # self.state.output_file = "output/osint/hr_intelligence.html"
+        print(f"Generating HR Intelligence for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}")
+
+        # Get company name from state inputs
+        company_name = self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'Unknown Company')
+        self.state.hr_intelligence_report = HRIntelligenceCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
+        # return "generate_company_profile"        
+
+    @listen("generate_osint")
+    def generate_legal_analysis(self):
+        """Generate company profile based on the company name"""
+        # self.state.output_file = "output/osint/legal_analysis.html"
+        print(f"Generating Legal Analysis for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}")
+
+        # Get company name from state inputs
+        company_name = self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'Unknown Company')
+        self.state.legal_analysis_report = LegalAnalysisCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
+        # return "generate_company_profile"
+
+    @listen("generate_osint")
+    def generate_geospatial_analysis(self):
+        """Generate company profile based on the company name"""
+        # self.state.output_file = "output/osint/geospatial_analysis.html"
+        print(f"Generating Geospatial Analysis for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}")
+
+        # Get company name from state inputs
+        company_name = self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'Unknown Company')
+        self.state.geospatial_analysis = GeospatialAnalysisCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
+        # retun "generate_company_profile"
+
+    @listen(and_( "generate_company_profile", "generate_tech_stack", "generate_web_presence", "generate_hr_intelligence", "generate_legal_analysis", "generate_geospatial_analysis"))
+    def generate_cross_reference_report(self):
+        """Generate cross reference report based on the company name"""
+        # self.state.output_file = "output/osint/cross_reference_report.html"
+        print(f"Generating Cross Reference Report for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}")
+
+        # Get company name from state inputs
+        company_name = self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'Unknown Company')
+        self.state.cross_reference_report = CrossReferenceReportCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
+        # return "generate_company_profile"
 
     @listen("go_generate_holiday_plan")
     def generate_holiday_plan(self):
-        # if self.state.selected_crew == "HOLIDAY_PLANNER":
         self.state.output_file = "output/travel_guides/itinerary.html"
-        inputs = {
-            "destination": self.state.destination,
-            "duration": self.state.duration,
-            "family": self.state.family,
-            "origin": self.state.origin,
-            "special_needs": self.state.special_needs,
-            "output_file": self.state.output_file,
-        }
-        # print(f"Inputs: {inputs}")
+        current_inputs = self.state.to_crew_inputs()
 
-        print(f"Starting HolidayPlannerCrew with inputs: {inputs}")
+        if not current_inputs.get('destination'):
+            print("⚠️ No destination found for holiday plan. Aborting.")
+            return "error"  # Or another appropriate error state
+
+        print(f"Starting HolidayPlannerCrew with inputs: {current_inputs}")
 
         # Run the crew
-        HolidayPlannerCrew().crew().kickoff(inputs=inputs)
-        return "send_email"
+        self.state.holiday_plan = HolidayPlannerCrew().crew().kickoff(inputs=current_inputs)
+        # return "generate_holiday_plan"
 
-    @listen("go_generate_marketing")
+    @listen("go_generate_marketing_content")
     def generate_marketing_content(self):
         """Generate enhanced marketing content in French based on the original message"""
-        print(f"Enhancing marketing message about: {self.state.topic}")
-
-        # Define the output file path
         self.state.output_file = "output/marketing/enhanced_message.html"
-        inputs = {
-            "topic": self.state.topic,
-            "user_request": self.state.user_request,
-            "original_message": self.state.user_request,
-            "target_audience": self.state.target_audience
-            if hasattr(self.state, "target_audience")
-            else "clients potentiels",
-            "output_file": self.state.output_file,
-        }
+        print(f"Enhancing marketing message about: {self.state.to_crew_inputs().get('topic', 'N/A')}")
 
         # Create and kickoff the marketing writers crew
-        MarketingWritersCrew().crew().kickoff(inputs=inputs)
-        return "send_email"
+        self.state.marketing_report = MarketingWritersCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
+        # return "generate_marketing_content"
 
-    @listen(
-        or_(
-            "generate_recipe",
-            "find_location",
-            "generate_book_summary",
-            "generate_contact_info",
-            "generate_holiday_plan",
-            "generate_meeting_prep",
-            "generate_news",
-            "generate_osint",
-            "generate_poem",
-            "generate_post_only",
-            "generate_marketing_content",
-        )
-    )
+    @listen(or_("find_location",
+                "generate_book_summary", 
+                "generate_contact_info", 
+                "generate_holiday_plan",
+                "generate_leads", 
+                "generate_marketing_content",
+                "generate_meeting_prep",
+                "generate_news", 
+                "generate_poem",
+                "generate_post_only", 
+                "generate_recipe"
+                )
+            )
+    def join(self):
+        """Join the crew"""
+        return "done"
+
+    @listen("join")
+    def next_level(self):
+        """Go to next level"""
+        return "done"
+    
+
+    @listen(or_( 
+                "generate_cross_reference_report", 
+                "next_level"
+                ))
     def send_email(self):
-        """Send an email with the generated content"""
+        if not self.state.email_sent:
+            """Send an email with the generated content"""
+            print(f"Sending email to: {self.state.sendto}")
+            
+            # Get topic from extracted_info if available, otherwise use a default
+            topic = "Unknown Topic"
+            if self.state.extracted_info:
+                if hasattr(self.state.extracted_info, "main_subject_or_activity"):
+                    topic = self.state.extracted_info.main_subject_or_activity
+            
+            # Create inputs dictionary with safely accessed values
+            inputs = {
+                "output_file": self.state.output_file,
+                "recipient_email": self.state.sendto,
+                "topic": topic,
+                "attachment": self.state.attachment_file,
+                "attachment_file": self.state.attachment_file,
+            }
 
-        # Check if we've already sent an email for this flow run
-        # if hasattr(self.state, 'email_sent') and self.state.email_sent:
-        #     print("Email already sent, skipping")
-        #     return
-
-        print(f"Sending email to: {self.state.sendto}")
-
-        inputs = {
-            "output_file": self.state.output_file,
-            "recipient_email": self.state.sendto,
-            "topic": self.state.topic,
-            "attachment": self.state.attachment_file,
-            "attachment_file": self.state.attachment_file,
-        }
-
-        print(f"Inputs: {inputs}")
-        PostCrew().crew().kickoff(inputs=inputs)
+            print(f"Inputs: {inputs}")
+            PostCrew().crew().kickoff(inputs=inputs)
+            self.state.email_sent = True
+            
+            # Exit the program after sending the email
+            print("Email sent successfully. Exiting program.")
+            return "done"
+    
+    # @listen("send_email")
+    # def go_unknown(self):
+    #     """Go to unknown state"""
+    #     self.state.email_sent = True
 
 
 def kickoff():
