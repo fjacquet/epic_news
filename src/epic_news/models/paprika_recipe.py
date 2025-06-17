@@ -1,6 +1,8 @@
 """Pydantic model for Paprika 3 recipe format."""
 from typing import List, Optional
+
 from pydantic import BaseModel, Field
+
 
 class PaprikaRecipe(BaseModel):
     """Defines the structure for a recipe compatible with Paprika 3 YAML format."""

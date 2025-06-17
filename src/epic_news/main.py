@@ -48,17 +48,7 @@ from epic_news.utils.directory_utils import ensure_output_directories
 load_dotenv()
 
 
-def init():
-    """Initializes the application environment.
 
-    Currently, this function ensures that all necessary output directories
-    for the crews are created before any processing begins.
-    """
-    # Initialize output directories
-    ensure_output_directories()
-
-
-"""                                                                                      """
 """                                                                                      """
 """                     All the magic is here                                            """
 """                                                                                      """
@@ -66,18 +56,10 @@ def init():
 # Default user request for demonstration, testing, or standalone execution.
 # This can be dynamically set or replaced in a production environment.
 user_request = (
-    "Find contacts from strategic IT and management at Audemars Piguet in Switzerland"
-    " in order to discuss the capabilities of "
-    "- Dell AI platform and how it can help them."
-    "- Dell Data Lake platform and how it can help them."
+    "Trouve moi la meilleure recette de Poulet Basquaise et si possible un accompagnement idéal"
 )
 
 """                                                                                      """
-"""                                                                                      """
-"""                                                                                      """
-
-
-#
 class ReceptionFlow(Flow[ContentState]):
     """
     Manages the end-to-end process of receiving a user request,
@@ -101,6 +83,8 @@ class ReceptionFlow(Flow[ContentState]):
         is sent for each new flow execution.
         """
         # Reset the email_sent flag to ensure an email is sent for each new flow execution.
+        ensure_output_directories()
+        
         self.state.email_sent = False
         self.state.user_request = user_request
         # return "feed_user_request" # Implicitly returns the method name as the next step
@@ -296,15 +280,41 @@ class ReceptionFlow(Flow[ContentState]):
 
         Invokes the `CookingCrew` to generate a recipe. It sets the main output
         to `output/cooking/recipe.html` and an attachment (e.g., for Paprika app)
-        to `output/cooking/paprika_recipe.yaml`. The result is stored in
+        to `output/cooking/recipe.yaml`. The result is stored in
         `self.state.recipe`.
         """
+        # Ensure output directory exists
+        os.makedirs("output/cooking", exist_ok=True)
+        
+        # Set output files
         self.state.output_file = "output/cooking/recipe.html"
-        self.state.attachment_file = "output/cooking/paprika_recipe.yaml"
-        print(f"Generating recipe for: {self.state.to_crew_inputs().get('topic', 'N/A')}")
+        self.state.attachment_file = "output/cooking/recipe.yaml"
+        
+        # Get the topic and preferences from the user's request or extracted info
+        topic = self.state.user_request or ""
+        preferences = ""
+        
+        if self.state.extracted_info:
+            if hasattr(self.state.extracted_info, 'main_subject_or_activity') and self.state.extracted_info.main_subject_or_activity:
+                topic = self.state.extracted_info.main_subject_or_activity
+            if hasattr(self.state.extracted_info, 'user_preferences_and_constraints') and self.state.extracted_info.user_preferences_and_constraints:
+                preferences = self.state.extracted_info.user_preferences_and_constraints
+        
+        # Enhance the topic with preferences if available
+        if preferences and preferences.lower() not in topic.lower():
+            topic = f"{topic} ({preferences})"
+            
+        print(f"🍳 Generating recipe for: {topic}")
 
-        # Generate the recipe
-        self.state.recipe = CookingCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
+        # Generate the recipe with the specific topic and preferences
+        crew_inputs = self.state.to_crew_inputs()
+        
+        # Create crew with topic and preferences
+        crew = CookingCrew(topic=topic, preferences=preferences).crew()
+        
+        # Kick off the crew with inputs
+        self.state.recipe = crew.kickoff(inputs=crew_inputs)
+        print("✅ Recipe generation complete")
         # return "generate_recipe"
 
     @listen("go_generate_book_summary")
@@ -487,6 +497,7 @@ class ReceptionFlow(Flow[ContentState]):
         # return "generate_company_profile"
 
     @listen(and_( "generate_company_profile", "generate_tech_stack", "generate_web_presence", "generate_hr_intelligence", "generate_legal_analysis", "generate_geospatial_analysis"))
+    # @listen("generate_osint")
     def generate_cross_reference_report(self):
         """
         Generates a cross-reference report based on the company name.

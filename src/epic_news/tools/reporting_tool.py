@@ -57,6 +57,6 @@ class ReportingTool(BaseTool):
             return f" Professional HTML report successfully generated and saved to {output_path}. The report includes proper styling, formatting, and structure."
 
         except FileNotFoundError:
-            return f" Error: Template file not found. The template 'professional_report_template.html' was not found at the expected location."
+            return " Error: Template file not found. The template 'professional_report_template.html' was not found at the expected location."
         except Exception as e:
             return f" An unexpected error occurred while generating the report: {str(e)}"
