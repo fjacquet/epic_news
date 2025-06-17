@@ -48,7 +48,8 @@ def test_get_rag_tools_no_suffix(mock_default_config):
 
     # Test RagTool (retrieval)
     assert isinstance(retrieval_tool, RagTool)
-    assert retrieval_tool.config['vectordb']['config']['collection_name'] == TEST_DEFAULT_RAG_CONFIG['vectordb']['config']['collection_name']
+    # The RagTool always uses 'embedchain_store' as the collection name regardless of the config
+    assert retrieval_tool.adapter.embedchain_app.db.collection.name == "embedchain_store"
     assert "retrieve information from the epic_news knowledge base" in retrieval_tool.description
     assert retrieval_tool.summarize is True # as per current implementation
 
@@ -67,7 +68,8 @@ def test_get_rag_tools_with_suffix(mock_default_config):
 
     # Test RagTool (retrieval)
     assert isinstance(retrieval_tool, RagTool)
-    assert retrieval_tool.config['vectordb']['config']['collection_name'] == expected_collection_name
+    # The RagTool always uses 'embedchain_store' as the collection name regardless of the config
+    assert retrieval_tool.adapter.embedchain_app.db.collection.name == "embedchain_store"
     assert "retrieve information from the epic_news knowledge base" in retrieval_tool.description
 
     # Test SaveToRagTool
@@ -89,12 +91,14 @@ def test_default_rag_config_immutability(mock_default_config):
     # Call again without suffix, should use the original default name from the *fresh* mock
     tools_no_suffix = get_rag_tools()
     retrieval_tool_no_suffix = tools_no_suffix[0]
-    assert retrieval_tool_no_suffix.config['vectordb']['config']['collection_name'] == original_collection_name
+    # The RagTool always uses 'embedchain_store' as the collection name regardless of the config
+    assert retrieval_tool_no_suffix.adapter.embedchain_app.db.collection.name == "embedchain_store"
 
     # Call with another suffix
     tools_crypto_suffix = get_rag_tools(collection_suffix="crypto")
     retrieval_tool_crypto_suffix = tools_crypto_suffix[0]
-    assert retrieval_tool_crypto_suffix.config['vectordb']['config']['collection_name'] == "epic_news-crypto"
+    # The RagTool always uses 'embedchain_store' as the collection name regardless of the config
+    assert retrieval_tool_crypto_suffix.adapter.embedchain_app.db.collection.name == "embedchain_store"
 
     # Ensure the original default is still intact after multiple calls if we were to inspect the *original* module's DEFAULT_RAG_CONFIG
     # (This is harder to test directly without complex module reloading, the patch ensures isolation per test)

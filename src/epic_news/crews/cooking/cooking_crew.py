@@ -6,7 +6,9 @@ from crewai.project import CrewBase, agent, crew, task
 from dotenv import load_dotenv
 
 from epic_news.tools.rag_tools import get_rag_tools
+from epic_news.tools.utility_tools import get_reporting_tools
 from epic_news.tools.web_tools import get_scrape_tools, get_search_tools
+from epic_news.models.paprika_recipe import PaprikaRecipe
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -34,13 +36,21 @@ class CookingCrew:
     # Output directory for recipe files
     output_dir = os.path.abspath(os.path.join('output', 'cooking'))
     
-    def __init__(self):
+    def __init__(self, topic=None, preferences=None):
         """Initialize the CookingCrew.
         
+        Args:
+            topic: The main recipe topic (e.g., "Poulet Basquaise")
+            preferences: Any dietary preferences or constraints
+            
         Sets up the output directory and initializes the tools required for recipe creation.
         """
         # Ensure output directory exists
         os.makedirs(self.output_dir, exist_ok=True)
+        
+        # Store inputs
+        self.topic = topic or 'une délicieuse recette'
+        self.preferences = preferences or ''
         
         # Initialize tools
         self._initialize_tools()
@@ -65,12 +75,14 @@ class CookingCrew:
             self.search_tools = get_search_tools()
             self.scrape_tools = get_scrape_tools()
             self.rag_tools = get_rag_tools()
+            self.reporting_tools = get_reporting_tools()
             
             logger.info("Successfully initialized all tools for CookingCrew")
         except Exception as e:
             logger.error(f"Error initializing tools: {str(e)}")
             # Provide fallback empty list to prevent crew from failing completely
             self.search_tools = []
+            self.reporting_tools = []
             raise
 
     @agent
@@ -86,7 +98,7 @@ class CookingCrew:
         """
         return Agent(
             config=self.agents_config['recipe_expert'],
-            tools=self.search_tools + self.scrape_tools + self.rag_tools,
+            tools=self.search_tools + self.scrape_tools + self.rag_tools + self.reporting_tools,
             verbose=True,
             llm_timeout=300,  # 5 minutes timeout for complex recipe generation
             respect_context_window=True,
@@ -98,19 +110,26 @@ class CookingCrew:
     def html_recipe_task(self) -> Task:
         """Define the HTML recipe creation task.
         
-        This task generates a comprehensive recipe in HTML format with rich formatting,
-        detailed instructions, ingredient lists, and cooking techniques. The HTML output
-        is designed for web display and can include images and structured sections.
+        This task generates a comprehensive recipe in HTML format with proper
+        French language content and emoji usage for enhanced readability.
+        The task uses the ReportingTool to create a professional HTML report.
         
         Returns:
-            Task: Configured HTML recipe task from YAML configuration
+            Task: Configured HTML recipe task from YAML configuration with topic
         """
-       
+        task_config = dict(self.tasks_config['html_recipe_task'])
+        
+        # Enhance the description with the actual topic
+        task_config['description'] = task_config['description'].format(
+            topic=self.topic,
+            preferences=f" ({self.preferences})" if self.preferences else ""
+        )
+        
         return Task(
-            config=self.tasks_config['html_recipe_task'],
+            config=task_config,
             verbose=False,
-            llm_timeout=300,             # 5 minutes timeout for recipe generation
-            async_execution=True,        # Enable async for parallel processing
+            llm_timeout=300,  # 5 minutes timeout for recipe generation
+            async_execution=True
         )
 
     @task
@@ -122,12 +141,23 @@ class CookingCrew:
         servings, and other metadata required by the Paprika app.
         
         Returns:
-            Task: Configured Paprika YAML recipe task from YAML configuration
+            Task: Configured Paprika YAML recipe task from YAML configuration with topic
         """
+        task_config = dict(self.tasks_config['paprika_yaml_task'])
+        
+        # Enhance the description with the actual topic
+        task_config['description'] = task_config['description'].format(
+            topic=self.topic,
+            preferences=f" ({self.preferences})" if self.preferences else ""
+        )
+
+        
         return Task(
-            config=self.tasks_config['paprika_yaml_task'],
+            config=task_config,
+            output_pydantic=PaprikaRecipe,
             verbose=True,
-            llm_timeout=300,             # 5 minutes timeout for recipe generation
+            llm_timeout=300,  # 5 minutes timeout for recipe generation
+            async_execution=False
         )
 
    

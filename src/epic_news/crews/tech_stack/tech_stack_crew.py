@@ -27,7 +27,6 @@ class TechStackCrew:
         tech_tools = get_github_tools()
         rag_tools = get_rag_tools()
         html_to_pdf_tool = HtmlToPdfTool()
-        
         all_tools = search_tools + tech_tools + rag_tools + [html_to_pdf_tool]
         
         return Agent(

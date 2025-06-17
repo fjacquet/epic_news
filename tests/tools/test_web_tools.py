@@ -2,6 +2,7 @@ from crewai_tools import (
     SerperDevTool,
     YoutubeVideoSearchTool,
 )
+from epic_news.tools.scrape_ninja_tool import ScrapeNinjaTool
 
 from epic_news.tools.web_tools import (
     get_news_tools,

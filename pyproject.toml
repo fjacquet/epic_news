@@ -13,6 +13,7 @@ dependencies = [
     "crewai>=0.130.0",
     "crewai-tools[mcp]>=0.47.1",
     "firecrawl-py>=2.8.0",
+    "freezegun>=1.5.2",
     "langchain-community>=0.3.25",
     "langchain-openai>=0.2.14",
     "pandas>=2.3.0",

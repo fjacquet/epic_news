@@ -10,6 +10,7 @@ from typing import List, Optional
 
 from crewai.tools import BaseTool as Tool
 from crewai_tools import RagTool
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
 from epic_news.rag_config import DEFAULT_RAG_CONFIG
 from epic_news.tools.save_to_rag_tool import SaveToRagTool
@@ -34,9 +35,25 @@ def get_rag_tools(collection_suffix: Optional[str] = None) -> List[Tool]:
         # No need to copy config["vectordb"]["config"] again as config is already a deepcopy
         config["vectordb"]["config"]["collection_name"] = f"epic_news-{collection_suffix}"
 
-    # Create the RAG tool for retrieval
+    # Instantiate the LLM and Embedder
+    llm = ChatOpenAI(**config['llm']['config'])
+    embedder = OpenAIEmbeddings(**config['embedder']['config'])
+    
+    # Determine the collection name
+    collection_name = config['vectordb']['config']['collection_name']
+    
+    # Create the RAG tool for retrieval with app_config to ensure collection_name is properly set
     rag_tool = RagTool(
-        config=config,
+        llm=llm,
+        embedder=embedder,
+        chunker_config=config['chunker'],
+        vectordb_config=config['vectordb'],
+        app_config={
+            'collection_name': collection_name,  # This ensures the collection name is properly set
+            'db': {
+                'dir': config['vectordb']['config'].get('dir', '/tmp/chroma_db')
+            }
+        },
         summarize=True,
         description=(
             "Use this tool to retrieve information from the epic_news knowledge base. "

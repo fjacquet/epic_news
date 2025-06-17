@@ -12,4 +12,5 @@ output/
 prompts.txt
 report.md
 uv.lock
-*html
+*.html
+.coverage
