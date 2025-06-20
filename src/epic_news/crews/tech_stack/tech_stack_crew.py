@@ -95,6 +95,6 @@ class TechStackCrew:
         return Crew(
             agents=self.agents,
             tasks=self.tasks,
-            process=Process.sequential,
+            process=Process.hierarchical,  # Changed from sequential to hierarchical for parallel execution
             verbose=True,
         )

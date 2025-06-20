@@ -6,7 +6,7 @@ import os
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 
-from crewai_tools import BaseTool
+from crewai.tools import BaseTool
 from jinja2 import Environment, FileSystemLoader
 from langchain.tools import BaseTool as LangchainBaseTool
 

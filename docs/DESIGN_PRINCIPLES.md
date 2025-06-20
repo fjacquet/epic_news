@@ -99,6 +99,7 @@ Like a haiku poem with its strict form of simplicity and elegance:
    - **Modular Tool Design**: Favor creating focused, single-purpose tool files (e.g., one class per file, or very closely related small helper tools grouped logically). This enhances clarity, testability, and maintainability, aligning with the 'Single Responsibility Principle'.
    - **API Key Management**: Consistently use environment variables for API keys (e.g., `SERPER_API_KEY = os.getenv('SERPER_API_KEY')`). Avoid hardcoding keys and ensure clear documentation in `tools_handbook.md` if a specific key is required by a tool.
    - **Tool Testing**: All tools must have corresponding unit tests in the `tests/tools/` directory (or `tests/bin/` for scripts in `src/epic_news/bin/`). Tests should cover primary functionality, edge cases, and error handling to ensure reliability and maintainability.
+   - **Tool Imports**: Always use the correct import path for CrewAI tool classes. For custom tools, use `from crewai.tools import BaseTool` (not from `crewai_tools`). This is a common source of errors and should be consistently applied across the codebase.
    - Document public interfaces thoroughly
    - Include examples where appropriate
    - Keep documentation up-to-date with code changes

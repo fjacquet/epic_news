@@ -124,7 +124,7 @@ class SalesProspectingCrew():
         return Crew(
             agents=self.agents, # Automatically created by the @agent decorator
             tasks=self.tasks, # Automatically created by the @task decorator
-            process=Process.sequential,
+            process=Process.hierarchical, # Changed from sequential to hierarchical for parallel execution
             verbose=True,
             reasoning=True,     
             max_reasoning_attempts=5,

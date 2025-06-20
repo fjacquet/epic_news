@@ -20,12 +20,15 @@ import os
 from pathlib import Path
 from typing import Any, Dict, List
 
-from crewai_tools import BaseTool  # type: ignore
+from crewai.tools import BaseTool
 from jinja2 import Environment, FileSystemLoader, select_autoescape  # type: ignore
 
-_TEMPLATE_DIR = (
-    Path(__file__).resolve().parent.parent.parent / "templates"
-).resolve()
+# Try both possible template directories
+_TEMPLATES_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent / "templates"
+_TEMPLATES_SRC = Path(__file__).resolve().parent.parent / "templates"
+
+# Use the first directory that exists
+_TEMPLATE_DIR = _TEMPLATES_SRC if _TEMPLATES_SRC.exists() else _TEMPLATES_ROOT
 
 
 class RenderReportTool(BaseTool):
@@ -36,10 +39,12 @@ class RenderReportTool(BaseTool):
         "Render an HTML report using the shared Jinja2 template. "
         "Requires kwargs: title, sections (list of dict), and optional images, citations."
     )
+    template_dir: Path = _TEMPLATE_DIR  # Define as a class field
 
     def __init__(self, template_dir: str | os.PathLike | None = None):
         super().__init__()
-        self.template_dir: Path = Path(template_dir) if template_dir else _TEMPLATE_DIR
+        if template_dir:
+            self.template_dir = Path(template_dir)  # Override class field if provided
         if not self.template_dir.exists():
             raise FileNotFoundError(f"Template directory not found: {self.template_dir}")
         self._env = Environment(
