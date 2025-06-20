@@ -4,6 +4,8 @@ from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import SerperDevTool
 from dotenv import load_dotenv
+from epic_news.tools.report_tools import get_report_tools
+from epic_news.models.report import ReportHTMLOutput
 
 from epic_news.tools.html_to_pdf_tool import HtmlToPdfTool
 
@@ -27,7 +29,7 @@ class LegalAnalysisCrew:
         rag_tools = get_rag_tools()
         html_to_pdf_tool = HtmlToPdfTool()
         
-        all_tools = search_tools + rag_tools + [html_to_pdf_tool]
+        all_tools = search_tools + rag_tools + [html_to_pdf_tool] + get_report_tools()
         
         return Agent(
             config=self.agents_config["legal_analyst"],
@@ -81,6 +83,7 @@ class LegalAnalysisCrew:
         return Task(
             config=self.tasks_config["mergers_and_acquisitions_due_diligence"],
             async_execution=False,
+            output_pydantic=ReportHTMLOutput,
         )
 
     @crew

@@ -9,6 +9,8 @@ from dotenv import load_dotenv
 from epic_news.tools.finance_tools import get_yahoo_finance_tools
 from epic_news.tools.rag_tools import get_rag_tools
 from epic_news.tools.web_tools import get_scrape_tools, get_search_tools
+from epic_news.tools.report_tools import get_report_tools
+from epic_news.models.report import ReportHTMLOutput
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -76,6 +78,7 @@ class MeetingPrepCrew():
             self.scrape_tools = get_scrape_tools()
             self.rag_tools = get_rag_tools()
             self.finance_tools = get_yahoo_finance_tools()
+            self.report_tools = get_report_tools()
             
             # Combine tools for agents that need all capabilities
             self.all_research_tools = self.search_tools + self.scrape_tools + self.rag_tools + self.finance_tools
@@ -162,7 +165,7 @@ class MeetingPrepCrew():
         """
         return Agent(
             config=self.agents_config["briefing_coordinator_agent"],
-            # No external tools needed as this agent synthesizes previous work
+            tools=self.report_tools,
             verbose=True,
             respect_context_window=True,
             llm_timeout=180
@@ -230,7 +233,7 @@ class MeetingPrepCrew():
        
         return Task(
             config=self.tasks_config["meeting_preparation_task"],
-
+            output_pydantic=ReportHTMLOutput,
         )
         
     def _get_task_context(self) -> List[Dict[str, Any]]:

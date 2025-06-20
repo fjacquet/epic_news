@@ -10,6 +10,8 @@ from epic_news.tools.rag_tools import get_rag_tools
 
 # from composio_crewai import ComposioToolSet, App, Action
 from epic_news.tools.web_tools import get_scrape_tools, get_search_tools
+from epic_news.tools.report_tools import get_report_tools
+from epic_news.models.report import ReportHTMLOutput
 
 load_dotenv()
 
@@ -28,7 +30,8 @@ scrape_tools = get_scrape_tools()
 rag_tools = get_rag_tools()
 html_to_pdf_tool = HtmlToPdfTool()
 file_read_tool = FileReadTool()
-all_tools = search_tools + scrape_tools + rag_tools + [html_to_pdf_tool]
+report_tools = get_report_tools()
+all_tools = search_tools + scrape_tools + rag_tools + [html_to_pdf_tool] + report_tools
 
 # If you want to run a snippet of code before or after the crew starts,
 # you can use the @before_kickoff and @after_kickoff decorators
@@ -91,7 +94,7 @@ class LibraryCrew():
             config=self.agents_config['reporting_analyst'],
             verbose=True,
             respect_context_window=True,
-            tools=rag_tools+[html_to_pdf_tool]+[file_read_tool],  
+            tools=rag_tools+[html_to_pdf_tool]+[file_read_tool]+report_tools,  
             llm_timeout=300,    
         )
 
@@ -126,6 +129,7 @@ class LibraryCrew():
         return Task(
             config=self.tasks_config['reporting_task'],
             output_file=output_file,
+            output_pydantic=ReportHTMLOutput,
             # Final task in sequential process must be synchronous per CrewAI framework
         )
     @task

@@ -116,3 +116,34 @@ develop_approach_strategy_task:
     Le contenu doit être en **français**.
   agent: sales_strategist
   output_file: "output/sales_prospecting/approach_strategy.html"
+
+generate_sales_metrics_task:
+  description: >
+    Based on all the gathered information about {company}, create a structured data report
+    with key metrics and KPIs for the sales prospecting effort. Include metrics such as:
+    
+    1. Company size (employees, revenue)
+    2. Market position and growth potential
+    3. Decision-maker identification success rate
+    4. Contact acquisition metrics
+    5. Estimated sales opportunity value
+    6. Probability of successful engagement
+    
+    Use the data-centric tools to calculate metrics, track KPIs, and visualize the data.
+    Create data tables for contacts and opportunity assessment.
+    
+    You are AI agent that is responsible for taking actions based on the tools you have.
+    You can use the tools to search the web, read files, etc.
+  expected_output: >
+    A comprehensive structured data report with metrics, KPIs, and visualizations that
+    provide quantitative insights into the sales prospecting effort for {company}.
+    The report should include:
+    
+    1. Key metrics about the company and opportunity
+    2. KPIs for tracking sales prospecting progress
+    3. Data tables for contacts and opportunity assessment
+    4. Data visualizations where appropriate
+    
+    The output should be in the StructuredDataReport format, which can be rendered as HTML.
+  agent: sales_strategist
+  output_file: "output/sales_prospecting/sales_metrics.json"

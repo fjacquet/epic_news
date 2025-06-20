@@ -8,6 +8,9 @@ This document outlines the core principles that guide its development.
 
 ## Core Principles
 
+> **CrewAI before Python**  
+> Whenever a capability exists in the CrewAI framework, use it first before writing custom Python. Extend, don’t reinvent.
+
 ### Simple and Easy to Understand
 
 - Code should be self-explanatory
@@ -131,13 +134,6 @@ crewai flow kickoff
 ```
 
 - Maintain consistent package versions across development environments.
-
-9. **Report Generation**
-   - Generate reports in HTML format for rich presentation
-   - Always include UTF-8 encoding declarations to handle special characters and emojis
-   - Use emojis strategically to enhance readability and visual appeal
-   - Ensure cross-browser compatibility with proper HTML5 standards
-   - Structure reports with clear sections and a logical flow of information
 
 ## Implementation Examples
 

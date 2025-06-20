@@ -6,6 +6,10 @@ from dotenv import load_dotenv
 
 from epic_news.tools.email_search import get_email_search_tools
 from epic_news.tools.web_tools import get_search_tools
+from epic_news.tools.report_tools import get_report_tools
+from epic_news.tools.data_centric_tools import get_data_centric_tools
+from epic_news.models.report import ReportHTMLOutput
+from epic_news.models.data_metrics import StructuredDataReport
 
 load_dotenv()
 
@@ -26,12 +30,14 @@ class SalesProspectingCrew():
         self.search_tools = get_search_tools()
         self.email_search_tools = get_email_search_tools()
         self.read_tools = [FileReadTool(), DirectoryReadTool("output/sales_prospecting")]
+        self.report_tools = get_report_tools()
+        self.data_centric_tools = get_data_centric_tools()
 
     @agent
     def company_researcher(self) -> Agent:
         return Agent(
             config=self.agents_config["company_researcher"],
-            tools=[*self.search_tools, *self.email_search_tools, *self.read_tools],
+            tools=[*self.search_tools, *self.email_search_tools, *self.read_tools, *self.report_tools, *self.data_centric_tools],
             verbose=True,
             llm_timeout=300,
             reasoning=True,     
@@ -43,7 +49,7 @@ class SalesProspectingCrew():
     def org_structure_analyst(self) -> Agent:
         return Agent(
             config=self.agents_config["org_structure_analyst"],
-            tools=[*self.search_tools, *self.email_search_tools, *self.read_tools],
+            tools=[*self.search_tools, *self.email_search_tools, *self.read_tools, *self.report_tools, *self.data_centric_tools],
             verbose=True,
             reasoning=True,     
             max_reasoning_attempts=5,
@@ -55,7 +61,7 @@ class SalesProspectingCrew():
     def contact_finder(self) -> Agent:
         return Agent(
             config=self.agents_config["contact_finder"],
-            tools=[*self.search_tools, *self.email_search_tools, *self.read_tools],
+            tools=[*self.search_tools, *self.email_search_tools, *self.read_tools, *self.report_tools, *self.data_centric_tools],
             verbose=True,
             reasoning=True,     
             max_reasoning_attempts=5,
@@ -67,7 +73,7 @@ class SalesProspectingCrew():
     def sales_strategist(self) -> Agent:
         return Agent(
             config=self.agents_config["sales_strategist"],
-            tools=[*self.search_tools, *self.email_search_tools, *self.read_tools],
+            tools=[*self.search_tools, *self.email_search_tools, *self.read_tools, *self.report_tools, *self.data_centric_tools],
             verbose=True,
             reasoning=True,     
             max_reasoning_attempts=5,
@@ -101,6 +107,15 @@ class SalesProspectingCrew():
         return Task(
             config=self.tasks_config["develop_approach_strategy_task"],
             async_execution=False,
+            output_pydantic=ReportHTMLOutput,
+        )
+        
+    @task
+    def generate_sales_metrics_task(self) -> Task:
+        return Task(
+            config=self.tasks_config["generate_sales_metrics_task"],
+            async_execution=False,
+            output_pydantic=StructuredDataReport,
         )
 
     @crew

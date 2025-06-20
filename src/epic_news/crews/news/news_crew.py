@@ -2,6 +2,8 @@ from composio_crewai import ComposioToolSet
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from dotenv import load_dotenv
+from epic_news.tools.report_tools import get_report_tools
+from epic_news.models.report import ReportHTMLOutput
 
 load_dotenv()
 
@@ -70,7 +72,7 @@ class NewsCrew:
     def editor(self) -> Agent:
         return Agent(
             config=self.agents_config['editor'],
-            tools=search_tools,
+            tools=search_tools + get_report_tools(),
             # verbose=True,
             llm_timeout=300,
             respect_context_window=True
@@ -119,7 +121,8 @@ class NewsCrew:
         return Task(
             config=self.tasks_config[task_id],
             # context=[self.research_task(), self.analysis_task(), self.verification_task()],
-            output_file='output/news/report.html',  
+            output_file='output/news/report.html',
+            output_pydantic=ReportHTMLOutput,
             verbose=True,
             llm_timeout=300
         )

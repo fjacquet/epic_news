@@ -12,5 +12,7 @@ output/
 prompts.txt
 report.md
 uv.lock
-*.html
+# *.html
 .coverage
+AP_DAIF_approach_strategy.html
+patek_global_report.html

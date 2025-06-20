@@ -2,6 +2,8 @@ from composio_crewai import ComposioToolSet
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from dotenv import load_dotenv
+from epic_news.tools.report_tools import get_report_tools
+from epic_news.models.report import ReportHTMLOutput
 
 load_dotenv()
 
@@ -21,7 +23,7 @@ class MarketingWritersCrew:
     def marketing_specialist(self) -> Agent:
         return Agent(
             config=self.agents_config["marketing_specialist"],
-            tools=marketing_tools,
+            tools=marketing_tools + get_report_tools(),
             verbose=True,
             llm_timeout=300,
             respect_context_window=True
@@ -31,7 +33,7 @@ class MarketingWritersCrew:
     def copywriter(self) -> Agent:
         return Agent(
             config=self.agents_config["copywriter"],
-            tools=marketing_tools,
+            tools=marketing_tools + get_report_tools(),
             verbose=True,
             llm_timeout=300,
             respect_context_window=True
@@ -52,6 +54,7 @@ class MarketingWritersCrew:
             config=self.tasks_config["enhance_message_task"],
             agent=self.copywriter(),
             output_file="output/marketing/enhanced_message.html",
+            output_pydantic=ReportHTMLOutput,
             verbose=True,
             llm_timeout=300
         )

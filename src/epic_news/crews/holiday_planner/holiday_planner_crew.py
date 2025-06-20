@@ -5,6 +5,8 @@ from dotenv import load_dotenv
 from epic_news.tools.exchange_rate_tool import ExchangeRateTool
 from epic_news.tools.rag_tools import get_rag_tools
 from epic_news.tools.web_tools import get_scrape_tools, get_search_tools, get_youtube_tools
+from epic_news.tools.report_tools import get_report_tools
+from epic_news.models.report import ReportHTMLOutput
 
 # TODO: Consider if get_news_tools might also be relevant for some agents.
 
@@ -28,6 +30,7 @@ class HolidayPlannerCrew():
         youtube_tools = get_youtube_tools() # Provides YoutubeVideoSearchTool
         rag_tools = get_rag_tools()
         exchange_rate_tool = ExchangeRateTool()
+        report_tools = get_report_tools()
 
         # Tools for travel research: general search, video, scraping
         self.travel_research_tools = search_tools + youtube_tools + scrape_tools + rag_tools + [exchange_rate_tool]
@@ -37,7 +40,7 @@ class HolidayPlannerCrew():
         self.accommodation_search_tools = search_tools + scrape_tools + rag_tools + [exchange_rate_tool]
 
         # Tools for content creation: general search, scraping (for final details, links)
-        self.content_creation_tools = search_tools + scrape_tools + rag_tools + [exchange_rate_tool]
+        self.content_creation_tools = search_tools + scrape_tools + rag_tools + [exchange_rate_tool] + report_tools
 
         # General tools: a comprehensive set for versatile agents like the itinerary architect
         combined_tools_list = (
@@ -146,7 +149,8 @@ class HolidayPlannerCrew():
         return Task(
             config=self.tasks_config['format_and_translate_guide'],
             async_execution=False,
-            output_file='output/travel_guides/itinerary.html'
+            output_file='output/travel_guides/itinerary.html',
+            output_pydantic=ReportHTMLOutput
         )
 
     @crew

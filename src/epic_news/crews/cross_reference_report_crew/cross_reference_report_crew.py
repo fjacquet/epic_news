@@ -8,6 +8,8 @@ from crewai_tools import DirectoryReadTool, FileReadTool
 from epic_news.tools.html_to_pdf_tool import HtmlToPdfTool
 from epic_news.tools.rag_tools import get_rag_tools
 from epic_news.tools.web_tools import get_scrape_tools, get_search_tools
+from epic_news.tools.report_tools import get_report_tools
+from epic_news.models.report import ReportHTMLOutput
 
 # If you want to run a snippet of code before or after the crew starts,
 # you can use the @before_kickoff and @after_kickoff decorators
@@ -37,7 +39,7 @@ class CrossReferenceReportCrew():
         directory_read_tool = DirectoryReadTool("output/osint")
         file_read_tool = FileReadTool()
         
-        all_tools = search_tools + scrape_tools + rag_tools + [html_to_pdf_tool, directory_read_tool, file_read_tool]
+        all_tools = search_tools + scrape_tools + rag_tools + [html_to_pdf_tool, directory_read_tool, file_read_tool] + get_report_tools()
         
         return Agent(
             config=self.agents_config["osint_coordinator"],
@@ -98,6 +100,7 @@ class CrossReferenceReportCrew():
         return Task(
             config=self.tasks_config["global_reporting"],
             async_execution=False,
+            output_pydantic=ReportHTMLOutput,
         )
 
     @crew

@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            background-color: #f9f9f9;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        header {
+            background-color: #fff;
+            padding: 1.5rem 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        h1 {
+            color: #2c3e50;
+            margin-top: 0;
+        }
+        .description {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+        .timestamp {
+            color: #95a5a6;
+            font-size: 0.9rem;
+        }
+        section {
+            background-color: #fff;
+            padding: 1.5rem 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        h2 {
+            color: #2c3e50;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 0.5rem;
+            margin-top: 0;
+        }
+        .metrics-grid, .kpis-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        .metric-card, .kpi-card {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 1.5rem;
+            border-left: 4px solid #3498db;
+        }
+        .kpi-card {
+            border-left: 4px solid #e74c3c;
+        }
+        .metric-name, .kpi-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 0 0 0.5rem 0;
+        }
+        .metric-value, .kpi-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0.5rem 0;
+        }
+        .metric-change, .kpi-progress {
+            display: inline-flex;
+            align-items: center;
+            font-size: 0.9rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            margin-top: 0.5rem;
+        }
+        .trend-up {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        .trend-down {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        .trend-stable {
+            background-color: #e3f2fd;
+            color: #1565c0;
+        }
+        .status-achieved {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        .status-on-track {
+            background-color: #e3f2fd;
+            color: #1565c0;
+        }
+        .status-needs-attention {
+            background-color: #fff3e0;
+            color: #e65100;
+        }
+        .status-at-risk {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        .metric-description, .kpi-description {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            margin: 0.5rem 0;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+        .data-table th {
+            background-color: #f1f1f1;
+            text-align: left;
+            padding: 0.75rem;
+            border-bottom: 2px solid #ddd;
+        }
+        .data-table td {
+            padding: 0.75rem;
+            border-bottom: 1px solid #ddd;
+        }
+        .data-table tr:hover {
+            background-color: #f9f9f9;
+        }
+        .chart-container {
+            height: 300px;
+            margin: 1rem 0;
+        }
+        footer {
+            text-align: center;
+            padding: 1rem;
+            color: #95a5a6;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>{{ title }}</h1>
+            <div class="description">{{ description }}</div>
+            <div class="timestamp">Generated on: {{ timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</div>
+        </header>
+
+        {% if kpis %}
+        <section>
+            <h2>Key Performance Indicators</h2>
+            <div class="kpis-grid">
+                {% for kpi in kpis %}
+                <div class="kpi-card">
+                    <div class="kpi-name">{{ kpi.display_name }}</div>
+                    <div class="metric-description">{{ kpi.description }}</div>
+                    <div class="kpi-value">
+                        {% if kpi.unit %}{{ kpi.value.value }}{{ kpi.unit }}{% else %}{{ kpi.value.value }}{% endif %}
+                    </div>
+                    
+                    {% if kpi.target %}
+                    <div class="kpi-target">
+                        Target: {% if kpi.unit %}{{ kpi.target }}{{ kpi.unit }}{% else %}{{ kpi.target }}{% endif %}
+                        {% if kpi.target_date %} by {{ kpi.target_date.strftime('%Y-%m-%d') }}{% endif %}
+                    </div>
+                    {% endif %}
+                    
+                    {% if kpi.progress_percentage is not none %}
+                    <div class="kpi-progress {% if kpi.status == 'achieved' %}status-achieved{% elif kpi.status == 'on track' %}status-on-track{% elif kpi.status == 'needs attention' %}status-needs-attention{% elif kpi.status == 'at risk' %}status-at-risk{% endif %}">
+                        {{ kpi.progress_percentage|round(1) }}% complete • {{ kpi.status }}
+                    </div>
+                    {% endif %}
+                    
+                    {% if kpi.value.previous_value is not none and kpi.value.change_percentage is not none %}
+                    <div class="metric-change {% if kpi.value.trend == 'up' %}trend-up{% elif kpi.value.trend == 'down' %}trend-down{% elif kpi.value.trend == 'stable' %}trend-stable{% endif %}">
+                        {% if kpi.value.trend == 'up' %}↑{% elif kpi.value.trend == 'down' %}↓{% else %}→{% endif %}
+                        {{ kpi.value.change_percentage|round(1) }}% from previous
+                    </div>
+                    {% endif %}
+                    
+                    {% if kpi.source %}
+                    <div class="metric-source">Source: {{ kpi.source }}</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        {% if metrics %}
+        <section>
+            <h2>Metrics</h2>
+            <div class="metrics-grid">
+                {% for metric in metrics %}
+                {% if not metric.is_key_metric %}
+                <div class="metric-card">
+                    <div class="metric-name">{{ metric.display_name }}</div>
+                    <div class="metric-description">{{ metric.description }}</div>
+                    <div class="metric-value">
+                        {% if metric.unit %}{{ metric.value.value }}{{ metric.unit }}{% else %}{{ metric.value.value }}{% endif %}
+                    </div>
+                    
+                    {% if metric.value.previous_value is not none and metric.value.change_percentage is not none %}
+                    <div class="metric-change {% if metric.value.trend == 'up' %}trend-up{% elif metric.value.trend == 'down' %}trend-down{% elif metric.value.trend == 'stable' %}trend-stable{% endif %}">
+                        {% if metric.value.trend == 'up' %}↑{% elif metric.value.trend == 'down' %}↓{% else %}→{% endif %}
+                        {{ metric.value.change_percentage|round(1) }}% from previous
+                    </div>
+                    {% endif %}
+                    
+                    {% if metric.source %}
+                    <div class="metric-source">Source: {{ metric.source }}</div>
+                    {% endif %}
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        {% if data_tables %}
+        <section>
+            <h2>Data Tables</h2>
+            {% for table in data_tables %}
+            <div class="table-container">
+                <h3>{{ table.name }}</h3>
+                {% if table.description %}<p>{{ table.description }}</p>{% endif %}
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            {% for column in table.columns %}
+                            <th>{{ column }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in table.rows %}
+                        <tr>
+                            {% for cell in row %}
+                            <td>{{ cell }}</td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endfor %}
+        </section>
+        {% endif %}
+
+        {% if data_series %}
+        <section>
+            <h2>Data Series</h2>
+            {% for series in data_series %}
+            <div class="series-container">
+                <h3>{{ series.name }}</h3>
+                {% if series.description %}<p>{{ series.description }}</p>{% endif %}
+                <div class="chart-container">
+                    <!-- Chart would be rendered here with JavaScript in a real implementation -->
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Label</th>
+                                <th>Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for point in series.points %}
+                            <tr>
+                                <td>{{ point.label }}</td>
+                                <td>{{ point.value }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endfor %}
+        </section>
+        {% endif %}
+
+        <footer>
+            <p>Generated by epic_news with CrewAI 📊</p>
+        </footer>
+    </div>
+</body>
+</html>

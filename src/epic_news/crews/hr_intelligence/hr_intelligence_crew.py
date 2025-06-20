@@ -10,6 +10,8 @@ from epic_news.tools.html_to_pdf_tool import HtmlToPdfTool
 # Import RAG tools
 from epic_news.tools.rag_tools import get_rag_tools
 from epic_news.tools.scrape_ninja_tool import ScrapeNinjaTool
+from epic_news.tools.report_tools import get_report_tools
+from epic_news.models.report import ReportHTMLOutput
 
 load_dotenv()
 
@@ -27,7 +29,7 @@ class HRIntelligenceCrew:
         rag_tools = get_rag_tools()
         html_to_pdf_tool = HtmlToPdfTool()
         
-        all_tools = search_tools + rag_tools + [html_to_pdf_tool]
+        all_tools = search_tools + rag_tools + [html_to_pdf_tool] + get_report_tools()
         
         return Agent(
             config=self.agents_config["hr_intelligence_analyst"],
@@ -81,6 +83,7 @@ class HRIntelligenceCrew:
         return Task(
             config=self.tasks_config["format_hr_intelligence_report"],
             async_execution=False,
+            output_pydantic=ReportHTMLOutput,
         )
 
     @crew

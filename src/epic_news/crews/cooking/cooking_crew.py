@@ -9,6 +9,8 @@ from epic_news.models.paprika_recipe import PaprikaRecipe
 from epic_news.tools.rag_tools import get_rag_tools
 from epic_news.tools.utility_tools import get_reporting_tools
 from epic_news.tools.web_tools import get_scrape_tools, get_search_tools
+from epic_news.tools.report_tools import get_report_tools
+from epic_news.models.report import ReportHTMLOutput
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -76,6 +78,7 @@ class CookingCrew:
             self.scrape_tools = get_scrape_tools()
             self.rag_tools = get_rag_tools()
             self.reporting_tools = get_reporting_tools()
+            self.report_tools = get_report_tools()
             
             logger.info("Successfully initialized all tools for CookingCrew")
         except Exception as e:
@@ -98,7 +101,7 @@ class CookingCrew:
         """
         return Agent(
             config=self.agents_config['recipe_expert'],
-            tools=self.search_tools + self.scrape_tools + self.rag_tools + self.reporting_tools,
+            tools=self.search_tools + self.scrape_tools + self.rag_tools + self.reporting_tools + self.report_tools,
             verbose=True,
             llm_timeout=300,  # 5 minutes timeout for complex recipe generation
             respect_context_window=True,
@@ -129,7 +132,8 @@ class CookingCrew:
             config=task_config,
             verbose=False,
             llm_timeout=300,  # 5 minutes timeout for recipe generation
-            async_execution=True
+            async_execution=True,
+            output_pydantic=ReportHTMLOutput
         )
 
     @task

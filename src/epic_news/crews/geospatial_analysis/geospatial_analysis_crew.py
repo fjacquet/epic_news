@@ -11,6 +11,8 @@ from epic_news.tools.html_to_pdf_tool import HtmlToPdfTool
 from epic_news.tools.location_tools import get_location_tools
 from epic_news.tools.rag_tools import get_rag_tools
 from epic_news.tools.scrape_ninja_tool import ScrapeNinjaTool
+from epic_news.tools.report_tools import get_report_tools
+from epic_news.models.report import ReportHTMLOutput
 
 load_dotenv()
 
@@ -29,7 +31,7 @@ class GeospatialAnalysisCrew:
         rag_tools = get_rag_tools()
         html_to_pdf_tool = HtmlToPdfTool()
         
-        all_tools = search_tools + location_tools + rag_tools + [html_to_pdf_tool]
+        all_tools = search_tools + location_tools + rag_tools + [html_to_pdf_tool] + get_report_tools()
         
         return Agent(
             config=self.agents_config["geospatial_analyst"],
@@ -75,6 +77,7 @@ class GeospatialAnalysisCrew:
         return Task(
             config=self.tasks_config["geospatial_intelligence_for_mergers_acquisitions"],
             async_execution=False,
+            output_pydantic=ReportHTMLOutput,
         )
 
     @crew
