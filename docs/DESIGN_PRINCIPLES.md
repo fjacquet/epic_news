@@ -66,26 +66,32 @@ Like a haiku poem with its strict form of simplicity and elegance:
 
 ## Code Structure Guidelines
 
-1. **State Management**
+1. **Pydantic Usage**
+   - Always use Pydantic V2 style validators with `@field_validator` instead of deprecated `@validator`
+   - Use `ConfigDict` instead of class-based config (e.g., `model_config = ConfigDict(extra="forbid")` instead of inner `Config` class)
+   - Follow Pydantic V2 best practices for all models to avoid deprecation warnings
+   - Ensure all validation logic is explicit and well-documented
+
+2. **State Management**
    - Keep state immutable where possible
    - Document state transitions clearly
    - Minimize global state
 
-2. **Flow Design**
+3. **Flow Design**
    - Use descriptive names for flow steps
    - Document dependencies between steps
    - Keep flows linear where possible
 
-3. **Error Handling**
+4. **Error Handling**
    - Fail fast and explicitly
    - Provide meaningful error messages
    - Handle edge cases gracefully
 
-4. **Documentation**
+5. **Documentation**
    - Maintain a clear and consistent documentation structure. For instance, core agent guidelines reside in `agent_handbook.md`, while detailed tool specifications (including arguments, API key needs, and usage notes) are consolidated in a dedicated, alphabetically-sorted `tools_handbook.md`, with clear cross-linking.
    - Tool documentation within `tools_handbook.md` should follow a standardized format for clarity and ease of use.
 
-5. **Tool Organization**
+6. **Tool Organization**
    - **Standardized Tool Outputs**: Tools should return data in a consistent, structured, and easily parsable format, preferably JSON strings, from their `_run` methods to ensure interoperability and predictable handling by agents.
    - **Modular Tool Design**: Favor creating focused, single-purpose tool files (e.g., one class per file, or very closely related small helper tools grouped logically). This enhances clarity, testability, and maintainability, aligning with the 'Single Responsibility Principle'.
    - **API Key Management**: Consistently use environment variables for API keys (e.g., `SERPER_API_KEY = os.getenv('SERPER_API_KEY')`). Avoid hardcoding keys and ensure clear documentation in `tools_handbook.md` if a specific key is required by a tool.
@@ -94,7 +100,7 @@ Like a haiku poem with its strict form of simplicity and elegance:
    - Include examples where appropriate
    - Keep documentation up-to-date with code changes
 
-6. **Module Organization**
+7. **Module Organization**
    - Split utility functions into separate modules by functionality
    - Use empty `__init__.py` files for package structure
    - Prefer explicit imports from specific modules over package-level imports
@@ -102,21 +108,29 @@ Like a haiku poem with its strict form of simplicity and elegance:
    - Group related functionality in dedicated directories
    - **Script Organization**: Standalone operational Python scripts (e.g., data updaters, maintenance tasks) that are not direct CrewAI tools should be placed in the `src/epic_news/bin/` directory. Their tests should reside in `tests/bin/`.
 
-7. **Project Directory Layout**
+8. **Project Directory Layout**
    - The `src` directory should contain only Python source code (e.g., the main application package `epic_news`, tools, etc.).
    - Data files, logs, outputs, archives, and other runtime artifacts should be stored in directories at the project root (e.g., `knowledge/`, `logs/`, `output/`, `archive/`, `storage/`).
    - Configuration in `settings.py` should define the paths to these root-level artifact directories. This keeps the source code separate from generated data and improves clarity.
 
-8. **Python Package and Workflow Management**
+9. **Python Package and Workflow Management**
    - Use `uv` for all Python package and virtual environment operations (e.g., `uv pip install`, `uv venv`).
    - Run individual Python scripts using `uv run python <script.py>`.
    - To execute the main project workflow, use the `crewai flow kickoff` command from the project root. This is the standard way to run the entire sequence of crews.
 
-     ```bash
-     crewai flow kickoff
-     ```
+10. **Report Generation**
 
-   - Maintain consistent package versions across development environments.
+- Generate reports in HTML format for rich presentation
+- Always include UTF-8 encoding declarations to handle special characters and emojis
+- Use emojis strategically to enhance readability and visual appeal
+- Ensure cross-browser compatibility with proper HTML5 standards
+- Structure reports with clear sections and a logical flow of information
+
+```bash
+crewai flow kickoff
+```
+
+- Maintain consistent package versions across development environments.
 
 9. **Report Generation**
    - Generate reports in HTML format for rich presentation

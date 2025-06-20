@@ -8,6 +8,42 @@ This document provides a comprehensive list and detailed descriptions of all too
   - `Tool Identifier`: `AlphaVantageCompanyOverviewTool`
   - `Arguments`:
     - `ticker` (string, required): The stock ticker symbol to get information for (e.g., AAPL, MSFT).
+
+---
+
+- **`Geoapify Places Search`**: Use to search for points of interest (POIs) using the Geoapify Places API. Supports searching by categories, conditions, and location filters.
+  - `Tool Identifier`: `GeoapifyPlacesTool`
+  - `Arguments`:
+    - `categories` (list of strings, optional): List of category IDs to search for (e.g., `['catering.restaurant', 'commercial.supermarket']`). See [Geoapify Categories](https://apidocs.geoapify.com/docs/places/) for full list.
+    - `conditions` (list of strings, optional): List of conditions to filter results (e.g., `['vegetarian', 'wheelchair']`).
+    - `filter_type` (string, optional): Type of filter to apply. Options: 'circle' (lon,lat,radiusM), 'rect' (lon1,lat1,lon2,lat2), 'place' (place ID), or 'geometry' (geometry ID).
+    - `filter_value` (string, optional): Filter values as comma-separated string based on filter_type. Example for circle: `'-0.1,51.5,1000'` (lon,lat,radiusM).
+    - `bias` (string, optional): Bias results by proximity to a point as 'lon,lat'. Results will be sorted by distance from this point.
+    - `limit` (integer, optional, default: 20): Maximum number of results to return (1-100).
+    - `offset` (integer, optional, default: 0): Offset for pagination.
+    - `lang` (string, optional, default: 'en'): Language code (ISO 639-1) for results.
+  - `API Key(s)`: Requires `GEOAPIFY_API_KEY` to be set in the environment.
+  - `Example`:
+
+    ```python
+    tool = GeoapifyPlacesTool()
+    result = tool._run(
+        categories=["catering.restaurant"],
+        conditions=["vegetarian"],
+        filter_type="circle",
+        filter_value="-0.1,51.5,1000",  # lon,lat,radiusM
+        bias="-0.1,51.5",  # Sort by proximity to this point
+        limit=5,
+        lang="en"
+    )
+    ```
+
+---
+
+- **`Alpha Vantage Company Overview`**: Use to fetch fundamental data and a company overview for a specific stock ticker from Alpha Vantage. This tool helps get detailed financial metrics like Market Cap, P/E Ratio, EPS, and more.
+  - `Tool Identifier`: `AlphaVantageCompanyOverviewTool`
+  - `Arguments`:
+    - `ticker` (string, required): The stock ticker symbol to get information for (e.g., AAPL, MSFT).
   - `API Key(s)`: Requires `ALPHA_VANTAGE_API_KEY` to be set in the environment.
 
 ---
