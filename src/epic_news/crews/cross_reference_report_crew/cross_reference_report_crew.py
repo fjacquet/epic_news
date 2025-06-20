@@ -84,13 +84,13 @@ class CrossReferenceReportCrew():
             async_execution=True,
         )
 
-    @task
-    def investigation_quality_assurance(self) -> Task:
-        """Conduct quality assurance review"""
-        return Task(
-            config=self.tasks_config["investigation_quality_assurance"],
-            async_execution=True,
-        )
+    # @task
+    # def investigation_quality_assurance(self) -> Task:
+    #     """Conduct quality assurance review"""
+    #     return Task(
+    #         config=self.tasks_config["investigation_quality_assurance"],
+    #         async_execution=True,
+    #     )
 
     @task
     def global_reporting(self) -> Task:

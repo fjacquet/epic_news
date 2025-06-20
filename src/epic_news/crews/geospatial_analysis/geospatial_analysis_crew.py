@@ -7,7 +7,8 @@ from dotenv import load_dotenv
 
 from epic_news.tools.html_to_pdf_tool import HtmlToPdfTool
 
-# Import RAG tools
+# Import tool factories
+from epic_news.tools.location_tools import get_location_tools
 from epic_news.tools.rag_tools import get_rag_tools
 from epic_news.tools.scrape_ninja_tool import ScrapeNinjaTool
 
@@ -24,10 +25,11 @@ class GeospatialAnalysisCrew:
         """Creates the geospatial analyst agent"""
         # Get all tools
         search_tools = [SerperDevTool(), ScrapeNinjaTool()]
+        location_tools = get_location_tools()
         rag_tools = get_rag_tools()
         html_to_pdf_tool = HtmlToPdfTool()
         
-        all_tools = search_tools + rag_tools + [html_to_pdf_tool]
+        all_tools = search_tools + location_tools + rag_tools + [html_to_pdf_tool]
         
         return Agent(
             config=self.agents_config["geospatial_analyst"],
