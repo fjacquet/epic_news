@@ -1,5 +1,112 @@
 # Agent Tools Handbook
 
+This handbook provides a comprehensive overview of the tools available to agents within the epic_news project. Each tool is designed to perform specific tasks, from data retrieval to content generation, and follows the project's core design principles of simplicity, elegance, and modularity.
+
+---
+
+## TavilyTool
+
+**Description:**
+A tool for performing web searches using the Tavily API. It returns a concise summary of search results for a given query.
+
+**Prerequisites:**
+
+- The `TAVILY_API_KEY` environment variable must be set with a valid Tavily API key.
+
+**Supported Actions:**
+
+- `search`: Performs a web search.
+
+**Parameters:**
+
+- `query` (str): The search query.
+
+**Usage Example:**
+
+```python
+from src.epic_news.tools.tavily_tool import TavilyTool
+
+tavily_tool = TavilyTool()
+results = tavily_tool._run(query="What are the latest trends in AI?")
+print(results)
+```
+
+**Output Format:**
+
+A string containing the search results from the Tavily API.
+
+---
+
+## AirtableTool
+
+**Description:**
+A tool for creating a new record in a specified Airtable table. It requires the base ID, table name, and the data for the new record.
+
+**Prerequisites:**
+
+- The `AIRTABLE_API_KEY` environment variable must be set with a valid Airtable API key.
+
+**Supported Actions:**
+
+- `create_record`: Creates a new record in a table.
+
+**Parameters:**
+
+- `base_id` (str): The ID of the Airtable base.
+- `table_name` (str): The name of the table within the base.
+- `data` (dict): A dictionary representing the data for the new record.
+
+**Usage Example:**
+
+```python
+from src.epic_news.tools.airtable_tool import AirtableTool
+
+airtable_tool = AirtableTool()
+result = airtable_tool._run(
+    base_id="appYOUR_BASE_ID",
+    table_name="Your Table Name",
+    data={"Name": "New Lead", "Status": "Open"}
+)
+print(result)
+```
+
+**Output Format:**
+
+A string confirming the successful creation of the record, including its new ID.
+
+---
+
+## AccuWeatherTool
+
+**Description:**
+A tool to get the current weather conditions for a specific location. It first finds the location key for the given city name and then uses it to fetch the current weather data.
+
+**Prerequisites:**
+
+- The `ACCUWEATHER_API_KEY` environment variable must be set with a valid AccuWeather API key.
+
+**Supported Actions:**
+
+- `get_current_weather`: Retrieves the current weather for a location.
+
+**Parameters:**
+
+- `location` (str): The city name to get the current weather for (e.g., 'London').
+
+**Usage Example:**
+
+```python
+from src.epic_news.tools.accuweather_tool import AccuWeatherTool
+
+accuweather_tool = AccuWeatherTool()
+weather = accuweather_tool._run(location="London")
+print(weather)
+```
+
+**Output Format:**
+
+A string containing the current weather conditions, for example: "Current weather in your location: 20°C, Sunny."
+
 ## TodoistTool
 
 **Description:**
