@@ -5,9 +5,9 @@
 - [x] add streamlit ?
 - [x] create a test for RenderReportTool
 - [x] add todoist api tool
-- [ ] add airtable  tool
-- [ ] add tavily  tool
-- [ ] create fact checking tools
+- [x] add airtable  tool
+- [x] add tavily  tool
+- [x] create fact checking tools
 - [ ] create news monitoring tools
 - [ ] create shopping comparison tools
 - [ ] check kraken situation for proposition
@@ -26,7 +26,7 @@
 - [ ] try to connect n8n to get data started by crewai
 - [ ] try to connect n8n to start crewai
 
-- [ ] add <https://developer.accuweather.com/apis>
+- [x] add <https://developer.accuweather.com/apis>
 - [ ] add <https://free-apis.github.io/#/browse>
 
 - [ ] validate rag usage
