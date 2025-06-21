@@ -1,5 +1,7 @@
+from typing import Any, Dict
+
 from pydantic import BaseModel, Field
-from typing import Dict, Any
+
 
 class AirtableToolInput(BaseModel):
     """Input schema for the AirtableTool."""

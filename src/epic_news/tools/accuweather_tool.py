@@ -1,7 +1,7 @@
 import os
-import requests
 from typing import Type
 
+import requests
 from crewai.tools import BaseTool
 from pydantic import BaseModel
 

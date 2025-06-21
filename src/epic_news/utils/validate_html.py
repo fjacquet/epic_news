@@ -37,9 +37,12 @@ def validate_html(html: str, raise_on_error: bool = True) -> bool:
         if not soup.html or not soup.head or not soup.body:
             if raise_on_error:
                 missing = []
-                if not soup.html: missing.append("<html>")
-                if not soup.head: missing.append("<head>")
-                if not soup.body: missing.append("<body>")
+                if not soup.html:
+                    missing.append("<html>")
+                if not soup.head:
+                    missing.append("<head>")
+                if not soup.body:
+                    missing.append("<body>")
                 raise ValueError(f"HTML validation failed: Missing required elements: {', '.join(missing)}")
             return False
             

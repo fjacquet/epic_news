@@ -9,17 +9,18 @@ recommendations for process type changes.
 
 import argparse
 import importlib
-import sys
-import os
-import logging
 import inspect
-from typing import Dict, Any, List
+import logging
+import os
+import sys
+from typing import Any, Dict, List
+
 from tabulate import tabulate
 
 # Add the project root to the Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
-from epic_news.utils.task_orchestration import optimize_crew_process, OrchestrationStrategy
+from epic_news.utils.task_orchestration import OrchestrationStrategy
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, 
@@ -53,7 +54,6 @@ def analyze_all_crews() -> Dict[str, Dict[str, Any]]:
     Returns:
         Dict[str, Dict[str, Any]]: Analysis results for each crew
     """
-    from crewai import Process
     
     crew_modules = discover_crews()
     results = {}
@@ -81,7 +81,7 @@ def analyze_crew_module(module_path: str) -> Dict[str, Any]:
     Returns:
         Dict[str, Any]: Analysis results for the crew
     """
-    from crewai import Process, Crew
+    from crewai import Process
     
     try:
         # Import the module
@@ -123,7 +123,7 @@ def analyze_crew_module(module_path: str) -> Dict[str, Any]:
                                         task_count += 1
                                         if getattr(task_obj, 'async_execution', False):
                                             async_tasks += 1
-                                    except:
+                                    except Exception:
                                         pass
                             
                             # Determine optimal process type

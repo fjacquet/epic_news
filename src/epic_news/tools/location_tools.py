@@ -6,8 +6,11 @@ for location-based searches and operations.
 """
 
 from typing import List
+
 from crewai.tools import BaseTool
+
 from epic_news.tools.geoapify_places_tool import GeoapifyPlacesTool
+
 
 def get_location_tools() -> List[BaseTool]:
     """

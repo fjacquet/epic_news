@@ -1,12 +1,12 @@
 import os
-import pytest
 from pathlib import Path
-from typing import Dict, List
+
+import pytest
 
 from epic_news.models.report_models import (
+    RenderReportToolSchema,
     ReportImage,
     ReportSection,
-    RenderReportToolSchema,
 )
 from epic_news.tools.render_report_tool import RenderReportTool
 

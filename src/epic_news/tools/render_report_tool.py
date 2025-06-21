@@ -18,7 +18,7 @@ from __future__ import annotations
 import datetime as _dt
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from crewai.tools import BaseTool
 from jinja2 import Environment, FileSystemLoader, select_autoescape  # type: ignore

@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 
+
 class AccuWeatherToolInput(BaseModel):
     """Input schema for the AccuWeatherTool."""
 

@@ -2,6 +2,7 @@ from typing import Any
 
 from .google_fact_check_tool import GoogleFactCheckTool
 
+
 class FactCheckingToolsFactory:
     """Factory to create fact-checking tools."""
 

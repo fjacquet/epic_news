@@ -1,5 +1,5 @@
 import os
-from typing import Type, Optional
+from typing import Type
 
 from crewai.tools import BaseTool
 from pydantic import BaseModel

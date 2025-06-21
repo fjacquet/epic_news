@@ -5,13 +5,13 @@ from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import SerperDevTool
 from dotenv import load_dotenv
 
+from epic_news.models.report import ReportHTMLOutput
 from epic_news.tools.html_to_pdf_tool import HtmlToPdfTool
 
 # Import RAG tools
 from epic_news.tools.rag_tools import get_rag_tools
-from epic_news.tools.scrape_ninja_tool import ScrapeNinjaTool
 from epic_news.tools.report_tools import get_report_tools
-from epic_news.models.report import ReportHTMLOutput
+from epic_news.tools.scrape_ninja_tool import ScrapeNinjaTool
 
 load_dotenv()
 

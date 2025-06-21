@@ -1,9 +1,9 @@
-from typing import Type, Optional, List, Dict, Any
 import os
+from typing import Any, Dict, Optional, Type
 
+import requests
 from crewai.tools import BaseTool
 from pydantic import BaseModel
-import requests
 
 from src.epic_news.models.todoist_models import TodoistToolInput
 

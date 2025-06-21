@@ -1,17 +1,15 @@
 import logging
-import os
 
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from dotenv import load_dotenv
 
 from epic_news.models.paprika_recipe import PaprikaRecipe
+from epic_news.models.report import ReportHTMLOutput
 from epic_news.tools.rag_tools import get_rag_tools
+from epic_news.tools.report_tools import get_report_tools
 from epic_news.tools.utility_tools import get_reporting_tools
 from epic_news.tools.web_tools import get_scrape_tools, get_search_tools
-from epic_news.tools.report_tools import get_report_tools
-from epic_news.models.report import ReportHTMLOutput
-
 
 # Set up logging
 logger = logging.getLogger(__name__)

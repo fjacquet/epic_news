@@ -5,14 +5,14 @@ This module provides utilities for optimizing task orchestration across crews,
 enabling better async and parallel execution patterns.
 """
 
-from typing import List, Dict, Any, Optional, Union, Callable
-from crewai import Task, Process, Agent, Crew
-from crewai.tools import BaseTool
 import asyncio
-from functools import wraps
-import time
-import logging
 import inspect
+import logging
+import time
+from functools import wraps
+from typing import Any, Dict, List, Optional
+
+from crewai import Process, Task
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, 
@@ -170,7 +170,6 @@ def optimize_crew_process(crew_module_path: str,
         Dict[str, Any]: Analysis results
     """
     import importlib
-    import inspect
     
     try:
         # Import the module

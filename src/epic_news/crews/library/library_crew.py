@@ -1,20 +1,17 @@
+import logging
 import os
 import pathlib
-import logging
-
 
 from crewai import Agent, Crew, Process, Task
-from crewai.task import TaskOutput
 from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import FileReadTool
 from dotenv import load_dotenv
 
+# KISS approach: No custom path utilities
 from epic_news.tools.html_to_pdf_tool import HtmlToPdfTool
 from epic_news.tools.rag_tools import get_rag_tools
-from epic_news.tools.web_tools import get_scrape_tools, get_search_tools
 from epic_news.tools.report_tools import get_report_tools
-# KISS approach: No custom path utilities
-from epic_news.models.report import ReportHTMLOutput
+from epic_news.tools.web_tools import get_scrape_tools, get_search_tools
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

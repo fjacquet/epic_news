@@ -6,7 +6,6 @@ Changes 'from crewai_tools import BaseTool' to 'from crewai.tools import BaseToo
 
 import os
 import re
-import sys
 from pathlib import Path
 
 

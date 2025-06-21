@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 
+
 class GoogleFactCheckInput(BaseModel):
     """Input model for the GoogleFactCheckTool."""
 

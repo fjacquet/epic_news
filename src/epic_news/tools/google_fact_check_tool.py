@@ -1,9 +1,11 @@
 import os
+from typing import Optional, Type
+
 import requests
-from typing import Type, Optional
+from crewai.tools import BaseTool
 
 from ..models.google_fact_check_tool import GoogleFactCheckInput
-from crewai.tools import BaseTool
+
 
 class GoogleFactCheckTool(BaseTool):
     """Tool to search for fact-checked claims using the Google Fact Check API."""

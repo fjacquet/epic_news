@@ -4,16 +4,16 @@ Dashboard Generator for Epic News Crews
 This module generates HTML dashboards for visualizing observability data.
 """
 
-import os
-import json
-import time
-from datetime import datetime
-from typing import Dict, Any, List, Optional
-from jinja2 import Environment, FileSystemLoader
-import matplotlib.pyplot as plt
-import io
 import base64
+import io
+import json
+import os
+from datetime import datetime
+from typing import Any, Dict, List
+
+import matplotlib.pyplot as plt
 import numpy as np
+from jinja2 import Environment, FileSystemLoader
 
 # Constants
 DASHBOARD_DATA_DIR = os.path.join("output", "dashboard_data")

@@ -6,12 +6,12 @@ This script examines the output files of the LibraryCrew and provides diagnostic
 on structure, content, and templating issues.
 """
 
+import logging
 import os
-import sys
 import re
 from pathlib import Path
+
 from bs4 import BeautifulSoup
-import logging
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')

@@ -5,15 +5,14 @@ This tool provides access to the Geoapify Places API, allowing searches for
 points of interest by categories, conditions, and location filters.
 """
 
-from typing import List, Optional, Dict, Any, Type, Annotated
-from pydantic import BaseModel, Field, field_validator, model_validator, ConfigDict
-from crewai.tools import BaseTool
-import os
-import requests
 import json
-from urllib.parse import urlencode
+import os
 from enum import Enum
-from typing import Literal
+from typing import List, Optional, Type
+
+import requests
+from crewai.tools import BaseTool
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 class GeoapifyPlacesInput(BaseModel):

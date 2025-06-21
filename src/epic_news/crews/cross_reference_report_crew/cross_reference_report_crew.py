@@ -5,11 +5,11 @@ from crewai.agents.agent_builder.base_agent import BaseAgent
 from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import DirectoryReadTool, FileReadTool
 
+from epic_news.models.report import ReportHTMLOutput
 from epic_news.tools.html_to_pdf_tool import HtmlToPdfTool
 from epic_news.tools.rag_tools import get_rag_tools
-from epic_news.tools.web_tools import get_scrape_tools, get_search_tools
 from epic_news.tools.report_tools import get_report_tools
-from epic_news.models.report import ReportHTMLOutput
+from epic_news.tools.web_tools import get_scrape_tools, get_search_tools
 
 # If you want to run a snippet of code before or after the crew starts,
 # you can use the @before_kickoff and @after_kickoff decorators

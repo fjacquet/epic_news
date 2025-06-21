@@ -188,7 +188,7 @@ def test_web_search():
             
         print(f"🔍 SERPAPI_API_KEY is set: {api_key[:4]}...{api_key[-4:]}")
         
-        tool = WebSearchTool()
+        tool = SerpApiTool()
         print("🔍 Testing web search functionality...")
         
         # Test with a simple query

@@ -4,12 +4,12 @@ from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import DirectoryReadTool, FileReadTool
 from dotenv import load_dotenv
 
-from epic_news.tools.email_search import get_email_search_tools
-from epic_news.tools.web_tools import get_search_tools
-from epic_news.tools.report_tools import get_report_tools
-from epic_news.tools.data_centric_tools import get_data_centric_tools
-from epic_news.models.report import ReportHTMLOutput
 from epic_news.models.data_metrics import StructuredDataReport
+from epic_news.models.report import ReportHTMLOutput
+from epic_news.tools.data_centric_tools import get_data_centric_tools
+from epic_news.tools.email_search import get_email_search_tools
+from epic_news.tools.report_tools import get_report_tools
+from epic_news.tools.web_tools import get_search_tools
 
 load_dotenv()
 

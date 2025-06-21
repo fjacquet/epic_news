@@ -1,12 +1,14 @@
-import pytest
-from unittest.mock import patch, MagicMock
 import os
 import sys
 from pathlib import Path
+from unittest.mock import MagicMock, patch
+
+import pytest
 
 # Add the project root to the path so we can import from epic_news
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from epic_news.tools.todoist_tool import TodoistTool
+
 
 @pytest.fixture
 def tool():

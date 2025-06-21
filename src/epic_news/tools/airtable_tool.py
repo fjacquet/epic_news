@@ -1,9 +1,9 @@
 import os
-from typing import Type, Dict, Any
+from typing import Any, Dict, Type
 
 from crewai.tools import BaseTool
-from pydantic import BaseModel
 from pyairtable import Table
+from pydantic import BaseModel
 
 from src.epic_news.models.airtable_models import AirtableToolInput
 

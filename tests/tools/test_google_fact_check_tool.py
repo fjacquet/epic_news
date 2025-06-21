@@ -1,10 +1,12 @@
 import os
+from unittest.mock import MagicMock, patch
+
 import pytest
 import requests
-from unittest.mock import patch, MagicMock
 
 from src.epic_news.tools.fact_checking_factory import FactCheckingToolsFactory
 from src.epic_news.tools.google_fact_check_tool import GoogleFactCheckTool
+
 
 @pytest.fixture
 def factory():

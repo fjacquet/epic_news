@@ -4,15 +4,13 @@ Tests for the GeoapifyPlacesTool.
 These tests use mocking to avoid making real API calls.
 """
 
-import os
 import json
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock, call
-from typing import Dict, Any
 from pydantic import ValidationError
 
-from epic_news.tools.geoapify_places_tool import GeoapifyPlacesTool, GeoapifyPlacesInput
-
+from epic_news.tools.geoapify_places_tool import GeoapifyPlacesInput, GeoapifyPlacesTool
 
 # Sample API response for testing
 SAMPLE_RESPONSE = {
@@ -136,7 +134,7 @@ class TestGeoapifyPlacesTool:
         """Test search with proximity bias."""
         with patch('requests.get', return_value=mock_successful_response) as mock_get:
             tool = GeoapifyPlacesTool()
-            result = tool._run(
+            tool._run(
                 categories=["commercial.supermarket"],
                 bias="-0.1,51.5",
                 limit=3
@@ -156,7 +154,7 @@ class TestGeoapifyPlacesTool:
         """Test search with conditions."""
         with patch('requests.get', return_value=mock_successful_response) as mock_get:
             tool = GeoapifyPlacesTool()
-            result = tool._run(
+            tool._run(
                 categories=["catering.restaurant"],
                 conditions=["vegetarian", "wheelchair"],
                 limit=5

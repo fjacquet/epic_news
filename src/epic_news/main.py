@@ -19,10 +19,12 @@ Key functionalities include:
 - Utility functions to kickoff the flow (`kickoff`) and plot its structure (`plot`).
 """
 import os
+import warnings
 from typing import Optional
 
 from crewai.flow import Flow, and_, listen, or_, router, start
 from dotenv import load_dotenv
+from pydantic import PydanticDeprecatedSince20, PydanticDeprecatedSince211
 
 from epic_news.crews.classify.classify_crew import ClassifyCrew
 from epic_news.crews.company_profiler.company_profiler_crew import CompanyProfilerCrew
@@ -44,8 +46,6 @@ from epic_news.crews.tech_stack.tech_stack_crew import TechStackCrew
 from epic_news.crews.web_presence.web_presence_crew import WebPresenceCrew
 from epic_news.models import ContentState
 from epic_news.utils.directory_utils import ensure_output_directories
-import warnings
-from pydantic import PydanticDeprecatedSince211, PydanticDeprecatedSince20
 
 # Suppress the specific Pydantic deprecation warnings globally
 warnings.filterwarnings("ignore", category=PydanticDeprecatedSince211)
@@ -453,8 +453,6 @@ class ReceptionFlow(Flow[ContentState]):
         self.state.output_file = "output/osint/web_presence.html"
         print(f"Generating Web Presence for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}")
 
-        # Get company name from state inputs
-        company_name = self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'Unknown Company')
         self.state.web_presence_report = WebPresenceCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
         # return "generate_company_profile"
 
@@ -470,8 +468,6 @@ class ReceptionFlow(Flow[ContentState]):
         self.state.output_file = "output/osint/hr_intelligence.html"
         print(f"Generating HR Intelligence for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}")
 
-        # Get company name from state inputs
-        company_name = self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'Unknown Company')
         self.state.hr_intelligence_report = HRIntelligenceCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
         # return "generate_company_profile"
 
@@ -487,8 +483,6 @@ class ReceptionFlow(Flow[ContentState]):
         self.state.output_file = "output/osint/legal_analysis.html"
         print(f"Generating Legal Analysis for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}")
 
-        # Get company name from state inputs
-        company_name = self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'Unknown Company')
         self.state.legal_analysis_report = LegalAnalysisCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
         # return "generate_company_profile"
 
@@ -504,8 +498,6 @@ class ReceptionFlow(Flow[ContentState]):
         self.state.output_file = "output/osint/geospatial_analysis.html"
         print(f"Generating Geospatial Analysis for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}")
 
-        # Get company name from state inputs
-        company_name = self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'Unknown Company')
         self.state.geospatial_analysis = GeospatialAnalysisCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
         # return "generate_company_profile"
 
@@ -523,8 +515,6 @@ class ReceptionFlow(Flow[ContentState]):
         self.state.output_file = "output/osint/global_report.html"
         print(f"Generating Cross Reference Report for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}")
 
-        # Get company name from state inputs
-        company_name = self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'Unknown Company')
         self.state.cross_reference_report = CrossReferenceReportCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
         # return "generate_company_profile"
 
@@ -696,5 +686,13 @@ def plot(output_path: str = "flow.png"):
 
 
 if __name__ == "__main__":
-    init()
+    # To run the flow, execute this script from the command line:
+    # python -m src.epic_news.main
+    # You can also pass a custom request:
+    # python -m src.epic_news.main "Your custom request here"
     kickoff()
+
+    # To generate a plot of the flow, uncomment the following line:
+    # plot()
+
+

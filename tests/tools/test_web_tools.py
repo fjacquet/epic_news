@@ -1,25 +1,26 @@
+import os
+
 from crewai_tools import (
-    SerperDevTool,
-    YoutubeVideoSearchTool,
-    WebsiteSearchTool,
     GithubSearchTool,
     PDFSearchTool,
     ScrapeWebsiteTool,
+    SerperDevTool,
+    WebsiteSearchTool,
+    YoutubeVideoSearchTool,
 )
 
 from epic_news.tools.scrape_ninja_tool import ScrapeNinjaTool
 from epic_news.tools.web_tools import (
+    get_all_web_tools,
+    get_github_tools,
     get_news_tools,
+    get_pdf_tools,
     get_scrape_tools,
     get_search_tools,
-    get_youtube_tools,
     get_website_search_tools,
-    get_github_tools,
-    get_pdf_tools,
-    get_all_web_tools,
+    get_youtube_tools,
 )
 
-import os
 
 def test_get_search_tools():
     tools = get_search_tools()

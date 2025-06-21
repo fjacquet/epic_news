@@ -2,9 +2,8 @@ from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from dotenv import load_dotenv
 
-from epic_news.tools.report_tools import get_report_tools
-
 from epic_news.models.report import ReportHTMLOutput
+from epic_news.tools.report_tools import get_report_tools
 
 load_dotenv()
 

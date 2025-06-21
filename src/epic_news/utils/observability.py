@@ -5,16 +5,15 @@ This module provides utilities for monitoring, tracing, and implementing
 guardrails against hallucinations in AI agent outputs.
 """
 
-import logging
-import time
+import hashlib
 import json
+import logging
 import os
 import re
-from typing import Dict, Any, List, Optional, Union, Callable
+import time
 from datetime import datetime
 from functools import wraps
-import hashlib
-import difflib
+from typing import Any, Dict, List, Optional
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, 
@@ -411,19 +410,14 @@ def trace_task(tracer: Tracer):
         def wrapper(*args, **kwargs):
             # Extract task information
             task_name = func.__name__
-            source = args[0].__class__.__name__ if args else "unknown"
             
             # Record task start
-            start_event = TraceEvent(
-                event_type="task_start",
-                source=source,
-                details={
-                    "task_name": task_name,
-                    "args": str(args),
-                    "kwargs": str(kwargs)
-                }
-            )
-            tracer.add_event(start_event)
+            start_details = {
+                "task_name": task_name,
+                "args": str(args),
+                "kwargs": str(kwargs)
+            }
+            tracer.add_event(TraceEvent("task_start", f"task:{task_name}", start_details))
             
             # Execute the task
             start_time = time.time()
@@ -433,21 +427,22 @@ def trace_task(tracer: Tracer):
             except Exception as e:
                 result = str(e)
                 success = False
+                error_details = {
+                    "task_name": task_name,
+                    "error": str(e)
+                }
+                tracer.add_event(TraceEvent("task_error", f"task:{task_name}", error_details))
                 raise
             finally:
                 # Record task end
                 end_time = time.time()
-                end_event = TraceEvent(
-                    event_type="task_end",
-                    source=source,
-                    details={
-                        "task_name": task_name,
-                        "duration": end_time - start_time,
-                        "success": success,
-                        "result_type": type(result).__name__ if success else None
-                    }
-                )
-                tracer.add_event(end_event)
+                end_details = {
+                    "task_name": task_name,
+                    "duration": end_time - start_time,
+                    "success": success,
+                    "result_type": type(result).__name__ if success else None
+                }
+                tracer.add_event(TraceEvent("task_end", f"task:{task_name}", end_details))
             
             return result
         
@@ -471,7 +466,6 @@ def monitor_agent(dashboard: Dashboard):
         def wrapper(*args, **kwargs):
             # Extract agent information
             agent_name = func.__name__
-            source = args[0].__class__.__name__ if args else "unknown"
             
             # Update agent metrics
             dashboard.update_metric(

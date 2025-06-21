@@ -60,7 +60,6 @@ def test_get_rag_tools_no_suffix(mock_default_config):
 @patch('epic_news.tools.rag_tools.DEFAULT_RAG_CONFIG', new_callable=lambda: copy.deepcopy(TEST_DEFAULT_RAG_CONFIG))
 def test_get_rag_tools_with_suffix(mock_default_config):
     suffix = "test_crew"
-    expected_collection_name = f"epic_news-{suffix}"
     tools = get_rag_tools(collection_suffix=suffix)
 
     assert len(tools) == 2
