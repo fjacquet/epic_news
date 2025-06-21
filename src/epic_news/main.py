@@ -54,6 +54,11 @@ warnings.filterwarnings("ignore", category=PydanticDeprecatedSince20)
 # Suppress specific Pydantic deprecation warnings by message content
 warnings.filterwarnings("ignore", message=".*`max_items` is deprecated.*", category=DeprecationWarning)
 warnings.filterwarnings("ignore", message=".*`min_items` is deprecated.*", category=DeprecationWarning)
+warnings.filterwarnings(
+    "ignore",
+    category=DeprecationWarning,
+    module="pydantic"
+)
 
 load_dotenv()
 

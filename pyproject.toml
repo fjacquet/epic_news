@@ -37,6 +37,8 @@ dependencies = [
     "watchdog>=6.0.0",
     "fastapi>=0.115.13",
     "uvicorn>=0.34.3",
+    "pathlib>=1.0.1",
+    "shutils>=0.1.0",
 ]
 
 [project.scripts]
@@ -61,3 +63,10 @@ ignore = ["E501"]
 [tool.ruff.format]
 # Like Black, but faster.
 quote-style = "double"
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    'ignore:PydanticDeprecatedSince20:',
+    # Or more specific:
+    # 'ignore:Using extra keyword arguments on `Field` is deprecated:pydantic.PydanticDeprecatedSince20',
+]
