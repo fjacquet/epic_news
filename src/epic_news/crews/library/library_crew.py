@@ -1,7 +1,10 @@
 import os
+import pathlib
 import logging
 
+
 from crewai import Agent, Crew, Process, Task
+from crewai.task import TaskOutput
 from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import FileReadTool
 from dotenv import load_dotenv
@@ -10,6 +13,7 @@ from epic_news.tools.html_to_pdf_tool import HtmlToPdfTool
 from epic_news.tools.rag_tools import get_rag_tools
 from epic_news.tools.web_tools import get_scrape_tools, get_search_tools
 from epic_news.tools.report_tools import get_report_tools
+# KISS approach: No custom path utilities
 from epic_news.models.report import ReportHTMLOutput
 
 # Configure logging
@@ -55,17 +59,14 @@ class LibraryCrew():
     agents_config = 'config/agents.yaml'
     tasks_config = 'config/tasks.yaml'
     
-    # Output directory structure - use absolute path for consistency
-    output_dir = os.path.abspath(os.path.join('output', 'library'))
-
     def __init__(self, topic=None):
         """Initialize the LibraryCrew and ensure output directory exists.
         
         Args:
             topic: The book or research topic to analyze (e.g., "The Art of War by Sun Tzu")
         """
-        # Ensure output directory exists
-        os.makedirs(self.output_dir, exist_ok=True)
+        # KISS approach: Let CrewAI manage output paths
+        # No custom output_dir needed - CrewAI will handle this
         
         # Store inputs
         self.topic = topic or 'The Art of War by Sun Tzu'
@@ -103,6 +104,8 @@ class LibraryCrew():
             self.report_tools = []
             self.all_tools = []
             raise
+
+
 
     @agent
     def researcher(self) -> Agent:
@@ -150,8 +153,11 @@ class LibraryCrew():
         task_config = dict(self.tasks_config['research_task'])
         task_config['description'] = task_config['description'].format(topic=self.topic)
         
-        # Define output file with absolute path
-        output_file = os.path.join(self.output_dir, 'research_results.md')
+        # KISS approach: Use simple relative paths
+        output_file = "output/library/research_results.md"
+        
+        # Ensure output directory exists
+        os.makedirs(os.path.dirname(output_file), exist_ok=True)
         
         return Task(
             config=task_config,
@@ -174,8 +180,11 @@ class LibraryCrew():
         task_config = dict(self.tasks_config['reporting_task'])
         task_config['description'] = task_config['description'].format(topic=self.topic)
         
-        # Define output file with absolute path
-        output_file = os.path.join(self.output_dir, 'book_summary.html')
+        # KISS approach: Use simple relative paths
+        output_file = f"output/library/{self.topic.replace(' ', '_')}_library_report.html"
+        
+        # Ensure output directory exists
+        os.makedirs(os.path.dirname(output_file), exist_ok=True)
         
         return Task(
             config=task_config,
@@ -188,24 +197,36 @@ class LibraryCrew():
         
         This task is assigned to the reporting analyst agent and produces a PDF file
         with a properly structured report including styling, table of contents, and emojis.
+        The tool used for this task requires absolute paths for input and output.
         
         Returns:
             Task: Configured reporting task from YAML configuration
         """
-        # Use absolute paths for both input HTML and output PDF
-        input_html = os.path.abspath(os.path.join(self.output_dir, 'book_summary.html'))
-        output_file = os.path.abspath(os.path.join(self.output_dir, 'book_summary.pdf'))
+        # KISS approach: The tool handles saving the file to the final destination.
+        input_html_path = pathlib.Path(f"output/library/{self.topic.replace(' ', '_')}_library_report.html")
+        output_file_path = input_html_path.with_suffix('.pdf')
+        
+        # The tool needs absolute paths to function correctly.
+        abs_input_html_path = input_html_path.resolve()
+        abs_output_pdf_path = output_file_path.resolve()
+
+        # Ensure output directory exists
+        output_file_path.parent.mkdir(parents=True, exist_ok=True)
         
         # Create a copy of the config to modify
         task_config = dict(self.tasks_config['reporting_task_pdf'])
         
-        # Add the file paths directly to the task description
-        task_config['description'] = task_config['description'] + f"\nHTML_FILE_PATH={input_html}\nPDF_OUTPUT_PATH={output_file}"
+        # Add the absolute file paths directly to the task description for the agent.
+        task_config['description'] = (
+            task_config['description'] + 
+            f"\nHTML_FILE_PATH: {abs_input_html_path}" +
+            f"\nPDF_OUTPUT_PATH: {abs_output_pdf_path}"
+        )
         
         return Task(
             config=task_config,
-            output_file=output_file,
-            # Context should reference the HTML task to ensure proper sequencing
+            output_file=str(output_file_path), # crewAI uses this to track the output
+            # No callback needed; the tool now handles file placement.
             context=[self.reporting_task()],
             # PDF task is final and must be synchronous
         )

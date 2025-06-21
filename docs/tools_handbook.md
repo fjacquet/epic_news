@@ -4,18 +4,41 @@ This handbook provides a comprehensive overview of the tools available to agents
 
 ---
 
-## TavilyTool
+## Web Search Tools
+
+The project provides a factory for creating web search tools from different providers. This allows for a consistent way to access web search functionality while keeping the underlying implementations modular.
+
+### WebSearchFactory
 
 **Description:**
-A tool for performing web searches using the Tavily API. It returns a concise summary of search results for a given query.
+A factory for creating web search tools. Use this to get an instance of a specific search tool provider.
+
+**Usage Example:**
+
+```python
+from src.epic_news.tools.web_search_factory import WebSearchFactory
+
+# Get the Tavily search tool
+tavily_search_tool = WebSearchFactory.create('tavily')
+results = tavily_search_tool._run(query="Latest news on AI")
+print(results)
+
+# Get the SerpAPI search tool
+serpapi_search_tool = WebSearchFactory.create('serpapi')
+results = serpapi_search_tool._run(query="Latest news on AI")
+print(results)
+```
+
+---
+
+### TavilyTool
+
+**Description:**
+A tool for performing web searches using the Tavily API. It returns a concise summary of search results for a given query. This tool can be instantiated via the `WebSearchFactory`.
 
 **Prerequisites:**
 
 - The `TAVILY_API_KEY` environment variable must be set with a valid Tavily API key.
-
-**Supported Actions:**
-
-- `search`: Performs a web search.
 
 **Parameters:**
 
@@ -24,9 +47,9 @@ A tool for performing web searches using the Tavily API. It returns a concise su
 **Usage Example:**
 
 ```python
-from src.epic_news.tools.tavily_tool import TavilyTool
+from src.epic_news.tools.web_search_factory import WebSearchFactory
 
-tavily_tool = TavilyTool()
+tavily_tool = WebSearchFactory.create('tavily')
 results = tavily_tool._run(query="What are the latest trends in AI?")
 print(results)
 ```
@@ -34,6 +57,29 @@ print(results)
 **Output Format:**
 
 A string containing the search results from the Tavily API.
+
+---
+
+### SerpApiTool
+
+**Description:**
+A tool for performing web searches using the SerpAPI. It provides detailed search results including titles, links, and snippets.
+
+**Prerequisites:**
+
+- The `SERPAPI_API_KEY` environment variable must be set with a valid SerpAPI API key.
+
+**Parameters:**
+
+- `query` (str): The search query.
+- `num_results` (int): Number of results to return (default: 5, max: 10).
+- `country` (str): Country code for localized results (e.g., 'us').
+- `language` (str): Language code for results (e.g., 'en').
+- `page` (int): Pagination number (default: 1).
+
+**Output Format:**
+
+A JSON string containing the search results.
 
 ---
 
@@ -362,16 +408,6 @@ This document provides a comprehensive list and detailed descriptions of all too
   - `API Key(s)`: Requires `SERPER_API_KEY` to be set in the environment.
 
 ---
-
-- **`Web Search (SerpAPI)`**: Use for performing general web searches using the SerpAPI service. This is a custom implementation.
-  - `Tool Identifier`: `WebSearchTool` (aliased as `SearchTool` in `web_search_tool.py`)
-  - `Arguments`:
-    - `query` (string, required): The search query.
-    - `num_results` (integer, optional, default: 5): Number of results to return (1-10).
-    - `country` (string, optional): Country code for localized results (e.g., 'us', 'gb').
-    - `language` (string, optional): Language code for results (e.g., 'en', 'fr').
-    - `page` (integer, optional, default: 1): Page number for pagination.
-  - `API Key(s)`: Requires `SERPAPI_API_KEY` to be set in the environment.
 
 ---
 

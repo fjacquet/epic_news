@@ -16,7 +16,7 @@ load_dotenv()
 # Use project's logger
 logger = get_logger(__name__)
 
-class WebSearchInput(BaseModel):
+class SerpApiInput(BaseModel):
     """Input schema for web search with advanced options."""
     query: str = Field(..., description="Search query")
     num_results: int = Field(
@@ -39,11 +39,11 @@ class WebSearchInput(BaseModel):
         ge=1
     )
 
-class WebSearchTool(BaseTool):
+class SerpApiTool(BaseTool):
     """Tool for performing web searches using SerpAPI."""
-    name: str = "web_search"
+    name: str = "serpapi_search"
     description: str = "Perform a web search to find information on the internet"
-    args_schema: type[BaseModel] = WebSearchInput
+    args_schema: type[BaseModel] = SerpApiInput
     api_key: Optional[str] = None
     
     def __init__(self, **data):
@@ -229,5 +229,4 @@ def test_web_search():
 if __name__ == "__main__":
     test_web_search()
 
-# For backward compatibility
-SearchTool = WebSearchTool
+

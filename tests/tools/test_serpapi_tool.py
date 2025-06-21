@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 import requests
 
-from epic_news.tools.web_search_tool import WebSearchInput, WebSearchTool
+from src.epic_news.tools.serpapi_tool import SerpApiInput, SerpApiTool
 
 # Assuming logger is correctly mocked or not essential for output validation here
 
@@ -27,23 +27,23 @@ def mock_env_no_serpapi_key():
 @patch('epic_news.utils.logger.get_logger') # Mock the logger
 def tool_instance(mock_get_logger, mock_env_serpapi_key):
     mock_get_logger.return_value = MagicMock() # Ensure logger calls don't break tests
-    return WebSearchTool()
+    return SerpApiTool()
 
 # --- Instantiation Tests ---
 def test_instantiation_success(mock_env_serpapi_key):
     with patch('epic_news.utils.logger.get_logger') as mock_get_logger:
         mock_get_logger.return_value = MagicMock()
-        tool = WebSearchTool()
-        assert tool.name == "web_search"
+        tool = SerpApiTool()
+        assert tool.name == "serpapi_search"
         assert "Perform a web search" in tool.description
-        assert tool.args_schema == WebSearchInput
+        assert tool.args_schema == SerpApiInput
         assert tool.api_key == TEST_SERPAPI_API_KEY
 
 def test_instantiation_no_api_key(mock_env_no_serpapi_key):
     with patch('epic_news.utils.logger.get_logger') as mock_get_logger:
         mock_get_logger.return_value = MagicMock()
         with pytest.raises(ValueError, match="SERPAPI_API_KEY environment variable not set"):
-            WebSearchTool()
+            SerpApiTool()
 
 # --- _run Method - Input Validation ---
 @pytest.mark.parametrize("invalid_query", ["", "a", " "])
