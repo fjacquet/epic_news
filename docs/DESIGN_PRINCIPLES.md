@@ -1,5 +1,27 @@
 # epic_news Design Principles
 
+## 4. Centralized Path Management
+
+To maintain a single source of truth and prevent path-related errors, all file paths—especially for task inputs and outputs—must be defined and managed programmatically within the crew's Python source code (e.g., `your_crew.py`).
+
+- **DO NOT** define `output_file` or other file paths in YAML configuration files (`agents.yaml`, `tasks.yaml`).
+- **DO** use `os.path.join` and `os.path.abspath` to construct project-relative paths dynamically. This ensures that the application is not dependent on a specific system directory structure and that paths resolve correctly regardless of where the script is executed.
+- **Example**:
+
+  ```python
+  # In your_crew.py
+  self.output_dir = os.path.abspath(os.path.join('output', 'crew_name'))
+  os.makedirs(self.output_dir, exist_ok=True)
+
+  # In a task definition
+  output_file = os.path.join(self.output_dir, 'report.html')
+  return Task(
+      config=task_config,
+      output_file=output_file
+  )
+  ```
+
+
 ## Overview
 
 epic_news is designed to be elegant and minimalist, like a haiku.

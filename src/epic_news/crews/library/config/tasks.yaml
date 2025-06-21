@@ -1,94 +1,44 @@
 research_task:
   description: >
-   Conduct an extensive and comprehensive research about {topic}. You must:
-    
-    1. Gather detailed information about the subject, including historical context, key facts, and critical analysis.
-    2. Find authoritative sources and expert opinions on the topic.
-    3. Identify any controversies, debates, or alternative perspectives.
-    4. Collect specific data points, statistics, and evidence where applicable.
-    5. Research the latest developments or current state of knowledge on the topic.
-    6. Identify connections to related subjects or fields.
-    7. Evaluate the credibility and reliability of your sources.
-    8. Organize your findings in a structured, logical manner.
-    9. If the topic is a book or publication, include all available bibliographic information including ISBN13, publisher, 
-        publication date, and edition details.
-    10. Get a comprehensive book content summary that includes the main plot points, key characters, central themes, 
-      and significant twists or revelations, without giving away the very end unless explicitly requested.
-       The summary should be detailed enough to provide a clear understanding of the narrative's progression and core ideas, 
-       similar to a detailed synopsis found on a book's back cover or a literary review.
-    
-    Your research should be thorough, accurate, and provide a complete understanding of {topic}.
-    
+    Conduct comprehensive research on the given topic: {topic}.
+    Gather detailed information on its origin, key facts, historical context,
+    controversies, and latest developments. Synthesize the findings into a
+    structured markdown document, ensuring all claims are backed by credible
+    sources.
   expected_output: >
-    A comprehensive markdown document with the following sections:
-    
-    1. **Executive Summary**: A overview of the key findings 
-    2. **Bibliographic Information**: If the topic is a book, include title, author, publisher, publication date, ISBN13, and any other relevant publication details
-    3. **Background and Context**: Historical context, origin, and evolution of {topic}
-    4. **Key Facts and Information**: Detailed breakdown of the most important aspects
-    5. **Analysis and Insights**: Critical examination of the topic with expert perspectives
-    6. **Controversies and Debates**: Different viewpoints or contested areas
-    7. **Latest Developments**: Recent news, research, or changes related to {topic}
-    8. **Related Topics**: Connections to other relevant subjects
-    9. **Sources and References**: A list of all sources consulted, with brief credibility assessments
-    10. **Summary**: A s comprehensive book content summary 
-    
-    Each section should be detailed and substantive, with specific facts, figures, and quotes where appropriate.
-    The document should be well-structured with proper markdown formatting including headers, lists, emphasis, and links.
-    
+    A markdown file containing a detailed and well-structured research report
+    on the specified topic, with citations and references.
+
   agent: researcher
-  output_file: 'output/library/research_results.md'
 
 reporting_task:
   description: >
-    Using the research findings provided, write an actual, complete HTML document in French about "{topic}".
-    The document should have the following sections:
-    
-    1. **Executive Summary**: A overview of the key findings 
-    2. **Bibliographic Information**: If the topic is a book, include title, author, publisher, publication date, ISBN13, and any other relevant publication details
-    3. **Background and Context**: Historical context, origin, and evolution of {topic}
-    4. **Key Facts and Information**: Detailed breakdown of the most important aspects
-    5. **Analysis and Insights**: Critical examination of the topic with expert perspectives
-    6. **Controversies and Debates**: Different viewpoints or contested areas
-    7. **Latest Developments**: Recent news, research, or changes related to {topic}
-    8. **Related Topics**: Connections to other relevant subjects
-    9. **Sources and References**: A list of all sources consulted, with brief credibility assessments
-    10. **Summary**: A s comprehensive book content summary 
-    
-    Each section should be detailed and substantive, with specific facts, figures, and quotes where appropriate.
-    Your output must be valid HTML code starting with <!DOCTYPE html> and containing:
-      - Complete <html>, <head> and <body> tags with proper structure
-      - CSS styles embedded in a <style> tag in the <head>
-      - A clickable table of contents with <a href="#section-id"> links
-      - Distinct sections with colored headings using inline CSS
-      - Emojis within the content where appropriate
-      - Citations formatted properly
-      - A clear conclusion section
-      - If the topic is a book, prominently display bibliographic information including ISBN13, publisher, 
-        publication date, and edition details in a visually distinct section at the beginning
-
-    Make sure to format the ISBN13 in the standard format with hyphens (e.g., 978-3-16-148410-0) and include 
-    it in a way that makes it easy to identify and copy.
-
-    Do NOT respond with a description of what the HTML would look like. Your entire response must be valid, 
-    executable HTML code that could be directly saved to a file and opened in a browser.
+    Review the research findings on the topic: {topic} and generate a
+    comprehensive, well-structured HTML report.
+    The report must be written in a professional and engaging tone, using clear
+    headings, bullet points, and other formatting elements to enhance readability.
+    It must include a table of contents, emojis for section headings, and follow
+    the shared report template's styling and structure.
   expected_output: >
-    The complete HTML document with all required tags, styles, and content sections. 
-    Must be valid HTML that can be directly rendered in a browser, not a description.
+    A single, valid HTML file containing the full report, ready for publication
+    or conversion to PDF. The HTML must be clean, well-formatted, and styled
+    according to the project's design standards.
+
   agent: reporting_analyst
-  output_file: 'output/library/book_summary.html'
 
 reporting_task_pdf:
   description: >
-   Convert the HTML document to a PDF document using the HtmlToPdfTool.
-   
-   Look for the following lines in this task description:
-   HTML_FILE_PATH=<absolute_path_to_html_file>
-   PDF_OUTPUT_PATH=<absolute_path_to_pdf_file>
-   
-   Extract these exact file paths from the description and use them with the HtmlToPdfTool.
-   Do not attempt to construct the paths yourself. Use ONLY the paths provided in this description.
+    Convert the HTML document to a PDF document using the HtmlToPdfTool.
+
+    Look for the following lines in this task description:
+    HTML_FILE_PATH=<absolute_path_to_html_file>
+    PDF_OUTPUT_PATH=<absolute_path_to_pdf_file>
+
+    Extract these exact file paths from the description and use them with the
+    HtmlToPdfTool. Do not attempt to construct the paths yourself. Use ONLY
+    the paths provided in this description.
   expected_output: >
-    The complete PDF document with all required tags, styles, and content sections. 
-    Must be valid PDF that can be directly rendered in a browser, not a description.
+    The complete PDF document with all required tags, styles, and content
+    sections.  Must be valid PDF that can be directly rendered in a browser,
+    not a description.
   agent: reporting_analyst

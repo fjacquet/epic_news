@@ -4,252 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EpicNews AI Observability Dashboard</title>
-    <style>
-        :root {
-            --primary: #1a73e8;
-            --secondary: #34a853;
-            --warning: #fbbc05;
-            --danger: #ea4335;
-            --light: #f8f9fa;
-            --dark: #343a40;
-            --bg: #ffffff;
-            --text: #212529;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--light);
-            color: var(--text);
-            line-height: 1.6;
-            margin: 0;
-            padding: 0;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        .dashboard-header {
-            background-color: var(--bg);
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .dashboard-title {
-            font-size: 24px;
-            font-weight: 600;
-            margin: 0;
-            color: var(--dark);
-        }
-
-        .date-range {
-            font-size: 14px;
-            color: #6c757d;
-        }
-
-        .metric-row {
-            display: flex;
-            flex-wrap: wrap;
-            margin: -10px;
-        }
-
-        .metric-card {
-            flex: 1 1 calc(25% - 20px);
-            background-color: var(--bg);
-            border-radius: 8px;
-            margin: 10px;
-            padding: 20px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            min-width: 200px;
-        }
-
-        .metric-title {
-            font-size: 14px;
-            font-weight: 500;
-            margin: 0 0 10px;
-            color: #6c757d;
-        }
-
-        .metric-value {
-            font-size: 28px;
-            font-weight: 600;
-            margin: 0;
-            color: var(--dark);
-        }
-
-        .metric-trend {
-            font-size: 12px;
-            margin-top: 5px;
-        }
-
-        .trend-up {
-            color: var(--secondary);
-        }
-
-        .trend-down {
-            color: var(--danger);
-        }
-
-        .chart-container {
-            background-color: var(--bg);
-            border-radius: 8px;
-            margin-top: 20px;
-            padding: 20px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .chart {
-            width: 100%;
-            height: 300px;
-            margin-top: 15px;
-        }
-
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-            background-color: var(--bg);
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .data-table th, .data-table td {
-            padding: 12px 15px;
-            text-align: left;
-            border-bottom: 1px solid #e9ecef;
-        }
-
-        .data-table th {
-            background-color: #f8f9fa;
-            font-weight: 600;
-            color: #495057;
-        }
-
-        .data-table tr:last-child td {
-            border-bottom: none;
-        }
-
-        .alert {
-            background-color: #fff3cd;
-            color: #856404;
-            padding: 12px 15px;
-            border-radius: 8px;
-            margin-top: 20px;
-            display: flex;
-            align-items: center;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .alert-icon {
-            margin-right: 10px;
-            font-size: 20px;
-        }
-
-        .alert-warning {
-            background-color: #fff3cd;
-            color: #856404;
-        }
-
-        .alert-danger {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-
-        .alert-info {
-            background-color: #d1ecf1;
-            color: #0c5460;
-        }
-
-        .hallucination-gauge {
-            display: flex;
-            align-items: center;
-            margin-top: 10px;
-        }
-
-        .gauge-bar {
-            height: 8px;
-            flex-grow: 1;
-            background: linear-gradient(to right, var(--secondary), var(--warning), var(--danger));
-            border-radius: 4px;
-        }
-
-        .gauge-marker {
-            width: 12px;
-            height: 12px;
-            background-color: var(--dark);
-            border: 2px solid white;
-            border-radius: 50%;
-            position: relative;
-            transform: translateY(-2px);
-        }
-        
-        .section {
-            margin-bottom: 30px;
-        }
-        
-        .section-title {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 15px;
-            color: var(--dark);
-        }
-        
-        /* For pie charts and other visualizations */
-        .chart-legend {
-            display: flex;
-            flex-wrap: wrap;
-            margin-top: 15px;
-        }
-        
-        .legend-item {
-            display: flex;
-            align-items: center;
-            margin-right: 20px;
-            margin-bottom: 10px;
-        }
-        
-        .legend-color {
-            width: 12px;
-            height: 12px;
-            border-radius: 3px;
-            margin-right: 8px;
-        }
-        
-        .legend-label {
-            font-size: 14px;
-            color: #6c757d;
-        }
-        
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-            .metric-card {
-                flex: 1 1 calc(50% - 20px);
-            }
-        }
-        
-        @media (max-width: 576px) {
-            .metric-card {
-                flex: 1 1 100%;
-            }
-            
-            .dashboard-header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            
-            .date-range {
-                margin-top: 10px;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="css/dashboard.css">
 </head>
 <body>
     <div class="container">
@@ -281,7 +36,7 @@
                     <p class="metric-value">{{ hallucination_score }}</p>
                     <div class="hallucination-gauge">
                         <div class="gauge-bar"></div>
-                        <div class="gauge-marker" style="margin-left: calc({{ hallucination_percent }}% - 6px);"></div>
+                        <div class="gauge-marker" id="hallucination-marker" data-percent="{{ hallucination_percent }}"></div>
                     </div>
                 </div>
             </div>
@@ -340,10 +95,15 @@
     </div>
 
     <script>
-        // Placeholder for dashboard interactivity
+        // Dashboard interactivity
         document.addEventListener('DOMContentLoaded', function() {
-            // Any JavaScript needed for interactivity would go here
-            console.log('Dashboard loaded');
+            // Position the hallucination marker based on percentage
+            const marker = document.getElementById('hallucination-marker');
+            if (marker) {
+                const percent = marker.dataset.percent || 0;
+                marker.style.marginLeft = `calc(${percent}% - 6px)`;
+            }
+            console.log('Dashboard loaded successfully');
         });
     </script>
 </body>

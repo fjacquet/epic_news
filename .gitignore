@@ -1,18 +1,17 @@
 __pycache__/
 .composio.lock
+.coverage
 .DS_Store
 .env
 .venv/
 .vscode/settings.json
 # @/
+# *.html
+output/
 checkpoints/
 db/
 lib/
-output/
 prompts.txt
 report.md
+reports
 uv.lock
-# *.html
-.coverage
-AP_DAIF_approach_strategy.html
-patek_global_report.html

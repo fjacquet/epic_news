@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Type
 
 from crewai.tools import BaseTool
+from jinja2 import Environment, FileSystemLoader
 from pydantic import BaseModel, Field
 
 
@@ -34,21 +35,33 @@ class ReportingTool(BaseTool):
             A success message indicating the report was generated and saved.
         """
         try:
-            current_dir = Path(__file__).parent
-            template_path = current_dir.parent / 'templates' / 'professional_report_template.html'
-            
+            # Correctly locate the project root and then the templates directory
+            project_root = Path(__file__).resolve().parent.parent.parent.parent
+            template_dir = project_root / 'templates'
+            template_path = template_dir / 'report_template.html'
+
+            if not template_path.exists():
+                return f" Error: Template file not found. Tried to open: {template_path}"
+
+            # Set up Jinja2 environment
+            env = Environment(loader=FileSystemLoader(str(template_dir)))
+            template = env.get_template('report_template.html')
+
             # Create output directory if it doesn't exist
             output_path = Path(output_file_path)
             output_path.parent.mkdir(parents=True, exist_ok=True)
 
-            with open(template_path, 'r', encoding='utf-8') as f:
-                template_content = f.read()
+            # Prepare context for the template
+            context = {
+                "title": report_title,
+                "date": datetime.now().strftime("%Y-%m-%d"),
+                "sections": [{"heading": "Summary", "content": report_body}],
+                "images": [],
+                "citations": []
+            }
 
-            generation_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-            report_html = template_content.replace('{{ report_title }}', report_title)
-            report_html = report_html.replace('{{ generation_date }}', generation_date)
-            report_html = report_html.replace('{{ report_body }}', report_body)
+            # Render the template
+            report_html = template.render(context)
 
             # Save the report to file
             with open(output_path, 'w', encoding='utf-8') as f:
@@ -56,7 +69,7 @@ class ReportingTool(BaseTool):
 
             return f" Professional HTML report successfully generated and saved to {output_path}. The report includes proper styling, formatting, and structure."
 
-        except FileNotFoundError:
-            return " Error: Template file not found. The template 'professional_report_template.html' was not found at the expected location."
+        except Exception as e:
+            return f" An unexpected error occurred while generating the report: {str(e)}"
         except Exception as e:
             return f" An unexpected error occurred while generating the report: {str(e)}"

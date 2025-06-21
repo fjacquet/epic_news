@@ -55,11 +55,6 @@ load_dotenv()
 
 # Default user request for demonstration, testing, or standalone execution.
 # This can be dynamically set or replaced in a production environment.
-user_request = (
-    "Trouve moi la meilleure recette de Poulet Basquaise et si possible un accompagnement idéal"
-)
-
-"""                                                                                      """
 class ReceptionFlow(Flow[ContentState]):
     """
     Manages the end-to-end process of receiving a user request,
@@ -72,6 +67,9 @@ class ReceptionFlow(Flow[ContentState]):
     throughout the flow.
     """
 
+    def __init__(self, user_request: str):
+        super().__init__()
+        self._user_request = user_request
 
     @start()
     def feed_user_request(self):
@@ -86,7 +84,7 @@ class ReceptionFlow(Flow[ContentState]):
         ensure_output_directories()
         
         self.state.email_sent = False
-        self.state.user_request = user_request
+        self.state.user_request = self._user_request
         # return "feed_user_request" # Implicitly returns the method name as the next step
 
     @listen("feed_user_request")
@@ -647,21 +645,24 @@ class ReceptionFlow(Flow[ContentState]):
         # return "send_email" # Implicitly returns method name
 
 
-def kickoff(initial_state: Optional[ContentState] = None):
+def kickoff(user_input: Optional[str] = None):
     """
-    Starts the main `ReceptionFlow`.
+    Initializes and runs the ReceptionFlow.
 
-    This function initializes and runs the `ReceptionFlow`. It can optionally
-    take an `initial_state` of type `ContentState` to begin the flow with
-    pre-populated data. If no `initial_state` is provided, the flow starts
-    with a default `ContentState`.
-
-    Args:
-        initial_state: An optional `ContentState` object to initialize the flow.
+    This function serves as the main entry point for executing the entire
+    crew orchestration process. It instantiates the `ReceptionFlow` and
+    invokes its `run()` method to start the sequence of tasks.
+    It can optionally take a user_input string to override the default.
+    
+    Returns:
+        The completed ReceptionFlow object.
     """
-    flow = ReceptionFlow()
-    flow.kickoff()
-
+    # If user_input is not provided, use a default value.
+    request = user_input if user_input else "Summarize 'Art of War by Sun Tzu' and suggest similar books."
+    
+    reception_flow = ReceptionFlow(user_request=request)
+    reception_flow.kickoff()
+    return reception_flow
 
 def plot(output_path: str = "flow.png"):
     """

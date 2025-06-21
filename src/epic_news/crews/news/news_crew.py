@@ -1,15 +1,30 @@
 from composio_crewai import ComposioToolSet
+import pathlib
+import logging
+import os
+
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from dotenv import load_dotenv
+
+# fact_checking_tools module doesn't exist, using alternative approach
+from epic_news.tools.web_tools import get_search_tools, get_scrape_tools
+from epic_news.tools.rag_tools import get_rag_tools
 from epic_news.tools.report_tools import get_report_tools
 from epic_news.models.report import ReportHTMLOutput
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Load environment variables
 load_dotenv()
 
 # Initialize the toolset
 toolset = ComposioToolSet()
-search_tools = toolset.get_tools(actions=[ 
+
+# Use only available tools for search
+search_tools = toolset.get_tools(actions=[
     'FIRECRAWL_SEARCH',
     'COMPOSIO_SEARCH_SEARCH',
     'COMPOSIO_SEARCH_DUCK_DUCK_GO_SEARCH',
@@ -27,54 +42,158 @@ fact_checking_tools = toolset.get_tools(actions=[
 
 @CrewBase
 class NewsCrew:
-    """News monitoring crew"""
+    """
+    News monitoring, analysis, fact-checking and editor crew.
+    
+    This crew follows the epic_news design principles of being configuration-driven,
+    simple, and elegant. It leverages YAML configuration files for agents and tasks,
+    maintaining a clear separation between code and configuration.
+    
+    The crew uses a hierarchical process with multiple agents working in coordination:
+    - Researcher: Gathers news and information about the specified topic
+    - Analyst: Analyzes research data for insights, trends, and significance
+    - Fact Checker: Verifies all claims and statements for accuracy
+    - Editor: Creates the final formatted HTML report using templates
+    
+    The workflow is hierarchical with multiple parallel tasks feeding into a
+    final editing phase that produces a professional HTML report.
+    """
 
-    # Learn more about YAML configuration files here:
-    # Agents: https://docs.crewai.com/concepts/agents#yaml-configuration-recommended
-    # Tasks: https://docs.crewai.com/concepts/tasks#yaml-configuration-recommended
+    # Configuration file paths relative to the crew directory
     agents_config = 'config/agents.yaml'
     tasks_config = 'config/tasks.yaml'
+    
+    # Output directory structure - use absolute path for consistency
+    output_dir = os.path.abspath(os.path.join('output', 'news'))
 
-
-    # If you would like to add tools to your agents, you can learn more about it here:
-    # https://docs.crewai.com/concepts/agents#agent-tools
+    def __init__(self, topic=None):
+        """
+        Initialize the NewsCrew and ensure output directory exists.
+        
+        Args:
+            topic: The news topic to analyze (e.g., "Recent developments in AI")
+        """
+        # Ensure output directory exists
+        os.makedirs(self.output_dir, exist_ok=True)
+        
+        # Store inputs
+        self.topic = topic or 'Recent developments in AI technology'
+        
+        # Initialize tools
+        self._initialize_tools()
+    
+    def _initialize_tools(self):
+        """
+        Initialize all tools needed by the crew's agents.
+        
+        This centralizes tool initialization to follow the DRY principle and
+        makes it easier to modify tool configurations in one place.
+        """
+        try:
+            # Initialize Composio toolset
+            toolset = ComposioToolSet()
+            
+            # Initialize standard tool sets
+            self.search_tools = toolset.get_tools(actions=[
+                'FIRECRAWL_SEARCH',
+                'COMPOSIO_SEARCH_SEARCH',
+                'COMPOSIO_SEARCH_DUCK_DUCK_GO_SEARCH',
+                'COMPOSIO_SEARCH_NEWS_SEARCH',
+                'COMPOSIO_SEARCH_TRENDS_SEARCH',
+                'COMPOSIO_SEARCH_EVENT_SEARCH'
+            ])
+            
+            # Use specific search tools for fact checking
+            self.fact_checking_tools = toolset.get_tools(actions=[
+                'COMPOSIO_SEARCH_DUCK_DUCK_GO_SEARCH'
+            ])
+            
+            self.scrape_tools = get_scrape_tools()
+            self.rag_tools = get_rag_tools()
+            self.report_tools = get_report_tools()
+            
+            # Create combined toolsets for different agent needs
+            self.all_tools = self.search_tools + self.scrape_tools + self.rag_tools + self.report_tools
+            
+            logger.info("Successfully initialized all tools for NewsCrew")
+            
+        except Exception as e:
+            logger.error(f"Error initializing tools: {str(e)}")
+            # Provide fallback empty lists to prevent crew from failing completely
+            self.search_tools = []
+            self.fact_checking_tools = []
+            self.scrape_tools = []
+            self.rag_tools = []
+            self.report_tools = []
+            self.all_tools = []
+            raise RuntimeError(f"Error initializing tools: {str(e)}") from e
+            
+    # Agent definitions follow - each agent is specialized for a specific role
+    # in the news analysis and reporting process
     @agent
     def researcher(self) -> Agent:
+        """Create a researcher agent responsible for gathering news information.
+        
+        Returns:
+            Agent: Configured researcher agent from YAML configuration
+        """
         return Agent(
             config=self.agents_config['researcher'],
-            tools=search_tools,
-            # verbose=True,
+            tools=self.search_tools,
+            verbose=True,
             llm_timeout=300,
+            reasoning=True,
             respect_context_window=True
         )
 
     @agent
     def analyst(self) -> Agent:
+        """Create an analyst agent responsible for analyzing news and identifying trends.
+        
+        Returns:
+            Agent: Configured analyst agent from YAML configuration
+        """
         return Agent(
             config=self.agents_config['analyst'],
-            tools=search_tools,
-            # verbose=True,
+            tools=self.search_tools + self.rag_tools,
+            verbose=True,
             llm_timeout=300,
+            reasoning=True,
             respect_context_window=True
         )
     
     @agent
     def fact_checker(self) -> Agent:
+        """Create a fact checker agent responsible for verifying claims and sources.
+        
+        Returns:
+            Agent: Configured fact checker agent from YAML configuration
+        """
         return Agent(
             config=self.agents_config['fact_checker'],
-            tools=fact_checking_tools,
-            # verbose=True,
+            tools=self.fact_checking_tools + self.search_tools,
+            verbose=True,
             llm_timeout=300,
+            reasoning=True,
             respect_context_window=True
         )
     
     @agent
     def editor(self) -> Agent:
+        """Create an editor agent responsible for creating the final HTML report.
+        
+        This agent uses report tools to create standardized, professional HTML reports
+        using the appropriate templates.
+        
+        Returns:
+            Agent: Configured editor agent from YAML configuration
+        """
         return Agent(
             config=self.agents_config['editor'],
-            tools=search_tools + get_report_tools(),
-            # verbose=True,
+            tools=self.search_tools + self.report_tools,
+            verbose=True,
             llm_timeout=300,
+            reasoning=True,
             respect_context_window=True
         )
 
@@ -83,66 +202,133 @@ class NewsCrew:
     # https://docs.crewai.com/concepts/tasks#overview-of-a-task
     @task
     def research_task(self) -> Task:
-        task_id = "research_task"
+        """Define the research task for gathering news information about the topic.
+        
+        This task is assigned to the researcher agent and produces a markdown file
+        with research findings on the news topic.
+        
+        Returns:
+            Task: Configured research task from YAML configuration
+        """
+        # Create task config with dynamic topic
+        task_config = dict(self.tasks_config['research_task'])
+        task_config['description'] = task_config['description'].format(topic=self.topic)
+        
+        # Define output file with absolute path
+        output_file = os.path.join(self.output_dir, 'research_results.md')
         
         return Task(
-            config=self.tasks_config[task_id],
-            output_file='output/research_results.md',
+            config=task_config,
+            output_file=output_file,
             verbose=True,
+            async_execution=True,  # Parallel execution for better performance
             llm_timeout=300
         )
 
     @task
     def analysis_task(self) -> Task:
-        task_id = "analysis_task"
+        """Define the analysis task for analyzing gathered news information.
+        
+        This task is assigned to the analyst agent and produces a markdown file
+        with analysis of trends, impacts, and significance.
+        
+        Returns:
+            Task: Configured analysis task from YAML configuration
+        """
+        # Create task config with dynamic topic
+        task_config = dict(self.tasks_config['analysis_task'])
+        task_config['description'] = task_config['description'].format(topic=self.topic)
+        
+        # Define output file with absolute path
+        output_file = os.path.join(self.output_dir, 'analysis_results.md')
+        
         return Task(
-            config=self.tasks_config[task_id],
-            # context=[self.research_task()],
-            output_file='output/news/analysis_results.md',
+            config=task_config,
+            context=[self.research_task()],  # This task depends on research
+            output_file=output_file,
             verbose=True,
+            async_execution=True,  # Parallel execution for better performance
             llm_timeout=300
         )
     
     @task
     def verification_task(self) -> Task:
-        task_id = "verification_task"
+        """Define the verification task for fact checking the research and analysis.
+        
+        This task is assigned to the fact checker agent and produces a markdown file
+        with verification of claims and sources.
+        
+        Returns:
+            Task: Configured verification task from YAML configuration
+        """
+        # Create task config with dynamic topic
+        task_config = dict(self.tasks_config['verification_task'])
+        task_config['description'] = task_config['description'].format(topic=self.topic)
+        
+        # Define output file with absolute path
+        output_file = os.path.join(self.output_dir, 'verification_results.md')
+        
         return Task(
-            config=self.tasks_config[task_id],
-            # context=[self.research_task(), self.analysis_task()],
-            output_file='output/news/verification_results.md',
+            config=task_config,
+            context=[self.research_task(), self.analysis_task()],  # This task depends on both previous tasks
+            output_file=output_file,
             verbose=True,
+            async_execution=True,  # Parallel execution for better performance
             llm_timeout=300
         )
     
     @task
     def editing_task(self) -> Task:
-        task_id = "editing_task"
+        """Define the editing task for creating the final HTML news report.
+        
+        This task is assigned to the editor agent and produces a professionally formatted
+        HTML report using standardized templates.
+        
+        Returns:
+            Task: Configured editing task from YAML configuration
+        """
+        # Create task config with dynamic topic
+        task_config = dict(self.tasks_config['editing_task'])
+        task_config['description'] = task_config['description'].format(topic=self.topic)
+        
+        # Define output file with absolute path
+        output_file = os.path.join(self.output_dir, 'news_report.html')
         
         return Task(
-            config=self.tasks_config[task_id],
-            # context=[self.research_task(), self.analysis_task(), self.verification_task()],
-            output_file='output/news/report.html',
-            output_pydantic=ReportHTMLOutput,
+            config=task_config,
+            output_pydantic=ReportHTMLOutput,  # Use standardized HTML output format
+            context=[self.research_task(), self.analysis_task(), self.verification_task()],  # This task depends on all previous tasks
+            output_file=output_file,
             verbose=True,
             llm_timeout=300
         )
 
     @crew
     def crew(self) -> Crew:
-        """Creates the News monitoring crew"""
-
-        return Crew(
-            agents=self.agents, 
-            tasks=self.tasks, 
-            allow_delegation=True,
-            memory=False,
-            cache=False,
-            max_rpm=12,
-            verbose=True,  
-            respect_context_window=True,
-            process=Process.hierarchical,
-            manager_llm="ollama/qwen3",  # Editor is the manager agent
-            manager_llm_timeout=600,  
-            task_timeout=3600,  
-            max_retries=3  
-        )
+        """Creates the News monitoring crew with hierarchical workflow.
+        
+        The crew uses a hierarchical process that allows for parallel execution
+        of research, analysis, and verification tasks, followed by a final editing
+        phase that consolidates the results into a professional HTML report.
+        
+        Returns:
+            Crew: Configured News crew with agents and tasks
+        """
+        try:
+            # Configure the crew with hierarchical process and appropriate settings
+            return Crew(
+                agents=self.agents,  # Automatically created by the @agent decorator
+                tasks=self.tasks,    # Automatically created by the @task decorator
+                process=Process.hierarchical,  # Hierarchical process for parallel execution
+                verbose=True,        # Enable verbose output for better debugging
+                max_rpm=10,          # Rate limit to prevent API throttling
+                memory=True,         # Enable memory to retain context between tasks
+                cache=True,          # Enable caching for better performance
+                llm_timeout=300,     # 5 minute timeout for LLM calls
+                max_retries=2,       # Retry up to 2 times on failure
+            )
+        except Exception as e:
+            # Fail fast with explicit error message
+            error_msg = f"Error creating NewsCrew: {str(e)}"
+            logger.error(error_msg)
+            raise RuntimeError(error_msg) from e

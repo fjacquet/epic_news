@@ -32,6 +32,9 @@ dependencies = [
     "lxml>=5.2.1",
     "yfinance>=0.2.63",
     "exa-py>=1.14.9",
+    "matplotlib>=3.10.3",
+    "streamlit>=1.46.0",
+    "watchdog>=6.0.0",
 ]
 
 [project.scripts]
