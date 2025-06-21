@@ -400,6 +400,62 @@ This document provides a comprehensive list and detailed descriptions of all too
 
 ---
 
+## Fact-Checking Tools
+
+The project provides a factory for creating fact-checking tools from different providers. This allows for a consistent way to access fact-checking functionality while keeping the underlying implementations modular.
+
+### FactCheckingToolsFactory
+
+**Description:**
+A factory for creating fact-checking tools. Use this to get an instance of a specific fact-checking tool provider.
+
+**Usage Example:**
+
+```python
+from src.epic_news.tools.fact_checking_factory import FactCheckingToolsFactory
+
+# Get the Google Fact Check tool
+google_fact_check_tool = FactCheckingToolsFactory.create('google')
+results = google_fact_check_tool._run(query="Is the earth flat?")
+print(results)
+```
+
+---
+
+### GoogleFactCheckTool
+
+**Description:**
+A tool for searching for fact-checked claims using the Google Fact Check API. It returns a list of claims and their reviews for a given query. This tool can be instantiated via the `FactCheckingToolsFactory`.
+
+**Prerequisites:**
+
+- The `GOOGLE_API_KEY` environment variable must be set with a valid Google API key. You can get one from the [Google Cloud Console](https://console.cloud.google.com/).
+
+**Parameters:**
+
+- `query` (str): The search query for fact-checked claims.
+- `review_publisher_site_filter` (str, optional): The review publisher site to filter results by (e.g., 'nytimes.com').
+- `language_code` (str, optional): The BCP-47 language code to restrict results by (e.g., 'en-US').
+- `max_age_days` (int, optional): The maximum age of the returned search results in days.
+- `page_size` (int, optional, default: 10): The number of results to return per page.
+- `page_token` (str, optional): The pagination token for retrieving the next page of results.
+
+**Usage Example:**
+
+```python
+from src.epic_news.tools.fact_checking_factory import FactCheckingToolsFactory
+
+fact_check_tool = FactCheckingToolsFactory.create('google')
+results = fact_check_tool._run(query="صحت ادعای دو برابر شدن جرم در دو سال گذشته")
+print(results)
+```
+
+**Output Format:**
+
+A JSON object containing a list of claims and their associated reviews.
+
+---
+
 - **`Tech Stack Analysis`**: Use to analyze and identify the technology stack (frameworks, CMS, analytics, hosting) used by a given website domain. It queries services like BuiltWith and Wappalyzer via web search.
   - `Tool Identifier`: `TechStackAnalysisTool`
   - `Arguments`:
