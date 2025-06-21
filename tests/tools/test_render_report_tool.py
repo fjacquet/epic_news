@@ -3,12 +3,12 @@ import pytest
 from pathlib import Path
 from typing import Dict, List
 
-from epic_news.tools.render_report_tool import (
-    RenderReportTool, 
-    ReportSection, 
+from epic_news.models.report_models import (
     ReportImage,
-    RenderReportToolSchema
+    ReportSection,
+    RenderReportToolSchema,
 )
+from epic_news.tools.render_report_tool import RenderReportTool
 
 # Define the correct template directory for testing
 TEMPLATE_DIR = Path("/Users/fjacquet/Projects/crews/epic_news/templates")

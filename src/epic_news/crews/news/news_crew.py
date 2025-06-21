@@ -2,6 +2,7 @@ from composio_crewai import ComposioToolSet
 import pathlib
 import logging
 import os
+from datetime import datetime
 
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
@@ -64,21 +65,17 @@ class NewsCrew:
     tasks_config = 'config/tasks.yaml'
     
     # Output directory structure - use absolute path for consistency
-    output_dir = os.path.abspath(os.path.join('output', 'news'))
+    _crew_path = pathlib.Path(__file__).parent
+    project_root = _crew_path.parent.parent.parent.parent.parent  # Go up 5 levels: news -> crews -> epic_news -> src -> project_root
+    output_dir = str(project_root / 'output' / 'news')
 
-    def __init__(self, topic=None):
+    def __init__(self):
         """
         Initialize the NewsCrew and ensure output directory exists.
-        
-        Args:
-            topic: The news topic to analyze (e.g., "Recent developments in AI")
         """
         # Ensure output directory exists
         os.makedirs(self.output_dir, exist_ok=True)
-        
-        # Store inputs
-        self.topic = topic or 'Recent developments in AI technology'
-        
+
         # Initialize tools
         self._initialize_tools()
     
@@ -212,7 +209,6 @@ class NewsCrew:
         """
         # Create task config with dynamic topic
         task_config = dict(self.tasks_config['research_task'])
-        task_config['description'] = task_config['description'].format(topic=self.topic)
         
         # Define output file with absolute path
         output_file = os.path.join(self.output_dir, 'research_results.md')
@@ -237,7 +233,6 @@ class NewsCrew:
         """
         # Create task config with dynamic topic
         task_config = dict(self.tasks_config['analysis_task'])
-        task_config['description'] = task_config['description'].format(topic=self.topic)
         
         # Define output file with absolute path
         output_file = os.path.join(self.output_dir, 'analysis_results.md')
@@ -247,7 +242,6 @@ class NewsCrew:
             context=[self.research_task()],  # This task depends on research
             output_file=output_file,
             verbose=True,
-            async_execution=True,  # Parallel execution for better performance
             llm_timeout=300
         )
     
@@ -263,7 +257,6 @@ class NewsCrew:
         """
         # Create task config with dynamic topic
         task_config = dict(self.tasks_config['verification_task'])
-        task_config['description'] = task_config['description'].format(topic=self.topic)
         
         # Define output file with absolute path
         output_file = os.path.join(self.output_dir, 'verification_results.md')
@@ -273,7 +266,6 @@ class NewsCrew:
             context=[self.research_task(), self.analysis_task()],  # This task depends on both previous tasks
             output_file=output_file,
             verbose=True,
-            async_execution=True,  # Parallel execution for better performance
             llm_timeout=300
         )
     
@@ -289,7 +281,6 @@ class NewsCrew:
         """
         # Create task config with dynamic topic
         task_config = dict(self.tasks_config['editing_task'])
-        task_config['description'] = task_config['description'].format(topic=self.topic)
         
         # Define output file with absolute path
         output_file = os.path.join(self.output_dir, 'news_report.html')
@@ -326,6 +317,7 @@ class NewsCrew:
                 cache=True,          # Enable caching for better performance
                 llm_timeout=300,     # 5 minute timeout for LLM calls
                 max_retries=2,       # Retry up to 2 times on failure
+                manager_llm="gpt-4.1-nano",
             )
         except Exception as e:
             # Fail fast with explicit error message

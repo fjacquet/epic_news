@@ -13,16 +13,25 @@ research_task:
 
 reporting_task:
   description: >
-    Review the research findings on the topic: {topic} and generate a
-    comprehensive, well-structured HTML report.
-    The report must be written in a professional and engaging tone, using clear
-    headings, bullet points, and other formatting elements to enhance readability.
-    It must include a table of contents, emojis for section headings, and follow
-    the shared report template's styling and structure.
+    CRITICAL: Use the ReportingTool to generate a comprehensive, professional HTML report 
+    about the topic: {topic}. The ReportingTool will ensure proper template usage and 
+    complete, non-truncated output that follows project standards.
+    
+    Review all research findings and create a complete, well-structured HTML report with:
+    - Full content (never truncated or incomplete)
+    - Professional formatting using proper templates
+    - Clear headings, bullet points, and structure
+    - Table of contents and emojis for section headings
+    - UTF-8 encoding for emoji support
+    - All project design standards for HTML reports
+    
+    IMPORTANT: Use ONLY the ReportingTool to generate the final HTML output. 
+    Do not write HTML directly - let the ReportingTool handle template application.
   expected_output: >
-    A single, valid HTML file containing the full report, ready for publication
-    or conversion to PDF. The HTML must be clean, well-formatted, and styled
-    according to the project's design standards.
+    A single, complete, valid HTML file containing the full professional report 
+    generated using the ReportingTool. The HTML must be complete (not truncated), 
+    well-formatted, styled according to project templates, and ready for publication 
+    or PDF conversion. No placeholder text or incomplete sections allowed.
 
   agent: reporting_analyst
 

@@ -35,6 +35,8 @@ dependencies = [
     "matplotlib>=3.10.3",
     "streamlit>=1.46.0",
     "watchdog>=6.0.0",
+    "fastapi>=0.115.13",
+    "uvicorn>=0.34.3",
 ]
 
 [project.scripts]

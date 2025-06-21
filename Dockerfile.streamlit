@@ -1,0 +1,29 @@
+# Use an official Python runtime as a parent image
+FROM python:3.11-slim
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Install uv, the package manager used by the project
+RUN pip install uv
+
+# Copy the dependency files
+COPY pyproject.toml uv.lock ./
+
+# Install dependencies using uv
+RUN uv sync --no-cache
+
+# Copy the application code
+COPY src/ ./src
+
+# Expose the port the app runs on
+EXPOSE 8501
+
+# Define the command to run the application
+# Note: --server.headless=true is important for running in a container
+# Note: --server.port is set to the exposed port
+CMD ["streamlit", "run", "src/epic_news/bin/streamlit_app.py", "--server.port=8501", "--server.headless=true", "--server.address=0.0.0.0"]

@@ -1,0 +1,28 @@
+# Use an official Python runtime as a parent image
+FROM python:3.11-slim
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Install uv, the package manager used by the project
+RUN pip install uv
+
+# Copy the dependency files
+COPY pyproject.toml uv.lock ./
+
+# Install dependencies using uv
+RUN uv sync --no-cache
+
+# Copy the application code
+COPY src/ ./src
+
+# Expose the port the app runs on
+EXPOSE 8000
+
+# Define the command to run the application
+# Note: --host 0.0.0.0 is important to make the server accessible from outside the container
+CMD ["uvicorn", "src.epic_news.api:app", "--host", "0.0.0.0", "--port", "8000"]

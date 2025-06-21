@@ -6,6 +6,7 @@ from epic_news.tools.exchange_rate_tool import ExchangeRateTool
 from epic_news.tools.rag_tools import get_rag_tools
 from epic_news.tools.web_tools import get_scrape_tools, get_search_tools, get_youtube_tools
 from epic_news.tools.report_tools import get_report_tools
+
 from epic_news.models.report import ReportHTMLOutput
 
 # TODO: Consider if get_news_tools might also be relevant for some agents.

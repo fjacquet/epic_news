@@ -2,29 +2,34 @@
 
 ## Ideas
 
-- [ ] add airtable api
-- [ ] add <https://developer.accuweather.com/apis>
-- [ ] add <https://free-apis.github.io/#/browse>
-- [ ] add streamlit ?
-- [ ] add todoist api
-- [ ] check kraken situation for proposition
-- [ ] clean output before restart
-- [ ] create an rss reviewer crew using airtable
+- [x] add streamlit ?
+- [x] create a test for RenderReportTool
+- [x] add todoist api tool
+- [ ] add airtable  tool
+- [ ] add tavily  tool
 - [ ] create fact checking tools
 - [ ] create news monitoring tools
 - [ ] create shopping comparison tools
-- [ ] create a test for RenderReportTool
+- [ ] check kraken situation for proposition
+- [ ] clean output before restart
+- [ ] create an rss reviewer crew using airtable
+- [ ] shopping comparaison crew
+
+
 - [ ] list of mcp tools to be used in a crew
 - [ ] read crypto analysis
 - [ ] read stock analysis
-- [ ] run crewai in a container
-- [ ] shopping comparaison crew
+- [x] run crewai in a container
+
 - [ ] test mcp tools
 - [ ] try to connect composio
 - [ ] try to connect n8n to get data started by crewai
 - [ ] try to connect n8n to start crewai
+
+- [ ] add <https://developer.accuweather.com/apis>
+- [ ] add <https://free-apis.github.io/#/browse>
+
 - [ ] validate rag usage
-- [ ] validate tavily api
 
 ## MCP tools
 

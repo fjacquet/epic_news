@@ -13,7 +13,9 @@ import os
 
 import requests
 from crewai.tools import BaseTool
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
+
+from src.epic_news.models.coinmarketcap_models import CoinInfoInput
 
 logger = logging.getLogger(__name__)
 
@@ -25,13 +27,6 @@ CMC_BASE_URL = "https://pro-api.coinmarketcap.com/v1"
 class CoinMarketCapException(Exception):
     """Exception raised for CoinMarketCap API errors."""
     pass
-
-
-class CoinInfoInput(BaseModel):
-    """Input schema for CoinMarketCapInfoTool."""
-    symbol: str = Field(
-        ..., description="Cryptocurrency symbol/ticker (e.g., BTC, ETH, SOL)"
-    )
 
 
 class CoinMarketCapInfoTool(BaseTool):

@@ -1,5 +1,48 @@
 # Agent Tools Handbook
 
+## TodoistTool
+
+**Description:**
+A tool for interacting with the Todoist API. It allows you to manage tasks and projects in Todoist.
+
+**Prerequisites:**
+
+- You must have a Todoist account.
+- You must obtain an API token from your Todoist settings (Integrations -> Developer).
+- The API token must be set as an environment variable named `TODOIST_API_KEY`.
+
+**Actions:**
+The tool supports the following actions, specified via the `action` parameter:
+
+1. `get_tasks`
+    - **Description:** Retrieves a list of tasks.
+    - **Parameters:**
+        - `project_id` (optional): The ID of the project to filter tasks by. If not provided, it fetches all tasks.
+    - **Example:** `tool._run(action="get_tasks", project_id="12345")`
+
+2. `create_task`
+    - **Description:** Creates a new task.
+    - **Parameters:**
+        - `task_content` (required): The content of the task (e.g., "Buy milk").
+        - `project_id` (optional): The ID of the project to add the task to.
+        - `due_string` (optional): A human-readable due date (e.g., "tomorrow at 10am", "every day").
+        - `priority` (optional): The task priority from 1 (normal) to 4 (urgent).
+    - **Example:** `tool._run(action="create_task", task_content="Finish report", due_string="Friday", priority=4)`
+
+3. `complete_task`
+    - **Description:** Marks a task as complete.
+    - **Parameters:**
+        - `task_id` (required): The ID of the task to complete.
+    - **Example:** `tool._run(action="complete_task", task_id="67890")`
+
+4. `get_projects`
+    - **Description:** Retrieves a list of all your projects.
+    - **Parameters:** None.
+    - **Example:** `tool._run(action="get_projects")`
+
+**Output:**
+The tool returns a string indicating the result of the operation, which could be a success message, an error message, or the data requested (e.g., a list of tasks or projects).
+
 This document provides a comprehensive list and detailed descriptions of all tools available to AI agents within the epic_news project.
 
 ---

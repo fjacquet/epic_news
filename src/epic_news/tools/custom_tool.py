@@ -1,13 +1,9 @@
 from typing import Type
 
 from crewai.tools import BaseTool
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
-
-class MyCustomToolInput(BaseModel):
-    """Input schema for MyCustomTool."""
-
-    argument: str = Field(..., description="Description of the argument.")
+from src.epic_news.models.custom_tool_models import MyCustomToolInput
 
 
 class MyCustomTool(BaseTool):

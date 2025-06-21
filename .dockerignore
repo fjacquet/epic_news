@@ -1,0 +1,25 @@
+# Git
+.git
+.gitignore
+
+# Python
+.venv/
+*.pyc
+__pycache__/
+
+# Local development
+.env
+.DS_Store
+
+# Test artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Project specific
+/checkpoints
+/db
+/output
+/reports
+/Users
+TODO.md

@@ -12,6 +12,7 @@ from epic_news.tools.web_tools import get_scrape_tools, get_search_tools
 from epic_news.tools.report_tools import get_report_tools
 from epic_news.models.report import ReportHTMLOutput
 
+
 # Set up logging
 logger = logging.getLogger(__name__)
 
@@ -35,9 +36,6 @@ class CookingCrew:
     agents_config = 'config/agents.yaml'
     tasks_config = 'config/tasks.yaml'
     
-    # Output directory for recipe files
-    output_dir = os.path.abspath(os.path.join('output', 'cooking'))
-    
     def __init__(self, topic=None, preferences=None):
         """Initialize the CookingCrew.
         
@@ -47,8 +45,8 @@ class CookingCrew:
             
         Sets up the output directory and initializes the tools required for recipe creation.
         """
-        # Ensure output directory exists
-        os.makedirs(self.output_dir, exist_ok=True)
+        # Use centralized path utility for consistent output directory handling
+
         
         # Store inputs
         self.topic = topic or 'une délicieuse recette'

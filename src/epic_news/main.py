@@ -44,6 +44,16 @@ from epic_news.crews.tech_stack.tech_stack_crew import TechStackCrew
 from epic_news.crews.web_presence.web_presence_crew import WebPresenceCrew
 from epic_news.models import ContentState
 from epic_news.utils.directory_utils import ensure_output_directories
+import warnings
+from pydantic import PydanticDeprecatedSince211, PydanticDeprecatedSince20
+
+# Suppress the specific Pydantic deprecation warnings globally
+warnings.filterwarnings("ignore", category=PydanticDeprecatedSince211)
+warnings.filterwarnings("ignore", category=PydanticDeprecatedSince20)
+
+# Suppress specific Pydantic deprecation warnings by message content
+warnings.filterwarnings("ignore", message=".*`max_items` is deprecated.*", category=DeprecationWarning)
+warnings.filterwarnings("ignore", message=".*`min_items` is deprecated.*", category=DeprecationWarning)
 
 load_dotenv()
 

@@ -10,6 +10,7 @@ from epic_news.tools.finance_tools import get_yahoo_finance_tools
 from epic_news.tools.rag_tools import get_rag_tools
 from epic_news.tools.web_tools import get_scrape_tools, get_search_tools
 from epic_news.tools.report_tools import get_report_tools
+
 from epic_news.models.report import ReportHTMLOutput
 
 # Set up logging
@@ -43,16 +44,18 @@ class MeetingPrepCrew():
     tasks_config = 'config/tasks.yaml'
     
     # Output directory for meeting preparation documents
-    output_dir = os.path.abspath(os.path.join('output', 'meeting'))
-    
-    def __init__(self):
-        """Initialize the MeetingPrepCrew with default values.
-        
-        Sets up the initial state with empty values for required fields.
-        These values should be populated before calling kickoff().
+    def __init__(self, meeting_details=None):
         """
-        # Ensure output directory exists
-        os.makedirs(self.output_dir, exist_ok=True)
+        Initialize the MeetingPrepCrew and ensure output directory exists.
+        
+        Args:
+            meeting_details: Dictionary containing meeting information (participants, topic, agenda, etc.)
+        """
+        # Use centralized path utility for consistent output directory handling
+
+        
+        # Store inputs
+        self.meeting_details = meeting_details or {}
         
         # Initialize crew inputs
         self.topic = ""

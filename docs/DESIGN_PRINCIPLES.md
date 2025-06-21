@@ -6,13 +6,21 @@ To maintain a single source of truth and prevent path-related errors, all file p
 
 - **DO NOT** define `output_file` or other file paths in YAML configuration files (`agents.yaml`, `tasks.yaml`).
 - **DO** use `os.path.join` and `os.path.abspath` to construct project-relative paths dynamically. This ensures that the application is not dependent on a specific system directory structure and that paths resolve correctly regardless of where the script is executed.
+- **CRITICAL**: **NEVER** create nested `/Users/.../Users/...` directory structures. All output files must be written to the project's `/output` directory only.
+- **ENFORCE**: All output files must use paths relative to the project root (e.g., `/output/news/`, `/output/logs/`) and never absolute paths that duplicate user directory structures.
+- **VALIDATION**: Before writing any file, validate that the output path does not contain nested user directories or duplicate path segments.
+
 - **Example**:
 
   ```python
-  # In your_crew.py
-  self.output_dir = os.path.abspath(os.path.join('output', 'crew_name'))
-  os.makedirs(self.output_dir, exist_ok=True)
-
+  # In your_crew.py - CORRECT path calculation
+  _crew_path = pathlib.Path(__file__).parent
+  project_root = _crew_path.parent.parent.parent.parent.parent  # Calculate to project root
+  output_dir = str(project_root / 'output' / 'news')  # Results in /project/output/news
+  
+  # WRONG - would create nested paths
+  # output_dir = os.path.join(os.getcwd(), 'output', 'news')
+  
   # In a task definition
   output_file = os.path.join(self.output_dir, 'report.html')
   return Task(
@@ -151,6 +159,30 @@ Like a haiku poem with its strict form of simplicity and elegance:
 - Use emojis strategically to enhance readability and visual appeal
 - Ensure cross-browser compatibility with proper HTML5 standards
 - Structure reports with clear sections and a logical flow of information
+
+1. **Pydantic Model Organization**
+    - **Separation of Concerns**: Pydantic models (schemas) used by tools must be defined in separate files within the `src/epic_news/models` directory, not within the tool files themselves.
+    - **Grouping**: Group related models into a single file (e.g., `github_models.py` for all GitHub-related schemas, `report_models.py` for all report-generation schemas).
+    - **Imports**: Tool files should import their required models from the appropriate module in `src/epic_news/models`.
+    - **Rationale**: This practice enforces a clear separation between the data structures (models) and the business logic (tools), improving modularity, reusability, and maintainability. It also keeps tool files cleaner and more focused on their specific tasks.
+
+    ```python
+    # src/epic_news/models/github_models.py - CORRECT
+    from pydantic import BaseModel, Field
+
+    class GitHubSearchInput(BaseModel):
+        query: str = Field(..., description="Search query")
+        # ... other fields
+
+    # src/epic_news/tools/github_search_tool.py - CORRECT
+    from crewai.tools import BaseTool
+    from src.epic_news.models.github_models import GitHubSearchInput
+
+    class GitHubSearchTool(BaseTool):
+        name: str = "GitHub Search"
+        args_schema: type[BaseModel] = GitHubSearchInput
+        # ... implementation
+    ```
 
 ```bash
 crewai flow kickoff
@@ -309,4 +341,3 @@ class CoinMarketCapInfoTool(BaseTool):
     </section>
 </body>
 </html>
-```

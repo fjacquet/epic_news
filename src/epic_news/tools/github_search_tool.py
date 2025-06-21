@@ -5,25 +5,13 @@ from typing import Dict
 
 from crewai.tools import BaseTool
 from dotenv import load_dotenv
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
+from src.epic_news.models.github_models import GitHubSearchInput
 from .github_base import GitHubBaseTool
 
 # Load environment variables from .env file
 load_dotenv()
-class GitHubSearchInput(BaseModel):
-    """Input schema for GitHub search."""
-    query: str = Field(..., description="Search query for GitHub")
-    search_type: str = Field(
-        default="repositories",
-        description="Type of search: 'repositories', 'code', 'issues', or 'users'"
-    )
-    max_results: int = Field(
-        default=5,
-        description="Maximum number of results to return",
-        ge=1,
-        le=10
-    )
 
 class GitHubSearchTool(BaseTool, GitHubBaseTool):
     """Tool for searching GitHub."""

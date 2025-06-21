@@ -22,7 +22,9 @@ from typing import Any, Dict, List, Optional
 
 from crewai.tools import BaseTool
 from jinja2 import Environment, FileSystemLoader, select_autoescape  # type: ignore
-from pydantic import BaseModel, Field, PrivateAttr
+from pydantic import BaseModel, PrivateAttr
+
+from src.epic_news.models.report_models import RenderReportToolSchema
 
 # Try both possible template directories
 _TEMPLATES_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent / "templates"
@@ -30,37 +32,6 @@ _TEMPLATES_SRC = Path(__file__).resolve().parent.parent / "templates"
 
 # Use the first directory that exists
 _TEMPLATE_DIR = _TEMPLATES_SRC if _TEMPLATES_SRC.exists() else _TEMPLATES_ROOT
-
-
-# Schema for section objects
-class ReportSection(BaseModel):
-    heading: str = Field(..., description="Section heading/title")
-    content: str = Field(..., description="Section content in HTML format")
-
-
-# Schema for image objects
-class ReportImage(BaseModel):
-    src: str = Field(..., description="Image source URL or data URI")
-    alt: str = Field("", description="Alternative text for accessibility")
-    caption: Optional[str] = Field(None, description="Optional image caption")
-
-
-# Main schema for RenderReportTool inputs
-class RenderReportToolSchema(BaseModel):
-    title: str = Field(..., description="Report title")
-    sections: List[ReportSection] = Field(
-        ..., description="List of sections with headings and content"
-    )
-    images: Optional[List[ReportImage]] = Field(
-        None, description="Optional list of images with metadata"
-    )
-    citations: Optional[List[str]] = Field(
-        None, description="Optional list of citation strings or HTML links"
-    )
-
-
-# Rebuild the model to resolve any forward references and ensure the schema is fully defined.
-RenderReportToolSchema.model_rebuild()
 
 
 class RenderReportTool(BaseTool):
@@ -75,7 +46,7 @@ class RenderReportTool(BaseTool):
         "Render an HTML report using the shared Jinja2 template. "
         "Requires kwargs: title, sections (list of dict), and optional images, citations."
     )
-    schema = RenderReportToolSchema
+    args_schema: type[BaseModel] = RenderReportToolSchema
 
     def __init__(self, template_dir: str | os.PathLike | None = None):
         """Initialize the tool and set up the Jinja2 environment."""

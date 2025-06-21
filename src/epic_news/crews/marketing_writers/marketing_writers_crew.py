@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from epic_news.tools.report_tools import get_report_tools
 from epic_news.models.report import ReportHTMLOutput
 
+
 load_dotenv()
 
 # Set up the tools for marketing tasks
@@ -53,7 +54,7 @@ class MarketingWritersCrew:
         return Task(
             config=self.tasks_config["enhance_message_task"],
             agent=self.copywriter(),
-            output_file="output/marketing/enhanced_message.html",
+            output_file='output/marketing/enhanced_message.html',
             output_pydantic=ReportHTMLOutput,
             verbose=True,
             llm_timeout=300

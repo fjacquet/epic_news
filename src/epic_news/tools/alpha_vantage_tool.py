@@ -13,15 +13,11 @@ from typing import Type
 import requests
 from crewai.tools import BaseTool
 from dotenv import load_dotenv
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
+
+from src.epic_news.models.alpha_vantage_models import CompanyOverviewInput
 
 load_dotenv()
-
-
-class CompanyOverviewInput(BaseModel):
-    """Input schema for the AlphaVantageCompanyOverviewTool."""
-
-    ticker: str = Field(..., description="The stock ticker symbol to get information for.")
 
 
 class AlphaVantageCompanyOverviewTool(BaseTool):
