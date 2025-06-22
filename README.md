@@ -1,239 +1,207 @@
 # Epic News Crew
 
-Welcome to the Epic News Crew project, powered by [crewAI](https://crewai.com). This template is designed to help you set up a multi-agent AI system with ease, leveraging the powerful and flexible framework provided by crewAI. Our goal is to enable your agents to collaborate effectively on complex tasks, maximizing their collective intelligence and capabilities.
+Welcome to Epic News Crew — your all-in-one, natural-language-powered AI assistant for financial analysis, news, research, recipes, and more. Built on [crewAI](https://crewai.com), it’s designed for everyone: just ask in plain English or French, and let the right team of AI agents (“crews”) do the work.
 
-## Installation
+---
 
-Ensure you have Python >=3.10 <3.13 installed on your system. This project uses [UV](https://docs.astral.sh/uv/) for dependency management and package handling, offering a seamless setup and execution experience.
+## 🚀 Quick Start
 
-First, if you haven't already, install uv:
+1. **Install prerequisites:**
+   - Python >=3.10 <3.13
+   - [UV](https://docs.astral.sh/uv/) for dependency management
 
-```bash
-pip install uv
-```
+2. **Install dependencies:**
+   ```bash
+   pip install uv
+   crewai install
+   ```
 
-Next, navigate to your project directory and install the dependencies:
+3. **Set up your `.env` file:**
+   - Add your API keys (see below for details)
 
-(Optional) Lock the dependencies and install them by using the CLI command:
+4. **Run the app:**
+   ```bash
+   crewai flow kickoff
+   ```
 
-```bash
-crewai install
-```
+5. **Type your request:**
+   - Example: `Give me a daily financial summary of my stocks and crypto.`
+   - Or: `Plan a vegetarian dinner for four.`
 
-### WeasyPrint System Dependencies (for PDF Generation)
+---
 
-This project uses WeasyPrint to convert HTML reports to PDF. WeasyPrint relies on several system-level libraries. If you plan to use PDF generation features, you'll need to install them.
+## 🧑‍💻 What Can I Ask? (Use Cases & Prompts)
 
-- **macOS (using Homebrew):**
+| What You Want To Do                              | What To Type (Sample Prompt)                                             |
+|--------------------------------------------------|--------------------------------------------------------------------------|
+| **Get a financial/crypto portfolio report**      | "Give me a daily financial summary of my stocks and crypto."<br>"Analyse mon portefeuille boursier et crypto et donne-moi des recommandations." |
+| **Summarize the latest news**                    | "Summarize the latest tech news."<br>"Give me a report on AI news this week." |
+| **Plan a meal or get a recipe**                  | "Plan a vegetarian dinner for four."<br>"Generate a French ratatouille recipe for Paprika app." |
+| **Analyze a legal document**                     | "Review this contract for potential risks."<br>"Analyse ce contrat pour les risques." |
+| **Find sales contacts**                          | "Find sales contacts at OpenAI in France."                              |
+| **Summarize a book or get book suggestions**     | "Summarize 'Le Petit Prince' and suggest similar books."                |
+| **Plan a holiday/trip**                          | "Plan a 7-day trip to Japan with cultural and food experiences."        |
+| **Write a poem**                                 | "Write a poem about spring in Paris."                                   |
+| **Prepare for a meeting**                        | "Prepare for a meeting with the marketing team to discuss Q2 strategy." |
+| **Do open-source intelligence (OSINT) research** | "Investigate recent cybersecurity incidents affecting European banks."   |
+| **Improve a French marketing message**           | "Améliorer ce message marketing: 'Découvrez notre nouveau produit qui vous aide à gagner du temps.'" |
+| **Classify a piece of text**                     | "Classify this text: 'The new iPhone features an improved camera.'"     |
+| **Extract the main topic from a request**        | "Extract the main topic: 'I'm interested in learning about Mediterranean diets.'" |
+| **Capture info about travelers**                 | "We are a family of four: two adults and two children."                 |
+| **Extract travel/event duration**                | "We will be traveling from July 1st to July 14th."                      |
 
+**Tip:** You can ask follow-up questions or combine topics, e.g., "Give me a financial report and a recipe for dinner tonight."
+
+---
+
+## 🤖 How Does It Work?
+Just use natural language—no special format needed. The system uses AI to classify your request and send it to the right expert team (“crew”). If your request is unclear, you’ll be asked to clarify.
+
+---
+
+## 🛠️ Features & Crew Directory
+
+Each “crew” is a team of specialized AI agents. Here’s what they do:
+
+### **FinDailyCrew**
+- **What:** Analyzes your entire stock and crypto portfolio. Generates a detailed, professional HTML report (in French) with buy/sell/keep recommendations for each asset.
+- **Sample prompt:**
+  - "Give me a daily financial summary of my stocks and crypto."
+  - "Analyse mon portefeuille boursier et crypto et donne-moi des recommandations."
+- **Output:** HTML report (French), sent by email if configured.
+
+### **NewsCrew**
+- **What:** Researches and summarizes news topics, using multiple research and fact-checking agents.
+- **Sample prompt:**
+  - "Summarize the latest tech news."
+  - "Give me a report on AI news this week."
+- **Output:** Well-structured news report.
+
+### **CookingCrew**
+- **What:** Generates recipes (including Thermomix-optimized) in HTML and Paprika 3-compatible YAML format for easy import into the Paprika app.
+- **Sample prompt:**
+  - "Plan a vegetarian dinner for four."
+  - "Generate a French ratatouille recipe for Paprika app."
+- **Output:** HTML recipe + Paprika YAML (as email attachment).
+
+### **LegalAnalysisCrew**
+- **What:** Analyzes legal documents, contracts, or cases for risks and compliance.
+- **Sample prompt:**
+  - "Review this contract for potential risks."
+  - "Analyse ce contrat pour les risques."
+- **Output:** Legal analysis report.
+
+### **SalesProspectingCrew**
+- **What:** Finds and researches sales contacts at target companies.
+- **Sample prompt:** "Find sales contacts at OpenAI in France."
+- **Output:** List of contacts and research notes.
+
+### **LibraryCrew**
+- **What:** Finds books, summarizes them, and suggests similar reads.
+- **Sample prompt:** "Summarize 'Le Petit Prince' and suggest similar books."
+- **Output:** Book summary and suggestions.
+
+### **HolidayPlannerCrew**
+- **What:** Plans holidays and creates detailed travel itineraries.
+- **Sample prompt:** "Plan a 7-day trip to Japan with cultural and food experiences."
+- **Output:** Travel itinerary.
+
+### **PoemCrew**
+- **What:** Writes creative poems on request.
+- **Sample prompt:** "Write a poem about spring in Paris."
+- **Output:** Poem.
+
+### **MeetingPrepCrew**
+- **What:** Prepares for meetings by analyzing objectives and participants.
+- **Sample prompt:** "Prepare for a meeting with the marketing team to discuss Q2 strategy."
+- **Output:** Meeting prep notes.
+
+### **OsintCrew**
+- **What:** Conducts open-source intelligence (OSINT) research and reporting.
+- **Sample prompt:** "Investigate recent cybersecurity incidents affecting European banks."
+- **Output:** OSINT report.
+
+### **MarketingWritersCrew**
+- **What:** Improves French marketing messages for persuasion and engagement.
+- **Sample prompt:** "Améliorer ce message marketing: 'Découvrez notre nouveau produit qui vous aide à gagner du temps.'"
+- **Output:** Enhanced marketing copy.
+
+### **Other Crews (Classify, CaptureTopic, CaptureTravelers, CaptureDuration, etc.)**
+- **What:** Help with text classification, topic extraction, traveler info, and more.
+- **Sample prompt:** See table above.
+
+---
+
+## ⚙️ Installation & Setup
+
+1. **Install Python and UV:**
+   - Python >=3.10 <3.13
+   - [UV](https://docs.astral.sh/uv/): `pip install uv`
+2. **Install dependencies:**
+   - `crewai install`
+3. **System dependencies for PDF (WeasyPrint):**
+   - **macOS:** `brew install pango cairo libffi gdk-pixbuf fontconfig`
+   - **Linux:** `sudo apt-get install python3-dev python3-pip python3-setuptools python3-wheel python3-cffi libcairo2 libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf2.0-0 libffi-dev shared-mime-info`
+   - **Windows:** See [WeasyPrint docs](https://doc.weasyprint.org/stable/first_steps.html#windows)
+4. **Set up your `.env` file:**
+   - Copy `.env.example` to `.env`
+   - Add your API keys: `OPENAI_API_KEY`, `KRAKEN_API_KEY`, `KRAKEN_API_SECRET`, etc.
+   - See `.env.example` for details.
+
+---
+
+## ▶️ Running the Project
+
+- **Start the main flow:**
   ```bash
-  brew install pango cairo libffi gdk-pixbuf fontconfig
+  crewai flow kickoff
   ```
+- **Outputs:**
+  - Reports are saved in the `output/` directory (HTML, PDF, YAML, etc.).
+  - Some crews (like FinDailyCrew) can also send reports by email if configured.
 
-  **Note for macOS users:** If WeasyPrint has trouble finding these libraries even after installation (e.g., you see errors like `OSError: cannot load library 'libgobject-2.0-0'`), you might need to set the `DYLD_FALLBACK_LIBRARY_PATH`. You can do this for a single command or add it to your shell's configuration file (e.g., `~/.zshrc` or `~/.bash_profile`):
+---
 
-  ```bash
-  export DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib:$DYLD_FALLBACK_LIBRARY_PATH
-  # Or for Intel Macs, usually: export DYLD_FALLBACK_LIBRARY_PATH=/usr/local/lib:$DYLD_FALLBACK_LIBRARY_PATH
-  ```
+## 🧑‍🔬 Advanced Usage
 
-- **Debian/Ubuntu Linux:**
+- **Customizing agents/tasks:**
+  - Edit `src/epic_news/crews/*/config/agents.yaml` and `tasks.yaml` to change goals, roles, or add new agents/tasks.
+- **Adding your own crew:**
+  - Copy an existing crew folder in `src/epic_news/crews/`, adjust agents/tasks, and register it in `main.py`.
+- **Integrating new tools:**
+  - Add new tools in `src/epic_news/tools/` and wire them up in your crew’s config.
+- **Environment variables:**
+  - Keep all secrets in `.env` (never commit real API keys!).
 
-  ```bash
-  sudo apt-get update
-  sudo apt-get install python3-dev python3-pip python3-setuptools python3-wheel python3-cffi libcairo2 libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf2.0-0 libffi-dev shared-mime-info
-  ```
+---
 
-- **Windows:** Please refer to the [WeasyPrint documentation](https://doc.weasyprint.org/stable/first_steps.html#windows) for installation instructions, typically involving installing GTK+.
+## ❓ Troubleshooting & FAQ
 
-### Customizing
+- **Wrong crew triggered or partial answer?**
+  - Rephrase your request or split it into two sentences.
+- **PDF/HTML/YAML output missing?**
+  - Check the `output/` directory and your email (if configured).
+- **API errors?**
+  - Ensure your `.env` file is set up and keys are correct.
+- **Still stuck?**
+  - See [crewAI docs](https://docs.crewai.com) or open an issue on GitHub.
 
-**Add your `OPENAI_API_KEY` into the `.env` file**
-**Add your `COMPOSIO_API_KEY` into the `.env` file**
+---
 
-- Modify `src/epic_news/config/agents.yaml` to define your agents
-- Modify `src/epic_news/config/tasks.yaml` to define your tasks
-- Modify `src/epic_news/crew.py` to add your own logic, tools and specific args
-- Modify `src/epic_news/main.py` to add custom inputs for your agents and tasks
+## 🤝 Contributing
 
-## Running the Project
+- PRs welcome! Please follow code style and add tests where relevant.
+- See `CONTRIBUTING.md` if available, or open an issue to discuss big changes.
 
-To kickstart your flow and begin execution, run this from the root folder of your project:
+---
 
-```bash
-crewai flow kickoff
-```
+## 📚 Support & Links
 
-This command initializes the epic-news Flow as defined in your configuration.
+- [crewAI documentation](https://docs.crewai.com)
+- [GitHub repository](https://github.com/joaomdmoura/crewai)
+- [Discord](https://discord.com/invite/X4JWnZnxPb)
+- [Chat with the docs](https://chatg.pt/DWjSBZn)
 
-This example, unmodified, will run the create a `report.md` file with the output of a research on LLMs in the root folder.
+---
 
-## Understanding Your Crew
-
-The epic-news Crew is composed of multiple AI agents, each with unique roles, goals, and tools. These agents collaborate on a series of tasks, defined in `config/tasks.yaml`, leveraging their collective skills to achieve complex objectives. The `config/agents.yaml` file outlines the capabilities and configurations of each agent in your crew.
-
-## Crew Directory
-
-Below is a summary of all specialized crews available in this project. Each includes an example of a valid call or input:
-
-### ReceptionCrew
-
-Routes user requests to the appropriate specialized crew based on the input. Acts as the entry point and dispatcher for the system.
-
-**Example:**
-
-```text
-"I want to plan a holiday and need a detailed itinerary."
-```
-
-### NewsCrew
-
-Monitors and researches news topics, producing comprehensive reports using multiple research and fact-checking agents.
-
-**Example:**
-
-```text
-"Give me a report on the latest advancements in renewable energy."
-```
-
-### CookingCrew
-
-Creates professional, comprehensive recipes (including Thermomix-optimized when relevant) in both HTML and Paprika 3-compatible YAML formats. Recipes are suitable for direct import into the Paprika app.
-
-**Example:**
-
-```text
-"Generate a French ratatouille recipe for Paprika app."
-```
-
-### LibraryCrew
-
-Finds books and generates book summaries, leveraging search tools and compositional reasoning.
-
-**Example:**
-
-```text
-"Summarize 'Le Petit Prince' and suggest similar books."
-```
-
-### SalesProspectingCrew
-
-Identifies and researches sales contacts at target companies, using a combination of research agents and search tools.
-
-**Example:**
-
-```text
-"Find sales contacts at OpenAI in France."
-```
-
-### HolidayPlannerCrew
-
-Plans holidays and creates detailed travel itineraries, including research on destinations, activities, and logistics.
-
-**Example:**
-
-```text
-"Plan a 7-day trip to Japan with cultural and food experiences."
-```
-
-### PoemCrew
-
-Generates creative poems on request, using a specialized poem-writing agent.
-
-**Example:**
-
-```text
-"Write a poem about spring in Paris."
-```
-
-### MeetingPrepCrew
-
-Prepares for meetings by analyzing context, objectives, and participants, and generating relevant preparation materials.
-
-**Example:**
-
-```text
-"Prepare for a meeting with the marketing team to discuss Q2 strategy."
-```
-
-### OsintCrew
-
-Conducts open-source intelligence (OSINT) research and reporting, useful for investigations and information gathering.
-
-**Example:**
-
-```text
-"Investigate recent cybersecurity incidents affecting European banks."
-```
-
-### MarketingWritersCrew
-
-Enhances French marketing messages to make them more persuasive and engaging for potential customers, using specialized marketing and copywriting expertise.
-
-**Example:**
-
-```text
-"Améliorer ce message marketing: 'Découvrez notre nouveau produit qui vous aide à gagner du temps.'"
-```
-
-### ClassifyCrew
-
-Classifies user content into predefined categories using a classification agent and task.
-
-**Example:**
-
-```text
-"Classify this text: 'The new iPhone features an improved camera.'"
-```
-
-### CaptureTopicCrew
-
-Extracts the main topic from a user request, providing structured topic information for downstream crews.
-
-**Example:**
-
-```text
-"Extract the main topic: 'I'm interested in learning about Mediterranean diets.'"
-```
-
-### CaptureTravelersCrew
-
-Captures information about travelers from user input, supporting travel planning and logistics.
-
-**Example:**
-
-```text
-"We are a family of four: two adults and two children."
-```
-
-### CaptureDurationCrew
-
-Extracts travel duration or event timing from user input, assisting other crews with scheduling and planning.
-
-**Example:**
-
-```text
-"We will be traveling from July 1st to July 14th."
-```
-
-## Cooking Crew: Paprika 3-Compatible Recipes
-
-When you generate a recipe with the Cooking Crew, the system will produce:
-
-- An HTML recipe file for easy reading and sharing
-- **A Paprika 3-compatible YAML file as an email attachment**
-
-This YAML file can be imported directly into the Paprika recipe management app, making it easy to build your digital cookbook with structured, app-ready recipes.
-
-The Paprika YAML attachment is automatically included when you request a recipe, ensuring seamless integration with Paprika 3 and similar recipe apps.
-
-## Support
-
-For support, questions, or feedback regarding the {{crew_name}} Crew or crewAI.
-
-- Visit our [documentation](https://docs.crewai.com)
-- Reach out to us through our [GitHub repository](https://github.com/joaomdmoura/crewai)
-- [Join our Discord](https://discord.com/invite/X4JWnZnxPb)
-- [Chat with our docs](https://chatg.pt/DWjSBZn)
-
-Let's create wonders together with the power and simplicity of crewAI.
+Let’s create wonders together with the power and simplicity of crewAI!

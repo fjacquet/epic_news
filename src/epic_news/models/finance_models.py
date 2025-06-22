@@ -69,10 +69,4 @@ class KrakenTickerInfoInput(BaseModel):
 class KrakenAssetListInput(BaseModel):
     """Input schema for the KrakenAssetListTool."""
 
-    api_key: str = Field(..., description="Your Kraken API key.")
-    api_secret: str = Field(..., description="Your Kraken API secret.")
     asset_class: str = Field(default="currency", description="Asset class (e.g., 'currency').")
-
-
-
-

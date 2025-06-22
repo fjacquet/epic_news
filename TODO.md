@@ -9,24 +9,27 @@
 - [x] add tavily  tool
 - [x] create fact checking tools
 - [x] create news monitoring tools
+- [x] read crypto analysis
+- [x] read stock analysis
+- [x] check kraken situation for proposition
+- [x] create an rss reviewer crew using opml
+- [x] run crewai in a container
+- [x] add <https://developer.accuweather.com/apis>
+
 - [ ] create shopping comparison tools
-- [ ] check kraken situation for proposition
-- [ ] clean output before restart
-- [ ] create an rss reviewer crew using airtable
 - [ ] shopping comparaison crew
 
+- [ ] create seasoned menu of the week
+
+- [ ] clean output before restart
 
 - [ ] list of mcp tools to be used in a crew
-- [ ] read crypto analysis
-- [ ] read stock analysis
-- [x] run crewai in a container
 
 - [ ] test mcp tools
 - [ ] try to connect composio
 - [ ] try to connect n8n to get data started by crewai
 - [ ] try to connect n8n to start crewai
 
-- [x] add <https://developer.accuweather.com/apis>
 - [ ] add <https://free-apis.github.io/#/browse>
 
 - [ ] validate rag usage
