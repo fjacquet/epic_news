@@ -99,3 +99,7 @@ filterwarnings = [
     # Or more specific:
     # 'ignore:Using extra keyword arguments on `Field` is deprecated:pydantic.PydanticDeprecatedSince20',
 ]
+
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/epic_news"]
