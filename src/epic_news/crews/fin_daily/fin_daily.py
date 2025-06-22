@@ -1,18 +1,16 @@
+
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
-from crewai.agents.agent_builder.base_agent import BaseAgent
-from typing import List
-from datetime import datetime
+from crewai_tools import DirectoryReadTool, FileReadTool
+
 # If you want to run a snippet of code before or after the crew starts,
 # you can use the @before_kickoff and @after_kickoff decorators
 # https://docs.crewai.com/concepts/crews#example-crew-class-with-decorators
-
-from epic_news.tools.finance_tools import get_stock_research_tools, get_crypto_research_tools
-from epic_news.tools.utility_tools import get_reporting_tools
+from epic_news.tools.finance_tools import get_crypto_research_tools, get_stock_research_tools
 from epic_news.tools.kraken_api_tool import KrakenAssetListTool, KrakenTickerInfoTool
-from crewai_tools import FileReadTool, DirectoryReadTool
 from epic_news.tools.scrape_ninja_tool import ScrapeNinjaTool
-from epic_news.tools.reporting_tool import ReportingTool
+from epic_news.tools.utility_tools import get_reporting_tools
+
 
 @CrewBase
 class FinDailyCrew():

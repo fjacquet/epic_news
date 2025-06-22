@@ -15,7 +15,8 @@ from crewai.tools import BaseTool
 from dotenv import load_dotenv
 from pydantic import BaseModel
 
-from src.epic_news.models.alpha_vantage_models import CompanyOverviewInput
+from epic_news.models.alpha_vantage_models import CompanyOverviewInput
+from epic_news.tools.cache_manager import get_cache_manager
 
 load_dotenv()
 
@@ -39,9 +40,19 @@ class AlphaVantageCompanyOverviewTool(BaseTool):
 
     def _run(self, ticker: str) -> str:
         """Execute the tool to fetch company overview data."""
+        cache = get_cache_manager()
+        cache_key = f"alpha_vantage_overview_{ticker}"
+        
+        # Try to get from cache first (cache for 4 hours for fundamental data)
+        cached_result = cache.get(cache_key, ttl=14400)
+        if cached_result is not None:
+            return cached_result
+        
         api_key = os.getenv("ALPHA_VANTAGE_API_KEY")
         if not api_key:
-            return "Error: ALPHA_VANTAGE_API_KEY environment variable not set."
+            error_result = "Error: ALPHA_VANTAGE_API_KEY environment variable not set."
+            cache.set(cache_key, error_result)
+            return error_result
 
         url = (
             f"https://www.alphavantage.co/query?function=OVERVIEW&symbol={ticker}"
@@ -54,12 +65,20 @@ class AlphaVantageCompanyOverviewTool(BaseTool):
             data = response.json()
 
             if not data or "Note" in data:
-                return f"No data found for ticker {ticker}. It might be an invalid symbol."
+                error_result = f"No data found for ticker {ticker}. It might be an invalid symbol."
+                cache.set(cache_key, error_result)
+                return error_result
 
             # Filter out metadata and return a clean JSON string of the overview
-            return json.dumps(data, indent=2)
+            result = json.dumps(data, indent=2)
+            cache.set(cache_key, result)
+            return result
 
         except requests.exceptions.RequestException as e:
-            return f"Error fetching data from Alpha Vantage: {e}"
+            error_result = f"Error fetching data from Alpha Vantage: {e}"
+            cache.set(cache_key, error_result)
+            return error_result
         except json.JSONDecodeError:
-            return "Error: Failed to parse JSON response from Alpha Vantage."
+            error_result = "Error: Failed to parse JSON response from Alpha Vantage."
+            cache.set(cache_key, error_result)
+            return error_result

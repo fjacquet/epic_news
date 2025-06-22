@@ -7,7 +7,7 @@ __pycache__/
 .vscode/settings.json
 # @/
 # *.html
-
+cache/
 checkpoints/
 db/
 data/

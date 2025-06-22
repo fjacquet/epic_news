@@ -97,17 +97,23 @@ crypto_suggestion_task:
 final_report_generation_task:
   agent: reporting_specialist
   description: >
-    CRITICAL: Create a comprehensive HTML report in french using ReportingTool that includes EVERY SINGLE analysis 
+    CRITICAL: Create a comprehensive HTML report in french using Professional Report Generator tool that includes EVERY SINGLE analysis 
     from ALL previous tasks. The report MUST contain:
     1. ALL 60+ individual stock analyses (not a summary, not a sample - EVERY SINGLE ONE)
     2. ALL crypto analyses (14 if Kraken available, 5 if standard portfolio - EVERY SINGLE ONE)
     3. Complete new investment suggestions for both stocks and crypto
     4. Verification that suggestions don't duplicate existing holdings
     
+    IMPORTANT: When calling the Professional Report Generator tool, you MUST use the exact output file path: "output/findaily/report.html"
+    DO NOT use any other filename or path. The tool requires three parameters:
+    - report_title: "Rapport Complet d'Investissement"
+    - report_body: [your complete HTML content]
+    - output_file_path: "output/findaily/report.html"
+    
     DO NOT summarize, DO NOT provide samples, DO NOT skip entries. Include every single analysis
     provided by the research teams. The report must be complete and comprehensive.
   expected_output: >
-    A complete, professional HTML report in french containing EVERY SINGLE stock analysis (60+ entries),
+    A complete, professional HTML report in french saved to output/findaily/report.html containing EVERY SINGLE stock analysis (60+ entries),
     EVERY SINGLE crypto analysis, and complete investment suggestions. The report must be
     comprehensive and include all data from previous tasks without omission.
   context:

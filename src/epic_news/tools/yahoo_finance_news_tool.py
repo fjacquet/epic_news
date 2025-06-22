@@ -9,6 +9,7 @@ from crewai.tools import BaseTool
 from pydantic import BaseModel
 
 from src.epic_news.models.finance_models import GetTickerNewsInput
+from src.epic_news.tools.cache_manager import get_cache_manager
 
 
 class YahooFinanceNewsTool(BaseTool):
@@ -28,12 +29,22 @@ class YahooFinanceNewsTool(BaseTool):
 
     def _run(self, ticker: str, limit: int = 5) -> str:
         """Execute the Yahoo Finance news lookup."""
+        cache = get_cache_manager()
+        cache_key = f"yahoo_news_{ticker}_{limit}"
+        
+        # Try to get from cache first (cache for 15 minutes for news)
+        cached_result = cache.get(cache_key, ttl=900)
+        if cached_result is not None:
+            return cached_result
+        
         try:
             ticker_obj = yf.Ticker(ticker)
             news = ticker_obj.news
 
             if not news:
-                return json.dumps({"message": f"No recent news found for {ticker}."})
+                result = json.dumps({"message": f"No recent news found for {ticker}."})
+                cache.set(cache_key, result)
+                return result
 
             # Limit the number of news items
             news = news[:limit]
@@ -53,6 +64,10 @@ class YahooFinanceNewsTool(BaseTool):
                     "link": item.get("link") or "#",
                     "published_date": published_str,
                 })
-            return json.dumps({"ticker": ticker, "news": news_list})
+            result = json.dumps({"ticker": ticker, "news": news_list})
+            cache.set(cache_key, result)
+            return result
         except Exception as e:
-            return json.dumps({"error": f"Error retrieving news for {ticker}: {str(e)}"})
+            result = json.dumps({"error": f"Error retrieving news for {ticker}: {str(e)}"})
+            cache.set(cache_key, result)
+            return result

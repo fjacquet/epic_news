@@ -23,15 +23,15 @@ import os
 import warnings
 from typing import Optional
 
-from crewai.flow import Flow, and_, listen, or_, router, start
+from crewai.flow import Flow, listen, or_, router, start
 from dotenv import load_dotenv
 from pydantic import PydanticDeprecatedSince20, PydanticDeprecatedSince211
 
 from epic_news.crews.classify.classify_crew import ClassifyCrew
 from epic_news.crews.company_profiler.company_profiler_crew import CompanyProfilerCrew
 from epic_news.crews.cooking.cooking_crew import CookingCrew
-from epic_news.crews.fin_daily.fin_daily import FinDailyCrew
 from epic_news.crews.cross_reference_report_crew.cross_reference_report_crew import CrossReferenceReportCrew
+from epic_news.crews.fin_daily.fin_daily import FinDailyCrew
 from epic_news.crews.geospatial_analysis.geospatial_analysis_crew import GeospatialAnalysisCrew
 from epic_news.crews.holiday_planner.holiday_planner_crew import HolidayPlannerCrew
 from epic_news.crews.hr_intelligence.hr_intelligence_crew import HRIntelligenceCrew
@@ -742,6 +742,10 @@ if __name__ == "__main__":
     # python -m src.epic_news.main
     # You can also pass a custom request:
     # python -m src.epic_news.main "Your custom request here"
+    #
+    # 📋 For a complete list of supported use cases and example prompts,
+    # see USE_CASES.md in the project root directory.
+    # Examples: "Analyze my portfolio", "Recipe for cookies", "News about AI"
     kickoff()
 
     # To generate a plot of the flow, uncomment the following line:
