@@ -10,28 +10,14 @@ import os
 
 import requests
 from crewai.tools import BaseTool
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
+
+from src.epic_news.models.coinmarketcap_models import CryptocurrencyHistoricalInput
 
 logger = logging.getLogger(__name__)
 
 # Base URL for CoinMarketCap API
 CMC_BASE_URL = "https://pro-api.coinmarketcap.com/v1"
-
-
-class CoinMarketCapException(Exception):
-    """Exception raised for CoinMarketCap API errors."""
-    pass
-
-
-class CryptocurrencyHistoricalInput(BaseModel):
-    """Input schema for CoinMarketCapHistoricalTool."""
-    symbol: str = Field(
-        ..., description="Cryptocurrency symbol/ticker (e.g., BTC, ETH, SOL)"
-    )
-    time_period: str = Field(
-        "30d",
-        description="Time period for historical data: '24h', '7d', '30d', '3m', '1y', or 'ytd'",
-    )
 
 
 class CoinMarketCapHistoricalTool(BaseTool):

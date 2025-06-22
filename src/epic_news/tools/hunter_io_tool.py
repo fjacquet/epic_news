@@ -4,7 +4,9 @@ import os
 
 from crewai.tools import BaseTool
 from dotenv import load_dotenv
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
+
+from src.epic_news.models.email_search_models import HunterIOInput
 
 from .email_base import EmailSearchTool
 
@@ -12,9 +14,7 @@ from .email_base import EmailSearchTool
 load_dotenv()
 HUNTER_API_URL = "https://api.hunter.io/v2/domain-search"
 
-class HunterIOInput(BaseModel):
-    """Input schema for HunterIO tool."""
-    domain: str = Field(..., description="Domain name to search for emails")
+
 
 class HunterIOTool(BaseTool):
     """Search for company emails using Hunter.io API."""

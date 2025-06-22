@@ -5,15 +5,9 @@ import json
 
 import yfinance as yf
 from crewai.tools import BaseTool
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
-
-class GetTickerInfoInput(BaseModel):
-    """Input schema for getting ticker information."""
-
-    ticker: str = Field(
-        ..., description="The ticker symbol (e.g., 'AAPL', 'VTI', 'BTC-USD')"
-    )
+from src.epic_news.models.finance_models import GetTickerInfoInput
 
 
 class YahooFinanceTickerInfoTool(BaseTool):

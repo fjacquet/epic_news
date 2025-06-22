@@ -6,38 +6,16 @@ from typing import Optional
 import requests
 from crewai.tools import BaseTool
 from dotenv import load_dotenv
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from epic_news.utils.logger import get_logger  # Added project logger
+from src.epic_news.models.web_search_models import SerpApiInput
 
 # Load environment variables from .env file
 load_dotenv()
 
 # Use project's logger
 logger = get_logger(__name__)
-
-class SerpApiInput(BaseModel):
-    """Input schema for web search with advanced options."""
-    query: str = Field(..., description="Search query")
-    num_results: int = Field(
-        default=5,
-        description="Number of results to return",
-        ge=1,
-        le=10
-    )
-    country: Optional[str] = Field(
-        None,
-        description="Country code for localized results (e.g., 'us', 'uk', 'fr')"
-    )
-    language: Optional[str] = Field(
-        None,
-        description="Language code for results (e.g., 'en', 'fr', 'de')"
-    )
-    page: Optional[int] = Field(
-        1,
-        description="Pagination number",
-        ge=1
-    )
 
 class SerpApiTool(BaseTool):
     """Tool for performing web searches using SerpAPI."""

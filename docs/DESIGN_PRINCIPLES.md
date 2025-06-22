@@ -12,23 +12,22 @@ To maintain a single source of truth and prevent path-related errors, all file p
 
 - **Example**:
 
-  ```python
-  # In your_crew.py - CORRECT path calculation
-  _crew_path = pathlib.Path(__file__).parent
-  project_root = _crew_path.parent.parent.parent.parent.parent  # Calculate to project root
-  output_dir = str(project_root / 'output' / 'news')  # Results in /project/output/news
-  
-  # WRONG - would create nested paths
-  # output_dir = os.path.join(os.getcwd(), 'output', 'news')
-  
-  # In a task definition
-  output_file = os.path.join(self.output_dir, 'report.html')
-  return Task(
-      config=task_config,
-      output_file=output_file
-  )
-  ```
+```python
+# In your_crew.py - CORRECT path calculation
+_crew_path = pathlib.Path(__file__).parent
+project_root = _crew_path.parent.parent.parent.parent.parent  # Calculate to project root
+output_dir = str(project_root / 'output' / 'news')  # Results in /project/output/news
 
+# WRONG - would create nested paths
+# output_dir = os.path.join(os.getcwd(), 'output', 'news')
+
+# In a task definition
+output_file = os.path.join(self.output_dir, 'report.html')
+return Task(
+    config=task_config,
+    output_file=output_file
+)
+```
 
 ## Overview
 
@@ -66,6 +65,7 @@ Like a haiku poem with its strict form of simplicity and elegance:
   - Leverage asynchronous execution (`async_execution=True`) for I/O-bound tasks to maximize performance.
   - Be mindful of framework constraints, such as the requirement for the final task in a sequential process to be synchronous.
 - **Event-Driven Architecture**: Design components to react to events where applicable.
+- **Correct Tool Imports**: Custom tools must inherit from `BaseTool`, which is imported from `crewai.tools`, not `crewai_tools`. This reflects recent updates in the framework.
 
 ### Configuration-Driven Design
 
@@ -96,6 +96,12 @@ Like a haiku poem with its strict form of simplicity and elegance:
 - Maintain a single source of truth for data
 - Leverage patterns like the template method when appropriate
 - Leverage centralized project utilities, such as the common logging setup, to avoid redundant configurations and ensure consistency.
+
+## Testing Philosophy
+
+- **Focus on Tools, Not Agents/Crews**: AI agents and crews are inherently non-deterministic. Their behavior can vary even with the same inputs. Therefore, writing traditional, repeatable unit tests for them is impractical and often misleading.
+- **Test Deterministic Components**: Our testing efforts must focus on the deterministic parts of the system: the **tools**. Each tool should have comprehensive unit tests that verify its functionality, inputs, outputs, and error handling. By ensuring our tools are robust and reliable, we build a strong foundation for our agents.
+- **Integration and E2E Testing**: The overall workflow and integration of crews are validated through end-to-end (E2E) runs using the `crewai flow kickoff` command, not through automated unit tests. This approach tests the system in a manner that is representative of real-world usage.
 
 ## Code Structure Guidelines
 

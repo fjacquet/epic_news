@@ -10,28 +10,14 @@ import os
 
 import requests
 from crewai.tools import BaseTool
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
+
+from src.epic_news.models.coinmarketcap_models import CryptocurrencyListInput
 
 logger = logging.getLogger(__name__)
 
 # Base URL for CoinMarketCap API
 CMC_BASE_URL = "https://pro-api.coinmarketcap.com/v1"
-
-
-class CoinMarketCapException(Exception):
-    """Exception raised for CoinMarketCap API errors."""
-    pass
-
-
-class CryptocurrencyListInput(BaseModel):
-    """Input schema for CoinMarketCapListTool."""
-    limit: int = Field(
-        25, description="Number of cryptocurrencies to return (default: 25, max: 100)"
-    )
-    sort: str = Field(
-        "market_cap",
-        description="Sort cryptocurrencies by: 'market_cap', 'volume_24h', 'price', or 'percent_change_24h'",
-    )
 
 
 class CoinMarketCapListTool(BaseTool):

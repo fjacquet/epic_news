@@ -3,9 +3,10 @@ import json
 
 from crewai.tools import BaseTool
 from dotenv import load_dotenv
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from epic_news.utils.logger import get_logger
+from src.epic_news.models.email_search_models import DelegatingEmailSearchInput
 
 from .hunter_io_tool import HunterIOTool  # Import the actual tool
 from .serper_email_search_tool import SerperEmailSearchTool  # Import the actual tool
@@ -16,10 +17,7 @@ load_dotenv()
 # Use project's logger
 logger = get_logger(__name__)
 
-class DelegatingEmailSearchInput(BaseModel):
-    """Input schema for the delegating email search tool."""
-    provider: str = Field(..., description="Email search provider: 'hunter' or 'serper'")
-    query: str = Field(..., description="Domain name for 'hunter' (e.g., 'example.com'), or company name/general query for 'serper' (e.g., 'Example Inc')")
+
 
 class DelegatingEmailSearchTool(BaseTool):
     """Routes email search queries to Hunter.io or Serper based on the specified provider."""

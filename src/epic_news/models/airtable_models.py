@@ -3,6 +3,12 @@ from typing import Any, Dict
 from pydantic import BaseModel, Field
 
 
+class AirtableReaderToolInput(BaseModel):
+    """Input schema for the AirtableReaderTool."""
+
+    base_id: str = Field(..., description="The ID of the Airtable base.")
+    table_name: str = Field(..., description="The name of the table within the base.")
+
 class AirtableToolInput(BaseModel):
     """Input schema for the AirtableTool."""
 

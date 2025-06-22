@@ -41,6 +41,7 @@ from epic_news.crews.meeting_prep.meeting_prep_crew import MeetingPrepCrew
 from epic_news.crews.news.news_crew import NewsCrew
 from epic_news.crews.poem.poem_crew import PoemCrew
 from epic_news.crews.post.post_crew import PostCrew
+from epic_news.crews.rss_weekly.rss_weekly_crew import RssWeeklyCrew
 from epic_news.crews.sales_prospecting.sales_prospecting_crew import SalesProspectingCrew
 from epic_news.crews.tech_stack.tech_stack_crew import TechStackCrew
 from epic_news.crews.web_presence.web_presence_crew import WebPresenceCrew
@@ -85,6 +86,7 @@ class ReceptionFlow(Flow[ContentState]):
     def __init__(self, user_request: str):
         super().__init__()
         self._user_request = user_request
+
 
     @start()
     def feed_user_request(self):
@@ -209,6 +211,8 @@ class ReceptionFlow(Flow[ContentState]):
             return "go_generate_osint"
         elif self.state.selected_crew == "MARKETING_WRITERS":
             return "go_generate_marketing_content"
+        elif self.state.selected_crew == "RSS":
+            return "go_generate_rss_weekly"
         else:
             # Fallback for unhandled or unknown crew types.
             # Consider logging this event for monitoring.
@@ -231,7 +235,6 @@ class ReceptionFlow(Flow[ContentState]):
         if not self.state.output_file:
             self.state.output_file = "output/unknown_request_error.md"
             print(f"Output file not set, defaulting to {self.state.output_file}")
-        self._write_output_to_file()
         # return "go_unknown" # Implicitly returns method name
 
     @listen("go_generate_post_only")
@@ -285,6 +288,28 @@ class ReceptionFlow(Flow[ContentState]):
         # Generate the news
         self.state.news_report = NewsCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
         # return "generate_news"
+
+    @listen("go_generate_rss_weekly")
+    def generate_rss_weekly(self):
+        """
+        Handles requests classified for the 'RssWeeklyCrew'.
+
+        Invokes the `RssWeeklyCrew` to generate a weekly news summary from RSS feeds.
+        Sets `output_file` to `output/rss_weekly/report.html` and stores the report
+        in `self.state.rss_weekly_report`.
+        """
+        self.state.output_file = "output/rss_weekly/report.html"
+        print("📰 Generating RSS weekly report...")
+
+        # Prepare inputs for the crew, including the OPML file path
+        inputs = self.state.to_crew_inputs()
+        opml_file = 'src/epic_news/crews/rss_weekly/data/feedly.opml'
+        inputs['opml_file_path'] = os.path.abspath(opml_file)
+
+        # Kick off the crew
+        report_content = RssWeeklyCrew().crew().kickoff(inputs=inputs)
+        self.state.rss_weekly_report = report_content
+
 
     @listen("go_generate_recipe")
     def generate_recipe(self):
@@ -574,13 +599,14 @@ class ReceptionFlow(Flow[ContentState]):
             "find_location",
             "generate_holiday_plan",
             "generate_marketing_content",
+            "generate_rss_weekly"
         )
     )
     def join(self, *results):
         """
         Synchronizes the flow after a crew has finished its primary task.
 
-        This method listens to the completion events of all main content-generating
+{{ ... }}
         crews. Its primary role is to consolidate the final report into the
         designated output file using `_write_output_to_file()` before proceeding
         to the email sending step.
@@ -616,7 +642,7 @@ class ReceptionFlow(Flow[ContentState]):
             email_body_content = getattr(self.state, 'final_report', "Please find your report attached or view content above if no attachment was generated.")
 
             email_inputs = {
-                "recipient_email": "flavien.jacquet@gmail.com",  # Consider making this configurable
+                "recipient_email": os.environ.get("MAIL"),  # Fetched from environment variable
                 "subject": f"Your Epic News Report: {subject_topic}",
                 "body": str(email_body_content),  # Ensure body is string
                 "output_file": self.state.output_file or "",
@@ -663,7 +689,7 @@ def kickoff(user_input: Optional[str] = None):
         The completed ReceptionFlow object.
     """
     # If user_input is not provided, use a default value.
-    request = user_input if user_input else "Summarize 'Art of War by Sun Tzu' and suggest similar books."
+    request = user_input if user_input else "Get the RSS Weekly Report"
     
     reception_flow = ReceptionFlow(user_request=request)
     reception_flow.kickoff()
@@ -681,7 +707,7 @@ def plot(output_path: str = "flow.png"):
         output_path: The file path where the flow diagram will be saved.
                      Defaults to "flow.png".
     """
-    flow = ReceptionFlow()
+    flow = ReceptionFlow(user_request="dummy request for plotting")
     flow.plot()
 
 
