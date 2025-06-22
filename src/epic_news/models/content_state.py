@@ -27,7 +27,7 @@ class ContentState(BaseModel):
         "LIBRARY": "LIBRARY",
         "LOCATION": "LOCATION",
         "MEETING_PREP": "MEETING_PREP",
-        "NEWS": "NEWS",
+        "NEWSCOMPANY": "NEWSCOMPANY",
         "OPEN_SOURCE_INTELLIGENCE": "OPEN_SOURCE_INTELLIGENCE",
         "POEM": "POEM",
         "SHOPPING": "SHOPPING",
@@ -36,6 +36,7 @@ class ContentState(BaseModel):
         "POST_ONLY": "POST_ONLY",
         "RSS": "RSS",
         "FINDAILY": "FINDAILY",
+        "NEWSDAILY": "NEWSDAILY",
     })
     # Output file path
     output_file: str = ""
@@ -65,6 +66,7 @@ class ContentState(BaseModel):
     cross_reference_report: Any | None = None
     lead_score_report: Any | None = None # Added from the duplicated block
     fin_daily_report: Any | None = None  # Stores the FinDaily crew report
+    news_daily_report: Any | None = None  # Stores the NewsDaily crew report
 
     # Email settings
     sendto: str = "fred.jacquet@gmail.com"

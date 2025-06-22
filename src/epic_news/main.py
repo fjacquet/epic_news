@@ -13,7 +13,7 @@ Key functionalities include:
     - Extracts information from the user request.
     - Classifies the request to determine the appropriate crew.
     - Routes the request to specific handler methods that instantiate and run
-      the corresponding crews (e.g., SalesProspectingCrew, CookingCrew, NewsCrew).
+      the corresponding crews (e.g., SalesProspectingCrew, CookingCrew, CompanyNewsCrew).
     - Manages the state of the operation, including input data and output files.
     - Handles the final step of sending an email report with the generated content.
 - Utility functions to kickoff the flow (`kickoff`) and plot its structure (`plot`).
@@ -27,10 +27,12 @@ from dotenv import load_dotenv
 from pydantic import PydanticDeprecatedSince20, PydanticDeprecatedSince211
 
 from epic_news.crews.classify.classify_crew import ClassifyCrew
+from epic_news.crews.company_news.news_crew import CompanyNewsCrew
 from epic_news.crews.company_profiler.company_profiler_crew import CompanyProfilerCrew
 from epic_news.crews.cooking.cooking_crew import CookingCrew
 from epic_news.crews.cross_reference_report_crew.cross_reference_report_crew import CrossReferenceReportCrew
 from epic_news.crews.fin_daily.fin_daily import FinDailyCrew
+from epic_news.crews.news_daily.news_daily import NewsDailyCrew
 from epic_news.crews.geospatial_analysis.geospatial_analysis_crew import GeospatialAnalysisCrew
 from epic_news.crews.holiday_planner.holiday_planner_crew import HolidayPlannerCrew
 from epic_news.crews.hr_intelligence.hr_intelligence_crew import HRIntelligenceCrew
@@ -39,7 +41,6 @@ from epic_news.crews.legal_analysis.legal_analysis_crew import LegalAnalysisCrew
 from epic_news.crews.library.library_crew import LibraryCrew
 from epic_news.crews.marketing_writers.marketing_writers_crew import MarketingWritersCrew
 from epic_news.crews.meeting_prep.meeting_prep_crew import MeetingPrepCrew
-from epic_news.crews.news.news_crew import NewsCrew
 from epic_news.crews.poem.poem_crew import PoemCrew
 from epic_news.crews.post.post_crew import PostCrew
 from epic_news.crews.rss_weekly.rss_weekly_crew import RssWeeklyCrew
@@ -195,8 +196,8 @@ class ReceptionFlow(Flow[ContentState]):
             return "go_generate_shopping_advice"
         if self.state.selected_crew == "POEM":
             return "go_generate_poem"
-        if self.state.selected_crew == "NEWS":
-            return "go_generate_news"
+        if self.state.selected_crew == "NEWSCOMPANY":
+            return "go_generate_news_company"
         if self.state.selected_crew == "OPEN_SOURCE_INTELLIGENCE":
             return "go_generate_osint"
         if self.state.selected_crew == "MARKETING_WRITERS":
@@ -205,6 +206,8 @@ class ReceptionFlow(Flow[ContentState]):
             return "go_generate_rss_weekly"
         if self.state.selected_crew == "FINDAILY":
             return "go_generate_findaily"
+        if self.state.selected_crew == "NEWSDAILY":
+            return "go_generate_news_daily"
         if self.state.selected_crew == "SALES_PROSPECTING":
             return "go_generate_sales_prospecting_report"
         # Fallback for unhandled or unknown crew types.
@@ -246,12 +249,12 @@ class ReceptionFlow(Flow[ContentState]):
         self.state.poem = PoemCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
         # return "generate_poem"
 
-    @listen("go_generate_news")
-    def generate_news(self):
+    @listen("go_generate_news_company")
+    def generate_news_company(self):
         """
-        Handles requests classified for the 'NewsCrew'.
+        Handles requests classified for the 'CompanyNewsCrew'.
 
-        Invokes the `NewsCrew` to generate news content related to the given topic.
+        Invokes the `CompanyNewsCrew` to generate news content related to the given topic.
         Sets `output_file` to `output/news/report.html` and stores the news report
         in `self.state.news_report`.
         """
@@ -259,8 +262,8 @@ class ReceptionFlow(Flow[ContentState]):
         print(f"Generating news about: {self.state.to_crew_inputs().get('topic', 'N/A')}")
 
         # Generate the news
-        self.state.news_report = NewsCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
-        # return "generate_news"
+        self.state.news_report = CompanyNewsCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
+        # return "generate_news_company"
 
     @listen("go_generate_rss_weekly")
     def generate_rss_weekly(self):
@@ -306,6 +309,28 @@ class ReceptionFlow(Flow[ContentState]):
         report_content = FinDailyCrew().crew().kickoff(inputs=inputs)
         self.state.fin_daily_report = report_content
 
+    @listen("go_generate_news_daily")
+    def generate_news_daily(self):
+        """
+        Handles requests classified for the 'NewsDailyCrew'.
+
+        Invokes the `NewsDailyCrew` to generate a daily news report in French
+        covering top 10 news items for Suisse Romande, Suisse, France, Europe,
+        World, Wars, and Economy. Sets `output_file` to `output/news_daily/final_report.html`
+        and stores the report in `self.state.news_daily_report`.
+        """
+        self.state.output_file = "output/news_daily/final_report.html"
+        print("📰 Generating daily news report in French...")
+
+        # Prepare inputs for the crew
+        inputs = self.state.to_crew_inputs()
+        inputs['current_date'] = datetime.datetime.now().strftime("%Y-%m-%d")
+        inputs['report_language'] = 'French'
+
+        # Kick off the crew
+        report_content = NewsDailyCrew().crew().kickoff(inputs=inputs)
+        self.state.news_daily_report = report_content
+
     @listen("go_generate_recipe")
     def generate_recipe(self):
         """
@@ -324,7 +349,9 @@ class ReceptionFlow(Flow[ContentState]):
         self.state.attachment_file = "output/cooking/recipe.yaml"
 
         # Get the topic and preferences from the user's request or extracted info
-        topic = self.state.user_request or ""
+        topic = (
+            self.state.user_request or ""
+        )
 
         if self.state.extracted_info:
             if hasattr(self.state.extracted_info, 'main_subject_or_activity') and self.state.extracted_info.main_subject_or_activity:
@@ -614,7 +641,7 @@ class ReceptionFlow(Flow[ContentState]):
     @listen(
         or_(
             "generate_poem",
-            "generate_news",
+            "generate_news_company",
             "generate_recipe",
             "generate_book_summary",
             "generate_shopping_advice",
@@ -625,7 +652,8 @@ class ReceptionFlow(Flow[ContentState]):
             "generate_holiday_plan",
             "generate_marketing_content",
             "generate_rss_weekly",
-            "generate_findaily"
+            "generate_findaily",
+            "generate_news_daily"
         )
     )
     def join(self, *results):
@@ -659,7 +687,7 @@ class ReceptionFlow(Flow[ContentState]):
             "company_profile", "tech_stack_report", "web_presence_report",
             "hr_intelligence_report", "legal_analysis_report",
             "geospatial_analysis", "lead_score_report", "tech_stack",
-            "final_report"
+            "final_report", "news_daily_report"
         ]
 
         for attr in report_attributes:
@@ -776,7 +804,7 @@ def kickoff(user_input: str | None = None):
         The completed ReceptionFlow object.
     """
     # If user_input is not provided, use a default value.
-    request = user_input if user_input else "I need shopping advice for a MacBook Pro M4"
+    request = user_input if user_input else "Get the Daily news Report"
 
     reception_flow = ReceptionFlow(user_request=request)
     reception_flow.kickoff()

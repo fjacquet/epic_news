@@ -158,6 +158,32 @@ class GitHubSearchInput(BaseModel):
     max_results: int = 10
 ```
 
+### Tool Assignment (CRITICAL)
+
+**NEVER** specify tools in `agents.yaml`. Tools must be assigned programmatically in code:
+
+```yaml
+# ✅ CORRECT - No tools in YAML
+researcher:
+  role: "Lead News Researcher"
+  goal: "Research {topic} comprehensively"
+  backstory: "Expert in analyzing products and market trends"
+  # NO tools: section here
+```
+
+```python
+# ✅ CORRECT - Tools assigned in code
+@agent
+def researcher(self) -> Agent:
+    return Agent(
+        config=self.agents_config["researcher"],
+        tools=self.search_tools,  # Tools from factory functions
+        verbose=True,
+    )
+```
+
+**Why**: Hybrid YAML/code tool configuration causes `KeyError` when CrewAI tries to map YAML tool names to non-existent functions. Tools should be managed through factory functions and assigned programmatically.
+
 ## Output Standards
 
 ### HTML Reports

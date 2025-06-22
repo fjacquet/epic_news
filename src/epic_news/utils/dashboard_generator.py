@@ -377,7 +377,7 @@ class DashboardGenerator:
 
         # Prepare recent runs data
         recent_runs = self.metrics.get('recent_runs', []) if self.metrics else [
-            {'timestamp': f'{today} 14:32:11', 'crew': 'NewsCrew', 'duration': 32.5, 'status': 'Success', 'hallucination_score': 0.08},
+            {'timestamp': f'{today} 14:32:11', 'crew': 'CompanyNewsCrew', 'duration': 32.5, 'status': 'Success', 'hallucination_score': 0.08},
             {'timestamp': f'{today} 12:15:09', 'crew': 'MarketingWritersCrew', 'duration': 15.3, 'status': 'Success', 'hallucination_score': 0.14},
             {'timestamp': f'{today} 10:45:22', 'crew': 'TechStackCrew', 'duration': 45.8, 'status': 'Success', 'hallucination_score': 0.11},
             {'timestamp': f'{today} 08:12:45', 'crew': 'SalesProspectingCrew', 'duration': 28.1, 'status': 'Failure', 'hallucination_score': 0.35},
