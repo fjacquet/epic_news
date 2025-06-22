@@ -1,4 +1,4 @@
- --fix"""
+"""
 Geoapify Places API tool for searching points of interest.
 
 This tool provides access to the Geoapify Places API, allowing searches for
