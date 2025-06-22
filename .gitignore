@@ -10,10 +10,9 @@ __pycache__/
 cache/
 checkpoints/
 db/
-data/
-lib/
 prompts.txt
 output/
 report.md
 reports
 
+data/stock.csv

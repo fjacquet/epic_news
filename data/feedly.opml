@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<opml version="1.0">
+    <head>
+        <title>Frederic subscriptions in feedly Cloud</title>
+    </head>
+    <body>
+        <outline text="Backup" title="Backup">
+            <outline type="rss" text="r/CommVault" title="r/CommVault" xmlUrl="https://api.reddit.com/subreddit/CommVault/3027b4f9-7ea1-4f49-8fc2-beff71e33e88" htmlUrl="https://www.reddit.com/r/CommVault/new"/>
+            <outline type="rss" text="r/NetBackup" title="r/NetBackup" xmlUrl="https://api.reddit.com/subreddit/NetBackup" htmlUrl="https://www.reddit.com/r/NetBackup/new"/>
+            <outline type="rss" text="Quantum Insights RSS Feed" title="Quantum Insights RSS Feed" xmlUrl="https://blog.quantum.com/feed/" htmlUrl="https://blog.quantum.com/"/>
+        </outline>
+        <outline text="Photographie" title="Photographie">
+            <outline type="rss" text="Fuji X Passion" title="Fuji X Passion" xmlUrl="http://www.fujixpassion.com/feed/" htmlUrl="http://www.fujixpassion.com/"/>
+        </outline>
+        <outline text="Officiel" title="Officiel">
+            <outline type="rss" text="Commune de Montreux" title="Commune de Montreux" xmlUrl="https://www.montreux.ch/rss.html" htmlUrl="https://www.montreux.ch/"/>
+            <outline type="rss" text="MyMontreux" title="MyMontreux" xmlUrl="https://mymontreux.ch/news/feed/" htmlUrl="https://mymontreux.ch/"/>
+        </outline>
+        <outline text="Bd" title="Bd">
+            <outline type="rss" text="xkcd" title="xkcd" xmlUrl="http://xkcd.com/rss.xml" htmlUrl="https://xkcd.com/"/>
+        </outline>
+        <outline text="DevOps" title="DevOps">
+            <outline type="rss" text="Visual Studio Code - Code Editing. Redefined." title="Visual Studio Code - Code Editing. Redefined." xmlUrl="https://code.visualstudio.com/feed.xml" htmlUrl="https://code.visualstudio.com/"/>
+            <outline type="rss" text="Jenkins Blog" title="Jenkins Blog" xmlUrl="http://feeds.feedburner.com/ContinuousBlog" htmlUrl="https://www.jenkins.io/"/>
+            <outline type="rss" text="Cloud Native Computing Foundation" title="Cloud Native Computing Foundation" xmlUrl="https://www.cncf.io/feed" htmlUrl="https://www.cncf.io"/>
+        </outline>
+        <outline text="Blog" title="Blog">
+            <outline type="rss" text="Mark Twomey" title="Mark Twomey" xmlUrl="http://storagezilla.typepad.com/storagezilla/atom.xml" htmlUrl="https://storagezilla.typepad.com/storagezilla/"/>
+            <outline type="rss" text="Dell PowerFlex, PowerMax, and PowerStore: Virtualization" title="Dell PowerFlex, PowerMax, and PowerStore: Virtualization" xmlUrl="http://drewtonnesen.wordpress.com/feed/" htmlUrl="https://drewtonnesen.wordpress.com"/>
+            <outline type="rss" text="Le blog high-tech &amp; telecom de Xavier Studer" title="Le blog high-tech &amp; telecom de Xavier Studer" xmlUrl="http://www.xavierstuder.com/feed/" htmlUrl="https://www.xavierstuder.com/"/>
+            <outline type="rss" text="Scott's Weblog" title="Scott's Weblog" htmlUrl="https://blog.scottlowe.org/"/>
+            <outline type="rss" text="VMignite.com" title="VMignite.com" xmlUrl="http://www.vmignite.com/feed/" htmlUrl="http://www.vmignite.com"/>
+            <outline type="rss" text="HashiCorp Blog" title="HashiCorp Blog" xmlUrl="http://www.hashicorp.com/feed.xml" htmlUrl="https://hashicorp.com/blog"/>
+            <outline type="rss" text="Itzikr's Blog" title="Itzikr's Blog" xmlUrl="https://itzikr.wordpress.com/feed/" htmlUrl="https://itzikr.wordpress.com"/>
+            <outline type="rss" text="Cosonok's IT Blog" title="Cosonok's IT Blog" xmlUrl="http://www.cosonok.com/feeds/posts/default" htmlUrl="http://www.cosonok.com/"/>
+            <outline type="rss" text="Julien Mousqueton" title="Julien Mousqueton" xmlUrl="http://www.julienmousqueton.fr/feed/" htmlUrl="https://julien.io/"/>
+            <outline type="rss" text="Blog | Dell" title="Blog | Dell" xmlUrl="http://bigdatablog.emc.com/?feed=rss2" htmlUrl="https://www.dell.com/en-us/blog/"/>
+            <outline type="rss" text="Yellow Bricks" title="Yellow Bricks" xmlUrl="http://www.yellow-bricks.com/feed/" htmlUrl="https://www.yellow-bricks.com/"/>
+            <outline type="rss" text="CormacHogan.com" title="CormacHogan.com" xmlUrl="http://cormachogan.com/feed/" htmlUrl="https://cormachogan.com/"/>
+            <outline type="rss" text="David Vassallo's Blog" title="David Vassallo's Blog" xmlUrl="http://blog.davidvassallo.me/feed/" htmlUrl="https://blog.davidvassallo.me"/>
+            <outline type="rss" text="Sysadmin Tutorials" title="Sysadmin Tutorials" xmlUrl="http://feeds.feedburner.com/SysadminTutorials" htmlUrl="https://www.sysadmintutorials.com/"/>
+            <outline type="rss" text="Veeam Software Official Blog" title="Veeam Software Official Blog" xmlUrl="http://www.veeam.com/blog/feed" htmlUrl="https://www.veeam.com/blog"/>
+        </outline>
+        <outline text="AWS" title="AWS">
+            <outline type="rss" text="AWS News Blog" title="AWS News Blog" xmlUrl="http://aws.typepad.com/aws/atom.xml" htmlUrl="https://aws.amazon.com/blogs/aws/"/>
+            <outline type="rss" text="AWS Architecture Blog" title="AWS Architecture Blog" xmlUrl="http://www.awsarchitectureblog.com/atom.xml" htmlUrl="https://aws.amazon.com/blogs/architecture/"/>
+            <outline type="rss" text="AWS DevOps &amp; Developer Productivity Blog" title="AWS DevOps &amp; Developer Productivity Blog" xmlUrl="http://blogs.aws.amazon.com/application-management/blog/feed/recentPosts.rss" htmlUrl="https://aws.amazon.com/blogs/devops/"/>
+        </outline>
+        <outline text="Release Notes" title="Release Notes"/>
+        <outline text="News" title="News">
+            <outline type="rss" text="StorageNewsletter" title="StorageNewsletter" xmlUrl="https://www.storagenewsletter.com/feed/atom/" htmlUrl="https://www.storagenewsletter.com/"/>
+            <outline type="rss" text="News" title="News" xmlUrl="http://www.ictjournal.ch/News.aspx?type=rss" htmlUrl="https://www.ictjournal.ch/"/>
+            <outline type="rss" text="The Next Platform" title="The Next Platform" xmlUrl="http://www.theplatform.net/feed/" htmlUrl="https://www.nextplatform.com/"/>
+        </outline>
+        <outline text="Microsoft" title="Microsoft">
+            <outline type="rss" text="Jean-Sébastien DUCHENE Blog's" title="Jean-Sébastien DUCHENE Blog's" xmlUrl="http://feeds2.feedburner.com/Jean-sbastienDucheneBlogs" htmlUrl="https://microsofttouch.fr/default/b/js"/>
+            <outline type="rss" text="IT-Connect" title="IT-Connect" xmlUrl="http://www.it-connect.fr/feed/" htmlUrl="https://www.it-connect.fr"/>
+        </outline>
+        <outline text="VMware" title="VMware">
+            <outline type="rss" text="VMware vSphere Blog" title="VMware vSphere Blog" xmlUrl="http://feeds.feedburner.com/vmware/vsphereblog" htmlUrl="https://blogs.vmware.com/vsphere/"/>
+            <outline type="rss" text="ESX Virtualization" title="ESX Virtualization" xmlUrl="http://www.vladan.fr/feed/" htmlUrl="https://www.vladan.fr/"/>
+        </outline>
+        <outline text="Red-hat" title="Red-hat">
+            <outline type="rss" text="Red Hat Blog" title="Red Hat Blog" xmlUrl="http://www.redhat.com/en/rss/blog" htmlUrl="https://www.redhat.com/en/rss/blog"/>
+            <outline type="rss" text="Red Hat Enterprise Linux" title="Red Hat Enterprise Linux" xmlUrl="https://www.redhat.com/en/rss/blog/channel/red-hat-enterprise-linux" htmlUrl="https://www.redhat.com/en/rss/blog/channel/red-hat-enterprise-linux"/>
+            <outline type="rss" text="Red Hat Satellite" title="Red Hat Satellite" xmlUrl="https://www.redhat.com/en/rss/blog/channel/red-hat-satellite" htmlUrl="https://www.redhat.com/en/rss/blog/channel/red-hat-satellite"/>
+            <outline type="rss" text="Red Hat Blog" title="Red Hat Blog" xmlUrl="https://www.redhat.com/sysadmin/rss.xml" htmlUrl="https://www.redhat.com/en/rss/blog"/>
+        </outline>
+        <outline text="Crypto" title="Crypto">
+            <outline type="rss" text="Comprendre la cryptomonnaie" title="Comprendre la cryptomonnaie" xmlUrl="https://viresinnumeris.fr/feed/" htmlUrl="https://viresinnumeris.fr"/>
+        </outline>
+        <outline text="Azure" title="Azure">
+            <outline type="rss" text="Microsoft Azure Blog &gt; Announcements" title="Microsoft Azure Blog &gt; Announcements" xmlUrl="http://azure.microsoft.com/blog/topics/announcements/feed/" htmlUrl="https://azure.microsoft.com/en-us/blog/content-type/announcements/"/>
+            <outline type="rss" text="Microsoft Azure Blog" title="Microsoft Azure Blog" xmlUrl="http://azure.microsoft.com/blog/feed/" htmlUrl="https://azure.microsoft.com/en-us/blog/"/>
+            <outline type="rss" text="Azure DevOps Blog" title="Azure DevOps Blog" xmlUrl="http://blogs.msdn.com/b/visualstudioalm/rss.aspx" htmlUrl="https://devblogs.microsoft.com/devops/"/>
+        </outline>
+        <outline text="The Register" title="The Register">
+            <outline type="rss" text="The Register - Software: Devops" title="The Register - Software: Devops" xmlUrl="https://www.theregister.co.uk/devops/headlines.atom" htmlUrl="https://www.theregister.com/software/devops/"/>
+            <outline type="rss" text="The Register - Off-Prem: SaaS" title="The Register - Off-Prem: SaaS" xmlUrl="http://www.theregister.co.uk/cloud/headlines.atom" htmlUrl="https://www.theregister.com/off_prem/saas/"/>
+            <outline type="rss" text="The Register - On-Prem: Servers" title="The Register - On-Prem: Servers" xmlUrl="http://www.theregister.co.uk/hardware/servers/headlines.atom" htmlUrl="https://www.theregister.com/on_prem/systems/"/>
+            <outline type="rss" text="The Register - On-Prem: Storage" title="The Register - On-Prem: Storage" xmlUrl="http://www.theregister.co.uk/hardware/storage/headlines.atom" htmlUrl="https://www.theregister.com/on_prem/storage/"/>
+        </outline>
+        <outline text="Maker" title="Maker">
+            <outline type="rss" text="Brent Ozar Unlimited®" title="Brent Ozar Unlimited®" xmlUrl="https://www.brentozar.com/feed/" htmlUrl="https://www.brentozar.com"/>
+            <outline type="rss" text="Podcasts" title="Podcasts" xmlUrl="http://pivotalsoftwarepodcast.libsyn.com/rss" htmlUrl="https://tanzu.vmware.com/podcasts"/>
+            <outline type="rss" text="Quantum Insights RSS Feed" title="Quantum Insights RSS Feed" xmlUrl="https://blog.quantum.com/feed/" htmlUrl="https://blog.quantum.com/"/>
+        </outline>
+        <outline text="Cisco" title="Cisco">
+            <outline type="rss" text="Cisco Blogs" title="Cisco Blogs" xmlUrl="http://blogs.cisco.com/feed/" htmlUrl="https://blogs.cisco.com/"/>
+            <outline type="rss" text="Cisco France Blog" title="Cisco France Blog" xmlUrl="https://feeds.feedburner.com/CiscoFranceBlog" htmlUrl="https://gblogs.cisco.com/fr/"/>
+        </outline>
+    </body>
+</opml>
