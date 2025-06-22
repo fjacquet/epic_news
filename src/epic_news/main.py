@@ -44,10 +44,12 @@ from epic_news.crews.poem.poem_crew import PoemCrew
 from epic_news.crews.post.post_crew import PostCrew
 from epic_news.crews.rss_weekly.rss_weekly_crew import RssWeeklyCrew
 from epic_news.crews.sales_prospecting.sales_prospecting_crew import SalesProspectingCrew
+from epic_news.crews.shopping_advisor.shopping_advisor import ShoppingAdvisorCrew
 from epic_news.crews.tech_stack.tech_stack_crew import TechStackCrew
 from epic_news.crews.web_presence.web_presence_crew import WebPresenceCrew
 from epic_news.models import ContentState
 from epic_news.utils.directory_utils import ensure_output_directories
+from epic_news.utils.logger import get_logger
 
 # Suppress the specific Pydantic deprecation warnings globally
 warnings.filterwarnings("ignore", category=PydanticDeprecatedSince211)
@@ -63,8 +65,6 @@ warnings.filterwarnings(
 )
 
 load_dotenv()
-
-
 
 """                                                                                      """
 """                     All the magic is here                                            """
@@ -87,7 +87,7 @@ class ReceptionFlow(Flow[ContentState]):
     def __init__(self, user_request: str):
         super().__init__()
         self._user_request = user_request
-
+        self.logger = get_logger(__name__)
 
     @start()
     def feed_user_request(self):
@@ -183,31 +183,20 @@ class ReceptionFlow(Flow[ContentState]):
         to execute (e.g., 'go_generate_sales_prospecting_report').
         If the crew type is not recognized, it defaults to 'go_unknown'.
         """
-        if self.state.selected_crew == "SALES_PROSPECTING":
-            return "go_generate_sales_prospecting_report"
         if self.state.selected_crew == "HOLIDAY_PLANNER":
             return "go_generate_holiday_plan"
-        if self.state.selected_crew == "POST_ONLY":
-            # Note: PostOnlyCrew import was removed. This route might be dead code
-            # or associated with a crew that needs to be re-evaluated.
-            return "go_generate_post_only"
         if self.state.selected_crew == "MEETING_PREP":
             return "go_generate_meeting_prep"
         if self.state.selected_crew == "LIBRARY":
             return "go_generate_book_summary"
         if self.state.selected_crew == "COOKING":
             return "go_generate_recipe"
+        if self.state.selected_crew == "SHOPPING":
+            return "go_generate_shopping_advice"
         if self.state.selected_crew == "POEM":
             return "go_generate_poem"
         if self.state.selected_crew == "NEWS":
             return "go_generate_news"
-        if self.state.selected_crew == "LEAD_SCORING":
-            # Note: 'generate_leads' was mentioned as a missing node in plot output.
-            # This route might need review if 'generate_leads' step is not defined.
-            return "go_generate_leads"
-        if self.state.selected_crew == "LOCATION":
-            # Note: FindLocationCrew was removed. This route is likely dead code.
-            return "go_find_location"
         if self.state.selected_crew == "OPEN_SOURCE_INTELLIGENCE":
             return "go_generate_osint"
         if self.state.selected_crew == "MARKETING_WRITERS":
@@ -216,6 +205,8 @@ class ReceptionFlow(Flow[ContentState]):
             return "go_generate_rss_weekly"
         if self.state.selected_crew == "FINDAILY":
             return "go_generate_findaily"
+        if self.state.selected_crew == "SALES_PROSPECTING":
+            return "go_generate_sales_prospecting_report"
         # Fallback for unhandled or unknown crew types.
         # Consider logging this event for monitoring.
         print(f"⚠️ Unknown crew type: {self.state.selected_crew}. Routing to 'go_unknown'.")
@@ -238,26 +229,6 @@ class ReceptionFlow(Flow[ContentState]):
             self.state.output_file = "output/unknown_request_error.md"
             print(f"Output file not set, defaulting to {self.state.output_file}")
         # return "go_unknown" # Implicitly returns method name
-
-    @listen("go_generate_post_only")
-    def generate_post_only(self):
-        """
-        Handles requests classified for the 'PostOnlyCrew'.
-
-        This method was intended to generate content using `PostOnlyCrew`.
-        Note: The import for `PostOnlyCrew` was previously removed from this file.
-        If this crew is still intended to be used, its import and functionality
-        should be verified.
-        Sets `output_file` and stores the result in `self.state.post_report`.
-        """
-        self.state.output_file = "output/travel_guides/itinerary.html"
-        print(f"Generating post-only about: {self.state.to_crew_inputs().get('topic', 'N/A')}")
-
-        # Create and kickoff the post-only crew
-        # self.state.post_report = PostOnlyCrew().crew().kickoff(inputs=self.state.to_crew_inputs()) # PostOnlyCrew import is missing
-        print("⚠️ PostOnlyCrew is not available due to a missing import. Skipping execution.")
-        self.state.post_report = "PostOnlyCrew execution skipped due to missing import."
-        # return "generate_post_only"
 
     @listen("go_generate_poem")
     def generate_poem(self):
@@ -354,7 +325,6 @@ class ReceptionFlow(Flow[ContentState]):
 
         # Get the topic and preferences from the user's request or extracted info
         topic = self.state.user_request or ""
-        preferences = ""
 
         if self.state.extracted_info:
             if hasattr(self.state.extracted_info, 'main_subject_or_activity') and self.state.extracted_info.main_subject_or_activity:
@@ -370,9 +340,14 @@ class ReceptionFlow(Flow[ContentState]):
 
         # Generate the recipe with the specific topic and preferences
         crew_inputs = self.state.to_crew_inputs()
+        
+        # Add topic and preferences to crew inputs instead of constructor
+        crew_inputs['topic'] = topic
+        if preferences:
+            crew_inputs['preferences'] = preferences
 
-        # Create crew with topic and preferences
-        crew = CookingCrew(topic=topic, preferences=preferences).crew()
+        # Create crew using context-driven approach (no constructor parameters)
+        crew = CookingCrew().crew()
 
         # Kick off the crew with inputs
         self.state.recipe = crew.kickoff(inputs=crew_inputs)
@@ -396,6 +371,35 @@ class ReceptionFlow(Flow[ContentState]):
         # Generate the book summary
         self.state.book_summary = LibraryCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
         # return "generate_book_summary"
+
+    @listen("go_generate_shopping_advice")
+    def generate_shopping_advice(self):
+        """
+        Handles requests classified for the 'ShoppingAdvisorCrew'.
+
+        Invokes the `ShoppingAdvisorCrew` to generate comprehensive shopping advice
+        including product research, price comparison between Switzerland and France,
+        competitor analysis, and actionable recommendations. Sets `output_file` to
+        `output/shopping_advisor/shopping_advice.html` and stores the report in
+        `self.state.shopping_advice_report`.
+        """
+        # Ensure output directory exists
+        os.makedirs("output/shopping_advisor", exist_ok=True)
+
+        # Set output file
+        self.state.output_file = "output/shopping_advisor/shopping_advice.html"
+
+        print(f"🛒 Generating shopping advice for: {self.state.user_request}")
+        
+        # Debug: Show what inputs are being passed to the crew
+        crew_inputs = self.state.to_crew_inputs()
+        print(f"🔍 DEBUG - Crew inputs: {crew_inputs}")
+        print(f"🔍 DEBUG - Topic: {crew_inputs.get('topic', 'NOT_FOUND')}")
+        print(f"🔍 DEBUG - Objective: {crew_inputs.get('objective', 'NOT_FOUND')}")
+
+        # Generate the shopping advice using CrewAI context-driven approach
+        self.state.shopping_advice_report = ShoppingAdvisorCrew().crew().kickoff(inputs=crew_inputs)
+        print("✅ Shopping advice generation complete")
 
     @listen("go_generate_meeting_prep")
     def generate_meeting_prep(self):
@@ -609,17 +613,15 @@ class ReceptionFlow(Flow[ContentState]):
 
     @listen(
         or_(
-            "generate_post_only",
             "generate_poem",
             "generate_news",
             "generate_recipe",
             "generate_book_summary",
+            "generate_shopping_advice",
             "generate_meeting_prep",
             "generate_sales_prospecting_report",
             "generate_osint",
             "generate_cross_reference_report",
-            "generate_leads",
-            "find_location",
             "generate_holiday_plan",
             "generate_marketing_content",
             "generate_rss_weekly",
@@ -630,20 +632,82 @@ class ReceptionFlow(Flow[ContentState]):
         """
         Synchronizes the flow after a crew has finished its primary task.
 
-{{ ... }}
-        crews. Its primary role is to consolidate the final report into the
+        Its primary role is to consolidate the final report into the
         designated output file using `_write_output_to_file()` before proceeding
         to the email sending step.
-        The `*results` argument captures outputs from the preceding steps, though
-        it's not explicitly used in the current implementation, as results are managed
-        via `self.state`.
         """
-        # return "join" # Implicitly returns method name
+        self.logger.info("Join step reached. Writing output to file before sending email.")
+        self._write_output_to_file()
 
-    @listen(or_(
-                "generate_cross_reference_report",
-                "join"
-                ))
+    def _get_final_report_content(self) -> str | None:
+        """
+        Retrieves the final report content from the application state.
+
+        It iterates through a predefined list of report attributes in `self.state`
+        and returns the content of the first one that is not None. This ensures
+        that the output from whichever crew was run is correctly identified.
+
+        Returns:
+            The content of the final report as a string, or None if no report
+            is found.
+        """
+        report_attributes = [
+            "shopping_advice_report", "news_report", "recipe", "book_summary",
+            "poem", "holiday_plan", "marketing_report", "meeting_prep_report",
+            "contact_info_report", "cross_reference_report", "fin_daily_report",
+            "rss_weekly_report", "post_report", "location_report", "osint_report",
+            "company_profile", "tech_stack_report", "web_presence_report",
+            "hr_intelligence_report", "legal_analysis_report",
+            "geospatial_analysis", "lead_score_report", "tech_stack",
+            "final_report"
+        ]
+
+        for attr in report_attributes:
+            content = getattr(self.state, attr, None)
+            if content:
+                self.logger.info(f"Found final report content in 'self.state.{attr}'")
+                return str(content)
+
+        self.logger.warning("No final report content found in any of the expected state attributes.")
+        return None
+
+    def _write_output_to_file(self):
+        """
+        Writes the final report content to the specified output file.
+
+        This method retrieves the report content using `_get_final_report_content()`
+        and writes it to the path stored in `self.state.output_file`. It handles
+        directory creation and ensures the content is written with UTF-8 encoding.
+        """
+        final_content = self._get_final_report_content()
+        output_file = self.state.output_file
+
+        if not output_file:
+            self.logger.warning("No output file path set in state. Skipping file write.")
+            return
+
+        if final_content:
+            try:
+                output_dir = os.path.dirname(output_file)
+                if not os.path.exists(output_dir):
+                    os.makedirs(output_dir)
+                    self.logger.info(f"Created output directory: {output_dir}")
+
+                with open(output_file, "w", encoding="utf-8") as f:
+                    f.write(final_content)
+                self.logger.info(f"Successfully wrote final report to {output_file}")
+
+            except Exception as e:
+                self.logger.error(f"Error writing final report to {output_file}: {e}")
+        else:
+            self.logger.warning(f"No final content to write to {output_file}.")
+
+    @listen(
+        or_(
+            "generate_cross_reference_report",
+            "join"
+        )
+    )
     def send_email(self):
         """
         Sends the generated report via email after specific crew completions or general join.
@@ -712,7 +776,7 @@ def kickoff(user_input: str | None = None):
         The completed ReceptionFlow object.
     """
     # If user_input is not provided, use a default value.
-    request = user_input if user_input else "Get the FinDaily Report"
+    request = user_input if user_input else "I need shopping advice for a MacBook Pro M4"
 
     reception_flow = ReceptionFlow(user_request=request)
     reception_flow.kickoff()

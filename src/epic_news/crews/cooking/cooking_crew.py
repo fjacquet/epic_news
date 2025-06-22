@@ -34,21 +34,16 @@ class CookingCrew:
     agents_config = 'config/agents.yaml'
     tasks_config = 'config/tasks.yaml'
 
-    def __init__(self, topic=None, preferences=None):
+    def __init__(self):
         """Initialize the CookingCrew.
         
-        Args:
-            topic: The main recipe topic (e.g., "Poulet Basquaise")
-            preferences: Any dietary preferences or constraints
+        Following the context-driven design pattern, topic and preferences
+        are now passed via CrewAI inputs instead of constructor parameters.
+        This aligns with the project's design principles for context injection.
             
         Sets up the output directory and initializes the tools required for recipe creation.
         """
         # Use centralized path utility for consistent output directory handling
-
-
-        # Store inputs
-        self.topic = topic or 'une délicieuse recette'
-        self.preferences = preferences or ''
 
         # Initialize tools
         self._initialize_tools()
@@ -118,12 +113,9 @@ class CookingCrew:
         """
         task_config = dict(self.tasks_config['html_recipe_task'])
 
-        # Enhance the description with the actual topic
-        task_config['description'] = task_config['description'].format(
-            topic=self.topic,
-            preferences=f" ({self.preferences})" if self.preferences else ""
-        )
-
+        # Topic and preferences will be available in the task context via CrewAI inputs
+        # The task description template will be formatted at runtime with the actual inputs
+        
         return Task(
             config=task_config,
             verbose=False,
@@ -145,12 +137,8 @@ class CookingCrew:
         """
         task_config = dict(self.tasks_config['paprika_yaml_task'])
 
-        # Enhance the description with the actual topic
-        task_config['description'] = task_config['description'].format(
-            topic=self.topic,
-            preferences=f" ({self.preferences})" if self.preferences else ""
-        )
-
+        # Topic and preferences will be available in the task context via CrewAI inputs
+        # The task description template will be formatted at runtime with the actual inputs
 
         return Task(
             config=task_config,
