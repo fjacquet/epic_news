@@ -33,7 +33,7 @@ def test_run_success_stock(mock_yfinance_ticker, mock_get_cache_manager, ticker_
     mock_cache = MagicMock()
     mock_cache.get.return_value = None  # No cached result
     mock_get_cache_manager.return_value = mock_cache
-    
+
     ticker = "AAPL"
 
     # Mock the yfinance Ticker object and its info property
@@ -85,7 +85,7 @@ def test_run_success_etf(mock_yfinance_ticker, mock_get_cache_manager, ticker_in
     mock_cache = MagicMock()
     mock_cache.get.return_value = None  # No cached result
     mock_get_cache_manager.return_value = mock_cache
-    
+
     ticker = "VTI"
 
     # Mock the yfinance Ticker object and its info property
@@ -130,7 +130,7 @@ def test_run_success_crypto(mock_yfinance_ticker, mock_get_cache_manager, ticker
     mock_cache = MagicMock()
     mock_cache.get.return_value = None  # No cached result
     mock_get_cache_manager.return_value = mock_cache
-    
+
     ticker = "BTC-USD"
 
     # Mock the yfinance Ticker object and its info property
@@ -173,7 +173,7 @@ def test_run_success_with_regular_market_price(mock_yfinance_ticker, mock_get_ca
     mock_cache = MagicMock()
     mock_cache.get.return_value = None  # No cached result
     mock_get_cache_manager.return_value = mock_cache
-    
+
     ticker = "TEST"
 
     # Mock the yfinance Ticker object and its info property
@@ -200,7 +200,7 @@ def test_run_minimal_data(mock_yfinance_ticker, mock_get_cache_manager, ticker_i
     mock_cache = MagicMock()
     mock_cache.get.return_value = None  # No cached result
     mock_get_cache_manager.return_value = mock_cache
-    
+
     ticker = "MINI"
 
     # Mock the yfinance Ticker object and its info property
@@ -232,7 +232,7 @@ def test_run_yfinance_exception(mock_yfinance_ticker, mock_get_cache_manager, ti
     mock_cache = MagicMock()
     mock_cache.get.return_value = None  # No cached result
     mock_get_cache_manager.return_value = mock_cache
-    
+
     ticker = "ERROR"
 
     mock_yfinance_ticker.side_effect = Exception("Test yfinance error")
@@ -253,7 +253,7 @@ def test_run_invalid_ticker_empty_info(mock_yfinance_ticker, mock_get_cache_mana
     mock_cache = MagicMock()
     mock_cache.get.return_value = None  # No cached result
     mock_get_cache_manager.return_value = mock_cache
-    
+
     ticker = "INVALID"
 
     mock_ticker_instance = MagicMock()

@@ -115,7 +115,7 @@ class CookingCrew:
 
         # Topic and preferences will be available in the task context via CrewAI inputs
         # The task description template will be formatted at runtime with the actual inputs
-        
+
         return Task(
             config=task_config,
             verbose=False,

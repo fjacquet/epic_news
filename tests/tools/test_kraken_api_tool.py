@@ -1,10 +1,11 @@
 import json
 from unittest.mock import MagicMock, patch
+
 import pytest
 import requests
 
-from src.epic_news.tools.kraken_api_tool import KrakenTickerInfoTool
 from src.epic_news.tools.cache_manager import get_cache_manager
+from src.epic_news.tools.kraken_api_tool import KrakenTickerInfoTool
 
 
 @pytest.fixture(autouse=True)

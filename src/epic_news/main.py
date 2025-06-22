@@ -340,7 +340,7 @@ class ReceptionFlow(Flow[ContentState]):
 
         # Generate the recipe with the specific topic and preferences
         crew_inputs = self.state.to_crew_inputs()
-        
+
         # Add topic and preferences to crew inputs instead of constructor
         crew_inputs['topic'] = topic
         if preferences:
@@ -390,7 +390,7 @@ class ReceptionFlow(Flow[ContentState]):
         self.state.output_file = "output/shopping_advisor/shopping_advice.html"
 
         print(f"🛒 Generating shopping advice for: {self.state.user_request}")
-        
+
         # Debug: Show what inputs are being passed to the crew
         crew_inputs = self.state.to_crew_inputs()
         print(f"🔍 DEBUG - Crew inputs: {crew_inputs}")
