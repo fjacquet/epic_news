@@ -1,7 +1,6 @@
 """Web search tool implementation using SerpAPI."""
 import json
 import os
-from typing import Optional
 
 import requests
 from crewai.tools import BaseTool
@@ -22,7 +21,7 @@ class SerpApiTool(BaseTool):
     name: str = "serpapi_search"
     description: str = "Perform a web search to find information on the internet"
     args_schema: type[BaseModel] = SerpApiInput
-    api_key: Optional[str] = None
+    api_key: str | None = None
 
     def __init__(self, **data):
         """Initialize with API key from environment."""

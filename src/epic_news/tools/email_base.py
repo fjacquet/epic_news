@@ -1,6 +1,5 @@
 """Base classes and common functionality for email search tools."""
 import re
-from typing import Optional, Set
 
 import requests
 from requests.adapters import HTTPAdapter
@@ -34,12 +33,12 @@ class EmailSearchTool:
         return session
 
     @staticmethod
-    def _extract_emails(text: str) -> Set[str]:
+    def _extract_emails(text: str) -> set[str]:
         """Extract email addresses from text using regex."""
         email_regex = r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.+]+"
         return set(re.findall(email_regex, text))
 
-    def _make_request(self, method: str, url: str, **kwargs) -> Optional[requests.Response]:
+    def _make_request(self, method: str, url: str, **kwargs) -> requests.Response | None:
         """Make an HTTP request with error handling."""
         try:
             response = self.session.request(method, url, timeout=10, **kwargs)

@@ -13,7 +13,7 @@ from epic_news.tools.web_tools import get_scrape_tools, get_search_tools, get_yo
 load_dotenv()
 
 @CrewBase
-class HolidayPlannerCrew():
+class HolidayPlannerCrew:
     """HolidayPlanner crew"""
 
     agents_config = 'config/agents.yaml'

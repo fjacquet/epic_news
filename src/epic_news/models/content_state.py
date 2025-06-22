@@ -5,7 +5,7 @@ for the application during execution.
 """
 
 import datetime
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -15,7 +15,7 @@ from epic_news.models.extracted_info import ExtractedInfo
 class ContentState(BaseModel):
     # Basic request information
     user_request: str = "Get the RSS Weekly Report"
-    extracted_info: Optional[ExtractedInfo] = None
+    extracted_info: ExtractedInfo | None = None
     selected_crew: str = ""  # Default crew type
     attachment_file: str = ""  # Attachment file for specific crew types
     current_year: str = str(datetime.datetime.now().year)  # Current year
@@ -40,29 +40,29 @@ class ContentState(BaseModel):
     output_file: str = ""
 
     # Crew results
-    company_profile: Optional[Any] = None
-    tech_stack: Optional[Any] = None # Stores direct output from TechStackCrew
-    geospatial_analysis: Optional[Any] = None
-    post_report: Optional[Any] = None
-    poem: Optional[Any] = None
-    news_report: Optional[Any] = None
-    rss_weekly_report: Optional[Any] = None
-    location_report: Optional[Any] = None
-    recipe: Optional[Any] = None
-    book_summary: Optional[Any] = None
-    meeting_prep_report: Optional[Any] = None
-    final_report: Optional[str] = None  # Stores the final consolidated report or error message
-    contact_info_report: Optional[Any] = None # Renamed from contacts_report
-    holiday_plan: Optional[Any] = None
-    marketing_report: Optional[Any] = None
-    osint_report: Optional[Any] = None # Potentially for a consolidated OSINT report
-    tech_stack_report: Optional[Any] = None # Potentially for a formatted tech stack report
-    hr_intelligence_report: Optional[Any] = None
-    legal_analysis_report: Optional[Any] = None
-    web_presence_report: Optional[Any] = None
-    cross_reference_report: Optional[Any] = None
-    lead_score_report: Optional[Any] = None # Added from the duplicated block
-    fin_daily_report: Optional[Any] = None  # Stores the FinDaily crew report
+    company_profile: Any | None = None
+    tech_stack: Any | None = None # Stores direct output from TechStackCrew
+    geospatial_analysis: Any | None = None
+    post_report: Any | None = None
+    poem: Any | None = None
+    news_report: Any | None = None
+    rss_weekly_report: Any | None = None
+    location_report: Any | None = None
+    recipe: Any | None = None
+    book_summary: Any | None = None
+    meeting_prep_report: Any | None = None
+    final_report: str | None = None  # Stores the final consolidated report or error message
+    contact_info_report: Any | None = None # Renamed from contacts_report
+    holiday_plan: Any | None = None
+    marketing_report: Any | None = None
+    osint_report: Any | None = None # Potentially for a consolidated OSINT report
+    tech_stack_report: Any | None = None # Potentially for a formatted tech stack report
+    hr_intelligence_report: Any | None = None
+    legal_analysis_report: Any | None = None
+    web_presence_report: Any | None = None
+    cross_reference_report: Any | None = None
+    lead_score_report: Any | None = None # Added from the duplicated block
+    fin_daily_report: Any | None = None  # Stores the FinDaily crew report
 
     # Email settings
     sendto: str = "fred.jacquet@gmail.com"

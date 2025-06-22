@@ -1,7 +1,6 @@
 """GitHub search tool implementation."""
 import json
 import os
-from typing import Dict
 
 from crewai.tools import BaseTool
 from dotenv import load_dotenv
@@ -19,7 +18,7 @@ class GitHubSearchTool(BaseTool, GitHubBaseTool):
     name: str = "github_search"
     description: str = "Search GitHub for repositories, code, issues, or users"
     args_schema: type[BaseModel] = GitHubSearchInput
-    headers: Dict[str, str] = None
+    headers: dict[str, str] = None
 
     def __init__(self, **data):
         """Initialize with GitHub token from environment."""

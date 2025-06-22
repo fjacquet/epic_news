@@ -2,7 +2,7 @@
 import json
 import os
 import re
-from typing import Any, ClassVar, Dict, List, Set
+from typing import Any, ClassVar
 
 from crewai.tools import BaseTool
 from dotenv import load_dotenv
@@ -34,7 +34,7 @@ class TechStackTool(BaseTool, BaseSearchTool):
     api_key: str = None
 
     # Common technology patterns to look for
-    TECH_PATTERNS: ClassVar[Dict[str, List[str]]] = {
+    TECH_PATTERNS: ClassVar[dict[str, list[str]]] = {
         'frameworks': [
             'react', 'angular', 'vue', 'next.js', 'nuxt.js', 'gatsby', 'svelte',
             'django', 'flask', 'laravel', 'ruby on rails', 'express', 'spring', 'asp.net'
@@ -107,13 +107,13 @@ class TechStackTool(BaseTool, BaseSearchTool):
             }
             return json.dumps(error_result)
 
-    def _search_tech_sites(self, domain: str) -> List[Dict[str, Any]]:
+    def _search_tech_sites(self, domain: str) -> list[dict[str, Any]]:
         """Search technology analysis sites for the given domain."""
         query = f"site:builtwith.com OR site:wappalyzer.com OR site:stackshare.io {domain}"
         results = self._search_serper(query)
         return results.get("organic", []) if results else []
 
-    def _extract_technologies(self, search_results: List[Dict[str, Any]]) -> Set[str]:
+    def _extract_technologies(self, search_results: list[dict[str, Any]]) -> set[str]:
         """Extract technologies from search results."""
         technologies = set()
 
@@ -129,7 +129,7 @@ class TechStackTool(BaseTool, BaseSearchTool):
 
         return technologies
 
-    def _get_detailed_analysis(self, domain: str, technologies: Set[str]) -> Dict[str, Any]:
+    def _get_detailed_analysis(self, domain: str, technologies: set[str]) -> dict[str, Any]:
         """Perform detailed analysis of the technologies."""
         analysis = {}
 

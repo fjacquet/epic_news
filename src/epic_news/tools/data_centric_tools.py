@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import os
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Union
 
 from crewai.tools import BaseTool
 from jinja2 import Environment, FileSystemLoader
@@ -55,10 +55,10 @@ class MetricsCalculatorTool(BaseTool):
     """
 
     def _run(self, name: str, display_name: str, description: str,
-             value: Any, type: str, previous_value: Optional[Any] = None,
-             unit: Optional[str] = None, source: Optional[str] = None,
-             target: Optional[Any] = None, is_key_metric: bool = False,
-             **kwargs) -> Dict[str, Any]:
+             value: Any, type: str, previous_value: Any | None = None,
+             unit: str | None = None, source: str | None = None,
+             target: Any | None = None, is_key_metric: bool = False,
+             **kwargs) -> dict[str, Any]:
         """Run the metrics calculator tool."""
         try:
             # Validate metric type
@@ -120,9 +120,9 @@ class KPITrackerTool(BaseTool):
 
     def _run(self, name: str, display_name: str, description: str,
              value: Any, type: str, target: Any,
-             previous_value: Optional[Any] = None, unit: Optional[str] = None,
-             source: Optional[str] = None, target_date: Optional[str] = None,
-             **kwargs) -> Dict[str, Any]:
+             previous_value: Any | None = None, unit: str | None = None,
+             source: str | None = None, target_date: str | None = None,
+             **kwargs) -> dict[str, Any]:
         """Run the KPI tracker tool."""
         try:
             # Validate metric type
@@ -193,7 +193,7 @@ class DataVisualizationTool(BaseTool):
     Output will be a properly formatted data structure ready for visualization.
     """
 
-    def _run(self, type: str, name: str, **kwargs) -> Dict[str, Any]:
+    def _run(self, type: str, name: str, **kwargs) -> dict[str, Any]:
         """Run the data visualization tool."""
         try:
             if type.lower() == "series":
@@ -215,7 +215,7 @@ class DataVisualizationTool(BaseTool):
 
                 return series.model_dump()
 
-            elif type.lower() == "table":
+            if type.lower() == "table":
                 # Create a data table
                 table = DataTable(
                     name=name,
@@ -227,8 +227,7 @@ class DataVisualizationTool(BaseTool):
 
                 return table.model_dump()
 
-            else:
-                return {"error": f"Unknown visualization type: {type}"}
+            return {"error": f"Unknown visualization type: {type}"}
 
         except Exception as e:
             return {"error": f"Failed to create data visualization: {str(e)}"}
@@ -255,7 +254,7 @@ class StructuredReportTool(BaseTool):
     Output will be a structured data report with all components properly formatted.
     """
 
-    def _run(self, title: str, description: str, **kwargs) -> Dict[str, Any]:
+    def _run(self, title: str, description: str, **kwargs) -> dict[str, Any]:
         """Run the structured report tool."""
         try:
             # Process metrics if provided
@@ -389,7 +388,7 @@ class StructuredReportTool(BaseTool):
             return {"error": f"Failed to generate structured report: {str(e)}"}
 
 
-def get_data_centric_tools() -> List[Union[BaseTool, LangchainBaseTool]]:
+def get_data_centric_tools() -> list[Union[BaseTool, LangchainBaseTool]]:
     """Get a list of all data-centric tools."""
     return [
         MetricsCalculatorTool(),

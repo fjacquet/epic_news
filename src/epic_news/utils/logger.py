@@ -24,7 +24,6 @@ import os
 import sys
 from logging.handlers import RotatingFileHandler, TimedRotatingFileHandler
 from pathlib import Path
-from typing import Optional
 
 
 def setup_logging(
@@ -103,7 +102,7 @@ def setup_logging(
         root_logger.addHandler(error_file_handler)
 
 
-def get_logger(name: str, log_level: Optional[int] = None) -> logging.Logger:  # noqa: UP007
+def get_logger(name: str, log_level: int | None = None) -> logging.Logger:  # noqa: UP007
     """
     Get a logger with the given name.
 

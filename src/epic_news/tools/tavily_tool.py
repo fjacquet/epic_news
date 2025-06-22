@@ -1,5 +1,4 @@
 import os
-from typing import Type
 
 from crewai.tools import BaseTool
 from pydantic import BaseModel
@@ -14,7 +13,7 @@ class TavilyTool(BaseTool):
         "A tool for performing web searches using the Tavily API. "
         "It returns a concise summary of search results for a given query."
     )
-    args_schema: Type[BaseModel] = TavilyToolInput
+    args_schema: type[BaseModel] = TavilyToolInput
 
     def _run(self, query: str) -> str:
         """Run the Tavily search tool with the specified query."""

@@ -1,4 +1,3 @@
-from typing import List
 
 from crewai import Agent, Crew, Process, Task
 from crewai.agents.agent_builder.base_agent import BaseAgent
@@ -16,11 +15,11 @@ from epic_news.tools.web_tools import get_scrape_tools, get_search_tools
 # https://docs.crewai.com/concepts/crews#example-crew-class-with-decorators
 
 @CrewBase
-class CrossReferenceReportCrew():
+class CrossReferenceReportCrew:
     """CrossReferenceReportCrew crew"""
 
-    agents: List[BaseAgent]
-    tasks: List[Task]
+    agents: list[BaseAgent]
+    tasks: list[Task]
 
     # Learn more about YAML configuration files here:
     # Agents: https://docs.crewai.com/concepts/agents#yaml-configuration-recommended

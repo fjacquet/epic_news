@@ -1,5 +1,4 @@
 import os
-from typing import Type
 
 import requests
 from crewai.tools import BaseTool
@@ -11,7 +10,7 @@ from src.epic_news.models.accuweather_models import AccuWeatherToolInput
 class AccuWeatherTool(BaseTool):
     name: str = "get_current_weather"
     description: str = "A tool to get the current weather conditions for a specific location."
-    args_schema: Type[BaseModel] = AccuWeatherToolInput
+    args_schema: type[BaseModel] = AccuWeatherToolInput
     _base_url: str = "http://dataservice.accuweather.com"
 
     def _run(self, location: str) -> str:

@@ -7,8 +7,6 @@ This exposes:
 """
 from __future__ import annotations
 
-from typing import List
-
 from epic_news.tools.render_report_tool import RenderReportTool
 from epic_news.tools.reporting_tool import ReportingTool
 
@@ -20,9 +18,9 @@ except ImportError:  # pragma: no cover
     HtmlToPdfTool = None  # type: ignore
 
 
-def get_report_tools() -> List:  # noqa: D401
+def get_report_tools() -> list:  # noqa: D401
     """Return list of report-related tools available in this environment."""
-    tools: List = [RenderReportTool(), ReportingTool()]
+    tools: list = [RenderReportTool(), ReportingTool()]
     if HtmlToPdfTool is not None:
         tools.append(HtmlToPdfTool())
     return tools

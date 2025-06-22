@@ -6,7 +6,6 @@ to enable crews to store and retrieve knowledge across sessions.
 """
 
 import copy  # Add import for deepcopy
-from typing import List, Optional
 
 from crewai.tools import BaseTool as Tool
 from crewai_tools import RagTool
@@ -16,7 +15,7 @@ from epic_news.rag_config import DEFAULT_RAG_CONFIG
 from epic_news.tools.save_to_rag_tool import SaveToRagTool
 
 
-def get_rag_tools(collection_suffix: Optional[str] = None) -> List[Tool]:
+def get_rag_tools(collection_suffix: str | None = None) -> list[Tool]:
     """
     Get RAG tools for knowledge retrieval and storage.
 

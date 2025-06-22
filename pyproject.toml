@@ -58,15 +58,40 @@ type = "flow"
 
 [tool.ruff]
 line-length = 110
+target-version = "py310"
 
 [tool.ruff.lint]
-# Enable Pyflakes, pycodestyle error rules, and isort.
-select = ["E", "F", "I"]
-ignore = ["E501"]
+# Enable more comprehensive linting rules
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # Pyflakes
+    "I",   # isort
+    "N",   # pep8-naming
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "PIE", # flake8-pie
+    "SIM", # flake8-simplify
+    "RET", # flake8-return
+]
+ignore = [
+    "E501",   # Line too long (handled by formatter)
+    "B008",   # Do not perform function calls in argument defaults
+    "B904",   # Within an `except` clause, raise exceptions with `raise ... from err`
+    "UP007",  # Use `X | Y` for type annotations (not compatible with Python 3.10)
+]
 
 [tool.ruff.format]
 # Like Black, but faster.
 quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+
+[tool.ruff.lint.isort]
+known-first-party = ["epic_news"]
+force-single-line = false
+split-on-trailing-comma = true
 
 [tool.pytest.ini_options]
 filterwarnings = [

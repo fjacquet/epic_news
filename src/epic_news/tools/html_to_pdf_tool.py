@@ -1,6 +1,5 @@
 import logging
 import os
-from typing import Optional, Type
 
 from crewai.tools import BaseTool
 from pydantic import BaseModel, Field
@@ -23,9 +22,9 @@ class HtmlToPdfTool(BaseTool):
         "It returns the absolute path to the generated PDF file upon successful conversion, "
         "or an error message if the conversion fails or an issue occurs."
     )
-    args_schema: Type[BaseModel] = HtmlToPdfToolSchema
-    html_file_path: Optional[str] = None
-    output_pdf_path: Optional[str] = None
+    args_schema: type[BaseModel] = HtmlToPdfToolSchema
+    html_file_path: str | None = None
+    output_pdf_path: str | None = None
 
     def _run(
         self,
@@ -52,9 +51,8 @@ class HtmlToPdfTool(BaseTool):
 
             if os.path.exists(output_pdf_path):
                 return f"Successfully converted '{html_file_path}' to PDF. Output saved at '{output_pdf_path}'."
-            else:
-                # This case should ideally not be reached if write_pdf doesn't error, but it's a safeguard.
-                return f"Error: PDF generation failed for '{html_file_path}'. Output file not found at '{output_pdf_path}'."
+            # This case should ideally not be reached if write_pdf doesn't error, but it's a safeguard.
+            return f"Error: PDF generation failed for '{html_file_path}'. Output file not found at '{output_pdf_path}'."
 
         except FileNotFoundError:
             # This specific exception might be redundant due to the initial check, but good for safety.

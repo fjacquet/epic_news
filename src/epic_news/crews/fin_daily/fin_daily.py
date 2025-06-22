@@ -13,7 +13,7 @@ from epic_news.tools.utility_tools import get_reporting_tools
 
 
 @CrewBase
-class FinDailyCrew():
+class FinDailyCrew:
     """FinDaily crew"""
     agents_config = 'config/agents.yaml'
     tasks_config = 'config/tasks.yaml'

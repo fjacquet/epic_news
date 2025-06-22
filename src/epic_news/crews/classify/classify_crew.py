@@ -6,7 +6,7 @@ load_dotenv()
 
 
 @CrewBase
-class ClassifyCrew():
+class ClassifyCrew:
     """
     Simple classification crew that analyzes user content and classifies it 
     into the appropriate category from a predefined list.

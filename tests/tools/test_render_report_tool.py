@@ -39,7 +39,7 @@ class TestRenderReportTool:
         os.makedirs(custom_template_dir, exist_ok=True)
 
         # Copy a template to the custom directory for testing
-        with open(tool._template_dir / "report_template.html", "r") as src_file:
+        with open(tool._template_dir / "report_template.html") as src_file:
             template_content = src_file.read()
 
         with open(custom_template_dir / "report_template.html", "w") as dst_file:

@@ -1,6 +1,5 @@
 import json
 from datetime import datetime, timedelta
-from typing import Type
 
 import feedparser
 from crewai.tools import BaseTool
@@ -15,7 +14,7 @@ class RssFeedParserTool(BaseTool):
         "A tool for parsing an RSS feed and returning recent entries. "
         "It requires the RSS feed URL."
     )
-    args_schema: Type[BaseModel] = RssFeedParserToolInput
+    args_schema: type[BaseModel] = RssFeedParserToolInput
 
     def _run(self, feed_url: str) -> str:
         """Run the RSS feed parser tool with robust error handling."""

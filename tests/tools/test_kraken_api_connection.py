@@ -9,7 +9,7 @@ import argparse
 import json
 import os
 import sys
-from typing import Dict, List, Optional, Union
+from typing import Union
 
 from dotenv import load_dotenv
 
@@ -40,7 +40,7 @@ def test_ticker_info(pair: str = "XXBTZUSD") -> None:
         return False
 
 
-def list_assets(api_key: str, api_secret: str) -> Optional[List[Dict[str, Union[str, float]]]]:
+def list_assets(api_key: str, api_secret: str) -> list[dict[str, Union[str, float]]] | None:
     """
     List assets in the Kraken account.
     
@@ -65,9 +65,8 @@ def list_assets(api_key: str, api_secret: str) -> Optional[List[Dict[str, Union[
             for asset in assets:
                 print(f"  • {asset['asset']}: {asset['quantity']}")
             return assets
-        else:
-            print(f"❌ Error: Unexpected response format: {result}")
-            return None
+        print(f"❌ Error: Unexpected response format: {result}")
+        return None
     except json.JSONDecodeError:
         print(f"❌ Error: {result}")
         return None

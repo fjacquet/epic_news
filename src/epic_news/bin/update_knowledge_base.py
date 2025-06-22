@@ -8,7 +8,6 @@ with fresh financial data and prune outdated information.
 
 import datetime
 import logging
-from typing import List, Optional
 
 import yfinance as yf
 from crewai_tools import RagTool
@@ -24,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 def update_market_data(
-    tickers: List[str], collection_suffix: Optional[str] = None
+    tickers: list[str], collection_suffix: str | None = None
 ) -> None:
     """
     Update the knowledge base with fresh market data for specified tickers.
@@ -93,7 +92,7 @@ def update_market_data(
 
 
 def prune_outdated_knowledge(
-    max_age_days: int = 30, collection_suffix: Optional[str] = None
+    max_age_days: int = 30, collection_suffix: str | None = None
 ) -> None:
     """
     Remove outdated entries from the knowledge base.

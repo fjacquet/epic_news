@@ -14,7 +14,6 @@ class WebSearchFactory:
         """Create a web search tool based on the provider."""
         if provider == 'serpapi':
             return SerpApiTool()
-        elif provider == 'tavily':
+        if provider == 'tavily':
             return TavilyTool()
-        else:
-            raise ValueError(f"Unknown web search provider: {provider}")
+        raise ValueError(f"Unknown web search provider: {provider}")

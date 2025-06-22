@@ -49,7 +49,7 @@ def run_crew_thread(user_request: str):
 
         # After running, put the result into the queue
         if flow and flow.state.output_file and os.path.exists(flow.state.output_file):
-            with open(flow.state.output_file, 'r', encoding='utf-8') as f:
+            with open(flow.state.output_file, encoding='utf-8') as f:
                 report_content = f.read()
             log_queue.put(("REPORT", report_content))
         else:

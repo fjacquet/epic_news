@@ -21,7 +21,7 @@ def read_file_content(file_path):
         file_path = os.path.normpath(os.path.join(os.getcwd(), file_path))
 
     try:
-        with open(file_path, 'r', encoding='utf-8') as file:
+        with open(file_path, encoding='utf-8') as file:
             content = file.read()
         return content
     except FileNotFoundError:

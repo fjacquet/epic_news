@@ -10,7 +10,7 @@ import inspect
 import logging
 import time
 from functools import wraps
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from crewai import Process, Task
 
@@ -27,8 +27,8 @@ class OrchestrationStrategy:
     HIERARCHICAL = Process.hierarchical
 
     @staticmethod
-    def determine_optimal_strategy(tasks: List[Task],
-                                  dependencies: Dict[str, List[str]] = None) -> Process:
+    def determine_optimal_strategy(tasks: list[Task],
+                                  dependencies: dict[str, list[str]] = None) -> Process:
         """
         Determines the optimal orchestration strategy based on task dependencies.
         
@@ -58,7 +58,7 @@ class TaskGroup:
     """
     Manages a group of tasks that can be executed with different strategies.
     """
-    def __init__(self, tasks: List[Task], dependencies: Dict[str, List[str]] = None):
+    def __init__(self, tasks: list[Task], dependencies: dict[str, list[str]] = None):
         """
         Initialize a TaskGroup.
         
@@ -118,7 +118,7 @@ def performance_monitor(func):
     return wrapper
 
 
-async def execute_tasks_in_parallel(tasks: List[Task], max_concurrent: int = 3) -> Dict[str, Any]:
+async def execute_tasks_in_parallel(tasks: list[Task], max_concurrent: int = 3) -> dict[str, Any]:
     """
     Execute multiple tasks in parallel with a concurrency limit.
     
@@ -156,8 +156,8 @@ async def execute_tasks_in_parallel(tasks: List[Task], max_concurrent: int = 3) 
 
 
 def optimize_crew_process(crew_module_path: str,
-                         process_type: Optional[Process] = None,
-                         analyze_only: bool = False) -> Dict[str, Any]:
+                         process_type: Process | None = None,
+                         analyze_only: bool = False) -> dict[str, Any]:
     """
     Analyzes and optionally updates a crew's process type.
     

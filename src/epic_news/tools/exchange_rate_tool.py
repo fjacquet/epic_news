@@ -1,5 +1,4 @@
 import os
-from typing import List, Optional, Type
 
 import requests
 from crewai.tools import BaseTool
@@ -14,15 +13,15 @@ class ExchangeRateTool(BaseTool):
         "Fetches the latest exchange rates for specified currencies using the OpenExchangeRates API. "
         "Requires an OPENEXCHANGERATES_API_KEY environment variable."
     )
-    args_schema: Type[BaseModel] = ExchangeRateToolInput
-    api_key: Optional[str] = None
+    args_schema: type[BaseModel] = ExchangeRateToolInput
+    api_key: str | None = None
     base_url: str = "https://openexchangerates.org/api/latest.json"
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.api_key = os.getenv("OPENEXCHANGERATES_API_KEY")
 
-    def _run(self, base_currency: str = "USD", target_currencies: Optional[List[str]] = None) -> str:
+    def _run(self, base_currency: str = "USD", target_currencies: list[str] | None = None) -> str:
         if not self.api_key:
             return "Error: OPENEXCHANGERATES_API_KEY environment variable not set. Please get an API key from openexchangerates.org."
 
@@ -82,4 +81,3 @@ if __name__ == '__main__':
     # Example 4: Error case - API key not set (manually unset for testing this)
     # tool.api_key = None
     # print(tool.run())
-    pass

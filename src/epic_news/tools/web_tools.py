@@ -107,9 +107,8 @@ def get_github_tools():
         if "extra dependencies" in str(e) or "No module named" in str(e):
             # Dependencies not installed, return empty list
             return []
-        else:
-            # Re-raise other errors
-            raise
+        # Re-raise other errors
+        raise
 
 
 def get_pdf_tools():

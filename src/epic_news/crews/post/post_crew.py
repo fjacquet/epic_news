@@ -30,7 +30,7 @@ def read_file_content(file_path: str) -> str:
             file_path = os.path.join(os.getcwd(), file_path)
 
         # Read and return the file content
-        with open(file_path, 'r', encoding='utf-8') as file:
+        with open(file_path, encoding='utf-8') as file:
             return file.read()
     except Exception as e:
         return f"Error reading file: {str(e)}"

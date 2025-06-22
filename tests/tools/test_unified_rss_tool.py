@@ -216,7 +216,7 @@ class TestUnifiedRssTool:
 
         # Check output file
         assert os.path.exists(output_path)
-        with open(output_path, 'r') as f:
+        with open(output_path) as f:
             data = json.load(f)
 
         # Validate structure

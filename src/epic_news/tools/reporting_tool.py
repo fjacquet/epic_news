@@ -1,6 +1,5 @@
 from datetime import datetime
 from pathlib import Path
-from typing import Type
 
 from crewai.tools import BaseTool
 from jinja2 import Environment, FileSystemLoader
@@ -16,7 +15,7 @@ class ReportingToolInput(BaseModel):
 class ReportingTool(BaseTool):
     name: str = "Professional Report Generator"
     description: str = "Generates a professional HTML report from a title and body content using a standardized template."
-    args_schema: Type[BaseModel] = ReportingToolInput
+    args_schema: type[BaseModel] = ReportingToolInput
 
     def _run(self, report_title: str, report_body: str, output_file_path: str) -> str:
         """

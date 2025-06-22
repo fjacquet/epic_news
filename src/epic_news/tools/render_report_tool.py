@@ -18,7 +18,7 @@ from __future__ import annotations
 import datetime as _dt
 import os
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 from crewai.tools import BaseTool
 from jinja2 import Environment, FileSystemLoader, select_autoescape  # type: ignore
@@ -85,7 +85,7 @@ class RenderReportTool(BaseTool):
     # ---------------------------------------------------------------------
     # Internal render helper
     # ---------------------------------------------------------------------
-    def _render(self, title: str, sections: List[Dict[str, Any]], **kwargs: Any) -> str:
+    def _render(self, title: str, sections: list[dict[str, Any]], **kwargs: Any) -> str:
         """Render report_template.html with supplied context."""
         template = self._env.get_template("report_template.html")
         context = {

@@ -1,6 +1,5 @@
 """Pydantic models for finance tools."""
 
-from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -8,11 +7,11 @@ from pydantic import BaseModel, Field
 class ExchangeRateToolInput(BaseModel):
     """Input for ExchangeRateTool."""
 
-    base_currency: Optional[str] = Field(
+    base_currency: str | None = Field(
         default="USD",
         description="The base currency (3-letter ISO code) for exchange rates. Defaults to USD.",
     )
-    target_currencies: Optional[List[str]] = Field(
+    target_currencies: list[str] | None = Field(
         default=None,
         description="A list of target currencies (3-letter ISO codes) to fetch. If None, all available rates for the base currency are returned.",
     )

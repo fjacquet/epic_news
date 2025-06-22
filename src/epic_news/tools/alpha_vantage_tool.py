@@ -8,7 +8,6 @@ and more.
 
 import json
 import os
-from typing import Type
 
 import requests
 from crewai.tools import BaseTool
@@ -36,7 +35,7 @@ class AlphaVantageCompanyOverviewTool(BaseTool):
         "from Alpha Vantage. Use this to get detailed financial metrics like Market Cap, "
         "P/E Ratio, EPS, and more."
     )
-    args_schema: Type[BaseModel] = CompanyOverviewInput
+    args_schema: type[BaseModel] = CompanyOverviewInput
 
     def _run(self, ticker: str) -> str:
         """Execute the tool to fetch company overview data."""

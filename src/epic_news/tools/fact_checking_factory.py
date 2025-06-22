@@ -11,5 +11,4 @@ class FactCheckingToolsFactory:
         """Create a fact-checking tool based on the provider."""
         if provider == "google":
             return GoogleFactCheckTool(**kwargs)
-        else:
-            raise ValueError(f"Unknown fact-checking provider: {provider}")
+        raise ValueError(f"Unknown fact-checking provider: {provider}")

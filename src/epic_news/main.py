@@ -21,7 +21,6 @@ Key functionalities include:
 import datetime
 import os
 import warnings
-from typing import Optional
 
 from crewai.flow import Flow, listen, or_, router, start
 from dotenv import load_dotenv
@@ -186,42 +185,41 @@ class ReceptionFlow(Flow[ContentState]):
         """
         if self.state.selected_crew == "SALES_PROSPECTING":
             return "go_generate_sales_prospecting_report"
-        elif self.state.selected_crew == "HOLIDAY_PLANNER":
+        if self.state.selected_crew == "HOLIDAY_PLANNER":
             return "go_generate_holiday_plan"
-        elif self.state.selected_crew == "POST_ONLY":
+        if self.state.selected_crew == "POST_ONLY":
             # Note: PostOnlyCrew import was removed. This route might be dead code
             # or associated with a crew that needs to be re-evaluated.
             return "go_generate_post_only"
-        elif self.state.selected_crew == "MEETING_PREP":
+        if self.state.selected_crew == "MEETING_PREP":
             return "go_generate_meeting_prep"
-        elif self.state.selected_crew == "LIBRARY":
+        if self.state.selected_crew == "LIBRARY":
             return "go_generate_book_summary"
-        elif self.state.selected_crew == "COOKING":
+        if self.state.selected_crew == "COOKING":
             return "go_generate_recipe"
-        elif self.state.selected_crew == "POEM":
+        if self.state.selected_crew == "POEM":
             return "go_generate_poem"
-        elif self.state.selected_crew == "NEWS":
+        if self.state.selected_crew == "NEWS":
             return "go_generate_news"
-        elif self.state.selected_crew == "LEAD_SCORING":
+        if self.state.selected_crew == "LEAD_SCORING":
             # Note: 'generate_leads' was mentioned as a missing node in plot output.
             # This route might need review if 'generate_leads' step is not defined.
             return "go_generate_leads"
-        elif self.state.selected_crew == "LOCATION":
+        if self.state.selected_crew == "LOCATION":
             # Note: FindLocationCrew was removed. This route is likely dead code.
             return "go_find_location"
-        elif self.state.selected_crew == "OPEN_SOURCE_INTELLIGENCE":
+        if self.state.selected_crew == "OPEN_SOURCE_INTELLIGENCE":
             return "go_generate_osint"
-        elif self.state.selected_crew == "MARKETING_WRITERS":
+        if self.state.selected_crew == "MARKETING_WRITERS":
             return "go_generate_marketing_content"
-        elif self.state.selected_crew == "RSS":
+        if self.state.selected_crew == "RSS":
             return "go_generate_rss_weekly"
-        elif self.state.selected_crew == "FINDAILY":
+        if self.state.selected_crew == "FINDAILY":
             return "go_generate_findaily"
-        else:
-            # Fallback for unhandled or unknown crew types.
-            # Consider logging this event for monitoring.
-            print(f"⚠️ Unknown crew type: {self.state.selected_crew}. Routing to 'go_unknown'.")
-            return "go_unknown"
+        # Fallback for unhandled or unknown crew types.
+        # Consider logging this event for monitoring.
+        print(f"⚠️ Unknown crew type: {self.state.selected_crew}. Routing to 'go_unknown'.")
+        return "go_unknown"
 
     @listen("go_unknown")
     def end_unknown(self):
@@ -640,7 +638,6 @@ class ReceptionFlow(Flow[ContentState]):
         it's not explicitly used in the current implementation, as results are managed
         via `self.state`.
         """
-        pass
         # return "join" # Implicitly returns method name
 
     @listen(or_(
@@ -702,7 +699,7 @@ class ReceptionFlow(Flow[ContentState]):
         # return "send_email" # Implicitly returns method name
 
 
-def kickoff(user_input: Optional[str] = None):
+def kickoff(user_input: str | None = None):
     """
     Initializes and runs the ReceptionFlow.
 

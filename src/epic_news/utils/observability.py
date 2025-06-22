@@ -13,7 +13,7 @@ import re
 import time
 from datetime import datetime
 from functools import wraps
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 # Configure logging
 logging.basicConfig(level=logging.INFO,
@@ -35,8 +35,8 @@ class TraceEvent:
     def __init__(self,
                 event_type: str,
                 source: str,
-                details: Dict[str, Any],
-                timestamp: Optional[float] = None):
+                details: dict[str, Any],
+                timestamp: float | None = None):
         """
         Initialize a trace event.
         
@@ -52,7 +52,7 @@ class TraceEvent:
         self.timestamp = timestamp or time.time()
         self.event_id = hashlib.md5(f"{self.source}:{self.event_type}:{self.timestamp}".encode()).hexdigest()
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """
         Convert the trace event to a dictionary.
         
@@ -69,7 +69,7 @@ class TraceEvent:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'TraceEvent':
+    def from_dict(cls, data: dict[str, Any]) -> 'TraceEvent':
         """
         Create a trace event from a dictionary.
         
@@ -93,7 +93,7 @@ class Tracer:
     """
     Traces events in the system for observability.
     """
-    def __init__(self, trace_id: Optional[str] = None):
+    def __init__(self, trace_id: str | None = None):
         """
         Initialize a tracer.
         
@@ -101,7 +101,7 @@ class Tracer:
             trace_id: ID for the trace (defaults to a timestamp-based ID)
         """
         self.trace_id = trace_id or f"trace_{int(time.time())}"
-        self.events: List[TraceEvent] = []
+        self.events: list[TraceEvent] = []
         self.trace_file = os.path.join(TRACE_DIR, f"{self.trace_id}.json")
 
     def add_event(self, event: TraceEvent) -> None:
@@ -128,8 +128,8 @@ class Tracer:
             f.write(json.dumps(event_dict) + "\n")
 
     def get_events(self,
-                  event_type: Optional[str] = None,
-                  source: Optional[str] = None) -> List[TraceEvent]:
+                  event_type: str | None = None,
+                  source: str | None = None) -> list[TraceEvent]:
         """
         Get events matching the specified criteria.
         
@@ -165,7 +165,7 @@ class Tracer:
         trace_file = os.path.join(TRACE_DIR, f"{trace_id}.json")
 
         if os.path.exists(trace_file):
-            with open(trace_file, "r") as f:
+            with open(trace_file) as f:
                 for line in f:
                     event_dict = json.loads(line)
                     event = TraceEvent.from_dict(event_dict)
@@ -190,11 +190,11 @@ class HallucinationGuard:
         """
         self.confidence_threshold = confidence_threshold
         self.fact_checking_enabled = fact_checking_enabled
-        self.known_facts: Dict[str, Any] = {}
+        self.known_facts: dict[str, Any] = {}
 
     def check_statement(self,
                        statement: str,
-                       context: Dict[str, Any]) -> Dict[str, Any]:
+                       context: dict[str, Any]) -> dict[str, Any]:
         """
         Check a statement for potential hallucinations.
         
@@ -255,8 +255,8 @@ class HallucinationGuard:
 
     def validate_output(self,
                        output: str,
-                       context: Dict[str, Any],
-                       fix_hallucinations: bool = False) -> Dict[str, Any]:
+                       context: dict[str, Any],
+                       fix_hallucinations: bool = False) -> dict[str, Any]:
         """
         Validate an output for hallucinations.
         
@@ -302,7 +302,7 @@ class Dashboard:
     """
     Provides dashboard capabilities for monitoring system activity.
     """
-    def __init__(self, dashboard_id: Optional[str] = None):
+    def __init__(self, dashboard_id: str | None = None):
         """
         Initialize a dashboard.
         
@@ -311,7 +311,7 @@ class Dashboard:
         """
         self.dashboard_id = dashboard_id or f"dashboard_{int(time.time())}"
         self.data_file = os.path.join(DASHBOARD_DATA_DIR, f"{self.dashboard_id}.json")
-        self.metrics: Dict[str, Any] = {
+        self.metrics: dict[str, Any] = {
             "crews": {},
             "agents": {},
             "tasks": {},
@@ -354,8 +354,8 @@ class Dashboard:
             json.dump(self.metrics, f, indent=2)
 
     def get_metrics(self,
-                   category: Optional[str] = None,
-                   name: Optional[str] = None) -> Dict[str, Any]:
+                   category: str | None = None,
+                   name: str | None = None) -> dict[str, Any]:
         """
         Get metrics from the dashboard.
         
@@ -368,10 +368,9 @@ class Dashboard:
         """
         if category and name:
             return self.metrics.get(category, {}).get(name, {})
-        elif category:
+        if category:
             return self.metrics.get(category, {})
-        else:
-            return self.metrics
+        return self.metrics
 
     @classmethod
     def load_dashboard(cls, dashboard_id: str) -> 'Dashboard':
@@ -388,7 +387,7 @@ class Dashboard:
         data_file = os.path.join(DASHBOARD_DATA_DIR, f"{dashboard_id}.json")
 
         if os.path.exists(data_file):
-            with open(data_file, "r") as f:
+            with open(data_file) as f:
                 dashboard.metrics = json.load(f)
 
         return dashboard
@@ -502,7 +501,7 @@ def monitor_agent(dashboard: Dashboard):
     return decorator
 
 
-def guard_output(hallucination_guard: HallucinationGuard, context: Dict[str, Any] = None):
+def guard_output(hallucination_guard: HallucinationGuard, context: dict[str, Any] = None):
     """
     Decorator to guard against hallucinations in function outputs.
     
@@ -554,7 +553,7 @@ def guard_output(hallucination_guard: HallucinationGuard, context: Dict[str, Any
 
 
 # Factory function to get observability tools
-def get_observability_tools(crew_name: str) -> Dict[str, Any]:
+def get_observability_tools(crew_name: str) -> dict[str, Any]:
     """
     Get observability tools for a crew.
     

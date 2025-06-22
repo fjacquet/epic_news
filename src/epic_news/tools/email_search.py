@@ -37,13 +37,12 @@ class DelegatingEmailSearchTool(BaseTool):
                 hunter_tool = HunterIOTool()
                 # The HunterIOTool from hunter_io_tool.py expects 'domain' in its _run method
                 return hunter_tool._run(domain=query)
-            elif provider == "serper":
+            if provider == "serper":
                 serper_tool = SerperEmailSearchTool()
                 # The SerperEmailSearchTool from serper_email_search_tool.py expects 'query'
                 return serper_tool._run(query=query)
-            else:
-                logger.error(f"Invalid email search provider: {provider}")
-                return json.dumps({"error": f"Invalid provider: '{provider}'. Must be 'hunter' or 'serper'."})
+            logger.error(f"Invalid email search provider: {provider}")
+            return json.dumps({"error": f"Invalid provider: '{provider}'. Must be 'hunter' or 'serper'."})
         except ValueError as ve:
             # Catches API key errors from underlying tools
             logger.error(f"Initialization error for provider '{provider}': {ve}")

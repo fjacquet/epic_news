@@ -8,7 +8,7 @@ to avoid repeated requests and respect rate limits.
 import json
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 
 class CacheManager:
@@ -32,7 +32,7 @@ class CacheManager:
         safe_key = "".join(c for c in key if c.isalnum() or c in ('-', '_', '.')).rstrip()
         return self.cache_dir / f"{safe_key}.json"
 
-    def get(self, key: str, ttl: Optional[int] = None) -> Optional[Any]:
+    def get(self, key: str, ttl: int | None = None) -> Any | None:
         """
         Get a value from cache if it exists and hasn't expired.
         
@@ -49,7 +49,7 @@ class CacheManager:
             return None
 
         try:
-            with open(cache_path, 'r') as f:
+            with open(cache_path) as f:
                 cache_data = json.load(f)
 
             # Check if cache has expired
@@ -95,7 +95,7 @@ class CacheManager:
         for cache_file in self.cache_dir.glob("*.json"):
             cache_file.unlink()
 
-    def clear_expired(self, ttl: Optional[int] = None) -> int:
+    def clear_expired(self, ttl: int | None = None) -> int:
         """
         Clear expired cache entries.
         
@@ -110,7 +110,7 @@ class CacheManager:
 
         for cache_file in self.cache_dir.glob("*.json"):
             try:
-                with open(cache_file, 'r') as f:
+                with open(cache_file) as f:
                     cache_data = json.load(f)
 
                 cached_time = datetime.fromisoformat(cache_data['timestamp'])

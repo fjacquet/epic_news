@@ -26,7 +26,6 @@ CMC_BASE_URL = "https://pro-api.coinmarketcap.com/v1"
 
 class CoinMarketCapException(Exception):
     """Exception raised for CoinMarketCap API errors."""
-    pass
 
 
 class CoinMarketCapInfoTool(BaseTool):

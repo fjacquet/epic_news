@@ -15,7 +15,7 @@ load_dotenv()
 
 
 @CrewBase
-class SalesProspectingCrew():
+class SalesProspectingCrew:
     """Sales Prospecting crew for finding sales contacts at target companies"""
     agents_config = 'config/agents.yaml'
     tasks_config = 'config/tasks.yaml'

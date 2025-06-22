@@ -44,7 +44,7 @@ class TestReportingTool:
         output_path = Path(self.test_output_path)
         assert output_path.exists()
 
-        with open(output_path, "r", encoding="utf-8") as f:
+        with open(output_path, encoding="utf-8") as f:
             content = f.read()
 
         assert "<h1>Test Report 📰</h1>" in content
@@ -98,7 +98,7 @@ class TestReportingTool:
         output_path = Path(self.test_output_path)
         assert output_path.exists()
 
-        with open(output_path, "r", encoding="utf-8") as f:
+        with open(output_path, encoding="utf-8") as f:
             content = f.read()
 
         assert "<!DOCTYPE html>" in content

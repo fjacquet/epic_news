@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Type, Union
+from typing import Union
 
 from crewai.tools import BaseTool
 from pydantic import BaseModel
@@ -21,7 +21,7 @@ class BatchArticleScraperTool(BaseTool):
         "Accepts a RssFeeds object with a list of RSS feeds, iterates through each article, "
         "scrapes its content using ScrapeNinjaTool, and returns the updated RssFeeds object."
     )
-    args_schema: Type[BaseModel] = RssFeeds
+    args_schema: type[BaseModel] = RssFeeds
     scrape_ninja_tool: ScrapeNinjaTool = ScrapeNinjaTool()
 
     def _run(self, input_data=None, **kwargs) -> str:
@@ -71,8 +71,7 @@ class BatchArticleScraperTool(BaseTool):
             if hasattr(feeds_obj, 'model_dump_json'):
                 return feeds_obj.model_dump_json()
             # Fall back to the older method for Pydantic v1
-            else:
-                return feeds_obj.json()
+            return feeds_obj.json()
         except Exception as e:
             logger.error(f"Error serializing RssFeeds object: {e}")
             # Last resort fallback
@@ -108,8 +107,7 @@ class BatchArticleScraperTool(BaseTool):
                 if hasattr(RssFeeds, 'model_validate'):
                     return RssFeeds.model_validate(input_data)
                 # Fall back to the older method for Pydantic v1
-                else:
-                    return RssFeeds.parse_obj(input_data)
+                return RssFeeds.parse_obj(input_data)
             except Exception as e:
                 logger.error(f"Failed to convert dict to RssFeeds: {e}")
                 raise ValueError(f"Invalid RssFeeds format: {e}")

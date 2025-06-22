@@ -9,7 +9,7 @@ from src.epic_news.tools.unified_rss_tool import UnifiedRssTool
 
 
 @CrewBase
-class RssWeeklyCrew():
+class RssWeeklyCrew:
     """RssWeeklyCrew crew - Simplified version using UnifiedRssTool"""
 
     agents_config = 'config/agents.yaml'

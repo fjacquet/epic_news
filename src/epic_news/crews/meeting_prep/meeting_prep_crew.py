@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, List
+from typing import Any
 
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
@@ -25,7 +25,7 @@ load_dotenv()
 
 
 @CrewBase
-class MeetingPrepCrew():
+class MeetingPrepCrew:
     """MeetingPrep crew for preparing comprehensive meeting briefings.
     
     This crew coordinates multiple agents to research, analyze, and prepare
@@ -237,7 +237,7 @@ class MeetingPrepCrew():
             output_pydantic=ReportHTMLOutput,
         )
 
-    def _get_task_context(self) -> List[Dict[str, Any]]:
+    def _get_task_context(self) -> list[dict[str, Any]]:
         """Prepare context data for tasks.
         
         This helper method centralizes the creation of context data for tasks,

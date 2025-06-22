@@ -1,5 +1,4 @@
 """Pydantic models for report generation tools."""
-from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -14,18 +13,18 @@ class ReportImage(BaseModel):
     """Schema for image objects."""
     src: str = Field(..., description="Image source URL or data URI")
     alt: str = Field("", description="Alternative text for accessibility")
-    caption: Optional[str] = Field(None, description="Optional image caption")
+    caption: str | None = Field(None, description="Optional image caption")
 
 
 class RenderReportToolSchema(BaseModel):
     """Main schema for RenderReportTool inputs."""
     title: str = Field(..., description="Report title")
-    sections: List[ReportSection] = Field(
+    sections: list[ReportSection] = Field(
         ..., description="List of sections with headings and content"
     )
-    images: Optional[List[ReportImage]] = Field(
+    images: list[ReportImage] | None = Field(
         None, description="Optional list of images with metadata"
     )
-    citations: Optional[List[str]] = Field(
+    citations: list[str] | None = Field(
         None, description="Optional list of citation strings or HTML links"
     )

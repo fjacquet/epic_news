@@ -9,7 +9,7 @@ import io
 import json
 import os
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -43,7 +43,7 @@ class DashboardGenerator:
         # Set up Jinja2 environment
         self.env = Environment(loader=FileSystemLoader(TEMPLATE_DIR))
 
-    def _load_metrics(self) -> Dict[str, Any]:
+    def _load_metrics(self) -> dict[str, Any]:
         """
         Load metrics from the data file.
         
@@ -51,11 +51,11 @@ class DashboardGenerator:
             Dict[str, Any]: Loaded metrics
         """
         if os.path.exists(self.data_file):
-            with open(self.data_file, "r") as f:
+            with open(self.data_file) as f:
                 return json.load(f)
         return {}
 
-    def _generate_crew_charts(self) -> List[Dict[str, str]]:
+    def _generate_crew_charts(self) -> list[dict[str, str]]:
         """
         Generate charts for crew metrics.
         
@@ -97,7 +97,7 @@ class DashboardGenerator:
 
         return charts
 
-    def _generate_agent_charts(self) -> List[Dict[str, str]]:
+    def _generate_agent_charts(self) -> list[dict[str, str]]:
         """
         Generate charts for agent metrics.
         
@@ -139,7 +139,7 @@ class DashboardGenerator:
 
         return charts
 
-    def _generate_task_charts(self) -> List[Dict[str, str]]:
+    def _generate_task_charts(self) -> list[dict[str, str]]:
         """
         Generate charts for task metrics.
         
@@ -211,7 +211,7 @@ class DashboardGenerator:
 
         return charts
 
-    def _generate_tool_charts(self) -> List[Dict[str, str]]:
+    def _generate_tool_charts(self) -> list[dict[str, str]]:
         """
         Generate charts for tool metrics.
         
@@ -253,7 +253,7 @@ class DashboardGenerator:
 
         return charts
 
-    def _generate_system_charts(self) -> List[Dict[str, str]]:
+    def _generate_system_charts(self) -> list[dict[str, str]]:
         """
         Generate charts for system metrics.
         
@@ -412,7 +412,7 @@ class DashboardGenerator:
         return self.output_file
 
 
-def generate_all_dashboards() -> List[str]:
+def generate_all_dashboards() -> list[str]:
     """
     Generate dashboards for all available dashboard data.
     

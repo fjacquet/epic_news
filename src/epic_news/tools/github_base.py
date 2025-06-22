@@ -1,6 +1,5 @@
 """Base classes and common functionality for GitHub-related tools."""
 import logging
-from typing import Optional
 
 import requests
 from requests.adapters import HTTPAdapter
@@ -12,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 class GitHubBaseTool:
     """Base class for GitHub tools with common functionality."""
-    api_key: Optional[str] = None
+    api_key: str | None = None
     session: requests.Session = None
 
     def __init__(self, api_key: str = None, **data):
@@ -40,7 +39,7 @@ class GitHubBaseTool:
         session.mount("https://", adapter)
         return session
 
-    def _make_request(self, method: str, url: str, **kwargs) -> Optional[requests.Response]:
+    def _make_request(self, method: str, url: str, **kwargs) -> requests.Response | None:
         """Make an HTTP request with error handling."""
         try:
             response = self.session.request(
@@ -55,7 +54,7 @@ class GitHubBaseTool:
             logger.error(f"GitHub API request failed: {e}")
             return None
 
-    def _extract_github_org_from_url(self, url: str) -> Optional[str]:
+    def _extract_github_org_from_url(self, url: str) -> str | None:
         """Extract organization name from GitHub URL."""
         import re
         pattern = r"github\.com/(?:orgs/)?([^/]+)/?"

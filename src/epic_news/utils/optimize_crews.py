@@ -13,7 +13,7 @@ import inspect
 import logging
 import os
 import sys
-from typing import Any, Dict, List
+from typing import Any
 
 from tabulate import tabulate
 
@@ -27,7 +27,7 @@ logging.basicConfig(level=logging.INFO,
                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("optimize_crews")
 
-def discover_crews() -> List[str]:
+def discover_crews() -> list[str]:
     """
     Discover all crew modules in the project.
     
@@ -47,7 +47,7 @@ def discover_crews() -> List[str]:
 
     return crew_modules
 
-def analyze_all_crews() -> Dict[str, Dict[str, Any]]:
+def analyze_all_crews() -> dict[str, dict[str, Any]]:
     """
     Analyze all crews in the project.
     
@@ -71,7 +71,7 @@ def analyze_all_crews() -> Dict[str, Dict[str, Any]]:
     return results
 
 
-def analyze_crew_module(module_path: str) -> Dict[str, Any]:
+def analyze_crew_module(module_path: str) -> dict[str, Any]:
     """
     Analyze a crew module directly without using optimize_crew_process.
     
@@ -146,7 +146,7 @@ def analyze_crew_module(module_path: str) -> Dict[str, Any]:
         logger.error(f"Error importing module {module_path}: {str(e)}")
         return {}
 
-def display_results(results: Dict[str, Dict[str, Any]]) -> None:
+def display_results(results: dict[str, dict[str, Any]]) -> None:
     """
     Display analysis results in a tabular format.
     

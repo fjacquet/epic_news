@@ -11,7 +11,7 @@ from pathlib import Path
 
 def fix_imports_in_file(file_path):
     """Fix BaseTool imports in a single file."""
-    with open(file_path, 'r') as f:
+    with open(file_path) as f:
         content = f.read()
 
     # Define the patterns to search for

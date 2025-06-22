@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Union
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -50,10 +50,10 @@ class MetricValue(BaseModel):
     value: Union[float, int, str, bool, datetime] = Field(
         ..., description="The current value of the metric"
     )
-    previous_value: Optional[Union[float, int, str, bool, datetime]] = Field(
+    previous_value: Union[float, int, str, bool, datetime] | None = Field(
         None, description="The previous value of the metric for comparison"
     )
-    change_percentage: Optional[float] = Field(
+    change_percentage: float | None = Field(
         None, description="Percentage change from previous value"
     )
     trend: TrendDirection = Field(
@@ -82,10 +82,9 @@ class MetricValue(BaseModel):
             if change is not None:
                 if change > 5:
                     return TrendDirection.UP
-                elif change < -5:
+                if change < -5:
                     return TrendDirection.DOWN
-                else:
-                    return TrendDirection.STABLE
+                return TrendDirection.STABLE
         return v
 
 
@@ -97,16 +96,16 @@ class Metric(BaseModel):
     description: str = Field(..., description="Description of what the metric measures")
     value: MetricValue = Field(..., description="Current and historical values")
     type: MetricType = Field(..., description="Type of metric")
-    unit: Optional[str] = Field(None, description="Unit of measurement (e.g., '$', '%', 'days')")
-    source: Optional[str] = Field(None, description="Source of the metric data")
+    unit: str | None = Field(None, description="Unit of measurement (e.g., '$', '%', 'days')")
+    source: str | None = Field(None, description="Source of the metric data")
     timestamp: datetime = Field(default_factory=datetime.now, description="When the metric was recorded")
-    target: Optional[Union[float, int, str, bool]] = Field(
+    target: Union[float, int, str, bool] | None = Field(
         None, description="Target value for this metric if applicable"
     )
     is_key_metric: bool = Field(
         default=False, description="Whether this is a key metric to highlight"
     )
-    metadata: Dict[str, Any] = Field(
+    metadata: dict[str, Any] = Field(
         default_factory=dict, description="Additional metadata about this metric"
     )
 
@@ -120,10 +119,10 @@ class KPI(Metric):
     target: Union[float, int, str, bool] = Field(
         ..., description="Target value for this KPI (required)"
     )
-    target_date: Optional[datetime] = Field(
+    target_date: datetime | None = Field(
         None, description="Date by which the target should be reached"
     )
-    progress_percentage: Optional[float] = Field(
+    progress_percentage: float | None = Field(
         None, description="Percentage progress toward target"
     )
     status: str = Field(
@@ -152,12 +151,11 @@ class KPI(Metric):
             if progress is not None:
                 if progress >= 100:
                     return "achieved"
-                elif progress >= 75:
+                if progress >= 75:
                     return "on track"
-                elif progress >= 50:
+                if progress >= 50:
                     return "needs attention"
-                else:
-                    return "at risk"
+                return "at risk"
         return v
 
 
@@ -166,7 +164,7 @@ class DataPoint(BaseModel):
 
     label: str = Field(..., description="Label for this data point")
     value: Any = Field(..., description="Value of this data point")
-    metadata: Dict[str, Any] = Field(
+    metadata: dict[str, Any] = Field(
         default_factory=dict, description="Additional metadata for this data point"
     )
 
@@ -175,9 +173,9 @@ class DataSeries(BaseModel):
     """A series of related data points."""
 
     name: str = Field(..., description="Name of this data series")
-    description: Optional[str] = Field(None, description="Description of this data series")
-    points: List[DataPoint] = Field(..., description="Data points in this series")
-    metadata: Dict[str, Any] = Field(
+    description: str | None = Field(None, description="Description of this data series")
+    points: list[DataPoint] = Field(..., description="Data points in this series")
+    metadata: dict[str, Any] = Field(
         default_factory=dict, description="Additional metadata for this series"
     )
 
@@ -186,10 +184,10 @@ class DataTable(BaseModel):
     """A structured table of data with columns and rows."""
 
     name: str = Field(..., description="Name of this data table")
-    description: Optional[str] = Field(None, description="Description of this data table")
-    columns: List[str] = Field(..., description="Column headers")
-    rows: List[List[Any]] = Field(..., description="Row data")
-    metadata: Dict[str, Any] = Field(
+    description: str | None = Field(None, description="Description of this data table")
+    columns: list[str] = Field(..., description="Column headers")
+    rows: list[list[Any]] = Field(..., description="Row data")
+    metadata: dict[str, Any] = Field(
         default_factory=dict, description="Additional metadata for this table"
     )
 
@@ -199,24 +197,24 @@ class StructuredDataReport(BaseModel):
 
     title: str = Field(..., description="Title of the report")
     description: str = Field(..., description="Description of what this report covers")
-    metrics: List[Metric] = Field(
+    metrics: list[Metric] = Field(
         default_factory=list, description="List of metrics included in this report"
     )
-    kpis: List[KPI] = Field(
+    kpis: list[KPI] = Field(
         default_factory=list, description="List of KPIs included in this report"
     )
-    data_series: List[DataSeries] = Field(
+    data_series: list[DataSeries] = Field(
         default_factory=list, description="List of data series included in this report"
     )
-    data_tables: List[DataTable] = Field(
+    data_tables: list[DataTable] = Field(
         default_factory=list, description="List of data tables included in this report"
     )
     timestamp: datetime = Field(
         default_factory=datetime.now, description="When this report was generated"
     )
-    metadata: Dict[str, Any] = Field(
+    metadata: dict[str, Any] = Field(
         default_factory=dict, description="Additional metadata for this report"
     )
-    html: Optional[str] = Field(
+    html: str | None = Field(
         None, description="HTML representation of this report if available"
     )

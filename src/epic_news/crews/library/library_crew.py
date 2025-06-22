@@ -37,7 +37,7 @@ load_dotenv()
 
 
 @CrewBase
-class LibraryCrew():
+class LibraryCrew:
     """Library expertise crew for finding books and generating book summaries.
     
     This crew follows the epic_news design principles of being configuration-driven,

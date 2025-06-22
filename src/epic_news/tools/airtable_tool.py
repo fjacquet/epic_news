@@ -1,6 +1,6 @@
 import json
 import os
-from typing import Any, Dict, Type
+from typing import Any
 
 from crewai.tools import BaseTool
 from pyairtable import Table
@@ -15,7 +15,7 @@ class AirtableReaderTool(BaseTool):
         "A tool for reading all records from a specified Airtable table. "
         "It requires the base ID and table name."
     )
-    args_schema: Type[BaseModel] = AirtableReaderToolInput
+    args_schema: type[BaseModel] = AirtableReaderToolInput
 
     def _run(self, base_id: str, table_name: str) -> str:
         """Run the Airtable tool to read all records."""
@@ -36,9 +36,9 @@ class AirtableTool(BaseTool):
         "A tool for creating a new record in a specified Airtable table. "
         "It requires the base ID, table name, and the data for the new record."
     )
-    args_schema: Type[BaseModel] = AirtableToolInput
+    args_schema: type[BaseModel] = AirtableToolInput
 
-    def _run(self, base_id: str, table_name: str, data: Dict[str, Any]) -> str:
+    def _run(self, base_id: str, table_name: str, data: dict[str, Any]) -> str:
         """Run the Airtable tool to create a new record."""
         try:
             api_key = os.getenv('AIRTABLE_API_KEY')

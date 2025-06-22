@@ -14,7 +14,6 @@ import json
 import os
 import time
 import urllib.parse
-from typing import Dict, Type
 
 import requests
 from crewai.tools import BaseTool
@@ -34,7 +33,7 @@ class KrakenTickerInfoTool(BaseTool):
 
     name: str = "Kraken Ticker Information"
     description: str = "Fetches real-time ticker information for a specific cryptocurrency pair from Kraken."
-    args_schema: Type[BaseModel] = KrakenTickerInfoInput
+    args_schema: type[BaseModel] = KrakenTickerInfoInput
 
     def _run(self, pair: str) -> str:
         """Execute the tool to fetch ticker data."""
@@ -88,9 +87,9 @@ class KrakenAssetListTool(BaseTool):
 
     name: str = "Kraken Asset List"
     description: str = "Fetches your account's asset balances from Kraken, including asset names and quantities."
-    args_schema: Type[BaseModel] = KrakenAssetListInput
+    args_schema: type[BaseModel] = KrakenAssetListInput
 
-    def _get_kraken_signature(self, urlpath: str, data: Dict, secret: str) -> str:
+    def _get_kraken_signature(self, urlpath: str, data: dict, secret: str) -> str:
         """
         Create authentication signature for Kraken API private endpoints.
         """

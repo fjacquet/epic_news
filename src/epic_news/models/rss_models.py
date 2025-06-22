@@ -1,4 +1,3 @@
-from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -15,17 +14,17 @@ class Article(BaseModel):
     title: str
     link: str
     published: str
-    content: Optional[str] = None
+    content: str | None = None
 
 
 class FeedWithArticles(BaseModel):
     """Represents a single RSS feed and its list of articles."""
 
     feed_url: str
-    articles: List[Article]
+    articles: list[Article]
 
 
 class RssFeeds(BaseModel):
     """A list of RSS feeds, each with its recent articles."""
 
-    feeds: List[FeedWithArticles]
+    feeds: list[FeedWithArticles]

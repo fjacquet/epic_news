@@ -1,5 +1,4 @@
 import xml.etree.ElementTree as ET
-from typing import List, Type
 
 from crewai.tools import BaseTool
 from pydantic import BaseModel, Field
@@ -15,9 +14,9 @@ class OpmlParserToolSchema(BaseModel):
 class OpmlParserTool(BaseTool):
     name: str = "OPML Parser"
     description: str = "Parses an OPML file to extract RSS feed URLs."
-    args_schema: Type[BaseModel] = OpmlParserToolSchema
+    args_schema: type[BaseModel] = OpmlParserToolSchema
 
-    def _run(self, opml_file_path: str) -> List[str]:
+    def _run(self, opml_file_path: str) -> list[str]:
         """Parses the OPML file and extracts all xmlUrl attributes."""
         try:
             tree = ET.parse(opml_file_path)

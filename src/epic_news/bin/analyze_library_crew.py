@@ -29,7 +29,7 @@ def analyze_html_file(html_path):
         return
 
     try:
-        with open(html_path, 'r', encoding='utf-8') as f:
+        with open(html_path, encoding='utf-8') as f:
             content = f.read()
 
         # Parse HTML with BeautifulSoup

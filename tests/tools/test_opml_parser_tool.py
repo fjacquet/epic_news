@@ -13,7 +13,7 @@ def tool():
 
 def test_successful_parsing(tool):
     """Test that the tool correctly parses a valid OPML file."""
-    opml_file_path = os.path.abspath('src/epic_news/crews/rss_weekly/data/feedly.opml')
+    opml_file_path = os.path.abspath('data/feedly.opml')
     urls = tool._run(opml_file_path=opml_file_path)
 
     assert isinstance(urls, list)

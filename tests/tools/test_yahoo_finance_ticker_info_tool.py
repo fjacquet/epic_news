@@ -26,8 +26,17 @@ def test_tool_instantiation(ticker_info_tool_instance):
 
 
 # --- Test _run Method ---
-@patch("epic_news.tools.yahoo_finance_ticker_info_tool.yf.Ticker")
-def test_run_success_stock(mock_yfinance_ticker, ticker_info_tool_instance):
+@patch("src.epic_news.tools.yahoo_finance_ticker_info_tool.get_cache_manager")
+@patch("src.epic_news.tools.yahoo_finance_ticker_info_tool.yf.Ticker")
+def test_run_success_stock(mock_yfinance_ticker, mock_get_cache_manager, ticker_info_tool_instance):
+    # Mock the cache manager to return None (no cached result)
+    mock_cache = MagicMock()
+    mock_cache.get.return_value = None  # No cached result
+    mock_get_cache_manager.return_value = mock_cache
+    
+    ticker = "AAPL"
+
+    # Mock the yfinance Ticker object and its info property
     mock_ticker_instance = MagicMock()
     mock_ticker_instance.info = {
         "shortName": "Apple Inc.",
@@ -46,7 +55,7 @@ def test_run_success_stock(mock_yfinance_ticker, ticker_info_tool_instance):
     }
     mock_yfinance_ticker.return_value = mock_ticker_instance
 
-    result_str = ticker_info_tool_instance._run(ticker="AAPL")
+    result_str = ticker_info_tool_instance._run(ticker=ticker)
     result_data = json.loads(result_str)
 
     expected_data = {
@@ -69,8 +78,17 @@ def test_run_success_stock(mock_yfinance_ticker, ticker_info_tool_instance):
     mock_yfinance_ticker.assert_called_once_with("AAPL")
 
 
-@patch("epic_news.tools.yahoo_finance_ticker_info_tool.yf.Ticker")
-def test_run_success_etf(mock_yfinance_ticker, ticker_info_tool_instance):
+@patch("src.epic_news.tools.yahoo_finance_ticker_info_tool.get_cache_manager")
+@patch("src.epic_news.tools.yahoo_finance_ticker_info_tool.yf.Ticker")
+def test_run_success_etf(mock_yfinance_ticker, mock_get_cache_manager, ticker_info_tool_instance):
+    # Mock the cache manager to return None (no cached result)
+    mock_cache = MagicMock()
+    mock_cache.get.return_value = None  # No cached result
+    mock_get_cache_manager.return_value = mock_cache
+    
+    ticker = "VTI"
+
+    # Mock the yfinance Ticker object and its info property
     mock_ticker_instance = MagicMock()
     mock_ticker_instance.info = {
         "shortName": "Vanguard Total Stock Market ETF",
@@ -86,7 +104,7 @@ def test_run_success_etf(mock_yfinance_ticker, ticker_info_tool_instance):
     }
     mock_yfinance_ticker.return_value = mock_ticker_instance
 
-    result_str = ticker_info_tool_instance._run(ticker="VTI")
+    result_str = ticker_info_tool_instance._run(ticker=ticker)
     result_data = json.loads(result_str)
 
     expected_data = {
@@ -105,8 +123,17 @@ def test_run_success_etf(mock_yfinance_ticker, ticker_info_tool_instance):
     mock_yfinance_ticker.assert_called_once_with("VTI")
 
 
-@patch("epic_news.tools.yahoo_finance_ticker_info_tool.yf.Ticker")
-def test_run_success_crypto(mock_yfinance_ticker, ticker_info_tool_instance):
+@patch("src.epic_news.tools.yahoo_finance_ticker_info_tool.get_cache_manager")
+@patch("src.epic_news.tools.yahoo_finance_ticker_info_tool.yf.Ticker")
+def test_run_success_crypto(mock_yfinance_ticker, mock_get_cache_manager, ticker_info_tool_instance):
+    # Mock the cache manager to return None (no cached result)
+    mock_cache = MagicMock()
+    mock_cache.get.return_value = None  # No cached result
+    mock_get_cache_manager.return_value = mock_cache
+    
+    ticker = "BTC-USD"
+
+    # Mock the yfinance Ticker object and its info property
     mock_ticker_instance = MagicMock()
     mock_ticker_instance.info = {
         "shortName": "Bitcoin USD",
@@ -121,7 +148,7 @@ def test_run_success_crypto(mock_yfinance_ticker, ticker_info_tool_instance):
     }
     mock_yfinance_ticker.return_value = mock_ticker_instance
 
-    result_str = ticker_info_tool_instance._run(ticker="BTC-USD")
+    result_str = ticker_info_tool_instance._run(ticker=ticker)
     result_data = json.loads(result_str)
 
     expected_data = {
@@ -139,8 +166,17 @@ def test_run_success_crypto(mock_yfinance_ticker, ticker_info_tool_instance):
     mock_yfinance_ticker.assert_called_once_with("BTC-USD")
 
 
-@patch("epic_news.tools.yahoo_finance_ticker_info_tool.yf.Ticker")
-def test_run_success_with_regular_market_price(mock_yfinance_ticker, ticker_info_tool_instance):
+@patch("src.epic_news.tools.yahoo_finance_ticker_info_tool.get_cache_manager")
+@patch("src.epic_news.tools.yahoo_finance_ticker_info_tool.yf.Ticker")
+def test_run_success_with_regular_market_price(mock_yfinance_ticker, mock_get_cache_manager, ticker_info_tool_instance):
+    # Mock the cache manager to return None (no cached result)
+    mock_cache = MagicMock()
+    mock_cache.get.return_value = None  # No cached result
+    mock_get_cache_manager.return_value = mock_cache
+    
+    ticker = "TEST"
+
+    # Mock the yfinance Ticker object and its info property
     mock_ticker_instance = MagicMock()
     mock_ticker_instance.info = {
         "shortName": "Test Ticker",
@@ -150,15 +186,24 @@ def test_run_success_with_regular_market_price(mock_yfinance_ticker, ticker_info
     }
     mock_yfinance_ticker.return_value = mock_ticker_instance
 
-    result_str = ticker_info_tool_instance._run(ticker="TEST")
+    result_str = ticker_info_tool_instance._run(ticker=ticker)
     result_data = json.loads(result_str)
 
     assert result_data["current_price"] == 99.00
     assert result_data["name"] == "Test Ticker"
 
 
-@patch("epic_news.tools.yahoo_finance_ticker_info_tool.yf.Ticker")
-def test_run_minimal_data(mock_yfinance_ticker, ticker_info_tool_instance):
+@patch("src.epic_news.tools.yahoo_finance_ticker_info_tool.get_cache_manager")
+@patch("src.epic_news.tools.yahoo_finance_ticker_info_tool.yf.Ticker")
+def test_run_minimal_data(mock_yfinance_ticker, mock_get_cache_manager, ticker_info_tool_instance):
+    # Mock the cache manager to return None (no cached result)
+    mock_cache = MagicMock()
+    mock_cache.get.return_value = None  # No cached result
+    mock_get_cache_manager.return_value = mock_cache
+    
+    ticker = "MINI"
+
+    # Mock the yfinance Ticker object and its info property
     mock_ticker_instance = MagicMock()
     mock_ticker_instance.info = {
         "shortName": "Minimal Corp",
@@ -167,7 +212,7 @@ def test_run_minimal_data(mock_yfinance_ticker, ticker_info_tool_instance):
     }
     mock_yfinance_ticker.return_value = mock_ticker_instance
 
-    result_str = ticker_info_tool_instance._run(ticker="MINI")
+    result_str = ticker_info_tool_instance._run(ticker=ticker)
     result_data = json.loads(result_str)
 
     expected_data = {
@@ -180,26 +225,42 @@ def test_run_minimal_data(mock_yfinance_ticker, ticker_info_tool_instance):
     assert len(result_data.keys()) == 3
 
 
-@patch("epic_news.tools.yahoo_finance_ticker_info_tool.yf.Ticker")
-def test_run_yfinance_exception(mock_yfinance_ticker, ticker_info_tool_instance):
+@patch("src.epic_news.tools.yahoo_finance_ticker_info_tool.get_cache_manager")
+@patch("src.epic_news.tools.yahoo_finance_ticker_info_tool.yf.Ticker")
+def test_run_yfinance_exception(mock_yfinance_ticker, mock_get_cache_manager, ticker_info_tool_instance):
+    # Mock the cache manager to return None (no cached result)
+    mock_cache = MagicMock()
+    mock_cache.get.return_value = None  # No cached result
+    mock_get_cache_manager.return_value = mock_cache
+    
+    ticker = "ERROR"
+
     mock_yfinance_ticker.side_effect = Exception("Test yfinance error")
 
-    result_str = ticker_info_tool_instance._run(ticker="ERROR")
+    result_str = ticker_info_tool_instance._run(ticker=ticker)
     result_data = json.loads(result_str)
 
     assert "error" in result_data
     assert (
-        result_data["error"] == "Failed to get ticker info for ERROR: Test yfinance error"
+        result_data["error"] == "Error fetching ticker info for ERROR: Test yfinance error"
     )
 
 
-@patch("epic_news.tools.yahoo_finance_ticker_info_tool.yf.Ticker")
-def test_run_invalid_ticker_empty_info(mock_yfinance_ticker, ticker_info_tool_instance):
+@patch("src.epic_news.tools.yahoo_finance_ticker_info_tool.get_cache_manager")
+@patch("src.epic_news.tools.yahoo_finance_ticker_info_tool.yf.Ticker")
+def test_run_invalid_ticker_empty_info(mock_yfinance_ticker, mock_get_cache_manager, ticker_info_tool_instance):
+    # Mock the cache manager to return None (no cached result)
+    mock_cache = MagicMock()
+    mock_cache.get.return_value = None  # No cached result
+    mock_get_cache_manager.return_value = mock_cache
+    
+    ticker = "INVALID"
+
     mock_ticker_instance = MagicMock()
     mock_ticker_instance.info = {}  # yfinance returns empty dict for some invalid tickers
     mock_yfinance_ticker.return_value = mock_ticker_instance
 
-    result_str = ticker_info_tool_instance._run(ticker="INVALID")
+    result_str = ticker_info_tool_instance._run(ticker=ticker)
     result_data = json.loads(result_str)
 
     # Only symbol should be present as all other fields default to N/A and are removed

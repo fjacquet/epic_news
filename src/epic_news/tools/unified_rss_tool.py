@@ -5,10 +5,10 @@ import sys
 import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import List, Optional, Set, Type
 
 import feedparser
 from crewai.tools import BaseTool
+from dateutil import parser
 from newspaper import Article as NewspaperArticle
 from pydantic import BaseModel, Field
 
@@ -50,7 +50,7 @@ class UnifiedRssTool(BaseTool):
         "scrapes their content, and saves the results to a JSON file. "
         "The tool handles the entire pipeline from OPML parsing to content scraping."
     )
-    args_schema: Type[BaseModel] = UnifiedRssToolInput
+    args_schema: type[BaseModel] = UnifiedRssToolInput
     scrape_ninja_tool: ScrapeNinjaTool = ScrapeNinjaTool()
 
     def _run(
@@ -141,7 +141,7 @@ class UnifiedRssTool(BaseTool):
             logger.error(error_msg)
             return error_msg
 
-    def _parse_opml_file(self, opml_file_path: str) -> List[str]:
+    def _parse_opml_file(self, opml_file_path: str) -> list[str]:
         """
         Parse the OPML file and extract all RSS feed URLs.
         
@@ -175,8 +175,8 @@ class UnifiedRssTool(BaseTool):
         self,
         feed_url: str,
         cutoff_date: datetime,
-        invalid_sources: Set[str]
-    ) -> List[Article]:
+        invalid_sources: set[str]
+    ) -> list[Article]:
         """Fetch articles from a feed URL and filter by date."""
         try:
             logger = logging.getLogger(__name__)
@@ -283,7 +283,7 @@ class UnifiedRssTool(BaseTool):
             invalid_sources.add(feed_url)
             return []
 
-    def _scrape_article_content(self, url: str) -> Optional[str]:
+    def _scrape_article_content(self, url: str) -> str | None:
         """
         Scrape the content of an article using either Newspaper3k or ScrapeNinjaTool.
         

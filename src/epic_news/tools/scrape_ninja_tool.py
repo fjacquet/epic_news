@@ -1,6 +1,5 @@
 import json
 import os
-from typing import Optional, Type
 
 import requests
 from crewai.tools import BaseTool
@@ -17,8 +16,8 @@ class ScrapeNinjaTool(BaseTool):
     """Tool for scraping website content using the ScrapeNinja API."""
     name: str = "ScrapeNinja"
     description: str = "Scrapes website content using the ScrapeNinja API with advanced options"
-    args_schema: Type[BaseModel] = ScrapeNinjaInput
-    api_key: Optional[str] = None
+    args_schema: type[BaseModel] = ScrapeNinjaInput
+    api_key: str | None = None
 
     def __init__(self, **data):
         """Initialize with API key from environment."""
