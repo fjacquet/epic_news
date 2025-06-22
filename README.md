@@ -11,6 +11,7 @@ Welcome to Epic News Crew — your all-in-one, natural-language-powered AI assis
    - [UV](https://docs.astral.sh/uv/) for dependency management
 
 2. **Install dependencies:**
+
    ```bash
    pip install uv
    crewai install
@@ -20,6 +21,7 @@ Welcome to Epic News Crew — your all-in-one, natural-language-powered AI assis
    - Add your API keys (see below for details)
 
 4. **Run the app:**
+
    ```bash
    crewai flow kickoff
    ```
@@ -56,6 +58,7 @@ Welcome to Epic News Crew — your all-in-one, natural-language-powered AI assis
 ---
 
 ## 🤖 How Does It Work?
+
 Just use natural language—no special format needed. The system uses AI to classify your request and send it to the right expert team (“crew”). If your request is unclear, you’ll be asked to clarify.
 
 ---
@@ -65,6 +68,7 @@ Just use natural language—no special format needed. The system uses AI to clas
 Each “crew” is a team of specialized AI agents. Here’s what they do:
 
 ### **FinDailyCrew**
+
 - **What:** Analyzes your entire stock and crypto portfolio. Generates a detailed, professional HTML report (in French) with buy/sell/keep recommendations for each asset.
 - **Sample prompt:**
   - "Give me a daily financial summary of my stocks and crypto."
@@ -72,6 +76,7 @@ Each “crew” is a team of specialized AI agents. Here’s what they do:
 - **Output:** HTML report (French), sent by email if configured.
 
 ### **NewsDailyCrew**
+
 - **What:** Collects and curates the top 10 daily news items for 7 categories: Suisse Romande, Suisse, France, Europe, World, Wars, and Economy. Generates a comprehensive French-language news report with deduplication and professional formatting.
 - **Sample prompt:**
   - "Generate daily news report."
@@ -80,6 +85,7 @@ Each “crew” is a team of specialized AI agents. Here’s what they do:
 - **Output:** Professional HTML news report in French, organized by region/category, sent by email if configured.
 
 ### **CompanyNewsCrew**
+
 - **What:** Researches and summarizes news topics, using multiple research and fact-checking agents.
 - **Sample prompt:**
   - "Summarize the latest tech news."
@@ -87,6 +93,7 @@ Each “crew” is a team of specialized AI agents. Here’s what they do:
 - **Output:** Well-structured news report.
 
 ### **CookingCrew**
+
 - **What:** Generates recipes (including Thermomix-optimized) in HTML and Paprika 3-compatible YAML format for easy import into the Paprika app.
 - **Sample prompt:**
   - "Plan a vegetarian dinner for four."
@@ -94,6 +101,7 @@ Each “crew” is a team of specialized AI agents. Here’s what they do:
 - **Output:** HTML recipe + Paprika YAML (as email attachment).
 
 ### **LegalAnalysisCrew**
+
 - **What:** Analyzes legal documents, contracts, or cases for risks and compliance.
 - **Sample prompt:**
   - "Review this contract for potential risks."
@@ -101,41 +109,49 @@ Each “crew” is a team of specialized AI agents. Here’s what they do:
 - **Output:** Legal analysis report.
 
 ### **SalesProspectingCrew**
+
 - **What:** Finds and researches sales contacts at target companies.
 - **Sample prompt:** "Find sales contacts at OpenAI in France."
 - **Output:** List of contacts and research notes.
 
 ### **LibraryCrew**
+
 - **What:** Finds books, summarizes them, and suggests similar reads.
 - **Sample prompt:** "Summarize 'Le Petit Prince' and suggest similar books."
 - **Output:** Book summary and suggestions.
 
 ### **HolidayPlannerCrew**
+
 - **What:** Plans holidays and creates detailed travel itineraries.
 - **Sample prompt:** "Plan a 7-day trip to Japan with cultural and food experiences."
 - **Output:** Travel itinerary.
 
 ### **PoemCrew**
+
 - **What:** Writes creative poems on request.
 - **Sample prompt:** "Write a poem about spring in Paris."
 - **Output:** Poem.
 
 ### **MeetingPrepCrew**
+
 - **What:** Prepares for meetings by analyzing objectives and participants.
 - **Sample prompt:** "Prepare for a meeting with the marketing team to discuss Q2 strategy."
 - **Output:** Meeting prep notes.
 
 ### **OsintCrew**
+
 - **What:** Conducts open-source intelligence (OSINT) research and reporting.
 - **Sample prompt:** "Investigate recent cybersecurity incidents affecting European banks."
 - **Output:** OSINT report.
 
 ### **MarketingWritersCrew**
+
 - **What:** Improves French marketing messages for persuasion and engagement.
 - **Sample prompt:** "Améliorer ce message marketing: 'Découvrez notre nouveau produit qui vous aide à gagner du temps.'"
 - **Output:** Enhanced marketing copy.
 
 ### **Other Crews (Classify, CaptureTopic, CaptureTravelers, CaptureDuration, etc.)**
+
 - **What:** Help with text classification, topic extraction, traveler info, and more.
 - **Sample prompt:** See table above.
 
@@ -162,9 +178,11 @@ Each “crew” is a team of specialized AI agents. Here’s what they do:
 ## ▶️ Running the Project
 
 - **Start the main flow:**
+
   ```bash
   crewai flow kickoff
   ```
+
 - **Outputs:**
   - Reports are saved in the `output/` directory (HTML, PDF, YAML, etc.).
   - Some crews (like FinDailyCrew) can also send reports by email if configured.

@@ -15,11 +15,10 @@
 - [x] create an rss reviewer crew using opml
 - [x] run crewai in a container
 - [x] add <https://developer.accuweather.com/apis>
+- [x] create shopping comparison tools
+- [x] shopping comparaison crew
 
-- [ ] create shopping comparison tools
-- [ ] shopping comparaison crew
-
-- [ ] create seasoned menu of the week
+- [] create seasoned menu of the week
 
 - [ ] clean output before restart
 

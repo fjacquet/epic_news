@@ -41,11 +41,13 @@ OUTPUT_PATH=/app/output
 ### Data Directory
 
 The `/data` directory should contain:
+
 - `feedly.opml`: OPML file with RSS feed subscriptions
 
 ### Database Directory
 
 The `/db` directory contains:
+
 - `chroma.sqlite3`: SQLite database file for vector storage
 - Various UUID-named directories for database-related storage
 
@@ -89,8 +91,8 @@ docker-compose -f docker-compose.streamlit.yml up -d
 
 ## Accessing the Services
 
-- API: http://localhost:8000
-- Streamlit UI: http://localhost:8501
+- API: <http://localhost:8000>
+- Streamlit UI: <http://localhost:8501>
 
 ## Troubleshooting
 

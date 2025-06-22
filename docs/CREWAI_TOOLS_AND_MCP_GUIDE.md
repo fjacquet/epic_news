@@ -104,7 +104,7 @@ The following tools are already integrated into our epic_news project:
 
 ### 🎯 High Priority (Immediate Integration)
 
-1. **FileReadTool & FileWriteTool** 
+1. **FileReadTool & FileWriteTool**
    - **Rationale**: Essential for document processing and content generation workflows
    - **Integration**: Add to `document_tools.py` factory
    - **Use Cases**: HTML report generation, content export, document analysis
@@ -178,6 +178,7 @@ COMPOSIO_API_KEY=your_composio_key      # ComposioTool
 ### Overview
 
 The Multi-Crew Protocol (MCP) enables:
+
 - Cross-crew communication and data sharing
 - Distributed workflow orchestration
 - Scalable multi-agent system architecture
@@ -200,6 +201,7 @@ The Multi-Crew Protocol (MCP) enables:
 ### Integration with epic_news
 
 MCP could enhance our project by:
+
 - Enabling crew specialization (e.g., separate research and analysis crews)
 - Improving scalability for larger workloads
 - Facilitating real-time collaboration between different analysis domains
@@ -211,6 +213,7 @@ MCP could enhance our project by:
 ### 🏗️ Modular Architecture
 
 1. **Factory Pattern**: Use factory functions for tool organization
+
    ```python
    # Example: src/epic_news/tools/document_tools.py
    def get_document_tools():
@@ -224,6 +227,7 @@ MCP could enhance our project by:
    - `data_tools.py` - Structured data processing tools
 
 3. **Graceful Degradation**: Handle missing dependencies
+
    ```python
    def get_github_tools():
        try:

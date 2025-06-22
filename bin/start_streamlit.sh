@@ -28,7 +28,7 @@ fi
 
 # Start Streamlit with the specified port
 echo "⚡ Launching Streamlit..."
-uv run streamlit run src/epic_news/bin/streamlit_app.py --server.port="$PORT" --server.headless=true
+uv run streamlit run src/epic_news/app.py --server.port="$PORT" --server.headless=true
 
 echo ""
 echo "🏁 Streamlit app stopped."
