@@ -18,6 +18,7 @@ Key functionalities include:
     - Handles the final step of sending an email report with the generated content.
 - Utility functions to kickoff the flow (`kickoff`) and plot its structure (`plot`).
 """
+import datetime
 import os
 import warnings
 from typing import Optional
@@ -29,6 +30,7 @@ from pydantic import PydanticDeprecatedSince20, PydanticDeprecatedSince211
 from epic_news.crews.classify.classify_crew import ClassifyCrew
 from epic_news.crews.company_profiler.company_profiler_crew import CompanyProfilerCrew
 from epic_news.crews.cooking.cooking_crew import CookingCrew
+from epic_news.crews.fin_daily.fin_daily import FinDailyCrew
 from epic_news.crews.cross_reference_report_crew.cross_reference_report_crew import CrossReferenceReportCrew
 from epic_news.crews.geospatial_analysis.geospatial_analysis_crew import GeospatialAnalysisCrew
 from epic_news.crews.holiday_planner.holiday_planner_crew import HolidayPlannerCrew
@@ -213,6 +215,8 @@ class ReceptionFlow(Flow[ContentState]):
             return "go_generate_marketing_content"
         elif self.state.selected_crew == "RSS":
             return "go_generate_rss_weekly"
+        elif self.state.selected_crew == "FINDAILY":
+            return "go_generate_findaily"
         else:
             # Fallback for unhandled or unknown crew types.
             # Consider logging this event for monitoring.
@@ -220,7 +224,7 @@ class ReceptionFlow(Flow[ContentState]):
             return "go_unknown"
 
     @listen("go_unknown")
-    def go_unknown(self):
+    def end_unknown(self):
         """
         Handles cases where the request classification is 'unknown' or routing fails.
 
@@ -310,6 +314,28 @@ class ReceptionFlow(Flow[ContentState]):
         report_content = RssWeeklyCrew().crew().kickoff(inputs=inputs)
         self.state.rss_weekly_report = report_content
 
+    @listen("go_generate_findaily")
+    def generate_findaily(self):
+        """
+        Handles requests classified for the 'FinDailyCrew'.
+
+        Invokes the `FinDailyCrew` to generate a daily financial analysis report
+        including stock portfolio analysis, crypto portfolio analysis, and new
+        investment suggestions. Sets `output_file` to `output/findaily/report.html`
+        and stores the report in `self.state.fin_daily_report`.
+        """
+        self.state.output_file = "output/findaily/report.html"
+        print("💰 Generating daily financial analysis report...")
+
+        # Prepare inputs for the crew
+        inputs = self.state.to_crew_inputs()
+        stock_csv_file = 'data/stock.csv'
+        inputs['stock_csv_path'] = os.path.abspath(stock_csv_file)
+        inputs['current_date'] = datetime.datetime.now().strftime("%Y-%m-%d")
+
+        # Kick off the crew
+        report_content = FinDailyCrew().crew().kickoff(inputs=inputs)
+        self.state.fin_daily_report = report_content
 
     @listen("go_generate_recipe")
     def generate_recipe(self):
@@ -526,8 +552,7 @@ class ReceptionFlow(Flow[ContentState]):
         self.state.geospatial_analysis = GeospatialAnalysisCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
         # return "generate_company_profile"
 
-    @listen(and_( "generate_company_profile", "generate_tech_stack", "generate_web_presence", "generate_hr_intelligence", "generate_legal_analysis", "generate_geospatial_analysis"))
-    # @listen("generate_osint")
+    @listen("generate_osint")
     def generate_cross_reference_report(self):
         """
         Generates a cross-reference report based on the company name.
@@ -599,7 +624,8 @@ class ReceptionFlow(Flow[ContentState]):
             "find_location",
             "generate_holiday_plan",
             "generate_marketing_content",
-            "generate_rss_weekly"
+            "generate_rss_weekly",
+            "generate_findaily"
         )
     )
     def join(self, *results):
@@ -689,7 +715,7 @@ def kickoff(user_input: Optional[str] = None):
         The completed ReceptionFlow object.
     """
     # If user_input is not provided, use a default value.
-    request = user_input if user_input else "Get the RSS Weekly Report"
+    request = user_input if user_input else "Get the FinDaily Report"
     
     reception_flow = ReceptionFlow(user_request=request)
     reception_flow.kickoff()
@@ -720,5 +746,3 @@ if __name__ == "__main__":
 
     # To generate a plot of the flow, uncomment the following line:
     # plot()
-
-

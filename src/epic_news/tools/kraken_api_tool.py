@@ -11,6 +11,7 @@ import base64
 import hashlib
 import hmac
 import json
+import os
 import time
 import urllib.parse
 from typing import Dict, Type
@@ -85,7 +86,7 @@ class KrakenAssetListTool(BaseTool):
         
         return sigdigest.decode()
 
-    def _run(self, api_key: str, api_secret: str, asset_class: str = "currency") -> str:
+    def _run(self, asset_class: str = "currency") -> str:
         """
         Execute the tool to fetch asset balances.
         """
@@ -98,6 +99,13 @@ class KrakenAssetListTool(BaseTool):
             "nonce": str(int(time.time() * 1000)),
             "asset": asset_class
         }
+        
+        # Get API credentials from environment variables
+        api_key = os.environ.get('KRAKEN_API_KEY')
+        api_secret = os.environ.get('KRAKEN_API_SECRET')
+        
+        if not api_key or not api_secret:
+            return "Error: Kraken API credentials not found in environment variables."
         
         # Prepare headers with API key and signature
         headers = {

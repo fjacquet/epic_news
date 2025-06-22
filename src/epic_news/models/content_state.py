@@ -34,6 +34,7 @@ class ContentState(BaseModel):
         "MARKETING_WRITERS": "MARKETING_WRITERS",
         "POST_ONLY": "POST_ONLY",
         "RSS": "RSS",
+        "FINDAILY": "FINDAILY",
     })
     # Output file path
     output_file: str = ""
@@ -61,6 +62,7 @@ class ContentState(BaseModel):
     web_presence_report: Optional[Any] = None
     cross_reference_report: Optional[Any] = None
     lead_score_report: Optional[Any] = None # Added from the duplicated block
+    fin_daily_report: Optional[Any] = None  # Stores the FinDaily crew report
 
     # Email settings
     sendto: str = "fred.jacquet@gmail.com"
