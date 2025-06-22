@@ -29,6 +29,13 @@ Simply use natural language - no special commands needed.
 - "How to make beef bourguignon?"
 - "Vegetarian pasta recipe for 4 people"
 
+### 🛒 SHOPPING ADVISOR (ShoppingAdvisorCrew)
+**What it does:** Comprehensive product research, price comparison (Switzerland/France), competitor analysis, and shopping recommendations
+- "I need shopping advice for a MacBook Pro M4"
+- "Compare prices for iPhone 15 Pro in Switzerland and France"
+- "Best laptop under 1500 CHF with pros and cons"
+- "Shopping advice for wireless headphones with competitor comparison"
+
 ### 📚 LIBRARY (LibraryCrew)
 **What it does:** Generate comprehensive book summaries with key insights and takeaways
 - "Summarize 'The Lean Startup'"

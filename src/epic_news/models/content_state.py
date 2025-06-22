@@ -30,6 +30,7 @@ class ContentState(BaseModel):
         "NEWS": "NEWS",
         "OPEN_SOURCE_INTELLIGENCE": "OPEN_SOURCE_INTELLIGENCE",
         "POEM": "POEM",
+        "SHOPPING": "SHOPPING",
         "UNKNOWN": "UNKNOWN",
         "MARKETING_WRITERS": "MARKETING_WRITERS",
         "POST_ONLY": "POST_ONLY",
@@ -50,6 +51,7 @@ class ContentState(BaseModel):
     location_report: Any | None = None
     recipe: Any | None = None
     book_summary: Any | None = None
+    shopping_advice_report: Any | None = None
     meeting_prep_report: Any | None = None
     final_report: str | None = None  # Stores the final consolidated report or error message
     contact_info_report: Any | None = None # Renamed from contacts_report

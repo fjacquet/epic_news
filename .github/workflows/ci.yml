@@ -8,21 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  create-envfile:
- 
-    runs-on: ubuntu-latest
- 
-    steps:
-    - name: Make envfile
-      uses: SpicyPizza/create-envfile@v2.0
-      with:
-        envkey_RAPIDAPI_KEY: ${{ secrets.RAPIDAPI_KEY }}
-        envkey_OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        envkey_OPENAI_MODEL_NAME: ${{ secrets.OPENAI_MODEL_NAME }}
-        envkey_MAIL: ${{ secrets.MAIL }}
-        file_name: .env
-        fail_on_empty: false
-        sort_keys: false  
+
   test:
     name: Run Tests
     runs-on: ubuntu-latest
@@ -30,7 +16,16 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
-    
+
+    - name: create env file
+      run: |
+         touch .env
+         echo BASE_URL=${{ secrets.BASE_URL }} >> .env    
+         echo RAPIDAPI_KEY=${{ secrets.RAPIDAPI_KEY }} >> .env    
+         echo OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }} >> .env    
+         echo OPENAI_MODEL_NAME=${{ secrets.OPENAI_MODEL_NAME }} >> .env    
+         echo MAIL=${{ secrets.MAIL }} >> .env    
+
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
