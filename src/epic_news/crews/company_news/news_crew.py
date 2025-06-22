@@ -42,9 +42,9 @@ fact_checking_tools = toolset.get_tools(actions=[
 
 
 @CrewBase
-class NewsCrew:
+class CompanyNewsCrew:
     """
-    News monitoring, analysis, fact-checking and editor crew.
+    Company news monitoring, analysis, fact-checking and editor crew.
     
     This crew follows the epic_news design principles of being configuration-driven,
     simple, and elegant. It leverages YAML configuration files for agents and tasks,
@@ -55,9 +55,6 @@ class NewsCrew:
     - Analyst: Analyzes research data for insights, trends, and significance
     - Fact Checker: Verifies all claims and statements for accuracy
     - Editor: Creates the final formatted HTML report using templates
-    
-    The workflow is hierarchical with multiple parallel tasks feeding into a
-    final editing phase that produces a professional HTML report.
     """
 
     # Configuration file paths relative to the crew directory
@@ -71,7 +68,13 @@ class NewsCrew:
 
     def __init__(self):
         """
-        Initialize the NewsCrew and ensure output directory exists.
+        Initialize the CompanyNewsCrew and ensure output directory exists.
+        
+        Creates the output directory for news reports if it doesn't exist and 
+        initializes all necessary tools for the crew's agents.
+        
+        Raises:
+            Exception: If there's an error during initialization.
         """
         # Ensure output directory exists
         os.makedirs(self.output_dir, exist_ok=True)
@@ -112,7 +115,7 @@ class NewsCrew:
             # Create combined toolsets for different agent needs
             self.all_tools = self.search_tools + self.scrape_tools + self.rag_tools + self.report_tools
 
-            logger.info("Successfully initialized all tools for NewsCrew")
+            logger.info("Successfully initialized all tools for CompanyNewsCrew")
 
         except Exception as e:
             logger.error(f"Error initializing tools: {str(e)}")
@@ -296,14 +299,14 @@ class NewsCrew:
 
     @crew
     def crew(self) -> Crew:
-        """Creates the News monitoring crew with hierarchical workflow.
+        """Creates the Company news monitoring crew with hierarchical workflow.
         
         The crew uses a hierarchical process that allows for parallel execution
         of research, analysis, and verification tasks, followed by a final editing
         phase that consolidates the results into a professional HTML report.
         
         Returns:
-            Crew: Configured News crew with agents and tasks
+            Crew: Configured Company news crew with agents and tasks
         """
         try:
             # Configure the crew with hierarchical process and appropriate settings
@@ -321,6 +324,6 @@ class NewsCrew:
             )
         except Exception as e:
             # Fail fast with explicit error message
-            error_msg = f"Error creating NewsCrew: {str(e)}"
+            error_msg = f"Error creating CompanyNewsCrew: {str(e)}"
             logger.error(error_msg)
             raise RuntimeError(error_msg) from e

@@ -35,6 +35,7 @@ Welcome to Epic News Crew — your all-in-one, natural-language-powered AI assis
 | What You Want To Do                              | What To Type (Sample Prompt)                                             |
 |--------------------------------------------------|--------------------------------------------------------------------------|
 | **Get a financial/crypto portfolio report**      | "Give me a daily financial summary of my stocks and crypto."<br>"Analyse mon portefeuille boursier et crypto et donne-moi des recommandations." |
+| **Get a comprehensive daily news report**       | "Generate daily news report."<br>"Donne-moi les actualités du jour."<br>"Get the top 10 news for Switzerland, France, Europe and world." |
 | **Summarize the latest news**                    | "Summarize the latest tech news."<br>"Give me a report on AI news this week." |
 | **Plan a meal or get a recipe**                  | "Plan a vegetarian dinner for four."<br>"Generate a French ratatouille recipe for Paprika app." |
 | **Analyze a legal document**                     | "Review this contract for potential risks."<br>"Analyse ce contrat pour les risques." |
@@ -70,7 +71,15 @@ Each “crew” is a team of specialized AI agents. Here’s what they do:
   - "Analyse mon portefeuille boursier et crypto et donne-moi des recommandations."
 - **Output:** HTML report (French), sent by email if configured.
 
-### **NewsCrew**
+### **NewsDailyCrew**
+- **What:** Collects and curates the top 10 daily news items for 7 categories: Suisse Romande, Suisse, France, Europe, World, Wars, and Economy. Generates a comprehensive French-language news report with deduplication and professional formatting.
+- **Sample prompt:**
+  - "Generate daily news report."
+  - "Donne-moi les actualités du jour."
+  - "Get the top 10 news for Switzerland, France, Europe and world."
+- **Output:** Professional HTML news report in French, organized by region/category, sent by email if configured.
+
+### **CompanyNewsCrew**
 - **What:** Researches and summarizes news topics, using multiple research and fact-checking agents.
 - **Sample prompt:**
   - "Summarize the latest tech news."
