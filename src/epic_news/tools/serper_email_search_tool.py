@@ -4,7 +4,9 @@ import os
 
 from crewai.tools import BaseTool
 from dotenv import load_dotenv
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
+
+from src.epic_news.models.email_search_models import SerperSearchInput
 
 from .email_base import EmailSearchTool
 
@@ -12,9 +14,7 @@ from .email_base import EmailSearchTool
 load_dotenv()
 SERPER_API_URL = "https://google.serper.dev/search"
 
-class SerperSearchInput(BaseModel):
-    """Input schema for Serper search tool."""
-    query: str = Field(..., description="Company name or search query to find emails")
+
 
 class SerperEmailSearchTool(BaseTool):
     """Search for company emails using Serper API."""

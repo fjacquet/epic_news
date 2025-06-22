@@ -1,3 +1,4 @@
+import json
 import os
 from typing import Any, Dict, Type
 
@@ -5,8 +6,29 @@ from crewai.tools import BaseTool
 from pyairtable import Table
 from pydantic import BaseModel
 
-from src.epic_news.models.airtable_models import AirtableToolInput
+from src.epic_news.models.airtable_models import AirtableReaderToolInput, AirtableToolInput
 
+
+class AirtableReaderTool(BaseTool):
+    name: str = "airtable_read_records"
+    description: str = (
+        "A tool for reading all records from a specified Airtable table. "
+        "It requires the base ID and table name."
+    )
+    args_schema: Type[BaseModel] = AirtableReaderToolInput
+
+    def _run(self, base_id: str, table_name: str) -> str:
+        """Run the Airtable tool to read all records."""
+        try:
+            api_key = os.getenv('AIRTABLE_API_KEY')
+            if not api_key:
+                raise ValueError("AIRTABLE_API_KEY environment variable not set.")
+
+            table = Table(api_key, base_id, table_name)
+            records = table.all()
+            return json.dumps(records)
+        except Exception as e:
+            return f"Error reading records from Airtable: {e}"
 
 class AirtableTool(BaseTool):
     name: str = "airtable_create_record"

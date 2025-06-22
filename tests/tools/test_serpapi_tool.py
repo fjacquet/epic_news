@@ -5,7 +5,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 import requests
 
-from src.epic_news.tools.serpapi_tool import SerpApiInput, SerpApiTool
+from src.epic_news.models.web_search_models import SerpApiInput
+from src.epic_news.tools.serpapi_tool import SerpApiTool
 
 # Assuming logger is correctly mocked or not essential for output validation here
 

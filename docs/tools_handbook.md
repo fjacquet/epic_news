@@ -360,12 +360,12 @@ This document provides a comprehensive list and detailed descriptions of all too
     - `headers` (list of strings, optional): Custom headers for the request.
     - `retry_num` (integer, optional, default: 1): Number of retry attempts.
     - `geo` (string, optional): Geolocation for the request (e.g., 'us', 'eu').
+    - `proxy` (string, optional): Proxy server to use (format: `http://user:pw@host:port`).
+    - `follow_redirects` (integer, optional, default: 1): Whether to follow redirects (0 for no, 1 for yes).
+    - `timeout` (integer, optional, default: 8): Request timeout in seconds.
+    - `text_not_expected` (list of strings, optional): Text patterns that should not appear in the response.
+    - `status_not_expected` (list of integers, optional): HTTP status codes that should not appear in the response.
     - `extractor` (string, optional): Custom JavaScript function for data extraction.
-    - `proxy` (string, optional): Proxy configuration (e.g., `'http://user:pass@host:port'`).
-    - `follow_redirects` (boolean, optional, default: true): Whether to follow HTTP redirects.
-    - `timeout` (integer, optional, default: 60): Request timeout in seconds.
-    - `text_not_expected` (string, optional): A text pattern that, if found in the response, indicates the scrape failed.
-    - `status_not_expected` (integer, optional): An HTTP status code that, if received, indicates the scrape failed.
   - `API Key(s)`: Requires `RAPIDAPI_KEY` (for ScrapeNinja via RapidAPI) to be set in the environment.
 
 ---

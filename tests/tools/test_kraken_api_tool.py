@@ -3,7 +3,8 @@ from unittest.mock import MagicMock, patch
 
 import requests
 
-from epic_news.tools.kraken_api_tool import KrakenTickerInfoTool, TickerInfoInput
+from epic_news.tools.kraken_api_tool import KrakenTickerInfoTool
+from src.epic_news.models.finance_models import KrakenTickerInfoInput as TickerInfoInput
 
 KRAKEN_API_TICKER_URL_TEMPLATE = "https://api.kraken.com/0/public/Ticker?pair={pair}"
 

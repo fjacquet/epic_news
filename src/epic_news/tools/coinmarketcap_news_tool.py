@@ -10,26 +10,13 @@ import os
 
 import requests
 from crewai.tools import BaseTool
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
+
+from src.epic_news.models.coinmarketcap_models import CryptocurrencyNewsInput
 
 logger = logging.getLogger(__name__)
 
 CMC_PRO_API_BASE_URL = "https://pro-api.coinmarketcap.com"
-
-
-class CoinMarketCapException(Exception):
-    """Exception raised for CoinMarketCap API errors."""
-    pass
-
-
-class CryptocurrencyNewsInput(BaseModel):
-    """Input schema for CoinMarketCapNewsTool."""
-    symbol: str | None = Field(
-        None, description="Cryptocurrency symbol (e.g., BTC) or slug (e.g., bitcoin) to get news for (optional)"
-    )
-    limit: int = Field(
-        10, description="Number of news articles to return (default: 10, max: 50 for news)"
-    )
 
 
 class CoinMarketCapNewsTool(BaseTool):

@@ -14,7 +14,7 @@ from epic_news.models.extracted_info import ExtractedInfo
 
 class ContentState(BaseModel):
     # Basic request information
-    user_request: str = "Create a Poem on Paris in the night"
+    user_request: str = "Get the RSS Weekly Report"
     extracted_info: Optional[ExtractedInfo] = None
     selected_crew: str = ""  # Default crew type
     attachment_file: str = ""  # Attachment file for specific crew types
@@ -33,6 +33,7 @@ class ContentState(BaseModel):
         "UNKNOWN": "UNKNOWN",
         "MARKETING_WRITERS": "MARKETING_WRITERS",
         "POST_ONLY": "POST_ONLY",
+        "RSS": "RSS",
     })
     # Output file path
     output_file: str = ""
@@ -44,6 +45,7 @@ class ContentState(BaseModel):
     post_report: Optional[Any] = None
     poem: Optional[Any] = None
     news_report: Optional[Any] = None
+    rss_weekly_report: Optional[Any] = None
     location_report: Optional[Any] = None
     recipe: Optional[Any] = None
     book_summary: Optional[Any] = None

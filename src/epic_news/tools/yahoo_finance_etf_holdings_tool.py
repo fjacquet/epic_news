@@ -6,13 +6,9 @@ import json
 import pandas as pd  # Required for pd.isna()
 import yfinance as yf
 from crewai.tools import BaseTool
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
-
-class GetETFHoldingsInput(BaseModel):
-    """Input schema for getting ETF holdings."""
-
-    ticker: str = Field(..., description="The ETF ticker symbol (e.g., 'VTI', 'SPY').")
+from src.epic_news.models.finance_models import GetETFHoldingsInput
 
 
 class YahooFinanceETFHoldingsTool(BaseTool):

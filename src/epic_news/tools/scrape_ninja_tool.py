@@ -1,27 +1,16 @@
 import json
 import os
-from typing import List, Optional, Type
+from typing import Optional, Type
 
 import requests
 from crewai.tools import BaseTool
 from dotenv import load_dotenv
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
+
+from src.epic_news.models.web_search_models import ScrapeNinjaInput
 
 # Load environment variables from .env file
 load_dotenv()
-
-class ScrapeNinjaInput(BaseModel):
-    """Input schema for ScrapeNinja tool with advanced options"""
-    url: str = Field(..., description="The URL to scrape")
-    headers: Optional[List[str]] = Field(None, description="Custom headers to include")
-    retry_num: Optional[int] = Field(1, description="Number of retry attempts")
-    geo: Optional[str] = Field(None, description="Geolocation for request (e.g. 'us', 'eu')")
-    proxy: Optional[str] = Field(None, description="Proxy server to use (format: http://user:pw@host:port)")
-    follow_redirects: Optional[int] = Field(1, description="Whether to follow redirects (0 or 1)")
-    timeout: Optional[int] = Field(8, description="Request timeout in seconds")
-    text_not_expected: Optional[List[str]] = Field(None, description="Text patterns that should not appear")
-    status_not_expected: Optional[List[int]] = Field(None, description="HTTP status codes that should not appear")
-    extractor: Optional[str] = Field(None, description="Custom extractor JavaScript function")
 
 
 class ScrapeNinjaTool(BaseTool):
