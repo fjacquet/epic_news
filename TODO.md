@@ -8,7 +8,7 @@
 - [x] add airtable  tool
 - [x] add tavily  tool
 - [x] create fact checking tools
-- [ ] create news monitoring tools
+- [x] create news monitoring tools
 - [ ] create shopping comparison tools
 - [ ] check kraken situation for proposition
 - [ ] clean output before restart

@@ -325,7 +325,7 @@ def get_default_paths():
     output_dir = project_root / "output" / "rss_weekly"
     os.makedirs(output_dir, exist_ok=True)
     
-    opml_path = str(project_root / "src" / "epic_news" / "crews" / "rss_weekly" / "data" / "feedly.opml")
+    opml_path = str(project_root / "data" / "feedly.opml")
     output_file_path = str(output_dir / "content.json")
     invalid_sources_file_path = str(output_dir / "invalid_sources.json")
     

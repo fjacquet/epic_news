@@ -10,10 +10,10 @@ __pycache__/
 
 checkpoints/
 db/
+data/
 lib/
 prompts.txt
 output/
 report.md
 reports
 uv.lock
-src/epic_news/crews/rss_weekly/data/feedly.opml
