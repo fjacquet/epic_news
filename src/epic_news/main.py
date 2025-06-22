@@ -183,14 +183,8 @@ class ReceptionFlow(Flow[ContentState]):
         to execute (e.g., 'go_generate_sales_prospecting_report').
         If the crew type is not recognized, it defaults to 'go_unknown'.
         """
-        if self.state.selected_crew == "SALES_PROSPECTING":
-            return "go_generate_sales_prospecting_report"
         if self.state.selected_crew == "HOLIDAY_PLANNER":
             return "go_generate_holiday_plan"
-        if self.state.selected_crew == "POST_ONLY":
-            # Note: PostOnlyCrew import was removed. This route might be dead code
-            # or associated with a crew that needs to be re-evaluated.
-            return "go_generate_post_only"
         if self.state.selected_crew == "MEETING_PREP":
             return "go_generate_meeting_prep"
         if self.state.selected_crew == "LIBRARY":
@@ -203,13 +197,6 @@ class ReceptionFlow(Flow[ContentState]):
             return "go_generate_poem"
         if self.state.selected_crew == "NEWS":
             return "go_generate_news"
-        if self.state.selected_crew == "LEAD_SCORING":
-            # Note: 'generate_leads' was mentioned as a missing node in plot output.
-            # This route might need review if 'generate_leads' step is not defined.
-            return "go_generate_leads"
-        if self.state.selected_crew == "LOCATION":
-            # Note: FindLocationCrew was removed. This route is likely dead code.
-            return "go_find_location"
         if self.state.selected_crew == "OPEN_SOURCE_INTELLIGENCE":
             return "go_generate_osint"
         if self.state.selected_crew == "MARKETING_WRITERS":
@@ -218,6 +205,8 @@ class ReceptionFlow(Flow[ContentState]):
             return "go_generate_rss_weekly"
         if self.state.selected_crew == "FINDAILY":
             return "go_generate_findaily"
+        if self.state.selected_crew == "SALES_PROSPECTING":
+            return "go_generate_sales_prospecting_report"
         # Fallback for unhandled or unknown crew types.
         # Consider logging this event for monitoring.
         print(f"⚠️ Unknown crew type: {self.state.selected_crew}. Routing to 'go_unknown'.")
@@ -240,26 +229,6 @@ class ReceptionFlow(Flow[ContentState]):
             self.state.output_file = "output/unknown_request_error.md"
             print(f"Output file not set, defaulting to {self.state.output_file}")
         # return "go_unknown" # Implicitly returns method name
-
-    @listen("go_generate_post_only")
-    def generate_post_only(self):
-        """
-        Handles requests classified for the 'PostOnlyCrew'.
-
-        This method was intended to generate content using `PostOnlyCrew`.
-        Note: The import for `PostOnlyCrew` was previously removed from this file.
-        If this crew is still intended to be used, its import and functionality
-        should be verified.
-        Sets `output_file` and stores the result in `self.state.post_report`.
-        """
-        self.state.output_file = "output/travel_guides/itinerary.html"
-        print(f"Generating post-only about: {self.state.to_crew_inputs().get('topic', 'N/A')}")
-
-        # Create and kickoff the post-only crew
-        # self.state.post_report = PostOnlyCrew().crew().kickoff(inputs=self.state.to_crew_inputs()) # PostOnlyCrew import is missing
-        print("⚠️ PostOnlyCrew is not available due to a missing import. Skipping execution.")
-        self.state.post_report = "PostOnlyCrew execution skipped due to missing import."
-        # return "generate_post_only"
 
     @listen("go_generate_poem")
     def generate_poem(self):
@@ -371,9 +340,14 @@ class ReceptionFlow(Flow[ContentState]):
 
         # Generate the recipe with the specific topic and preferences
         crew_inputs = self.state.to_crew_inputs()
+        
+        # Add topic and preferences to crew inputs instead of constructor
+        crew_inputs['topic'] = topic
+        if preferences:
+            crew_inputs['preferences'] = preferences
 
-        # Create crew with topic and preferences
-        crew = CookingCrew(topic=topic, preferences=preferences).crew()
+        # Create crew using context-driven approach (no constructor parameters)
+        crew = CookingCrew().crew()
 
         # Kick off the crew with inputs
         self.state.recipe = crew.kickoff(inputs=crew_inputs)
@@ -639,7 +613,6 @@ class ReceptionFlow(Flow[ContentState]):
 
     @listen(
         or_(
-            "generate_post_only",
             "generate_poem",
             "generate_news",
             "generate_recipe",
@@ -649,8 +622,6 @@ class ReceptionFlow(Flow[ContentState]):
             "generate_sales_prospecting_report",
             "generate_osint",
             "generate_cross_reference_report",
-            "generate_leads",
-            "find_location",
             "generate_holiday_plan",
             "generate_marketing_content",
             "generate_rss_weekly",
