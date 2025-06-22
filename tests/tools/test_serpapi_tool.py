@@ -100,7 +100,7 @@ def test_run_successful_search_no_organic_results(mock_requests_get, tool_instan
     mock_requests_get.return_value.json.return_value = {"organic_results": []}
     result_str = tool_instance._run(query=query)
     expected_error = {
-        "error": f"No results found for query: {query}", 
+        "error": f"No results found for query: {query}",
         "query": query,
         "suggestion": "Try a different search query or check your API key's search quota"
     }
@@ -123,7 +123,7 @@ def test_run_http_error(mock_requests_get, tool_instance):
     mock_requests_get.return_value.text = "Unauthorized access"
     result_str = tool_instance._run(query=query)
     expected_error = {
-        "error": "API request failed with status 401", 
+        "error": "API request failed with status 401",
         "query": query,
         "response": "Unauthorized access"
     }
@@ -182,7 +182,7 @@ def test_run_pagination_logic(mock_requests_get, tool_instance):
     # Mock successful response to avoid other errors
     mock_requests_get.return_value.status_code = 200
     mock_requests_get.return_value.json.return_value = {"organic_results": [{"title": "p1"}]}
-    
+
     tool_instance._run(query=query, num_results=num_results, page=page)
     args, kwargs = mock_requests_get.call_args
     assert kwargs['params']['start'] == (page - 1) * num_results + 1 # (3-1)*5 + 1 = 11

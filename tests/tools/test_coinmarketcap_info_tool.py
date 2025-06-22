@@ -63,7 +63,7 @@ def test_run_successful_response(mock_requests_get):
     with patch.dict(os.environ, {"X-CMC_PRO_API_KEY": TEST_CMC_API_KEY}, clear=True):
         tool = CoinMarketCapInfoTool()
         result_json = tool._run(symbol="BTC")
-    
+
     result_data = json.loads(result_json)
 
     assert result_data["name"] == "Bitcoin"
@@ -77,7 +77,7 @@ def test_run_successful_response(mock_requests_get):
     expected_url = f"{CMC_BASE_URL}/cryptocurrency/quotes/latest"
     expected_params = {"symbol": "BTC", "convert": "USD"}
     expected_headers = {"X-CMC_PRO_API_KEY": TEST_CMC_API_KEY, "Accept": "application/json"}
-    
+
     mock_requests_get.assert_called_once_with(expected_url, headers=expected_headers, params=expected_params)
 
 @patch('requests.get')
@@ -91,7 +91,7 @@ def test_run_api_key_missing(mock_requests_get):
     with patch.dict(os.environ, {"X-CMC_PRO_API_KEY": ""}, clear=True):
         tool = CoinMarketCapInfoTool()
         result_json = tool._run(symbol="ETH")
-    
+
     result_data = json.loads(result_json)
     assert "error" in result_data
     assert "CoinMarketCap API error: 401" in result_data["error"]
@@ -114,7 +114,7 @@ def test_run_api_error_non_200(mock_requests_get):
     with patch.dict(os.environ, {"X-CMC_PRO_API_KEY": TEST_CMC_API_KEY}, clear=True):
         tool = CoinMarketCapInfoTool()
         result_json = tool._run(symbol="ADA")
-    
+
     result_data = json.loads(result_json)
     assert "error" in result_data
     assert "CoinMarketCap API error: 500" in result_data["error"]
@@ -134,7 +134,7 @@ def test_run_symbol_not_found(mock_requests_get):
     with patch.dict(os.environ, {"X-CMC_PRO_API_KEY": TEST_CMC_API_KEY}, clear=True):
         tool = CoinMarketCapInfoTool()
         result_json = tool._run(symbol="XYZ")
-    
+
     result_data = json.loads(result_json)
     assert "error" in result_data
     assert "No data found for cryptocurrency symbol: XYZ" in result_data["error"]
@@ -153,7 +153,7 @@ def test_run_malformed_response_no_data_key(mock_requests_get):
     with patch.dict(os.environ, {"X-CMC_PRO_API_KEY": TEST_CMC_API_KEY}, clear=True):
         tool = CoinMarketCapInfoTool()
         result_json = tool._run(symbol="LTC")
-    
+
     result_data = json.loads(result_json)
     assert "error" in result_data
     assert "No data found for cryptocurrency symbol: LTC" in result_data["error"]
@@ -166,7 +166,7 @@ def test_run_requests_exception(mock_requests_get):
     with patch.dict(os.environ, {"X-CMC_PRO_API_KEY": TEST_CMC_API_KEY}, clear=True):
         tool = CoinMarketCapInfoTool()
         result_json = tool._run(symbol="DOT")
-    
+
     result_data = json.loads(result_json)
     assert "error" in result_data
     assert "Error retrieving cryptocurrency data for DOT: Network Error" in result_data["error"]
@@ -182,7 +182,7 @@ def test_run_json_decode_error(mock_requests_get):
     with patch.dict(os.environ, {"X-CMC_PRO_API_KEY": TEST_CMC_API_KEY}, clear=True):
         tool = CoinMarketCapInfoTool()
         result_json = tool._run(symbol="SOL")
-    
+
     result_data = json.loads(result_json)
     assert "error" in result_data
     assert "Error retrieving cryptocurrency data for SOL: Invalid JSON" in result_data["error"]

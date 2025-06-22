@@ -30,7 +30,7 @@ def test_get_coinmarketcap_tools_success(mock_get_logger):
 def test_get_coinmarketcap_tools_no_api_key(mock_get_logger):
     """Test that get_coinmarketcap_tools raises ValueError if API key is missing."""
     mock_get_logger.return_value = lambda x: None # Simple mock logger
-    
+
     tools_list = get_coinmarketcap_tools()
     assert isinstance(tools_list, list)
     assert len(tools_list) == 4

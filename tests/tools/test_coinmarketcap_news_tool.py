@@ -67,7 +67,7 @@ def test_run_successful_general_news_defaults(mock_requests_get):
 def test_run_successful_symbol_filter_uppercase(mock_requests_get):
     """Test _run with an uppercase symbol filter."""
     mock_requests_get.return_value = mock_successful_news_response([{"title": "BTC News"}])
-    
+
     with patch.dict(os.environ, {"X-CMC_PRO_API_KEY": TEST_CMC_API_KEY}, clear=True):
         news_tool = CoinMarketCapNewsTool()
         result_json = news_tool._run(symbol="BTC", limit=5)
@@ -131,7 +131,7 @@ def test_run_api_key_missing(mock_requests_get):
     result_data = json.loads(result_json)
     assert "error" in result_data
     assert "CoinMarketCap API error (News): 401" in result_data["error"]
-    
+
     expected_headers_with_empty_key = {"X-CMC_PRO_API_KEY": "", "Accept": "application/json"}
     mock_requests_get.assert_called_once_with(ANY, headers=expected_headers_with_empty_key, params=ANY)
 

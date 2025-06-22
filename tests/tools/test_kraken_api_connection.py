@@ -24,10 +24,10 @@ def test_ticker_info(pair: str = "XXBTZUSD") -> None:
         pair: The cryptocurrency pair to get ticker information for.
     """
     print(f"Testing Kraken API connection by fetching ticker info for {pair}...")
-    
+
     tool = KrakenTickerInfoTool()
     result = tool._run(pair=pair)
-    
+
     try:
         # Try to parse the result as JSON to verify it's valid
         ticker_data = json.loads(result)
@@ -52,14 +52,14 @@ def list_assets(api_key: str, api_secret: str) -> Optional[List[Dict[str, Union[
         A list of assets with their quantities if successful, None otherwise.
     """
     print("Fetching asset list from Kraken...")
-    
+
     tool = KrakenAssetListTool()
     result = tool._run(api_key=api_key, api_secret=api_secret)
-    
+
     try:
         # Try to parse the result as JSON
         assets = json.loads(result)
-        
+
         if isinstance(assets, list):
             print(f"✅ Successfully retrieved {len(assets)} assets:")
             for asset in assets:
@@ -79,24 +79,24 @@ def main():
     parser.add_argument("--api-key", help="Your Kraken API key (overrides env var)")
     parser.add_argument("--api-secret", help="Your Kraken API secret (overrides env var)")
     parser.add_argument("--pair", default="XXBTZUSD", help="Cryptocurrency pair for ticker test (default: XXBTZUSD)")
-    
+
     args = parser.parse_args()
-    
+
     # Load environment variables from .env file
     load_dotenv()
-    
+
     # Get API credentials from environment variables or command line arguments
     api_key = args.api_key or os.environ.get("KRAKEN_API_KEY")
     api_secret = args.api_secret or os.environ.get("KRAKEN_API_SECRET")
-    
+
     # First test the connection using the public API (no auth required)
     connection_ok = test_ticker_info(args.pair)
     print("\n" + "-" * 50 + "\n")
-    
+
     if not connection_ok:
         print("❌ Skipping asset listing due to connection failure.")
         sys.exit(1)
-    
+
     # If API credentials are available, test asset listing
     if api_key and api_secret:
         assets = list_assets(api_key, api_secret)

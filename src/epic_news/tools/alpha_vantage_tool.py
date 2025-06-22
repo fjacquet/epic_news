@@ -42,12 +42,12 @@ class AlphaVantageCompanyOverviewTool(BaseTool):
         """Execute the tool to fetch company overview data."""
         cache = get_cache_manager()
         cache_key = f"alpha_vantage_overview_{ticker}"
-        
+
         # Try to get from cache first (cache for 4 hours for fundamental data)
         cached_result = cache.get(cache_key, ttl=14400)
         if cached_result is not None:
             return cached_result
-        
+
         api_key = os.getenv("ALPHA_VANTAGE_API_KEY")
         if not api_key:
             error_result = "Error: ALPHA_VANTAGE_API_KEY environment variable not set."

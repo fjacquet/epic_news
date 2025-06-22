@@ -67,7 +67,7 @@ def test_update_market_data_success(mock_yf_ticker, mock_rag_tool_class, mock_sa
 
     # Assertions for save_tool._run calls
     assert mock_save_instance._run.call_count == len(tickers_to_update)
-    
+
     # Check content of one of the calls (e.g., for AAPL)
     aapl_call_args = None
     for call_arg in mock_save_instance._run.call_args_list:

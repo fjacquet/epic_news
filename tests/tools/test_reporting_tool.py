@@ -108,7 +108,7 @@ class TestReportingTool:
         assert "<footer>" in content
         assert "<h2>Summary</h2>" in content
         assert "<ul><li>Item 1</li><li>Item 2</li></ul>" in content
-        
+
         # Clean up
         output_path.unlink(missing_ok=True)
         output_path.parent.rmdir() if output_path.parent.exists() and not any(output_path.parent.iterdir()) else None

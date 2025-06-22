@@ -17,5 +17,5 @@ def get_github_tools() -> List[BaseTool]:
     if not github_token:
         print("Warning: GITHUB_TOKEN environment variable not set. GitHubSearchTool will not be available.")
         return []
-    
+
     return [GitHubSearchTool()]

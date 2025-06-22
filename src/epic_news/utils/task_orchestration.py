@@ -15,7 +15,7 @@ from typing import Any, Dict, List, Optional
 from crewai import Process, Task
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, 
+logging.basicConfig(level=logging.INFO,
                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("task_orchestration")
 
@@ -25,9 +25,9 @@ class OrchestrationStrategy:
     """
     SEQUENTIAL = Process.sequential
     HIERARCHICAL = Process.hierarchical
-    
+
     @staticmethod
-    def determine_optimal_strategy(tasks: List[Task], 
+    def determine_optimal_strategy(tasks: List[Task],
                                   dependencies: Dict[str, List[str]] = None) -> Process:
         """
         Determines the optimal orchestration strategy based on task dependencies.
@@ -46,7 +46,7 @@ class OrchestrationStrategy:
                 logger.info("Majority of tasks are async-capable, recommending hierarchical process")
                 return Process.hierarchical
             return Process.sequential
-        
+
         # If we have explicit dependencies, check their structure
         dependency_count = sum(len(deps) for deps in dependencies.values())
         if dependency_count > len(tasks) / 2:
@@ -69,7 +69,7 @@ class TaskGroup:
         self.tasks = tasks
         self.dependencies = dependencies or {}
         self.results = {}
-    
+
     def get_optimal_process(self) -> Process:
         """
         Get the optimal process strategy for this task group.
@@ -80,7 +80,7 @@ class TaskGroup:
         return OrchestrationStrategy.determine_optimal_strategy(
             self.tasks, self.dependencies
         )
-    
+
     def set_all_async(self, async_value: bool = True) -> None:
         """
         Set all tasks in the group to be async or not.
@@ -106,15 +106,15 @@ def performance_monitor(func):
     def wrapper(*args, **kwargs):
         start_time = time.time()
         logger.info(f"Starting execution of {func.__name__}")
-        
+
         result = func(*args, **kwargs)
-        
+
         end_time = time.time()
         duration = end_time - start_time
         logger.info(f"Completed {func.__name__} in {duration:.2f} seconds")
-        
+
         return result
-    
+
     return wrapper
 
 
@@ -131,7 +131,7 @@ async def execute_tasks_in_parallel(tasks: List[Task], max_concurrent: int = 3) 
     """
     semaphore = asyncio.Semaphore(max_concurrent)
     results = {}
-    
+
     async def execute_task(task):
         async with semaphore:
             logger.info(f"Starting task: {task.description[:50]}...")
@@ -141,21 +141,21 @@ async def execute_tasks_in_parallel(tasks: List[Task], max_concurrent: int = 3) 
             result = await task.execute_async()
             logger.info(f"Completed task: {task.description[:50]}...")
             return task.id, result
-    
+
     # Create tasks
     task_coroutines = [execute_task(task) for task in tasks]
-    
+
     # Execute tasks and gather results
     task_results = await asyncio.gather(*task_coroutines)
-    
+
     # Process results
     for task_id, result in task_results:
         results[task_id] = result
-    
+
     return results
 
 
-def optimize_crew_process(crew_module_path: str, 
+def optimize_crew_process(crew_module_path: str,
                          process_type: Optional[Process] = None,
                          analyze_only: bool = False) -> Dict[str, Any]:
     """
@@ -170,25 +170,25 @@ def optimize_crew_process(crew_module_path: str,
         Dict[str, Any]: Analysis results
     """
     import importlib
-    
+
     try:
         # Import the module
         module = importlib.import_module(crew_module_path)
-        
+
         # Find crew classes
         crew_classes = []
         for name, obj in inspect.getmembers(module):
             if inspect.isclass(obj) and hasattr(obj, 'crew'):
                 crew_classes.append(obj)
-        
+
         if not crew_classes:
             return {"error": "No crew classes found in module"}
-        
+
         results = {}
         for crew_class in crew_classes:
             # Instantiate the crew
             crew_instance = crew_class()
-            
+
             # Get tasks
             tasks = []
             for name, method in inspect.getmembers(crew_instance):
@@ -196,32 +196,32 @@ def optimize_crew_process(crew_module_path: str,
                     task = method()
                     if isinstance(task, Task):
                         tasks.append(task)
-            
+
             # Analyze tasks
             current_process = None
             crew_method = getattr(crew_instance, 'crew', None)
             if crew_method:
                 crew_obj = crew_method()
                 current_process = getattr(crew_obj, 'process', None)
-            
+
             # Determine optimal process
             optimal_process = OrchestrationStrategy.determine_optimal_strategy(tasks)
-            
+
             results[crew_class.__name__] = {
                 "current_process": current_process,
                 "optimal_process": optimal_process,
                 "task_count": len(tasks),
                 "async_tasks": sum(1 for task in tasks if getattr(task, 'async_execution', False)),
             }
-            
+
             # Update if requested
             if not analyze_only and process_type:
                 # This would require modifying the source code, which is complex
                 # For now, we'll just return the recommendation
                 pass
-        
+
         return results
-    
+
     except Exception as e:
         logger.error(f"Error analyzing crew: {str(e)}")
         return {"error": str(e)}

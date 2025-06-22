@@ -19,8 +19,8 @@ load_dotenv()
 class LegalAnalysisCrew:
     agents_config = "config/agents.yaml"
     tasks_config = "config/tasks.yaml"
-    
-    
+
+
     @agent
     def legal_analyst(self) -> Agent:
         """Creates the legal analyst agent"""
@@ -28,9 +28,9 @@ class LegalAnalysisCrew:
         search_tools = [SerperDevTool(), ScrapeNinjaTool()]
         rag_tools = get_rag_tools()
         html_to_pdf_tool = HtmlToPdfTool()
-        
+
         all_tools = search_tools + rag_tools + [html_to_pdf_tool] + get_report_tools()
-        
+
         return Agent(
             config=self.agents_config["legal_analyst"],
             verbose=True,
@@ -39,10 +39,10 @@ class LegalAnalysisCrew:
             respect_context_window=True,
             reasoning=True,
             max_reasoning_attempts=5,
-            
+
             max_iter=5,
             max_retry_limit=3,
-            max_rpm=10, 
+            max_rpm=10,
         )
 
     @task
@@ -91,7 +91,7 @@ class LegalAnalysisCrew:
         """Creates the Legal Analysis crew"""
         # Ensure output directory exists for final reports
         os.makedirs("output/legal_analysis", exist_ok=True)
-        
+
         return Crew(
             agents=self.agents,
             tasks=self.tasks,

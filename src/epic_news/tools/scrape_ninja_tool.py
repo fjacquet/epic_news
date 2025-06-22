@@ -19,12 +19,12 @@ class ScrapeNinjaTool(BaseTool):
     description: str = "Scrapes website content using the ScrapeNinja API with advanced options"
     args_schema: Type[BaseModel] = ScrapeNinjaInput
     api_key: Optional[str] = None
-    
+
     def __init__(self, **data):
         """Initialize with API key from environment."""
         # Initialize parent class first
         super().__init__(**data)
-        
+
         # Get API key from environment
         self.api_key = os.getenv("RAPIDAPI_KEY")
         if not self.api_key:
@@ -33,21 +33,21 @@ class ScrapeNinjaTool(BaseTool):
     def _run(self, **kwargs) -> str:
         """Scrape a website using ScrapeNinja API with advanced options"""
         api_url = "https://scrapeninja.p.rapidapi.com/scrape"
-            
+
         headers = {
             "Content-Type": "application/json",
             "Accept": "application/json",
             "X-RapidAPI-Key": self.api_key,
             "X-RapidAPI-Host": "scrapeninja.p.rapidapi.com"
         }
-        
+
         payload = {
             "url": kwargs["url"],
             "retryNum": kwargs.get("retry_num", 1),
             "followRedirects": kwargs.get("follow_redirects", 1),
             "timeout": kwargs.get("timeout", 8)
         }
-        
+
         # Add optional parameters if provided
         if "headers" in kwargs and kwargs["headers"]:
             payload["headers"] = kwargs["headers"]
@@ -61,7 +61,7 @@ class ScrapeNinjaTool(BaseTool):
             payload["statusNotExpected"] = kwargs["status_not_expected"]
         if "extractor" in kwargs and kwargs["extractor"]:
             payload["extractor"] = kwargs["extractor"]
-        
+
         try:
             response = requests.post(api_url, headers=headers, data=json.dumps(payload))
             response.raise_for_status()

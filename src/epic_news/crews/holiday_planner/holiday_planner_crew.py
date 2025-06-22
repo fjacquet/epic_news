@@ -34,7 +34,7 @@ class HolidayPlannerCrew():
 
         # Tools for travel research: general search, video, scraping
         self.travel_research_tools = search_tools + youtube_tools + scrape_tools + rag_tools + [exchange_rate_tool]
-        
+
         # Tools for accommodation: general search, scraping
         # (SerperDevTool for general queries, ScrapeNinjaTool for specific details)
         self.accommodation_search_tools = search_tools + scrape_tools + rag_tools + [exchange_rate_tool]
@@ -83,7 +83,7 @@ class HolidayPlannerCrew():
         return Agent(
             config=self.agents_config["accommodation_specialist"],
             tools=self.accommodation_search_tools, # To be populated by _init_tools
-            verbose=False,  
+            verbose=False,
             reasoning=True,
             allow_delegation=True,
         )

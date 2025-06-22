@@ -19,7 +19,7 @@ def test_tech_stack_tool_instantiation_success():
     assert tool.api_key == TEST_SERPER_API_KEY
     assert tool.name == "tech_stack_analysis"
     # Adjust description assertion based on BaseTool behavior
-    assert "Analyze the technology stack used by a website" in tool.description 
+    assert "Analyze the technology stack used by a website" in tool.description
     assert tool.args_schema == TechStackInput
 
 @patch.dict(os.environ, {}, clear=True) # Ensure SERPER_API_KEY is not set
@@ -89,11 +89,11 @@ def test_run_detailed_success(tech_stack_tool_instance_with_mock):
     assert result["domain"] == domain_to_test
     assert sorted(result["technologies"]) == expected_raw_tech
     assert result["detailed_analysis"] is not None
-    
+
     # Sort lists within the detailed_analysis for consistent comparison
     for category in result["detailed_analysis"]:
         result["detailed_analysis"][category] = sorted(result["detailed_analysis"][category])
-        
+
     assert result["detailed_analysis"] == expected_detailed_analysis
     assert "error" not in result
     mock_search_serper.assert_called_once_with(
@@ -105,9 +105,9 @@ def test_run_no_search_results(tech_stack_tool_instance_with_mock):
     """Test _run method when _search_serper returns no organic results."""
     tool, mock_search_serper = tech_stack_tool_instance_with_mock
     domain_to_test = "no-results-example.com"
-    
+
     # Scenario 1: detailed=False
-    mock_search_serper.return_value = {"organic": []} 
+    mock_search_serper.return_value = {"organic": []}
 
     result_json = tool._run(domain=domain_to_test, detailed=False)
     result = json.loads(result_json)
@@ -115,7 +115,7 @@ def test_run_no_search_results(tech_stack_tool_instance_with_mock):
     assert result["domain"] == domain_to_test
     assert result["technologies"] == []
     assert result["detailed_analysis"] is None
-    assert "error" not in result 
+    assert "error" not in result
     mock_search_serper.assert_called_once_with(
         f"site:builtwith.com OR site:wappalyzer.com OR site:stackshare.io {domain_to_test}"
     )
@@ -130,7 +130,7 @@ def test_run_no_search_results(tech_stack_tool_instance_with_mock):
     assert result_detailed["domain"] == domain_to_test
     assert result_detailed["technologies"] == []
     # When detailed is true and no tech found, detailed_analysis should be an empty dict
-    assert result_detailed["detailed_analysis"] == {} 
+    assert result_detailed["detailed_analysis"] == {}
     assert "error" not in result_detailed
     mock_search_serper.assert_called_once_with(
         f"site:builtwith.com OR site:wappalyzer.com OR site:stackshare.io {domain_to_test}"
@@ -143,7 +143,7 @@ def test_run_search_api_error(tech_stack_tool_instance_with_mock):
     domain_to_test = "error-example.com"
     simulated_exception_text = "Simulated API failure during search"
     expected_error_in_output = f"An error occurred during analysis: {simulated_exception_text}"
-    
+
     # Configure the mock to raise an exception when called
     mock_search_serper.side_effect = Exception(simulated_exception_text)
 
@@ -155,7 +155,7 @@ def test_run_search_api_error(tech_stack_tool_instance_with_mock):
     assert "technologies" not in result
     assert "detailed_analysis" not in result
     assert result.get("error") == expected_error_in_output
-    
+
     mock_search_serper.assert_called_once_with(
         f"site:builtwith.com OR site:wappalyzer.com OR site:stackshare.io {domain_to_test}"
     )

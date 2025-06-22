@@ -22,7 +22,7 @@ def test_run_successful_info_retrieval_all_fields(mock_yf_ticker, tool_instance)
     ticker_symbol = "GOODTICKER"
     mock_ticker_instance = MagicMock()
     mock_yf_ticker.return_value = mock_ticker_instance
-    
+
     mock_ticker_instance.info = {
         "longName": "Good Company Inc.",
         "industry": "Tech",
@@ -49,7 +49,7 @@ def test_run_successful_info_retrieval_all_fields(mock_yf_ticker, tool_instance)
     result_data = json.loads(result_str)
 
     mock_yf_ticker.assert_called_once_with(ticker_symbol)
-    
+
     expected_data = {
         "symbol": ticker_symbol,
         "name": "Good Company Inc.",
@@ -131,7 +131,7 @@ def test_run_successful_info_retrieval_some_fields_na(mock_yf_ticker, tool_insta
         del expected_data["financial_metrics"]
     if not expected_data["valuation_metrics"]:
         del expected_data["valuation_metrics"]
-        
+
     assert result_data == expected_data
 
 @patch('yfinance.Ticker')
@@ -157,7 +157,7 @@ def test_run_yfinance_exception(mock_yf_ticker, tool_instance):
     mock_ticker_instance = MagicMock()
     mock_yf_ticker.return_value = mock_ticker_instance
     type(mock_ticker_instance).info = property(MagicMock(side_effect=Exception(error_message)))
-    
+
     result_str = tool_instance._run(ticker=ticker_symbol)
     result_data = json.loads(result_str)
     assert result_data == {"error": f"Failed to get company info for {ticker_symbol}: {error_message}"}

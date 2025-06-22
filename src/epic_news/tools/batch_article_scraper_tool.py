@@ -38,7 +38,7 @@ class BatchArticleScraperTool(BaseTool):
         """
         # Convert input to RssFeeds object if it's not already
         feeds_obj = self._ensure_rss_feeds_object(rss_feeds)
-        
+
         # Process each feed and article
         for feed in feeds_obj.feeds:
             logger.info(f"Processing feed: {feed.feed_url}")
@@ -53,7 +53,7 @@ class BatchArticleScraperTool(BaseTool):
                     logger.info(f"Scraping content from: {url}")
                     scraped_data = self.scrape_ninja_tool._run(url=str(url))
                     scraped_json = json.loads(scraped_data)
-                    
+
                     # Extract content, handling potential errors
                     if 'error' in scraped_json:
                         logger.error(f"Error scraping {url}: {scraped_json['error']}")
@@ -64,7 +64,7 @@ class BatchArticleScraperTool(BaseTool):
 
                 except Exception as e:
                     logger.exception(f"An unexpected error occurred while scraping {url}: {e}")
-        
+
         # Convert back to JSON string
         try:
             # Try the newer Pydantic v2 method first
@@ -76,10 +76,10 @@ class BatchArticleScraperTool(BaseTool):
         except Exception as e:
             logger.error(f"Error serializing RssFeeds object: {e}")
             # Last resort fallback
-            return json.dumps({"feeds": [{"feed_url": feed.feed_url, 
-                                     "articles": [article.dict() for article in feed.articles]} 
+            return json.dumps({"feeds": [{"feed_url": feed.feed_url,
+                                     "articles": [article.dict() for article in feed.articles]}
                                     for feed in feeds_obj.feeds]})
-        
+
     def _ensure_rss_feeds_object(self, input_data: Union[RssFeeds, dict, str]) -> RssFeeds:
         """
         Ensures that the input is converted to a RssFeeds object.
@@ -92,7 +92,7 @@ class BatchArticleScraperTool(BaseTool):
         """
         if isinstance(input_data, RssFeeds):
             return input_data
-        
+
         # If it's a string, try to parse as JSON
         if isinstance(input_data, str):
             try:
@@ -100,7 +100,7 @@ class BatchArticleScraperTool(BaseTool):
             except json.JSONDecodeError as e:
                 logger.error(f"Failed to parse input as JSON: {e}")
                 raise ValueError(f"Invalid JSON input: {e}")
-        
+
         # If it's a dict, convert to RssFeeds
         if isinstance(input_data, dict):
             try:
@@ -113,7 +113,7 @@ class BatchArticleScraperTool(BaseTool):
             except Exception as e:
                 logger.error(f"Failed to convert dict to RssFeeds: {e}")
                 raise ValueError(f"Invalid RssFeeds format: {e}")
-        
+
         raise TypeError(f"Expected RssFeeds, dict, or JSON string, got {type(input_data)}")
 
 
@@ -132,9 +132,9 @@ def test_batch_article_scraper():
             )
         ]
     )
-    
+
     feeds = RssFeeds(feeds=[feed1])
-    
+
     # Create and test the tool
     tool = BatchArticleScraperTool()
     print("Testing BatchArticleScraperTool with sample data...")

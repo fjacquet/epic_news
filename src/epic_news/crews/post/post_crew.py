@@ -28,7 +28,7 @@ def read_file_content(file_path: str) -> str:
         # Handle both absolute and relative paths
         if not os.path.isabs(file_path):
             file_path = os.path.join(os.getcwd(), file_path)
-        
+
         # Read and return the file content
         with open(file_path, 'r', encoding='utf-8') as file:
             return file.read()
@@ -48,7 +48,7 @@ class PostCrew:
             verbose=True,
             llm_timeout=300
         )
-    
+
     @task
     def distribution_task(self) -> Task:
         return Task(

@@ -60,12 +60,12 @@ def test_get_website_search_tools():
 
 def test_get_github_tools():
     tools = get_github_tools()
-    
+
     # If GITHUB_TOKEN is not available, the function should return an empty list
     if not os.getenv("GITHUB_TOKEN"):
         assert len(tools) == 0
         return
-    
+
     # If GITHUB_TOKEN is available, we should get one tool
     assert len(tools) == 1
     github_tool = tools[0]
@@ -82,12 +82,12 @@ def test_get_pdf_tools():
 
 def test_get_all_web_tools():
     import os
-    
+
     all_tools = get_all_web_tools()
-    
+
     # Verify we get tools from all categories
     assert len(all_tools) > 0
-    
+
     # Check for presence of different tool types
     tool_types = {type(tool) for tool in all_tools}
     expected_types = {
@@ -98,10 +98,10 @@ def test_get_all_web_tools():
         PDFSearchTool,
         YoutubeVideoSearchTool,
     }
-    
+
     # Add GithubSearchTool to expected types only if GITHUB_TOKEN is available
     if os.getenv("GITHUB_TOKEN"):
         expected_types.add(GithubSearchTool)
-    
+
     # Verify all expected tool types are present
     assert expected_types.issubset(tool_types)

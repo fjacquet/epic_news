@@ -19,7 +19,7 @@ load_dotenv()
 class WebPresenceCrew:
     agents_config = "config/agents.yaml"
     tasks_config = "config/tasks.yaml"
-    
+
     @agent
     def web_presence_investigator(self) -> Agent:
         """Creates the web presence investigator agent"""
@@ -27,9 +27,9 @@ class WebPresenceCrew:
         search_tools = [SerperDevTool(), ScrapeNinjaTool()]
         rag_tools = get_rag_tools()
         html_to_pdf_tool = HtmlToPdfTool()
-        
+
         all_tools = search_tools + rag_tools + [html_to_pdf_tool] + get_report_tools()
-        
+
         return Agent(
             config=self.agents_config["web_presence_investigator"],
             verbose=True,
@@ -38,10 +38,10 @@ class WebPresenceCrew:
             respect_context_window=True,
             reasoning=True,
             max_reasoning_attempts=5,
-            
+
             max_iter=5,
             max_retry_limit=3,
-            max_rpm=10, 
+            max_rpm=10,
         )
 
     @task
@@ -49,7 +49,7 @@ class WebPresenceCrew:
         """Conduct a comprehensive audit of the target's web presence"""
         return Task(
             config=self.tasks_config["web_presence_audit"],
-            async_execution=True,   
+            async_execution=True,
         )
 
     @task
@@ -98,7 +98,7 @@ class WebPresenceCrew:
         """Creates the Web Presence Analysis crew"""
         # Ensure output directory exists for final reports
         os.makedirs("output/web_presence", exist_ok=True)
-        
+
         return Crew(
             agents=self.agents,
             tasks=self.tasks,

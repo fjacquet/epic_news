@@ -32,7 +32,7 @@ def validate_html(html: str, raise_on_error: bool = True) -> bool:
     try:
         # Use html.parser which is built-in and handles HTML5 tags correctly
         soup = BeautifulSoup(html, 'html.parser')
-        
+
         # Basic structure validation - must have html, head, body
         if not soup.html or not soup.head or not soup.body:
             if raise_on_error:
@@ -45,15 +45,15 @@ def validate_html(html: str, raise_on_error: bool = True) -> bool:
                     missing.append("<body>")
                 raise ValueError(f"HTML validation failed: Missing required elements: {', '.join(missing)}")
             return False
-            
+
         # Title is required for accessibility
         if not soup.title:
             if raise_on_error:
                 raise ValueError("HTML validation failed: Missing required <title> element in <head>")
             return False
-            
+
         return True
-        
+
     except Exception as e:
         if raise_on_error:
             raise ValueError(f"HTML validation failed: {str(e)}")

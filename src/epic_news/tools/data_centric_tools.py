@@ -31,7 +31,7 @@ __all__ = [
 
 class MetricsCalculatorTool(BaseTool):
     """Tool for calculating and tracking metrics from data."""
-    
+
     name: str = "MetricsCalculatorTool"
     description: str = """
     Calculate and track metrics from structured data. This tool helps you:
@@ -53,8 +53,8 @@ class MetricsCalculatorTool(BaseTool):
     
     Output will be a properly formatted Metric object with calculated trends and changes.
     """
-    
-    def _run(self, name: str, display_name: str, description: str, 
+
+    def _run(self, name: str, display_name: str, description: str,
              value: Any, type: str, previous_value: Optional[Any] = None,
              unit: Optional[str] = None, source: Optional[str] = None,
              target: Optional[Any] = None, is_key_metric: bool = False,
@@ -63,14 +63,14 @@ class MetricsCalculatorTool(BaseTool):
         try:
             # Validate metric type
             metric_type = MetricType(type.lower())
-            
+
             # Create metric value with trend calculation
             metric_value = {
                 "value": value,
                 "previous_value": previous_value,
                 # Let the model validators handle calculations
             }
-            
+
             # Create the metric
             metric = Metric(
                 name=name,
@@ -85,17 +85,17 @@ class MetricsCalculatorTool(BaseTool):
                 timestamp=datetime.now(),
                 metadata=kwargs.get("metadata", {})
             )
-            
+
             # Return as dictionary for easier consumption by LLMs
             return metric.model_dump()
-            
+
         except Exception as e:
             return {"error": f"Failed to calculate metric: {str(e)}"}
 
 
 class KPITrackerTool(BaseTool):
     """Tool for tracking Key Performance Indicators (KPIs)."""
-    
+
     name: str = "KPITrackerTool"
     description: str = """
     Track and manage Key Performance Indicators (KPIs). This tool helps you:
@@ -117,17 +117,17 @@ class KPITrackerTool(BaseTool):
     
     Output will be a properly formatted KPI object with calculated progress and status.
     """
-    
-    def _run(self, name: str, display_name: str, description: str, 
+
+    def _run(self, name: str, display_name: str, description: str,
              value: Any, type: str, target: Any,
-             previous_value: Optional[Any] = None, unit: Optional[str] = None, 
+             previous_value: Optional[Any] = None, unit: Optional[str] = None,
              source: Optional[str] = None, target_date: Optional[str] = None,
              **kwargs) -> Dict[str, Any]:
         """Run the KPI tracker tool."""
         try:
             # Validate metric type
             metric_type = MetricType(type.lower())
-            
+
             # Parse target date if provided
             parsed_target_date = None
             if target_date:
@@ -135,14 +135,14 @@ class KPITrackerTool(BaseTool):
                     parsed_target_date = datetime.fromisoformat(target_date)
                 except ValueError:
                     parsed_target_date = None
-            
+
             # Create metric value with trend calculation
             metric_value = {
                 "value": value,
                 "previous_value": previous_value,
                 # Let the model validators handle calculations
             }
-            
+
             # Create the KPI
             kpi = KPI(
                 name=name,
@@ -158,17 +158,17 @@ class KPITrackerTool(BaseTool):
                 metadata=kwargs.get("metadata", {})
                 # Let the model validators handle progress and status
             )
-            
+
             # Return as dictionary for easier consumption by LLMs
             return kpi.model_dump()
-            
+
         except Exception as e:
             return {"error": f"Failed to track KPI: {str(e)}"}
 
 
 class DataVisualizationTool(BaseTool):
     """Tool for creating data visualizations from structured data."""
-    
+
     name: str = "DataVisualizationTool"
     description: str = """
     Create data visualizations from structured data. This tool helps you:
@@ -192,7 +192,7 @@ class DataVisualizationTool(BaseTool):
     
     Output will be a properly formatted data structure ready for visualization.
     """
-    
+
     def _run(self, type: str, name: str, **kwargs) -> Dict[str, Any]:
         """Run the data visualization tool."""
         try:
@@ -205,16 +205,16 @@ class DataVisualizationTool(BaseTool):
                         value=point.get("value"),
                         metadata=point.get("metadata", {})
                     ))
-                
+
                 series = DataSeries(
                     name=name,
                     description=kwargs.get("description"),
                     points=points,
                     metadata=kwargs.get("metadata", {})
                 )
-                
+
                 return series.model_dump()
-                
+
             elif type.lower() == "table":
                 # Create a data table
                 table = DataTable(
@@ -224,19 +224,19 @@ class DataVisualizationTool(BaseTool):
                     rows=kwargs.get("rows", []),
                     metadata=kwargs.get("metadata", {})
                 )
-                
+
                 return table.model_dump()
-                
+
             else:
                 return {"error": f"Unknown visualization type: {type}"}
-            
+
         except Exception as e:
             return {"error": f"Failed to create data visualization: {str(e)}"}
 
 
 class StructuredReportTool(BaseTool):
     """Tool for generating structured data reports with metrics, KPIs, and visualizations."""
-    
+
     name: str = "StructuredReportTool"
     description: str = """
     Generate comprehensive structured data reports. This tool helps you:
@@ -254,7 +254,7 @@ class StructuredReportTool(BaseTool):
     
     Output will be a structured data report with all components properly formatted.
     """
-    
+
     def _run(self, title: str, description: str, **kwargs) -> Dict[str, Any]:
         """Run the structured report tool."""
         try:
@@ -268,7 +268,7 @@ class StructuredReportTool(BaseTool):
                     "change_percentage": metric_data.get("change_percentage"),
                     "trend": metric_data.get("trend", TrendDirection.UNKNOWN)
                 }
-                
+
                 # Create metric
                 metrics.append(Metric(
                     name=metric_data.get("name", ""),
@@ -283,7 +283,7 @@ class StructuredReportTool(BaseTool):
                     timestamp=datetime.now(),
                     metadata=metric_data.get("metadata", {})
                 ))
-            
+
             # Process KPIs if provided
             kpis = []
             for kpi_data in kwargs.get("kpis", []):
@@ -294,7 +294,7 @@ class StructuredReportTool(BaseTool):
                     "change_percentage": kpi_data.get("change_percentage"),
                     "trend": kpi_data.get("trend", TrendDirection.UNKNOWN)
                 }
-                
+
                 # Create KPI
                 kpis.append(KPI(
                     name=kpi_data.get("name", ""),
@@ -311,7 +311,7 @@ class StructuredReportTool(BaseTool):
                     timestamp=datetime.now(),
                     metadata=kpi_data.get("metadata", {})
                 ))
-            
+
             # Process data series if provided
             data_series = []
             for series_data in kwargs.get("data_series", []):
@@ -322,14 +322,14 @@ class StructuredReportTool(BaseTool):
                         value=point.get("value"),
                         metadata=point.get("metadata", {})
                     ))
-                
+
                 data_series.append(DataSeries(
                     name=series_data.get("name", ""),
                     description=series_data.get("description"),
                     points=points,
                     metadata=series_data.get("metadata", {})
                 ))
-            
+
             # Process data tables if provided
             data_tables = []
             for table_data in kwargs.get("data_tables", []):
@@ -340,7 +340,7 @@ class StructuredReportTool(BaseTool):
                     rows=table_data.get("rows", []),
                     metadata=table_data.get("metadata", {})
                 ))
-            
+
             # Create the structured report
             report = StructuredDataReport(
                 title=title,
@@ -352,21 +352,21 @@ class StructuredReportTool(BaseTool):
                 timestamp=datetime.now(),
                 metadata=kwargs.get("metadata", {})
             )
-            
+
             # Generate HTML if requested
             if kwargs.get("generate_html", False):
                 # Get the path to the templates directory
                 templates_dir = os.path.abspath(
                     os.path.join(
-                        os.path.dirname(__file__), 
+                        os.path.dirname(__file__),
                         "..", "..", "..", "templates"
                     )
                 )
-                
+
                 # Create Jinja2 environment
                 env = Environment(loader=FileSystemLoader(templates_dir))
                 template = env.get_template("data_report_template.html")
-                
+
                 # Render the template
                 html = template.render(
                     title=report.title,
@@ -378,13 +378,13 @@ class StructuredReportTool(BaseTool):
                     timestamp=report.timestamp,
                     metadata=report.metadata
                 )
-                
+
                 # Add the HTML to the report
                 report.html = html
-            
+
             # Return as dictionary for easier consumption by LLMs
             return report.model_dump()
-            
+
         except Exception as e:
             return {"error": f"Failed to generate structured report: {str(e)}"}
 

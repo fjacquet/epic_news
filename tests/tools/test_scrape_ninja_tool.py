@@ -140,7 +140,7 @@ def test_run_http_error(mock_requests_post, mock_env_rapidapi_key):
     tool = ScrapeNinjaTool()
     url_to_scrape = "http://example.com"
     error_message = "401 Client Error: Unauthorized for url"
-    
+
     mock_api_response = MagicMock()
     mock_api_response.raise_for_status.side_effect = requests.exceptions.HTTPError(error_message)
     mock_requests_post.return_value = mock_api_response

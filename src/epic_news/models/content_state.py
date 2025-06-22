@@ -68,7 +68,7 @@ class ContentState(BaseModel):
     sendto: str = "fred.jacquet@gmail.com"
     email_sent: bool = False
     error_message: str = ""
-    
+
     # Additional parameters
     sentence_count: int = 5
 
@@ -84,7 +84,7 @@ class ContentState(BaseModel):
     context: str = ""
     objective: str = ""
     prior_interactions: str = ""
-    
+
 
 
     def to_crew_inputs(self) -> dict:

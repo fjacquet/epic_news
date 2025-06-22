@@ -33,7 +33,7 @@ class ExchangeRateTool(BaseTool):
 
         if target_currencies:
             params["symbols"] = ",".join(target_currencies)
-        
+
         try:
             response = requests.get(self.base_url, params=params)
             response.raise_for_status()  # Raise an exception for HTTP errors (4xx or 5xx)
@@ -45,14 +45,14 @@ class ExchangeRateTool(BaseTool):
             rates = data.get("rates")
             if not rates:
                 return "Error: Could not retrieve exchange rates from the API response."
-            
+
             # If specific target_currencies were requested, filter the results
             # (though the 'symbols' param should already do this on the API side)
             if target_currencies:
                 output_rates = {curr: rates.get(curr) for curr in target_currencies if curr in rates}
             else:
                 output_rates = rates
-            
+
             if not output_rates:
                 return f"Error: No rates found for the specified target currencies: {target_currencies} with base {base_currency}"
 
@@ -66,10 +66,10 @@ class ExchangeRateTool(BaseTool):
             return f"An unexpected error occurred: {e}"
 
 if __name__ == '__main__':
-    # This is for basic manual testing. 
+    # This is for basic manual testing.
     # Ensure OPENEXCHANGERATES_API_KEY is set in your environment.
     tool = ExchangeRateTool()
-    
+
     # Example 1: Get all rates for USD (default base)
     # print(tool.run(target_currencies=None))
 

@@ -29,11 +29,11 @@ class CookingCrew:
     The crew leverages configuration-driven design with YAML files for agents and tasks,
     and implements asynchronous execution where appropriate for optimal performance.
     """
-    
+
     # Configuration files for agents and tasks
     agents_config = 'config/agents.yaml'
     tasks_config = 'config/tasks.yaml'
-    
+
     def __init__(self, topic=None, preferences=None):
         """Initialize the CookingCrew.
         
@@ -45,14 +45,14 @@ class CookingCrew:
         """
         # Use centralized path utility for consistent output directory handling
 
-        
+
         # Store inputs
         self.topic = topic or 'une délicieuse recette'
         self.preferences = preferences or ''
-        
+
         # Initialize tools
         self._initialize_tools()
-        
+
     def _initialize_tools(self):
         """Initialize all tools needed by the crew's agents.
         
@@ -62,20 +62,20 @@ class CookingCrew:
         try:
             # # Initialize the Composio toolset
             # toolset = ComposioToolSet()
-            
+
             # # Get search tools for recipe research
             # self.search_tools = toolset.get_tools(actions=[
             #     'COMPOSIO_SEARCH_DUCK_DUCK_GO_SEARCH',
             #     # Uncomment if needed for additional search capabilities
             #     # 'COMPOSIO_SEARCH_SEARCH',
             # ])
-            
+
             self.search_tools = get_search_tools()
             self.scrape_tools = get_scrape_tools()
             self.rag_tools = get_rag_tools()
             self.reporting_tools = get_reporting_tools()
             self.report_tools = get_report_tools()
-            
+
             logger.info("Successfully initialized all tools for CookingCrew")
         except Exception as e:
             logger.error(f"Error initializing tools: {str(e)}")
@@ -104,7 +104,7 @@ class CookingCrew:
             reasoning=True,
             max_iterations=3  # Allow multiple iterations for recipe refinement
         )
-    
+
     @task
     def html_recipe_task(self) -> Task:
         """Define the HTML recipe creation task.
@@ -117,13 +117,13 @@ class CookingCrew:
             Task: Configured HTML recipe task from YAML configuration with topic
         """
         task_config = dict(self.tasks_config['html_recipe_task'])
-        
+
         # Enhance the description with the actual topic
         task_config['description'] = task_config['description'].format(
             topic=self.topic,
             preferences=f" ({self.preferences})" if self.preferences else ""
         )
-        
+
         return Task(
             config=task_config,
             verbose=False,
@@ -144,14 +144,14 @@ class CookingCrew:
             Task: Configured Paprika YAML recipe task from YAML configuration with topic
         """
         task_config = dict(self.tasks_config['paprika_yaml_task'])
-        
+
         # Enhance the description with the actual topic
         task_config['description'] = task_config['description'].format(
             topic=self.topic,
             preferences=f" ({self.preferences})" if self.preferences else ""
         )
 
-        
+
         return Task(
             config=task_config,
             output_pydantic=PaprikaRecipe,
@@ -160,7 +160,7 @@ class CookingCrew:
             async_execution=False
         )
 
-   
+
     @crew
     def crew(self) -> Crew:
         """Creates a streamlined cooking crew for comprehensive recipe creation.
@@ -174,7 +174,7 @@ class CookingCrew:
         """
         try:
             logger.info("Creating CookingCrew for recipe generation")
-            
+
             return Crew(
                 agents=self.agents,  # Automatically created by the @agent decorator
                 tasks=self.tasks,    # Automatically created by the @task decorator

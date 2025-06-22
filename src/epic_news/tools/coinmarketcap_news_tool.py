@@ -39,7 +39,7 @@ class CoinMarketCapNewsTool(BaseTool):
                 "X-CMC_PRO_API_KEY": os.environ.get("X-CMC_PRO_API_KEY", ""),
                 "Accept": "application/json",
             }
-            
+
             api_endpoint = f"{CMC_PRO_API_BASE_URL}/v2/news/latest"
             params = {"limit": limit, "sort_by": "published_at"}
 
@@ -48,7 +48,7 @@ class CoinMarketCapNewsTool(BaseTool):
                     params["slug"] = symbol
                 else:
                     params["symbol"] = symbol.upper()
-            
+
             response = requests.get(api_endpoint, headers=headers, params=params)
 
             if response.status_code != 200:
@@ -85,7 +85,7 @@ class CoinMarketCapNewsTool(BaseTool):
                     "cover_image_url": item.get("cover")
                 }
                 articles_list.append(article)
-            
+
             output_data = {
                 "query_filter": symbol if symbol else "general",
                 "count": len(articles_list),

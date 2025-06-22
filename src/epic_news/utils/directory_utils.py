@@ -13,7 +13,7 @@ def ensure_output_directories():
     # Base directories
     os.makedirs("checkpoints", exist_ok=True)
     os.makedirs("output", exist_ok=True)
-    
+
     # Crew-specific output directories
     output_subdirs = [
         "meeting",
@@ -24,9 +24,9 @@ def ensure_output_directories():
         "poem",
         "email",
         "holiday",
-        "marketing",    
+        "marketing",
     ]
-    
+
     # Create all output subdirectories
     for subdir in output_subdirs:
         os.makedirs(f"output/{subdir}", exist_ok=True)

@@ -45,10 +45,10 @@ def test_run_successful_response(mock_requests_get):
     with patch.dict(os.environ, {"ALPHA_VANTAGE_API_KEY": TEST_ALPHA_VANTAGE_API_KEY}):
         tool = AlphaVantageCompanyOverviewTool()
         result_json = tool._run(ticker="AAPL")
-    
+
     result_data = json.loads(result_json)
     assert result_data == mock_api_data
-    
+
     expected_url = (
         f"https://www.alphavantage.co/query?function=OVERVIEW&symbol=AAPL"
         f"&apikey={TEST_ALPHA_VANTAGE_API_KEY}"
@@ -67,7 +67,7 @@ def test_run_api_http_error(mock_requests_get):
     with patch.dict(os.environ, {"ALPHA_VANTAGE_API_KEY": TEST_ALPHA_VANTAGE_API_KEY}):
         tool = AlphaVantageCompanyOverviewTool()
         result = tool._run(ticker="FAIL")
-    
+
     assert "Error fetching data from Alpha Vantage: Server Error" in result
     expected_url = (
         f"https://www.alphavantage.co/query?function=OVERVIEW&symbol=FAIL"
@@ -87,7 +87,7 @@ def test_run_invalid_json_response(mock_requests_get):
     with patch.dict(os.environ, {"ALPHA_VANTAGE_API_KEY": TEST_ALPHA_VANTAGE_API_KEY}):
         tool = AlphaVantageCompanyOverviewTool()
         result = tool._run(ticker="JSONERR")
-        
+
     assert "Error: Failed to parse JSON response from Alpha Vantage" in result
 
 @patch('requests.get')
@@ -108,7 +108,7 @@ def test_run_api_returns_note_or_empty(mock_requests_get):
         f"https://www.alphavantage.co/query?function=OVERVIEW&symbol=NOTE&apikey={TEST_ALPHA_VANTAGE_API_KEY}",
         timeout=10
     )
-    
+
     # Scenario 2: API returns empty data
     mock_requests_get.reset_mock() # Reset for the next call
     mock_response_empty = MagicMock()
@@ -136,7 +136,7 @@ def test_run_network_request_exception(mock_requests_get):
     with patch.dict(os.environ, {"ALPHA_VANTAGE_API_KEY": TEST_ALPHA_VANTAGE_API_KEY}):
         tool = AlphaVantageCompanyOverviewTool()
         result = tool._run(ticker="NETERR")
-        
+
     assert f"Error fetching data from Alpha Vantage: {network_error_message}" in result
 
 # More tests will follow for API errors, invalid ticker, network issues etc.

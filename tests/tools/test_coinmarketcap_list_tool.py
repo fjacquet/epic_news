@@ -50,7 +50,7 @@ def test_run_successful_response_defaults(mock_requests_get):
     with patch.dict(os.environ, {"X-CMC_PRO_API_KEY": TEST_CMC_API_KEY}, clear=True):
         tool = CoinMarketCapListTool()
         result_json = tool._run() # Use defaults
-    
+
     result_data = json.loads(result_json)
     assert isinstance(result_data, list)
     assert len(result_data) == 2
@@ -73,7 +73,7 @@ def test_run_successful_response_custom_params(mock_requests_get):
     with patch.dict(os.environ, {"X-CMC_PRO_API_KEY": TEST_CMC_API_KEY}, clear=True):
         tool = CoinMarketCapListTool()
         tool._run(limit=5, sort="volume_24h")
-    
+
     expected_params = {"limit": 5, "sort": "volume_24h", "convert": "USD"}
     mock_requests_get.assert_called_once_with(ANY, headers=ANY, params=expected_params) # ANY for url and headers as they are tested elsewhere
 
@@ -88,7 +88,7 @@ def test_run_limit_capping(mock_requests_get):
     with patch.dict(os.environ, {"X-CMC_PRO_API_KEY": TEST_CMC_API_KEY}, clear=True):
         tool = CoinMarketCapListTool()
         tool._run(limit=120, sort="price")
-    
+
     expected_params = {"limit": 100, "sort": "price", "convert": "USD"}
     mock_requests_get.assert_called_once_with(ANY, headers=ANY, params=expected_params)
 
@@ -103,7 +103,7 @@ def test_run_invalid_sort_parameter(mock_requests_get):
     with patch.dict(os.environ, {"X-CMC_PRO_API_KEY": TEST_CMC_API_KEY}, clear=True):
         tool = CoinMarketCapListTool()
         tool._run(limit=10, sort="invalid_sort_value")
-    
+
     expected_params = {"limit": 10, "sort": "market_cap", "convert": "USD"}
     mock_requests_get.assert_called_once_with(ANY, headers=ANY, params=expected_params)
 
@@ -118,7 +118,7 @@ def test_run_api_key_missing(mock_requests_get):
     with patch.dict(os.environ, {"X-CMC_PRO_API_KEY": ""}, clear=True):
         tool = CoinMarketCapListTool()
         result_json = tool._run()
-    
+
     result_data = json.loads(result_json)
     assert "error" in result_data
     assert "CoinMarketCap API error: 401" in result_data["error"]
@@ -137,7 +137,7 @@ def test_run_api_error_non_200(mock_requests_get):
     with patch.dict(os.environ, {"X-CMC_PRO_API_KEY": TEST_CMC_API_KEY}, clear=True):
         tool = CoinMarketCapListTool()
         result_json = tool._run()
-    
+
     result_data = json.loads(result_json)
     assert "error" in result_data
     assert "CoinMarketCap API error: 503" in result_data["error"]
@@ -153,7 +153,7 @@ def test_run_no_data_found_empty_list(mock_requests_get):
     with patch.dict(os.environ, {"X-CMC_PRO_API_KEY": TEST_CMC_API_KEY}, clear=True):
         tool = CoinMarketCapListTool()
         result_json = tool._run()
-    
+
     result_data = json.loads(result_json)
     assert isinstance(result_data, list)
     assert len(result_data) == 0
@@ -169,7 +169,7 @@ def test_run_malformed_response_no_data_key(mock_requests_get):
     with patch.dict(os.environ, {"X-CMC_PRO_API_KEY": TEST_CMC_API_KEY}, clear=True):
         tool = CoinMarketCapListTool()
         result_json = tool._run()
-    
+
     result_data = json.loads(result_json)
     assert "error" in result_data
     assert "No cryptocurrency data found" in result_data["error"]
@@ -182,7 +182,7 @@ def test_run_requests_exception(mock_requests_get):
     with patch.dict(os.environ, {"X-CMC_PRO_API_KEY": TEST_CMC_API_KEY}, clear=True):
         tool = CoinMarketCapListTool()
         result_json = tool._run()
-    
+
     result_data = json.loads(result_json)
     assert "error" in result_data
     assert "Error retrieving cryptocurrency list: Connection Timed Out" in result_data["error"]
@@ -198,7 +198,7 @@ def test_run_json_decode_error(mock_requests_get):
     with patch.dict(os.environ, {"X-CMC_PRO_API_KEY": TEST_CMC_API_KEY}, clear=True):
         tool = CoinMarketCapListTool()
         result_json = tool._run()
-    
+
     result_data = json.loads(result_json)
     assert "error" in result_data
     assert "Error retrieving cryptocurrency list: Malformed JSON" in result_data["error"]

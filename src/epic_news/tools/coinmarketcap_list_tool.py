@@ -103,7 +103,7 @@ class CoinMarketCapListTool(BaseTool):
                     "volume_24h_usd": quote.get('volume_24h')
                 }
                 results_list.append(crypto_info)
-            
+
             logger.info(
                 f"Successfully retrieved list of {len(results_list)} cryptocurrencies"
             )

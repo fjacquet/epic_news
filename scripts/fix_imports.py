@@ -27,7 +27,7 @@ def fix_imports_in_file(file_path):
     for pattern in patterns:
         # Search for the pattern in the content
         matches = re.finditer(pattern, content, re.MULTILINE)
-        
+
         # Process each match
         for match in matches:
             old_import = match.group(0)
@@ -37,7 +37,7 @@ def fix_imports_in_file(file_path):
             else:
                 # Handle more complex imports with multiple items
                 new_import = old_import.replace('crewai_tools', 'crewai.tools')
-            
+
             # Replace the import in the content
             content = content.replace(old_import, new_import)
             modified = True
@@ -48,14 +48,14 @@ def fix_imports_in_file(file_path):
         with open(file_path, 'w') as f:
             f.write(content)
         return True
-    
+
     return False
 
 
 def find_and_fix_imports(directory):
     """Find and fix BaseTool imports in all Python files in the directory."""
     fixed_files = 0
-    
+
     # Walk through the directory
     for root, _, files in os.walk(directory):
         for file in files:
@@ -72,10 +72,10 @@ if __name__ == "__main__":
     # Get the project root directory
     project_root = Path(__file__).parent.parent
     src_dir = project_root / "src" / "epic_news"
-    
+
     print(f"Looking for BaseTool imports to fix in {src_dir}...")
     fixed_count = find_and_fix_imports(src_dir)
-    
+
     print(f"\nFixed imports in {fixed_count} files.")
     if fixed_count > 0:
         print("Please run your tests to ensure everything works correctly.")

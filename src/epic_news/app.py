@@ -46,7 +46,7 @@ def run_crew_thread(user_request: str):
     try:
         # The kickoff function will run the flow. The flow's state will hold the output path.
         flow = kickoff(user_input=user_request)
-        
+
         # After running, put the result into the queue
         if flow and flow.state.output_file and os.path.exists(flow.state.output_file):
             with open(flow.state.output_file, 'r', encoding='utf-8') as f:
@@ -55,7 +55,7 @@ def run_crew_thread(user_request: str):
         else:
             error_message = f"Flow finished, but no output file was found at '{flow.state.output_file if flow else 'N/A'}'"
             log_queue.put(("ERROR", error_message))
-            
+
     except Exception as e:
         logging.error(f"An error occurred in the crew thread: {e}", exc_info=True)
         log_queue.put(("ERROR", str(e)))
@@ -64,7 +64,7 @@ def run_crew_thread(user_request: str):
 
 # --- UI Components ---
 user_request = st.text_input(
-    "Enter your request", 
+    "Enter your request",
     "Summarize 'Art of War by Sun Tzu' and suggest similar books.",
     disabled=st.session_state.crew_running
 )
@@ -102,7 +102,7 @@ if st.session_state.crew_running:
                     break # Exit the loop
             else:
                 st.session_state.log_messages.append(message)
-            
+
             # Update the log display
             log_placeholder.code('\n'.join(st.session_state.log_messages), language='log')
 
@@ -116,7 +116,7 @@ if st.session_state.crew_running:
         st.markdown(st.session_state.final_report, unsafe_allow_html=True)
     else:
         report_placeholder.error("Crew finished, but no report was generated.")
-    
+
     # Clean up the thread
     del st.session_state['thread']
     st.rerun() # Rerun to reset the UI to its initial state

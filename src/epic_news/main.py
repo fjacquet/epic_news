@@ -101,7 +101,7 @@ class ReceptionFlow(Flow[ContentState]):
         """
         # Reset the email_sent flag to ensure an email is sent for each new flow execution.
         ensure_output_directories()
-        
+
         self.state.email_sent = False
         self.state.user_request = self._user_request
         # return "feed_user_request" # Implicitly returns the method name as the next step
@@ -169,7 +169,7 @@ class ReceptionFlow(Flow[ContentState]):
             if category_key in raw_classification:
                 parsed_category = category_key
                 break
-        
+
         self.state.selected_crew = parsed_category
         print(f"✅ Classification complete. Raw: '{raw_classification}', Selected crew: {self.state.selected_crew}")
         # return "classify" # Implicitly returns the method name as the next step
@@ -349,33 +349,33 @@ class ReceptionFlow(Flow[ContentState]):
         """
         # Ensure output directory exists
         os.makedirs("output/cooking", exist_ok=True)
-        
+
         # Set output files
         self.state.output_file = "output/cooking/recipe.html"
         self.state.attachment_file = "output/cooking/recipe.yaml"
-        
+
         # Get the topic and preferences from the user's request or extracted info
         topic = self.state.user_request or ""
         preferences = ""
-        
+
         if self.state.extracted_info:
             if hasattr(self.state.extracted_info, 'main_subject_or_activity') and self.state.extracted_info.main_subject_or_activity:
                 topic = self.state.extracted_info.main_subject_or_activity
             if hasattr(self.state.extracted_info, 'user_preferences_and_constraints') and self.state.extracted_info.user_preferences_and_constraints:
                 preferences = self.state.extracted_info.user_preferences_and_constraints
-        
+
         # Enhance the topic with preferences if available
         if preferences and preferences.lower() not in topic.lower():
             topic = f"{topic} ({preferences})"
-            
+
         print(f"🍳 Generating recipe for: {topic}")
 
         # Generate the recipe with the specific topic and preferences
         crew_inputs = self.state.to_crew_inputs()
-        
+
         # Create crew with topic and preferences
         crew = CookingCrew(topic=topic, preferences=preferences).crew()
-        
+
         # Kick off the crew with inputs
         self.state.recipe = crew.kickoff(inputs=crew_inputs)
         print("✅ Recipe generation complete")
@@ -643,8 +643,8 @@ class ReceptionFlow(Flow[ContentState]):
         pass
         # return "join" # Implicitly returns method name
 
-    @listen(or_( 
-                "generate_cross_reference_report", 
+    @listen(or_(
+                "generate_cross_reference_report",
                 "join"
                 ))
     def send_email(self):
@@ -716,7 +716,7 @@ def kickoff(user_input: Optional[str] = None):
     """
     # If user_input is not provided, use a default value.
     request = user_input if user_input else "Get the FinDaily Report"
-    
+
     reception_flow = ReceptionFlow(user_request=request)
     reception_flow.kickoff()
     return reception_flow

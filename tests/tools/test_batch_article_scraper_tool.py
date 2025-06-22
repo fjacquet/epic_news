@@ -12,25 +12,25 @@ class TestBatchArticleScraperTool(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
         self.tool = BatchArticleScraperTool()
-        
+
         # Create sample test data
         self.test_article1 = Article(
             title="Test Article 1",
             link="https://example.com/article1",
             published="2024-06-01T12:00:00Z"
         )
-        
+
         self.test_article2 = Article(
             title="Test Article 2",
             link="https://example.com/article2",
             published="2024-06-02T12:00:00Z"
         )
-        
+
         self.test_feed = FeedWithArticles(
             feed_url="https://example.com/feed.xml",
             articles=[self.test_article1, self.test_article2]
         )
-        
+
         self.test_feeds = RssFeeds(feeds=[self.test_feed])
 
     def test_run_with_pydantic_model(self):
@@ -38,15 +38,15 @@ class TestBatchArticleScraperTool(unittest.TestCase):
         # Create a direct mock of the scrape_ninja_tool instance
         self.tool.scrape_ninja_tool = MagicMock()
         self.tool.scrape_ninja_tool._run.return_value = json.dumps({"content": "Test content"})
-        
+
         # Run the tool with a Pydantic model
         result = self.tool._run(self.test_feeds)
-        
+
         # Verify the result is a valid JSON string
         result_dict = json.loads(result)
         self.assertIsInstance(result_dict, dict)
         self.assertIn("feeds", result_dict)
-        
+
         # Verify the ScrapeNinjaTool was called for each article
         self.assertEqual(self.tool.scrape_ninja_tool._run.call_count, 2)
 
@@ -55,21 +55,21 @@ class TestBatchArticleScraperTool(unittest.TestCase):
         # Create a direct mock of the scrape_ninja_tool instance
         self.tool.scrape_ninja_tool = MagicMock()
         self.tool.scrape_ninja_tool._run.return_value = json.dumps({"content": "Test content"})
-        
+
         # Convert Pydantic model to dict
         if hasattr(self.test_feeds, 'model_dump_json'):
             feeds_dict = json.loads(self.test_feeds.model_dump_json())
         else:
             feeds_dict = json.loads(self.test_feeds.json())
-        
+
         # Run the tool with a dictionary
         result = self.tool._run(feeds_dict)
-        
+
         # Verify the result is a valid JSON string
         result_dict = json.loads(result)
         self.assertIsInstance(result_dict, dict)
         self.assertIn("feeds", result_dict)
-        
+
         # Verify the ScrapeNinjaTool was called for each article
         self.assertEqual(self.tool.scrape_ninja_tool._run.call_count, 2)
 
@@ -78,21 +78,21 @@ class TestBatchArticleScraperTool(unittest.TestCase):
         # Create a direct mock of the scrape_ninja_tool instance
         self.tool.scrape_ninja_tool = MagicMock()
         self.tool.scrape_ninja_tool._run.return_value = json.dumps({"content": "Test content"})
-        
+
         # Convert Pydantic model to JSON string
         if hasattr(self.test_feeds, 'model_dump_json'):
             feeds_json = self.test_feeds.model_dump_json()
         else:
             feeds_json = self.test_feeds.json()
-        
+
         # Run the tool with a JSON string
         result = self.tool._run(feeds_json)
-        
+
         # Verify the result is a valid JSON string
         result_dict = json.loads(result)
         self.assertIsInstance(result_dict, dict)
         self.assertIn("feeds", result_dict)
-        
+
         # Verify the ScrapeNinjaTool was called for each article
         self.assertEqual(self.tool.scrape_ninja_tool._run.call_count, 2)
 
@@ -101,14 +101,14 @@ class TestBatchArticleScraperTool(unittest.TestCase):
         # Create a direct mock of the scrape_ninja_tool instance
         self.tool.scrape_ninja_tool = MagicMock()
         self.tool.scrape_ninja_tool._run.side_effect = Exception("Test error")
-        
+
         # Run the tool
         result = self.tool._run(self.test_feeds)
-        
+
         # Verify the result is a valid JSON string
         result_dict = json.loads(result)
         self.assertIsInstance(result_dict, dict)
-        
+
         # Verify the content is still None (error case)
         feeds = result_dict.get("feeds", [])
         self.assertTrue(len(feeds) > 0)

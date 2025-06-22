@@ -43,7 +43,7 @@ class TestHtmlToPdfTool:
         # Create a dummy html file in tmp_path to ensure the error is about the path type, not file existence
         dummy_absolute_html_path = str(tmp_path / "input.html")
         create_dummy_html(dummy_absolute_html_path)
-        
+
         relative_html_path = "input.html"  # This is a relative path
         absolute_pdf_path = str(tmp_path / "output.pdf")
 
@@ -56,7 +56,7 @@ class TestHtmlToPdfTool:
         tool = HtmlToPdfTool()
         absolute_html_path = str(tmp_path / "input.html")
         create_dummy_html(absolute_html_path)
-        
+
         relative_pdf_path = "output.pdf"  # This is a relative path
 
         result = tool.run(html_file_path=absolute_html_path, output_pdf_path=relative_pdf_path)
@@ -67,7 +67,7 @@ class TestHtmlToPdfTool:
         tool = HtmlToPdfTool()
         html_file_path = str(tmp_path / "input.html")
         create_dummy_html(html_file_path)
-        
+
         # Define an output path where the directory doesn't exist yet
         output_dir = tmp_path / "new_output_dir_for_pdf"
         pdf_file_path = str(output_dir / "output.pdf")

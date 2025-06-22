@@ -23,7 +23,7 @@ class SerpApiTool(BaseTool):
     description: str = "Perform a web search to find information on the internet"
     args_schema: type[BaseModel] = SerpApiInput
     api_key: Optional[str] = None
-    
+
     def __init__(self, **data):
         """Initialize with API key from environment."""
         super().__init__(**data)
@@ -50,12 +50,12 @@ class SerpApiTool(BaseTool):
         country = kwargs.get("country", "us")
         language = kwargs.get("language", "en")
         page = kwargs.get("page", 1)
-        
+
         # Validate query
         if not query or not isinstance(query, str) or len(query.strip()) < 2:
             error_msg = "Search query must be a non-empty string with at least 2 characters"
             return json.dumps({"error": error_msg, "query": query})
-        
+
         # Prepare API request
         url = "https://serpapi.com/search"
         params = {
@@ -67,17 +67,17 @@ class SerpApiTool(BaseTool):
             "gl": country,
             "safe": "active"
         }
-        
+
         try:
             # For debugging - print the request details (without API key)
             debug_params = params.copy()
             if "api_key" in debug_params:
                 debug_params["api_key"] = "***"
-                
+
             # Log the request details for debugging
             logger.debug(f"Sending request to: {url}") # Changed to logger.debug
             logger.debug(f"Parameters: {json.dumps(debug_params, indent=2)}") # Changed to logger.debug
-            
+
             # Make the API request with proper error handling
             try:
                 response = requests.get(url, params=params, timeout=30)
@@ -94,27 +94,27 @@ class SerpApiTool(BaseTool):
                     "query": query,
                     "suggestion": "Check your internet connection or try again later."
                 })
-            
+
             if response.status_code != 200:
                 return json.dumps({
                     "error": f"API request failed with status {response.status_code}",
                     "query": query,
                     "response": response.text[:500]  # Include first 500 chars of response
                 })
-            
+
             data = response.json()
-            
+
             # Check for API errors
             if "error" in data:
                 return json.dumps({
                     "error": f"API error: {data.get('error', 'Unknown error')}",
                     "query": query
                 })
-            
+
             # Extract organic results
             results = []
             items = data.get("organic_results", [])
-            
+
             for item in items[:num_results]:
                 result = {
                     "title": item.get("title", "No title available"),
@@ -123,20 +123,20 @@ class SerpApiTool(BaseTool):
                     "source": "web_search"
                 }
                 results.append(result)
-            
+
             if not results:
                 return json.dumps({
                     "error": f"No results found for query: {query}",
                     "query": query,
                     "suggestion": "Try a different search query or check your API key's search quota"
                 })
-            
+
             return json.dumps({
                 "query": query,
                 "results": results,
                 "count": len(results)
             }, indent=2)
-            
+
         except requests.exceptions.RequestException as e:
             return json.dumps({
                 "error": f"Error performing search: {str(e)}",
@@ -163,12 +163,12 @@ def test_web_search():
             print("❌ ERROR: SERPAPI_API_KEY environment variable is not set!")
             print("Please set this variable in your .env file and try again.")
             return
-            
+
         print(f"🔍 SERPAPI_API_KEY is set: {api_key[:4]}...{api_key[-4:]}")
-        
+
         tool = SerpApiTool()
         print("🔍 Testing web search functionality...")
-        
+
         # Test with a simple query
         print("\n1. Testing basic search...")
         query = "Sicpa company information"
@@ -179,7 +179,7 @@ def test_web_search():
             country="us",
             language="en"
         )
-        
+
         # Parse the result to check for errors
         try:
             result_json = json.loads(result)
@@ -198,7 +198,7 @@ def test_web_search():
                         print(f"    Snippet: {res.get('snippet', 'No snippet')[:100]}..." if len(res.get('snippet', '')) > 100 else f"    Snippet: {res.get('snippet', 'No snippet')}")
         except json.JSONDecodeError:
             print(f"❌ Could not parse result as JSON: {result[:200]}...")
-        
+
     except Exception as e:
         print(f"❌ Test failed: {str(e)}")
         import traceback

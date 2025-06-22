@@ -62,7 +62,7 @@ class TestUnifiedRssTool:
         mock_entry.title = "Test Article"
         mock_entry.link = "https://example.com/article"
         mock_entry.published_parsed = (2025, 6, 20, 12, 0, 0, 0, 0, 0)  # Recent date
-        
+
         mock_feed = MagicMock()
         mock_feed.entries = [mock_entry]
         # Explicitly set bozo to False to indicate no parsing errors
@@ -70,12 +70,12 @@ class TestUnifiedRssTool:
         # Set status to 200 (OK)
         mock_feed.status = 200
         mock_parse.return_value = mock_feed
-        
+
         # Test with recent cutoff date
         cutoff_date = datetime(2025, 6, 19)  # One day before the article
         invalid_sources = set()
         articles = tool._fetch_and_filter_articles("https://example.com/feed", cutoff_date, invalid_sources)
-        
+
         assert len(articles) == 1
         assert articles[0].title == "Test Article"
         assert articles[0].link == "https://example.com/article"
@@ -89,7 +89,7 @@ class TestUnifiedRssTool:
         mock_entry.title = "Old Article"
         mock_entry.link = "https://example.com/old-article"
         mock_entry.published_parsed = (2025, 6, 1, 12, 0, 0, 0, 0, 0)  # Old date
-        
+
         mock_feed = MagicMock()
         mock_feed.entries = [mock_entry]
         # Explicitly set bozo to False to indicate no parsing errors
@@ -97,16 +97,16 @@ class TestUnifiedRssTool:
         # Set status to 200 (OK)
         mock_feed.status = 200
         mock_parse.return_value = mock_feed
-        
+
         # Test with recent cutoff date
         cutoff_date = datetime(2025, 6, 15)  # After the article date
         invalid_sources = set()
         articles = tool._fetch_and_filter_articles("https://example.com/feed", cutoff_date, invalid_sources)
-        
+
         assert len(articles) == 0
         # Feed should not be marked as invalid just because articles are old
         assert "https://example.com/feed" not in invalid_sources
-        
+
     @patch('feedparser.parse')
     def test_fetch_and_filter_articles_http_error(self, mock_parse, tool):
         """Test handling of HTTP errors in feeds."""
@@ -115,15 +115,15 @@ class TestUnifiedRssTool:
         mock_feed.status = 404
         mock_feed.entries = []
         mock_parse.return_value = mock_feed
-        
+
         cutoff_date = datetime(2025, 6, 15)
         invalid_sources = set()
         articles = tool._fetch_and_filter_articles("https://example.com/feed", cutoff_date, invalid_sources)
-        
+
         assert len(articles) == 0
         # Feed should be marked as invalid due to HTTP error
         assert "https://example.com/feed" in invalid_sources
-        
+
     @patch('feedparser.parse')
     def test_fetch_and_filter_articles_parse_error(self, mock_parse, tool):
         """Test handling of feed parsing errors."""
@@ -133,11 +133,11 @@ class TestUnifiedRssTool:
         mock_feed.bozo_exception = Exception("XML parsing error")
         mock_feed.entries = []
         mock_parse.return_value = mock_feed
-        
+
         cutoff_date = datetime(2025, 6, 15)
         invalid_sources = set()
         articles = tool._fetch_and_filter_articles("https://example.com/feed", cutoff_date, invalid_sources)
-        
+
         assert len(articles) == 0
         # Feed should be marked as invalid due to parsing error
         assert "https://example.com/feed" in invalid_sources
@@ -149,15 +149,15 @@ class TestUnifiedRssTool:
         mock_article = MagicMock()
         mock_article.text = "Article content from Newspaper3k"
         mock_article_class.return_value = mock_article
-        
+
         # Configure the mock to simulate successful download and parse
         mock_article.download.side_effect = None
-        
+
         content = tool._scrape_article_content("https://example.com/article")
-        
+
         # Since our mock setup has ScrapeNinjaTool as fallback, we expect its content
         assert content == "Mocked article content"
-        
+
         # We don't assert on download() being called since the implementation
         # might catch exceptions before calling it
 
@@ -168,9 +168,9 @@ class TestUnifiedRssTool:
         mock_article = MagicMock()
         mock_article.download.side_effect = Exception("Download failed")
         mock_article_class.return_value = mock_article
-        
+
         content = tool._scrape_article_content("https://example.com/article")
-        
+
         # Should fall back to ScrapeNinjaTool
         assert content == "Mocked article content"
         tool.scrape_ninja_tool._run.assert_called_once_with("https://example.com/article")
@@ -184,7 +184,7 @@ class TestUnifiedRssTool:
         mock_entry.title = "Test Article"
         mock_entry.link = "https://example.com/article"
         mock_entry.published_parsed = (2025, 6, 20, 12, 0, 0, 0, 0, 0)  # Recent date
-        
+
         mock_feed = MagicMock()
         mock_feed.entries = [mock_entry]
         # Explicitly set bozo to False to indicate no parsing errors
@@ -192,15 +192,15 @@ class TestUnifiedRssTool:
         # Set status to 200 (OK)
         mock_feed.status = 200
         mock_parse.return_value = mock_feed
-        
+
         # Mock Newspaper3k
         mock_article = MagicMock()
         mock_article.text = "Article content from Newspaper3k"
         mock_article_class.return_value = mock_article
-        
+
         # Create a path for invalid sources file
         invalid_sources_path = os.path.join(os.path.dirname(output_path), "invalid_sources.json")
-        
+
         # Run the tool
         result = tool._run(
             opml_file_path=sample_opml_path,
@@ -208,17 +208,17 @@ class TestUnifiedRssTool:
             output_file_path=output_path,
             invalid_sources_file_path=invalid_sources_path
         )
-        
+
         # Check result message
         assert "Successfully processed" in result
         assert "1 feeds" in result
         assert "1 articles" in result
-        
+
         # Check output file
         assert os.path.exists(output_path)
         with open(output_path, 'r') as f:
             data = json.load(f)
-        
+
         # Validate structure
         assert "feeds" in data
         assert len(data["feeds"]) == 1
@@ -230,11 +230,11 @@ class TestUnifiedRssTool:
     def test_input_validation(self):
         """Test input validation for UnifiedRssTool."""
         tool = UnifiedRssTool()
-        
+
         # Missing required parameters
         with pytest.raises(TypeError):
             tool._run()
-        
+
         # Test with invalid file path (tool catches the exception and returns error message)
         result = tool._run(opml_file_path="test.opml")
         assert "Error in UnifiedRssTool" in result

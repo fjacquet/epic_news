@@ -16,7 +16,7 @@ from functools import wraps
 from typing import Any, Dict, List, Optional
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, 
+logging.basicConfig(level=logging.INFO,
                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("observability")
 
@@ -32,9 +32,9 @@ class TraceEvent:
     """
     Represents a trace event in the system.
     """
-    def __init__(self, 
-                event_type: str, 
-                source: str, 
+    def __init__(self,
+                event_type: str,
+                source: str,
                 details: Dict[str, Any],
                 timestamp: Optional[float] = None):
         """
@@ -51,7 +51,7 @@ class TraceEvent:
         self.details = details
         self.timestamp = timestamp or time.time()
         self.event_id = hashlib.md5(f"{self.source}:{self.event_type}:{self.timestamp}".encode()).hexdigest()
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """
         Convert the trace event to a dictionary.
@@ -67,7 +67,7 @@ class TraceEvent:
             "timestamp": self.timestamp,
             "datetime": datetime.fromtimestamp(self.timestamp).isoformat()
         }
-    
+
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'TraceEvent':
         """
@@ -103,7 +103,7 @@ class Tracer:
         self.trace_id = trace_id or f"trace_{int(time.time())}"
         self.events: List[TraceEvent] = []
         self.trace_file = os.path.join(TRACE_DIR, f"{self.trace_id}.json")
-    
+
     def add_event(self, event: TraceEvent) -> None:
         """
         Add an event to the trace.
@@ -113,7 +113,7 @@ class Tracer:
         """
         self.events.append(event)
         self._save_event(event)
-    
+
     def _save_event(self, event: TraceEvent) -> None:
         """
         Save an event to the trace file.
@@ -122,13 +122,13 @@ class Tracer:
             event: The trace event to save
         """
         event_dict = event.to_dict()
-        
+
         # Append to the trace file
         with open(self.trace_file, "a") as f:
             f.write(json.dumps(event_dict) + "\n")
-    
-    def get_events(self, 
-                  event_type: Optional[str] = None, 
+
+    def get_events(self,
+                  event_type: Optional[str] = None,
                   source: Optional[str] = None) -> List[TraceEvent]:
         """
         Get events matching the specified criteria.
@@ -141,15 +141,15 @@ class Tracer:
             List[TraceEvent]: List of matching events
         """
         filtered_events = self.events
-        
+
         if event_type:
             filtered_events = [e for e in filtered_events if e.event_type == event_type]
-        
+
         if source:
             filtered_events = [e for e in filtered_events if e.source == source]
-        
+
         return filtered_events
-    
+
     @classmethod
     def load_trace(cls, trace_id: str) -> 'Tracer':
         """
@@ -163,14 +163,14 @@ class Tracer:
         """
         tracer = cls(trace_id)
         trace_file = os.path.join(TRACE_DIR, f"{trace_id}.json")
-        
+
         if os.path.exists(trace_file):
             with open(trace_file, "r") as f:
                 for line in f:
                     event_dict = json.loads(line)
                     event = TraceEvent.from_dict(event_dict)
                     tracer.events.append(event)
-        
+
         return tracer
 
 
@@ -178,7 +178,7 @@ class HallucinationGuard:
     """
     Guards against hallucinations in AI agent outputs.
     """
-    def __init__(self, 
+    def __init__(self,
                 confidence_threshold: float = 0.7,
                 fact_checking_enabled: bool = True):
         """
@@ -191,9 +191,9 @@ class HallucinationGuard:
         self.confidence_threshold = confidence_threshold
         self.fact_checking_enabled = fact_checking_enabled
         self.known_facts: Dict[str, Any] = {}
-    
-    def check_statement(self, 
-                       statement: str, 
+
+    def check_statement(self,
+                       statement: str,
                        context: Dict[str, Any]) -> Dict[str, Any]:
         """
         Check a statement for potential hallucinations.
@@ -213,36 +213,36 @@ class HallucinationGuard:
             "warnings": [],
             "context_used": context
         }
-        
+
         # Check for specific hallucination patterns
         patterns = [
-            (r"\b(definitely|certainly|absolutely|undoubtedly)\b", 
+            (r"\b(definitely|certainly|absolutely|undoubtedly)\b",
              "Overly confident language detected", 0.8),
-            (r"\b(all|every|always|never)\b", 
+            (r"\b(all|every|always|never)\b",
              "Absolute statements detected", 0.7),
-            (r"\b(famous|well-known|renowned|celebrated)\b", 
+            (r"\b(famous|well-known|renowned|celebrated)\b",
              "Potentially exaggerated importance", 0.6),
-            (r"\b(recent studies show|research indicates|experts agree)\b", 
+            (r"\b(recent studies show|research indicates|experts agree)\b",
              "Vague appeal to authority without citation", 0.5),
         ]
-        
+
         for pattern, warning, confidence_penalty in patterns:
             if re.search(pattern, statement, re.IGNORECASE):
                 results["warnings"].append(warning)
                 results["confidence"] *= confidence_penalty
-        
+
         # Check if statement contradicts known facts
         for fact_key, fact_value in self.known_facts.items():
             if fact_key in statement and str(fact_value) not in statement:
                 results["warnings"].append(f"Contradicts known fact: {fact_key} = {fact_value}")
                 results["confidence"] *= 0.5
-        
+
         # Final determination
         if results["confidence"] < self.confidence_threshold:
             results["is_likely_hallucination"] = True
-        
+
         return results
-    
+
     def add_known_fact(self, key: str, value: Any) -> None:
         """
         Add a known fact to the guard.
@@ -252,9 +252,9 @@ class HallucinationGuard:
             value: Fact value
         """
         self.known_facts[key] = value
-    
-    def validate_output(self, 
-                       output: str, 
+
+    def validate_output(self,
+                       output: str,
                        context: Dict[str, Any],
                        fix_hallucinations: bool = False) -> Dict[str, Any]:
         """
@@ -270,31 +270,31 @@ class HallucinationGuard:
         """
         # Split output into sentences for checking
         sentences = re.split(r'(?<=[.!?])\s+', output)
-        
+
         results = {
             "original_output": output,
             "hallucination_score": 0.0,
             "warnings": [],
             "fixed_output": output if fix_hallucinations else None
         }
-        
+
         hallucination_count = 0
-        
+
         for sentence in sentences:
             check_result = self.check_statement(sentence, context)
             if check_result["is_likely_hallucination"]:
                 hallucination_count += 1
                 results["warnings"].extend(check_result["warnings"])
-        
+
         if sentences:
             results["hallucination_score"] = hallucination_count / len(sentences)
-        
+
         # Attempt to fix hallucinations if requested
         if fix_hallucinations and results["hallucination_score"] > 0:
             # Simple fix: add disclaimers to the output
             disclaimer = "\n\nNote: Some statements in this output may require further verification."
             results["fixed_output"] = output + disclaimer
-        
+
         return results
 
 
@@ -321,11 +321,11 @@ class Dashboard:
                 "events_count": 0
             }
         }
-    
-    def update_metric(self, 
-                     category: str, 
-                     name: str, 
-                     metric: str, 
+
+    def update_metric(self,
+                     category: str,
+                     name: str,
+                     metric: str,
                      value: Any) -> None:
         """
         Update a metric in the dashboard.
@@ -338,23 +338,23 @@ class Dashboard:
         """
         if category not in self.metrics:
             self.metrics[category] = {}
-        
+
         if name not in self.metrics[category]:
             self.metrics[category][name] = {}
-        
+
         self.metrics[category][name][metric] = value
         self.metrics["system"]["events_count"] += 1
-        
+
         # Save the updated metrics
         self._save_metrics()
-    
+
     def _save_metrics(self) -> None:
         """Save the metrics to the data file."""
         with open(self.data_file, "w") as f:
             json.dump(self.metrics, f, indent=2)
-    
-    def get_metrics(self, 
-                   category: Optional[str] = None, 
+
+    def get_metrics(self,
+                   category: Optional[str] = None,
                    name: Optional[str] = None) -> Dict[str, Any]:
         """
         Get metrics from the dashboard.
@@ -372,7 +372,7 @@ class Dashboard:
             return self.metrics.get(category, {})
         else:
             return self.metrics
-    
+
     @classmethod
     def load_dashboard(cls, dashboard_id: str) -> 'Dashboard':
         """
@@ -386,11 +386,11 @@ class Dashboard:
         """
         dashboard = cls(dashboard_id)
         data_file = os.path.join(DASHBOARD_DATA_DIR, f"{dashboard_id}.json")
-        
+
         if os.path.exists(data_file):
             with open(data_file, "r") as f:
                 dashboard.metrics = json.load(f)
-        
+
         return dashboard
 
 
@@ -410,7 +410,7 @@ def trace_task(tracer: Tracer):
         def wrapper(*args, **kwargs):
             # Extract task information
             task_name = func.__name__
-            
+
             # Record task start
             start_details = {
                 "task_name": task_name,
@@ -418,7 +418,7 @@ def trace_task(tracer: Tracer):
                 "kwargs": str(kwargs)
             }
             tracer.add_event(TraceEvent("task_start", f"task:{task_name}", start_details))
-            
+
             # Execute the task
             start_time = time.time()
             try:
@@ -443,11 +443,11 @@ def trace_task(tracer: Tracer):
                     "result_type": type(result).__name__ if success else None
                 }
                 tracer.add_event(TraceEvent("task_end", f"task:{task_name}", end_details))
-            
+
             return result
-        
+
         return wrapper
-    
+
     return decorator
 
 
@@ -466,7 +466,7 @@ def monitor_agent(dashboard: Dashboard):
         def wrapper(*args, **kwargs):
             # Extract agent information
             agent_name = func.__name__
-            
+
             # Update agent metrics
             dashboard.update_metric(
                 category="agents",
@@ -474,12 +474,12 @@ def monitor_agent(dashboard: Dashboard):
                 metric="calls",
                 value=dashboard.get_metrics("agents", agent_name).get("calls", 0) + 1
             )
-            
+
             # Execute the agent function
             start_time = time.time()
             result = func(*args, **kwargs)
             end_time = time.time()
-            
+
             # Update more metrics
             dashboard.update_metric(
                 category="agents",
@@ -487,18 +487,18 @@ def monitor_agent(dashboard: Dashboard):
                 metric="last_execution_time",
                 value=end_time - start_time
             )
-            
+
             dashboard.update_metric(
                 category="agents",
                 name=agent_name,
                 metric="last_execution_timestamp",
                 value=datetime.now().isoformat()
             )
-            
+
             return result
-        
+
         return wrapper
-    
+
     return decorator
 
 
@@ -518,7 +518,7 @@ def guard_output(hallucination_guard: HallucinationGuard, context: Dict[str, Any
         def wrapper(*args, **kwargs):
             # Execute the function
             result = func(*args, **kwargs)
-            
+
             # Only validate string outputs
             if isinstance(result, str):
                 # Use function name and args as context if not provided
@@ -527,29 +527,29 @@ def guard_output(hallucination_guard: HallucinationGuard, context: Dict[str, Any
                     "args": str(args),
                     "kwargs": str(kwargs)
                 }
-                
+
                 # Validate the output
                 validation = hallucination_guard.validate_output(
                     output=result,
                     context=ctx,
                     fix_hallucinations=True
                 )
-                
+
                 # Log warnings if any
                 if validation["warnings"]:
                     logger.warning(
                         f"Potential hallucinations in {func.__name__} output: "
                         f"{validation['warnings']}"
                     )
-                
+
                 # Return the fixed output if available
                 if validation["fixed_output"]:
                     return validation["fixed_output"]
-            
+
             return result
-        
+
         return wrapper
-    
+
     return decorator
 
 
@@ -567,12 +567,12 @@ def get_observability_tools(crew_name: str) -> Dict[str, Any]:
     # Create a trace ID based on crew name and timestamp
     trace_id = f"{crew_name}_{int(time.time())}"
     dashboard_id = f"{crew_name}_dashboard"
-    
+
     # Create tools
     tracer = Tracer(trace_id)
     dashboard = Dashboard(dashboard_id)
     hallucination_guard = HallucinationGuard()
-    
+
     return {
         "tracer": tracer,
         "dashboard": dashboard,

@@ -55,7 +55,7 @@ class LibraryCrew():
     # Configuration file paths relative to the crew directory
     agents_config = 'config/agents.yaml'
     tasks_config = 'config/tasks.yaml'
-    
+
     def __init__(self, topic=None):
         """Initialize the LibraryCrew and ensure output directory exists.
         
@@ -64,13 +64,13 @@ class LibraryCrew():
         """
         # KISS approach: Let CrewAI manage output paths
         # No custom output_dir needed - CrewAI will handle this
-        
+
         # Store inputs
         self.topic = topic or 'The Art of War by Sun Tzu'
-        
+
         # Initialize tools
         self._initialize_tools()
-        
+
     def _initialize_tools(self):
         """Initialize all tools needed by the crew's agents.
         
@@ -85,13 +85,13 @@ class LibraryCrew():
             self.html_to_pdf_tool = HtmlToPdfTool()
             self.file_read_tool = FileReadTool()
             self.report_tools = get_report_tools()
-            
+
             # Create combined toolsets for different agent needs
             self.all_tools = self.search_tools + self.scrape_tools + self.rag_tools + \
                            [self.html_to_pdf_tool] + self.report_tools
-                           
+
             logger.info("Successfully initialized all tools for LibraryCrew")
-            
+
         except Exception as e:
             logger.error(f"Error initializing tools: {str(e)}")
             # Provide fallback empty lists to prevent crew from failing completely
@@ -117,7 +117,7 @@ class LibraryCrew():
             respect_context_window=True,
             tools=self.all_tools,
             reasoning=True,
-            llm_timeout=300,    
+            llm_timeout=300,
         )
 
     @agent
@@ -131,9 +131,9 @@ class LibraryCrew():
             config=self.agents_config['reporting_analyst'],
             verbose=True,
             respect_context_window=True,
-            tools=self.rag_tools + [self.html_to_pdf_tool, self.file_read_tool] + self.report_tools,  
+            tools=self.rag_tools + [self.html_to_pdf_tool, self.file_read_tool] + self.report_tools,
             reasoning=True,
-            llm_timeout=300,    
+            llm_timeout=300,
         )
 
     @task
@@ -149,13 +149,13 @@ class LibraryCrew():
         # Create task config with dynamic topic
         task_config = dict(self.tasks_config['research_task'])
         task_config['description'] = task_config['description'].format(topic=self.topic)
-        
+
         # KISS approach: Use simple relative paths
         output_file = "output/library/research_results.md"
-        
+
         # Ensure output directory exists
         os.makedirs(os.path.dirname(output_file), exist_ok=True)
-        
+
         return Task(
             config=task_config,
             output_file=output_file,
@@ -176,13 +176,13 @@ class LibraryCrew():
         # Create task config with dynamic topic
         task_config = dict(self.tasks_config['reporting_task'])
         task_config['description'] = task_config['description'].format(topic=self.topic)
-        
+
         # KISS approach: Use simple relative paths
         output_file = f"output/library/{self.topic.replace(' ', '_')}_library_report.html"
-        
+
         # Ensure output directory exists
         os.makedirs(os.path.dirname(output_file), exist_ok=True)
-        
+
         return Task(
             config=task_config,
             output_file=output_file,
@@ -202,24 +202,24 @@ class LibraryCrew():
         # KISS approach: The tool handles saving the file to the final destination.
         input_html_path = pathlib.Path(f"output/library/{self.topic.replace(' ', '_')}_library_report.html")
         output_file_path = input_html_path.with_suffix('.pdf')
-        
+
         # The tool needs absolute paths to function correctly.
         abs_input_html_path = input_html_path.resolve()
         abs_output_pdf_path = output_file_path.resolve()
 
         # Ensure output directory exists
         output_file_path.parent.mkdir(parents=True, exist_ok=True)
-        
+
         # Create a copy of the config to modify
         task_config = dict(self.tasks_config['reporting_task_pdf'])
-        
+
         # Add the absolute file paths directly to the task description for the agent.
         task_config['description'] = (
-            task_config['description'] + 
+            task_config['description'] +
             f"\nHTML_FILE_PATH: {abs_input_html_path}" +
             f"\nPDF_OUTPUT_PATH: {abs_output_pdf_path}"
         )
-        
+
         return Task(
             config=task_config,
             output_file=str(output_file_path), # crewAI uses this to track the output
@@ -227,7 +227,7 @@ class LibraryCrew():
             context=[self.reporting_task()],
             # PDF task is final and must be synchronous
         )
-        
+
     @crew
     def crew(self) -> Crew:
         """Creates the Library crew with sequential workflow.

@@ -20,7 +20,7 @@ load_dotenv()
 class TechStackCrew:
     agents_config = "config/agents.yaml"
     tasks_config = "config/tasks.yaml"
-    
+
     @agent
     def tech_stack_analyst(self) -> Agent:
         """Creates the tech stack analyst agent"""
@@ -30,7 +30,7 @@ class TechStackCrew:
         rag_tools = get_rag_tools()
         html_to_pdf_tool = HtmlToPdfTool()
         all_tools = search_tools + tech_tools + rag_tools + [html_to_pdf_tool] + get_report_tools()
-        
+
         return Agent(
             config=self.agents_config["tech_stack_analyst"],
             verbose=True,
@@ -39,10 +39,10 @@ class TechStackCrew:
             respect_context_window=True,
             reasoning=True,
             max_reasoning_attempts=5,
-            
+
             max_iter=5,
             max_retry_limit=3,
-            max_rpm=10, 
+            max_rpm=10,
         )
 
     @task
@@ -91,7 +91,7 @@ class TechStackCrew:
         """Creates the Tech Stack Analysis crew"""
         # Ensure output directory exists for final reports
         os.makedirs("output/tech_stack", exist_ok=True)
-        
+
         return Crew(
             agents=self.agents,
             tasks=self.tasks,

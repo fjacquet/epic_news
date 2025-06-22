@@ -21,7 +21,7 @@ class GeospatialAnalysisCrew:
     agents_config = "config/agents.yaml"
     tasks_config = "config/tasks.yaml"
 
-    
+
     @agent
     def geospatial_analyst(self) -> Agent:
         """Creates the geospatial analyst agent"""
@@ -30,9 +30,9 @@ class GeospatialAnalysisCrew:
         location_tools = get_location_tools()
         rag_tools = get_rag_tools()
         html_to_pdf_tool = HtmlToPdfTool()
-        
+
         all_tools = search_tools + location_tools + rag_tools + [html_to_pdf_tool] + get_report_tools()
-        
+
         return Agent(
             config=self.agents_config["geospatial_analyst"],
             verbose=True,
@@ -41,10 +41,10 @@ class GeospatialAnalysisCrew:
             respect_context_window=True,
             reasoning=True,
             max_reasoning_attempts=5,
-            
+
             max_iter=5,
             max_retry_limit=3,
-            max_rpm=10, 
+            max_rpm=10,
         )
 
     @task
@@ -85,7 +85,7 @@ class GeospatialAnalysisCrew:
         """Creates the Geospatial Analysis crew"""
         # Ensure output directory exists for final reports
         os.makedirs("output/geospatial_analysis", exist_ok=True)
-        
+
         return Crew(
             agents=self.agents,
             tasks=self.tasks,

@@ -26,24 +26,24 @@ def get_project_root() -> pathlib.Path:
     # CRITICAL FIX: Always use this hardcoded path pattern to avoid any nested paths
     # Extract the user home directory and ensure we construct a clean path
     home_dir = pathlib.Path.home()
-    
+
     # The project is always at ~/Projects/crews/epic_news or equivalent
     project_root = home_dir / 'Projects' / 'crews' / 'epic_news'
-    
+
     # Final sanity check - this can't be wrong
     if not (project_root / 'pyproject.toml').exists():
         raise FileNotFoundError(
             f"Cannot locate project root at expected location: {project_root}"
         )
-        
+
     # Get canonical path without any duplicate /Users/ segments
     clean_path = project_root.resolve()
-    
+
     # Extra validation to prevent pathological paths
     path_str = str(clean_path)
     if path_str.count('Users') > 1:
         raise ValueError(f"Invalid nested Users in path: {path_str}")
-        
+
     return clean_path
 
 
@@ -62,7 +62,7 @@ def validate_output_path(path: str) -> None:
     """
     if not path:
         raise ValueError("Output path cannot be empty")
-    
+
     # Check for nested /Users/ directories (critical bug prevention)
     if '/Users/' in path and path.count('/Users/') > 1:
         raise ValueError(
@@ -70,7 +70,7 @@ def validate_output_path(path: str) -> None:
             "Detected nested /Users/.../Users/... directory structure.\n"
             "This violates project design principles. Paths must be relative to project root only."
         )
-    
+
     # Ensure path is within project structure
     project_root = get_project_root()
     try:

@@ -40,12 +40,12 @@ class KrakenTickerInfoTool(BaseTool):
         """Execute the tool to fetch ticker data."""
         cache = get_cache_manager()
         cache_key = f"kraken_ticker_{pair}"
-        
+
         # Try to get from cache first (cache for 5 minutes for ticker data)
         cached_result = cache.get(cache_key, ttl=300)
         if cached_result is not None:
             return cached_result
-        
+
         url = f"https://api.kraken.com/0/public/Ticker?pair={pair}"
 
         try:
@@ -97,10 +97,10 @@ class KrakenAssetListTool(BaseTool):
         postdata = urllib.parse.urlencode(data)
         encoded = (str(data['nonce']) + postdata).encode()
         message = urlpath.encode() + hashlib.sha256(encoded).digest()
-        
+
         signature = hmac.new(base64.b64decode(secret), message, hashlib.sha512)
         sigdigest = base64.b64encode(signature.digest())
-        
+
         return sigdigest.decode()
 
     def _run(self, asset_class: str = "currency") -> str:
@@ -109,51 +109,51 @@ class KrakenAssetListTool(BaseTool):
         """
         cache = get_cache_manager()
         cache_key = f"kraken_asset_list_{asset_class}"
-        
+
         # Try to get from cache first (cache for 1 hour for asset list)
         cached_result = cache.get(cache_key, ttl=3600)
         if cached_result is not None:
             return cached_result
-        
+
         # Kraken API endpoint for account balance
         url = "https://api.kraken.com/0/private/Balance"
         urlpath = "/0/private/Balance"
-        
+
         # Prepare request data
         data = {
             "nonce": str(int(time.time() * 1000)),
             "asset": asset_class
         }
-        
+
         # Get API credentials from environment variables
         api_key = os.environ.get('KRAKEN_API_KEY')
         api_secret = os.environ.get('KRAKEN_API_SECRET')
-        
+
         if not api_key or not api_secret:
             error_result = "Error: Kraken API credentials not found in environment variables."
             cache.set(cache_key, error_result)
             return error_result
-        
+
         # Prepare headers with API key and signature
         headers = {
             'API-Key': api_key,
             'API-Sign': self._get_kraken_signature(urlpath, data, api_secret)
         }
-        
+
         try:
             response = requests.post(url, headers=headers, data=data, timeout=10)
             response.raise_for_status()
             result = response.json()
-            
+
             if result.get("error") and result["error"]:
                 error_result = f"Error from Kraken API: {result['error']}"
                 cache.set(cache_key, error_result)
                 return error_result
-            
+
             # Format the asset data for better readability
             assets = result.get("result", {})
             formatted_assets = []
-            
+
             for asset_code, quantity in assets.items():
                 # Convert quantity to float for better formatting
                 try:
@@ -170,11 +170,11 @@ class KrakenAssetListTool(BaseTool):
                         "asset": asset_code,
                         "quantity": quantity  # Keep as string if conversion fails
                     })
-            
+
             result = json.dumps(formatted_assets, indent=2)
             cache.set(cache_key, result)
             return result
-        
+
         except Exception as e:
             error_result = f"Error fetching asset balances: {str(e)}"
             cache.set(cache_key, error_result)

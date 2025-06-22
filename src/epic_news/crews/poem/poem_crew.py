@@ -13,7 +13,7 @@ load_dotenv()
 class PoemCrew:
     agents_config = "config/agents.yaml"
     tasks_config = "config/tasks.yaml"
-       
+
     @agent
     def poem_writer(self) -> Agent:
         return Agent(
@@ -29,7 +29,7 @@ class PoemCrew:
             config=self.tasks_config["write_poem"],
             agent=self.poem_writer(),
             output_file='output/poem/poem.html',
-            output_pydantic=ReportHTMLOutput, 
+            output_pydantic=ReportHTMLOutput,
         )
 
     @crew

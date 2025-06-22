@@ -40,7 +40,7 @@ class MeetingPrepCrew():
     # Configuration files for agents and tasks
     agents_config = 'config/agents.yaml'
     tasks_config = 'config/tasks.yaml'
-    
+
     # Output directory for meeting preparation documents
     def __init__(self, meeting_details=None):
         """
@@ -51,10 +51,10 @@ class MeetingPrepCrew():
         """
         # Use centralized path utility for consistent output directory handling
 
-        
+
         # Store inputs
         self.meeting_details = meeting_details or {}
-        
+
         # Initialize crew inputs
         self.topic = ""
         self.sendto = ""
@@ -63,10 +63,10 @@ class MeetingPrepCrew():
         self.context = ""
         self.objective = ""
         self.prior_interactions = ""
-        
+
         # Initialize tools
         self._initialize_tools()
-    
+
     def _initialize_tools(self):
         """Initialize all tools needed by the crew's agents.
         
@@ -80,10 +80,10 @@ class MeetingPrepCrew():
             self.rag_tools = get_rag_tools()
             self.finance_tools = get_yahoo_finance_tools()
             self.report_tools = get_report_tools()
-            
+
             # Combine tools for agents that need all capabilities
             self.all_research_tools = self.search_tools + self.scrape_tools + self.rag_tools + self.finance_tools
-            
+
             logger.info("Successfully initialized all tools for MeetingPrepCrew")
         except Exception as e:
             logger.error(f"Error initializing tools: {str(e)}")
@@ -94,7 +94,7 @@ class MeetingPrepCrew():
             self.finance_tools = []
             self.all_research_tools = []
             raise
-    
+
     # Agent definitions with improved documentation
     @agent
     def lead_researcher_agent(self) -> Agent:
@@ -231,12 +231,12 @@ class MeetingPrepCrew():
         Returns:
             Task: Configured meeting preparation task from YAML configuration
         """
-       
+
         return Task(
             config=self.tasks_config["meeting_preparation_task"],
             output_pydantic=ReportHTMLOutput,
         )
-        
+
     def _get_task_context(self) -> List[Dict[str, Any]]:
         """Prepare context data for tasks.
         
@@ -255,10 +255,10 @@ class MeetingPrepCrew():
             {"prior_interactions": self.prior_interactions},
             {"context": self.context}
         ]
-        
+
         # Filter out empty context items
         return [item for item in context if list(item.values())[0]]
-    
+
     @crew
     def crew(self) -> Crew:
         """Creates the MeetingPrep crew with configured agents and tasks.
@@ -272,7 +272,7 @@ class MeetingPrepCrew():
         """
         try:
             logger.info(f"Creating MeetingPrep crew for topic: {self.topic}")
-            
+
             return Crew(
                 agents=self.agents,  # Automatically created by the @agent decorator
                 tasks=self.tasks,   # Automatically created by the @task decorator
@@ -286,4 +286,3 @@ class MeetingPrepCrew():
         except Exception as e:
             logger.error(f"Error creating MeetingPrep crew: {str(e)}")
             raise
-    

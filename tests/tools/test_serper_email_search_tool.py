@@ -124,7 +124,7 @@ def test_run_query_cleaning_and_formatting(mock_make_request, mock_env_serper_ke
     tool = SerperEmailSearchTool()
     query = "  My Test  Company  "
     expected_search_q = '"my test  company" "@mytestcompany" email'
-    
+
     # Setup mock response to avoid error during json parsing
     mock_api_response_data = {"organic": []}
     mock_response = MagicMock()

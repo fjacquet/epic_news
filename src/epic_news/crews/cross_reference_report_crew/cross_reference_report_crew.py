@@ -25,7 +25,7 @@ class CrossReferenceReportCrew():
     # Learn more about YAML configuration files here:
     # Agents: https://docs.crewai.com/concepts/agents#yaml-configuration-recommended
     # Tasks: https://docs.crewai.com/concepts/tasks#yaml-configuration-recommended
-    
+
     # If you would like to add tools to your agents, you can learn more about it here:
     # https://docs.crewai.com/concepts/agents#agent-tools
     @agent
@@ -38,9 +38,9 @@ class CrossReferenceReportCrew():
         html_to_pdf_tool = HtmlToPdfTool()
         directory_read_tool = DirectoryReadTool("output/osint")
         file_read_tool = FileReadTool()
-        
+
         all_tools = search_tools + scrape_tools + rag_tools + [html_to_pdf_tool, directory_read_tool, file_read_tool] + get_report_tools()
-        
+
         return Agent(
             config=self.agents_config["osint_coordinator"],
             verbose=True,
@@ -51,7 +51,7 @@ class CrossReferenceReportCrew():
             max_reasoning_attempts=5,
             max_iter=5,
             max_retry_limit=3,
-            max_rpm=10, 
+            max_rpm=10,
         )
 
     @task

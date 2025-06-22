@@ -63,7 +63,7 @@ class NewsCrew:
     # Configuration file paths relative to the crew directory
     agents_config = 'config/agents.yaml'
     tasks_config = 'config/tasks.yaml'
-    
+
     # Output directory structure - use absolute path for consistency
     _crew_path = pathlib.Path(__file__).parent
     project_root = _crew_path.parent.parent.parent.parent.parent  # Go up 5 levels: news -> crews -> epic_news -> src -> project_root
@@ -78,7 +78,7 @@ class NewsCrew:
 
         # Initialize tools
         self._initialize_tools()
-    
+
     def _initialize_tools(self):
         """
         Initialize all tools needed by the crew's agents.
@@ -89,7 +89,7 @@ class NewsCrew:
         try:
             # Initialize Composio toolset
             toolset = ComposioToolSet()
-            
+
             # Initialize standard tool sets
             self.search_tools = toolset.get_tools(actions=[
                 'FIRECRAWL_SEARCH',
@@ -99,21 +99,21 @@ class NewsCrew:
                 'COMPOSIO_SEARCH_TRENDS_SEARCH',
                 'COMPOSIO_SEARCH_EVENT_SEARCH'
             ])
-            
+
             # Use specific search tools for fact checking
             self.fact_checking_tools = toolset.get_tools(actions=[
                 'COMPOSIO_SEARCH_DUCK_DUCK_GO_SEARCH'
             ])
-            
+
             self.scrape_tools = get_scrape_tools()
             self.rag_tools = get_rag_tools()
             self.report_tools = get_report_tools()
-            
+
             # Create combined toolsets for different agent needs
             self.all_tools = self.search_tools + self.scrape_tools + self.rag_tools + self.report_tools
-            
+
             logger.info("Successfully initialized all tools for NewsCrew")
-            
+
         except Exception as e:
             logger.error(f"Error initializing tools: {str(e)}")
             # Provide fallback empty lists to prevent crew from failing completely
@@ -124,7 +124,7 @@ class NewsCrew:
             self.report_tools = []
             self.all_tools = []
             raise RuntimeError(f"Error initializing tools: {str(e)}") from e
-            
+
     # Agent definitions follow - each agent is specialized for a specific role
     # in the news analysis and reporting process
     @agent
@@ -158,7 +158,7 @@ class NewsCrew:
             reasoning=True,
             respect_context_window=True
         )
-    
+
     @agent
     def fact_checker(self) -> Agent:
         """Create a fact checker agent responsible for verifying claims and sources.
@@ -174,7 +174,7 @@ class NewsCrew:
             reasoning=True,
             respect_context_window=True
         )
-    
+
     @agent
     def editor(self) -> Agent:
         """Create an editor agent responsible for creating the final HTML report.
@@ -209,10 +209,10 @@ class NewsCrew:
         """
         # Create task config with dynamic topic
         task_config = dict(self.tasks_config['research_task'])
-        
+
         # Define output file with absolute path
         output_file = os.path.join(self.output_dir, 'research_results.md')
-        
+
         return Task(
             config=task_config,
             output_file=output_file,
@@ -233,10 +233,10 @@ class NewsCrew:
         """
         # Create task config with dynamic topic
         task_config = dict(self.tasks_config['analysis_task'])
-        
+
         # Define output file with absolute path
         output_file = os.path.join(self.output_dir, 'analysis_results.md')
-        
+
         return Task(
             config=task_config,
             context=[self.research_task()],  # This task depends on research
@@ -244,7 +244,7 @@ class NewsCrew:
             verbose=True,
             llm_timeout=300
         )
-    
+
     @task
     def verification_task(self) -> Task:
         """Define the verification task for fact checking the research and analysis.
@@ -257,10 +257,10 @@ class NewsCrew:
         """
         # Create task config with dynamic topic
         task_config = dict(self.tasks_config['verification_task'])
-        
+
         # Define output file with absolute path
         output_file = os.path.join(self.output_dir, 'verification_results.md')
-        
+
         return Task(
             config=task_config,
             context=[self.research_task(), self.analysis_task()],  # This task depends on both previous tasks
@@ -268,7 +268,7 @@ class NewsCrew:
             verbose=True,
             llm_timeout=300
         )
-    
+
     @task
     def editing_task(self) -> Task:
         """Define the editing task for creating the final HTML news report.
@@ -281,10 +281,10 @@ class NewsCrew:
         """
         # Create task config with dynamic topic
         task_config = dict(self.tasks_config['editing_task'])
-        
+
         # Define output file with absolute path
         output_file = os.path.join(self.output_dir, 'news_report.html')
-        
+
         return Task(
             config=task_config,
             output_pydantic=ReportHTMLOutput,  # Use standardized HTML output format

@@ -30,12 +30,12 @@ class YahooFinanceTickerInfoTool(BaseTool):
         """Execute the Yahoo Finance ticker info lookup."""
         cache = get_cache_manager()
         cache_key = f"yahoo_ticker_info_{ticker}"
-        
+
         # Try to get from cache first (cache for 30 minutes)
         cached_result = cache.get(cache_key, ttl=1800)
         if cached_result is not None:
             return cached_result
-        
+
         try:
             ticker_data = yf.Ticker(ticker)
             info = ticker_data.info
@@ -63,10 +63,10 @@ class YahooFinanceTickerInfoTool(BaseTool):
             # Remove N/A values for cleaner output
             final_result = {k: v for k, v in result.items() if v != "N/A"}
             json_result = json.dumps(final_result)
-            
+
             # Cache the result
             cache.set(cache_key, json_result)
-            
+
             return json_result
         except Exception as e:
             error_msg = f"Error fetching ticker info for {ticker}: {str(e)}"

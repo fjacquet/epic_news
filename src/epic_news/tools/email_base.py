@@ -13,12 +13,12 @@ logger = get_logger(__name__)
 
 class EmailSearchTool:
     """Base class for email search tools with common functionality."""
-    
+
     def __init__(self, api_key: str):
         """Initialize with API key and create a session."""
         self.api_key = api_key
         self.session = self._create_session()
-    
+
     @staticmethod
     def _create_session() -> requests.Session:
         """Create a requests session with retry logic."""
@@ -32,13 +32,13 @@ class EmailSearchTool:
         session.mount("http://", adapter)
         session.mount("https://", adapter)
         return session
-    
+
     @staticmethod
     def _extract_emails(text: str) -> Set[str]:
         """Extract email addresses from text using regex."""
         email_regex = r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.+]+"
         return set(re.findall(email_regex, text))
-    
+
     def _make_request(self, method: str, url: str, **kwargs) -> Optional[requests.Response]:
         """Make an HTTP request with error handling."""
         try:

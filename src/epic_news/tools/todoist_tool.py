@@ -61,15 +61,15 @@ class TodoistTool(BaseTool):
         params = {}
         if project_id:
             params["project_id"] = project_id
-            
+
         response = requests.get(url, headers=self._get_headers(), params=params)
-        
+
         if response.status_code == 200:
             tasks = response.json()
             return f"Found {len(tasks)} tasks: {tasks}"
         else:
             return f"Error fetching tasks: {response.status_code} - {response.text}"
-    
+
     def _create_task(
         self,
         content: str,
@@ -80,37 +80,37 @@ class TodoistTool(BaseTool):
         """Create a new task in Todoist."""
         url = f"{self.base_url}/tasks"
         payload: Dict[str, Any] = {"content": content}
-        
+
         if project_id:
             payload["project_id"] = project_id
         if due_string:
             payload["due_string"] = due_string
         if priority:
             payload["priority"] = priority
-            
+
         response = requests.post(url, headers=self._get_headers(), json=payload)
-        
+
         if response.status_code == 200:
             task = response.json()
             return f"Task created successfully: {task}"
         else:
             return f"Error creating task: {response.status_code} - {response.text}"
-    
+
     def _complete_task(self, task_id: str) -> str:
         """Mark a task as complete in Todoist."""
         url = f"{self.base_url}/tasks/{task_id}/close"
         response = requests.post(url, headers=self._get_headers())
-        
+
         if response.status_code == 204:
             return f"Task {task_id} completed successfully"
         else:
             return f"Error completing task: {response.status_code} - {response.text}"
-    
+
     def _get_projects(self) -> str:
         """Get all projects from Todoist."""
         url = f"{self.base_url}/projects"
         response = requests.get(url, headers=self._get_headers())
-        
+
         if response.status_code == 200:
             projects = response.json()
             return f"Found {len(projects)} projects: {projects}"

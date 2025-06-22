@@ -49,7 +49,7 @@ class HtmlToPdfTool(BaseTool):
                 os.makedirs(output_dir, exist_ok=True)
 
             HTML(filename=html_file_path).write_pdf(output_pdf_path)
-            
+
             if os.path.exists(output_pdf_path):
                 return f"Successfully converted '{html_file_path}' to PDF. Output saved at '{output_pdf_path}'."
             else:
@@ -66,7 +66,7 @@ class HtmlToPdfTool(BaseTool):
 if __name__ == "__main__":
     # This block provides an example of how to use the tool directly for testing.
     # It's useful for quick, isolated tests of the tool's functionality.
-    
+
     # Define paths for dummy files - ensure they are absolute for the tool
     project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")) # Assuming tools dir is src/epic_news/tools
     dummy_html_path = os.path.join(project_root, "temp_dummy_input.html")

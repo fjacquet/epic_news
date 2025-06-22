@@ -77,14 +77,14 @@ class UnifiedRssTool(BaseTool):
         try:
             # Track invalid sources
             invalid_sources = set()
-            
+
             # Parse OPML file to get feed URLs
             feed_urls = self._parse_opml_file(opml_file_path)
             logger.info(f"Found {len(feed_urls)} feeds in OPML file")
-            
+
             # Calculate cutoff date for filtering articles
             cutoff_date = datetime.now() - timedelta(days=days_to_look_back)
-            
+
             # Process each feed to get articles
             all_feeds = []
             for feed_url in feed_urls:
@@ -97,10 +97,10 @@ class UnifiedRssTool(BaseTool):
                 else:
                     # Track feeds with no valid articles
                     invalid_sources.add(feed_url)
-            
+
             if not all_feeds:
                 return "No articles found within the specified date range."
-            
+
             # Scrape content for each article
             for feed in all_feeds:
                 for article in feed.articles:
@@ -109,20 +109,20 @@ class UnifiedRssTool(BaseTool):
                         article.content = self._scrape_article_content(article.link)
                     except Exception as e:
                         logger.error(f"Error scraping content for {article.link}: {str(e)}")
-            
+
             # Save results to a JSON file
             rss_feeds = RssFeeds(feeds=all_feeds)
-            
+
             if output_file_path:
                 # Ensure the directory exists
                 os.makedirs(os.path.dirname(output_file_path), exist_ok=True)
-                
+
                 # Write results to JSON file
                 with open(output_file_path, 'w', encoding='utf-8') as f:
                     json.dump(rss_feeds.model_dump(), f, ensure_ascii=False, indent=2)
-                
+
                 logger.info(f"Results saved to {output_file_path}")
-            
+
             # Write invalid sources to a separate file
             if invalid_sources:
                 invalid_sources_data = {
@@ -133,7 +133,7 @@ class UnifiedRssTool(BaseTool):
                 with open(invalid_sources_file_path, 'w', encoding='utf-8') as f:
                     json.dump(invalid_sources_data, f, ensure_ascii=False, indent=2)
                 logger.info(f"Found {len(invalid_sources)} invalid sources. Saved to {invalid_sources_file_path}")
-            
+
             logger.info(f"Successfully processed {len(all_feeds)} feeds with {sum(len(feed.articles) for feed in all_feeds)} articles. Results saved to {output_file_path}")
             return f"Successfully processed {len(all_feeds)} feeds with {sum(len(feed.articles) for feed in all_feeds)} articles. Results saved to {output_file_path}"
         except Exception as e:
@@ -155,12 +155,12 @@ class UnifiedRssTool(BaseTool):
             tree = ET.parse(opml_file_path)
             root = tree.getroot()
             urls = []
-            
+
             for outline in root.findall('.//outline[@xmlUrl]'):
                 url = outline.get('xmlUrl')
                 if url:
                     urls.append(url)
-                    
+
             return urls
         except ET.ParseError as e:
             logger = logging.getLogger(__name__)
@@ -182,7 +182,7 @@ class UnifiedRssTool(BaseTool):
             logger = logging.getLogger(__name__)
             logger.info(f"Fetching and parsing feed: {feed_url}")
             feed = feedparser.parse(feed_url)
-            
+
             # Check for HTTP error status
             if hasattr(feed, 'status'):
                 try:
@@ -193,29 +193,29 @@ class UnifiedRssTool(BaseTool):
                 except (TypeError, ValueError):
                     # Handle case where status is not comparable with integers
                     logger.warning(f"Invalid status value for feed: {feed_url}")
-            
+
             # Check for bozo exception (feed parsing error)
             if hasattr(feed, 'bozo') and feed.bozo:
                 logger.error(f"Feed parsing error for {feed_url}: {getattr(feed, 'bozo_exception', 'Unknown error')}")
                 invalid_sources.add(feed_url)
                 return []
-            
+
             if not feed.entries:
                 logger.warning(f"No entries found for feed: {feed_url}")
                 # Not marking as invalid - empty feed is not necessarily invalid
                 return []
-            
+
             logger.info(f"Found {len(feed.entries)} entries in feed: {feed_url}")
-            
+
             articles = []
             skipped_count = 0
             no_date_count = 0
-            
+
             for entry in feed.entries:
                 # Extract publication date
                 pub_date = None
                 date_source = None
-                
+
                 # Try multiple date fields that might be available
                 if hasattr(entry, 'published_parsed') and entry.published_parsed:
                     try:
@@ -225,7 +225,7 @@ class UnifiedRssTool(BaseTool):
                             date_source = 'published_parsed'
                     except (TypeError, ValueError):
                         pass
-                        
+
                 if not pub_date and hasattr(entry, 'updated_parsed') and entry.updated_parsed:
                     try:
                         # Handle both real tuples and mock objects
@@ -234,7 +234,7 @@ class UnifiedRssTool(BaseTool):
                             date_source = 'updated_parsed'
                     except (TypeError, ValueError):
                         pass
-                
+
                 # As a last resort, try to parse from string fields
                 if not pub_date and hasattr(entry, 'published') and entry.published:
                     try:
@@ -242,24 +242,24 @@ class UnifiedRssTool(BaseTool):
                         date_source = 'published string'
                     except (TypeError, ValueError):
                         pass
-                        
+
                 if not pub_date and hasattr(entry, 'updated') and entry.updated:
                     try:
                         pub_date = parser.parse(entry.updated)
                         date_source = 'updated string'
                     except (TypeError, ValueError):
                         pass
-                
+
                 # Skip if no date
                 if not pub_date:
                     no_date_count += 1
                     continue
-                
+
                 # Skip if article is older than cutoff
                 if pub_date < cutoff_date:
                     skipped_count += 1
                     continue
-                    
+
                 # Create Article object
                 article = Article(
                     title=entry.title,
@@ -268,15 +268,15 @@ class UnifiedRssTool(BaseTool):
                     content=None  # Will be populated later
                 )
                 articles.append(article)
-            
+
             if not articles:
                 logger.warning(f"No recent articles found for feed: {feed_url} (skipped {skipped_count} old articles, {no_date_count} with no date)")
                 # No longer marking feeds as invalid if they have no recent articles
             else:
                 logger.info(f"Found {len(articles)} recent articles for feed: {feed_url} using {date_source} (skipped {skipped_count} old articles, {no_date_count} with no date)")
-            
+
             return articles
-            
+
         except Exception as e:
             logger.error(f"Error fetching feed {feed_url}: {str(e)}")
             # Mark as invalid for any error during feed processing
@@ -298,13 +298,13 @@ class UnifiedRssTool(BaseTool):
             article = NewspaperArticle(url)
             article.download()
             article.parse()
-            
+
             if article.text and len(article.text.strip()) > 100:  # Ensure we got meaningful content
                 return article.text
         except Exception as e:
             logger = logging.getLogger(__name__)
             logger.warning(f"Newspaper3k failed for {url}: {str(e)}")
-        
+
         # Fall back to ScrapeNinjaTool if Newspaper3k fails
         try:
             content = self.scrape_ninja_tool._run(url)
@@ -324,21 +324,21 @@ def get_default_paths():
         os.path.dirname(__file__)))))
     output_dir = project_root / "output" / "rss_weekly"
     os.makedirs(output_dir, exist_ok=True)
-    
+
     opml_path = str(project_root / "data" / "feedly.opml")
     output_file_path = str(output_dir / "content.json")
     invalid_sources_file_path = str(output_dir / "invalid_sources.json")
-    
+
     return opml_path, output_file_path, invalid_sources_file_path
 
 
 def main():
     """Command-line interface for UnifiedRssTool."""
     import argparse
-    
+
     # Get default paths
     default_opml_path, default_output_path, default_invalid_sources_path = get_default_paths()
-    
+
     # Set up argument parser
     parser = argparse.ArgumentParser(description='Unified RSS Tool')
     parser.add_argument('--opml', type=str, default=default_opml_path,
@@ -352,11 +352,11 @@ def main():
     parser.add_argument('--verbose', action='store_true',
                         help='Enable verbose logging')
     args = parser.parse_args()
-    
+
     # Set log level based on verbose flag
     if args.verbose:
         logging.getLogger().setLevel(logging.DEBUG)
-    
+
     # Run the tool
     tool = UnifiedRssTool()
     result = tool._run(
@@ -365,7 +365,7 @@ def main():
         output_file_path=args.output,
         invalid_sources_file_path=args.invalid_sources
     )
-    
+
     logger.info(result)
     return 0
 

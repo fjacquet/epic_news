@@ -19,7 +19,7 @@ marketing_tools = toolset.get_tools(actions=[
 class MarketingWritersCrew:
     agents_config = "config/agents.yaml"
     tasks_config = "config/tasks.yaml"
-       
+
     @agent
     def marketing_specialist(self) -> Agent:
         return Agent(
@@ -29,7 +29,7 @@ class MarketingWritersCrew:
             llm_timeout=300,
             respect_context_window=True
         )
-    
+
     @agent
     def copywriter(self) -> Agent:
         return Agent(
@@ -48,7 +48,7 @@ class MarketingWritersCrew:
             verbose=True,
             llm_timeout=300
         )
-        
+
     @task
     def enhance_message_task(self) -> Task:
         return Task(

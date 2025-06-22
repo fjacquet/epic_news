@@ -38,10 +38,10 @@ def get_rag_tools(collection_suffix: Optional[str] = None) -> List[Tool]:
     # Instantiate the LLM and Embedder
     llm = ChatOpenAI(**config['llm']['config'])
     embedder = OpenAIEmbeddings(**config['embedder']['config'])
-    
+
     # Determine the collection name
     collection_name = config['vectordb']['config']['collection_name']
-    
+
     # Create the RAG tool for retrieval with app_config to ensure collection_name is properly set
     rag_tool = RagTool(
         llm=llm,

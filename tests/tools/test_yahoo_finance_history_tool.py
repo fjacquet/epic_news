@@ -47,7 +47,7 @@ def test_run_successful_history_retrieval(mock_yf_ticker, tool_instance, mock_hi
     interval = "1d"
     mock_ticker_instance = MagicMock()
     mock_yf_ticker.return_value = mock_ticker_instance
-    
+
     df = mock_history_dataframe_generator(num_rows=15)
     mock_ticker_instance.history.return_value = df
 

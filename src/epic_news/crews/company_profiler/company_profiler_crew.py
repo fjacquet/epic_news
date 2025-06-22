@@ -20,9 +20,9 @@ load_dotenv()
 class CompanyProfilerCrew:
     agents_config = "config/agents.yaml"
     tasks_config = "config/tasks.yaml"
-    
-    
-    
+
+
+
     @agent
     def company_profiler(self) -> Agent:
         """Creates the company profiler agent"""
@@ -31,9 +31,9 @@ class CompanyProfilerCrew:
         finance_tools = get_yahoo_finance_tools()
         rag_tools = get_rag_tools()
         html_to_pdf_tool = HtmlToPdfTool()
-        
+
         all_tools = search_tools + finance_tools + rag_tools + [html_to_pdf_tool] + get_report_tools()
-        
+
         return Agent(
             config=self.agents_config["company_profiler"],
             verbose=True,
@@ -44,7 +44,7 @@ class CompanyProfilerCrew:
             max_reasoning_attempts=5,
             max_iter=5,
             max_retry_limit=3,
-            max_rpm=10, 
+            max_rpm=10,
         )
 
     @task
@@ -67,7 +67,7 @@ class CompanyProfilerCrew:
     def company_financials(self) -> Task:
         """Analyze the company financial statements"""
         return Task(
-            config=self.tasks_config["company_financials"], 
+            config=self.tasks_config["company_financials"],
             async_execution=True,
         )
 
@@ -92,7 +92,7 @@ class CompanyProfilerCrew:
         """Research and analyze the company management team"""
         return Task(
             config=self.tasks_config["company_management"],
-            async_execution=True,   
+            async_execution=True,
         )
 
     @task
@@ -108,7 +108,7 @@ class CompanyProfilerCrew:
         """Creates the Company Profiler crew"""
         # Ensure output directory exists for final reports
         os.makedirs("output/company_profiler", exist_ok=True)
-        
+
         return Crew(
             agents=self.agents,
             tasks=self.tasks,

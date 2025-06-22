@@ -98,7 +98,7 @@ class TestExchangeRateTool(unittest.TestCase):
         result = self.tool.run(base_currency="USD")
         self.assertIn("HTTP error occurred: 500 Server Error", result)
         self.assertIn("Response: Internal Server Error", result)
-    
+
     @patch('requests.get')
     def test_run_request_exception(self, mock_get):
         mock_get.side_effect = requests.exceptions.Timeout("Connection timed out")

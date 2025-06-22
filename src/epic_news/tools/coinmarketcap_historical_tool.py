@@ -76,7 +76,7 @@ class CoinMarketCapHistoricalTool(BaseTool):
             if not id_data.get("data"):
                 logger.warning(f"No ID found for symbol: {symbol}")
                 return json.dumps({"error": f"No ID found for cryptocurrency symbol: {symbol}"})
-            
+
             # Ensure 'data' is a list and has elements before accessing id_data["data"][0]
             if not isinstance(id_data["data"], list) or not id_data["data"]:
                  logger.warning(f"Unexpected ID data format for symbol: {symbol}. Data: {id_data}")

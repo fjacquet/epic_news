@@ -17,15 +17,15 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 
 class GeoapifyPlacesInput(BaseModel):
     """Input schema for Geoapify Places search."""
-    
+
     model_config = ConfigDict(extra="forbid")
-    
+
     class FilterType(str, Enum):
         CIRCLE = "circle"  # lon,lat,radiusM
         RECT = "rect"      # lon1,lat1,lon2,lat2
         PLACE = "place"    # place ID
         GEOMETRY = "geometry"  # geometry ID
-    
+
     categories: Optional[List[str]] = Field(
         None,
         description=(
@@ -80,7 +80,7 @@ class GeoapifyPlacesInput(BaseModel):
         min_length=2,
         max_length=2
     )
-    
+
     @field_validator('bias')
     def validate_bias(cls, v):
         if v is not None:
@@ -91,7 +91,7 @@ class GeoapifyPlacesInput(BaseModel):
             except (ValueError, AttributeError) as e:
                 raise ValueError("Bias must be in format 'lon,lat' with valid coordinates") from e
         return v
-    
+
     @field_validator('filter_value')
     def validate_filter_value(cls, v, info):
         values = info.data
@@ -99,10 +99,10 @@ class GeoapifyPlacesInput(BaseModel):
             if v is not None:
                 raise ValueError("filter_value requires filter_type to be specified")
             return v
-            
+
         if v is None:
             raise ValueError(f"filter_value is required when filter_type is {values['filter_type']}")
-            
+
         try:
             if values['filter_type'] == 'circle':
                 parts = v.split(',')
@@ -111,21 +111,21 @@ class GeoapifyPlacesInput(BaseModel):
                 lon, lat, radius = map(float, parts)
                 if not (-180 <= lon <= 180 and -90 <= lat <= 90 and radius > 0):
                     raise ValueError("Invalid circle parameters")
-                    
+
             elif values['filter_type'] == 'rect':
                 parts = v.split(',')
                 if len(parts) != 4:
                     raise ValueError("Rect filter requires lon1,lat1,lon2,lat2")
                 lon1, lat1, lon2, lat2 = map(float, parts)
-                if not (-180 <= lon1 <= 180 and -90 <= lat1 <= 90 and 
+                if not (-180 <= lon1 <= 180 and -90 <= lat1 <= 90 and
                         -180 <= lon2 <= 180 and -90 <= lat2 <= 90):
                     raise ValueError("Invalid rectangle coordinates")
-                    
+
         except ValueError as e:
             raise ValueError(f"Invalid filter_value for {values['filter_type']}: {str(e)}") from e
-            
+
         return v
-    
+
     @model_validator(mode='after')
     def validate_filter_dependencies(self):
         """Ensure filter_value is provided when filter_type is set."""
@@ -141,7 +141,7 @@ class GeoapifyPlacesTool(BaseTool):
     This tool allows searching for places by categories, conditions, and location.
     It requires a Geoapify API key set in the environment as GEOAPIFY_API_KEY.
     """
-    
+
     name: str = "geoapify_places_search"
     description: str = (
         "Search for points of interest using the Geoapify Places API. "
@@ -149,7 +149,7 @@ class GeoapifyPlacesTool(BaseTool):
         "Useful for finding restaurants, attractions, and other POIs."
     )
     args_schema: Type[BaseModel] = GeoapifyPlacesInput
-    
+
     def _run(self, **kwargs) -> str:
         """
         Execute the Geoapify Places search with the provided parameters.
@@ -169,35 +169,35 @@ class GeoapifyPlacesTool(BaseTool):
             params = GeoapifyPlacesInput(**kwargs)
         except Exception as e:
             return json.dumps({"error": f"Invalid parameters: {str(e)}"})
-        
+
         # Get API key from environment
         api_key = os.getenv("GEOAPIFY_API_KEY")
         if not api_key:
             return json.dumps({"error": "GEOAPIFY_API_KEY environment variable not set"})
-        
+
         # Build query parameters
         query_params = {"apiKey": api_key, "limit": params.limit, "lang": params.lang}
-        
+
         # Add categories if provided
         if params.categories:
             query_params["categories"] = ",".join(params.categories)
-        
+
         # Add conditions if provided
         if params.conditions:
             query_params["conditions"] = ",".join(params.conditions)
-        
+
         # Add filter if provided
         if params.filter_type and params.filter_value:
             query_params["filter"] = f"{params.filter_type}:{params.filter_value}"
-        
+
         # Add bias if provided
         if params.bias:
             query_params["bias"] = f"proximity:{params.bias}"
-        
+
         # Add offset for pagination
         if params.offset > 0:
             query_params["offset"] = params.offset
-        
+
         # Make the API request
         try:
             response = requests.get(
@@ -206,20 +206,20 @@ class GeoapifyPlacesTool(BaseTool):
                 timeout=30  # 30 seconds timeout
             )
             response.raise_for_status()  # Raise HTTPError for bad responses
-            
+
             # Parse and validate response
             result = response.json()
-            
+
             # Check for API errors
             if "error" in result:
                 return json.dumps({
                     "error": f"Geoapify API error: {result.get('message', 'Unknown error')}",
                     "status_code": response.status_code
                 })
-                
+
             # Return the GeoJSON FeatureCollection
             return json.dumps(result, ensure_ascii=False)
-            
+
         except requests.exceptions.RequestException as e:
             error_msg = f"Request to Geoapify API failed: {str(e)}"
             if hasattr(e, 'response') and e.response is not None:

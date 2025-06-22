@@ -203,5 +203,5 @@ def test_run_invalid_ticker_empty_info(mock_yfinance_ticker, ticker_info_tool_in
     result_data = json.loads(result_str)
 
     # Only symbol should be present as all other fields default to N/A and are removed
-    expected_data = {"symbol": "INVALID"} 
+    expected_data = {"symbol": "INVALID"}
     assert result_data == expected_data

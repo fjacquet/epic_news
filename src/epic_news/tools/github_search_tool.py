@@ -20,45 +20,45 @@ class GitHubSearchTool(BaseTool, GitHubBaseTool):
     description: str = "Search GitHub for repositories, code, issues, or users"
     args_schema: type[BaseModel] = GitHubSearchInput
     headers: Dict[str, str] = None
-    
+
     def __init__(self, **data):
         """Initialize with GitHub token from environment."""
         # Get GitHub token from environment
         github_token = os.getenv("GITHUB_TOKEN")
         if not github_token:
             raise ValueError("GITHUB_TOKEN environment variable not set")
-            
+
         # Initialize the base classes
         BaseTool.__init__(self, **data)
         GitHubBaseTool.__init__(self, api_key=github_token)
-        
+
         # Set up headers
         self.headers = {
             "Authorization": f"token {github_token}",
             "Accept": "application/vnd.github.v3+json"
         }
-    
+
     def _run(self, query: str, search_type: str = "repositories", max_results: int = 5) -> str:
         """Search GitHub."""
         search_type = search_type.lower()
         if search_type not in ["repositories", "code", "issues", "users"]:
             return json.dumps({"error": "Invalid search type. Must be one of: repositories, code, issues, users"})
-        
+
         url = f"https://api.github.com/search/{search_type}"
         params = {"q": query, "per_page": min(max_results, 10)}
-        
+
         response = self._make_request(
             "GET",
             url,
             headers=self.headers,
             params=params
         )
-        
+
         if not response:
             return json.dumps({"error": f"Failed to search GitHub {search_type}"})
-            
+
         results = response.json().get("items", [])
-        
+
         # Format results based on search type
         if search_type == "repositories":
             formatted_results = [{
@@ -90,5 +90,5 @@ class GitHubSearchTool(BaseTool, GitHubBaseTool):
                 "type": r["type"],
                 "score": r["score"]
             } for r in results]
-        
+
         return json.dumps({"query": query, "search_type": search_type, "total_count": response.json().get("total_count", 0), "results": formatted_results})

@@ -38,7 +38,7 @@ class ClassifyCrew():
             verbose=True,
         )
         return result
-    
+
     def parse_result(self, result, categories=None):
         """
         Extract the selected category from the classification result
@@ -52,20 +52,20 @@ class ClassifyCrew():
         """
         # Convert CrewOutput to string if needed
         result_text = str(result)
-        
+
         # The format is now simplified - the category should be the first line
         if not result_text:
             return "UNKNOWN"
-            
+
         # Get the first line which should be the category
         category = result_text.strip().split('\n')[0].strip()
-        
+
         # If categories provided, validate the result
         if categories and category:
             # Case-insensitive match against available categories
             for key in categories:
                 if key.upper() == category.upper():
                     return key
-        
+
         # Return the found category or default to UNKNOWN
         return category if category else "UNKNOWN"

@@ -20,7 +20,7 @@ def mock_etf_data_all_present():
         "annualReportExpenseRatio": 0.0003, # yfinance often returns float for this
         "totalAssets": 300000000000
     }
-    
+
     holdings_list = []
     for i in range(15):
         holdings_list.append({
@@ -107,7 +107,7 @@ def test_run_get_holdings_fails(mock_yf_ticker, tool_instance, mock_etf_data_all
     mock_yf_ticker.return_value = mock_ticker_instance
     mock_ticker_instance.get_holdings.side_effect = Exception("Holdings fetch failed")
     # Ensure info is not from the fixture for this specific test path if needed, or use parts of it
-    mock_ticker_instance.info = { "shortName": "ETF With Failing Holdings"} 
+    mock_ticker_instance.info = { "shortName": "ETF With Failing Holdings"}
 
     result_str = tool_instance._run(ticker=ticker_symbol)
     result_data = json.loads(result_str)
@@ -116,7 +116,7 @@ def test_run_get_holdings_fails(mock_yf_ticker, tool_instance, mock_etf_data_all
     assert result_data["name"] == "ETF With Failing Holdings"
     assert "top_holdings" not in result_data
     # Sector data should still be there from the original mock_etf_data_all_present if not overridden
-    assert "sector_breakdown" in result_data 
+    assert "sector_breakdown" in result_data
 
 @patch('yfinance.Ticker')
 def test_run_get_sector_data_fails(mock_yf_ticker, tool_instance, mock_etf_data_all_present):
@@ -124,7 +124,7 @@ def test_run_get_sector_data_fails(mock_yf_ticker, tool_instance, mock_etf_data_
     mock_ticker_instance = mock_etf_data_all_present
     mock_yf_ticker.return_value = mock_ticker_instance
     mock_ticker_instance.get_sector_data.side_effect = Exception("Sector fetch failed")
-    mock_ticker_instance.info = { "shortName": "ETF With Failing Sectors"} 
+    mock_ticker_instance.info = { "shortName": "ETF With Failing Sectors"}
 
     result_str = tool_instance._run(ticker=ticker_symbol)
     result_data = json.loads(result_str)

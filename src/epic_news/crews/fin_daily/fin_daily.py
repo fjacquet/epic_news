@@ -20,7 +20,7 @@ class FinDailyCrew():
 
     def __init__(self) -> None:
         self._init_tools()
-    
+
     # If you would like to add tools to your agents, you can learn more about it here:
     # https://docs.crewai.com/concepts/agents#agent-tools
 

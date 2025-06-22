@@ -48,7 +48,7 @@ def get_scrape_tools():
         list: A list of web scraping tool instances.
     """
     from epic_news.tools.scrape_ninja_tool import ScrapeNinjaTool
-    
+
     return [
         ScrapeNinjaTool(),  # Primary scraping tool - fast and powerful
         ScrapeWebsiteTool(),  # Official CrewAI scraping tool as backup
@@ -88,13 +88,13 @@ def get_github_tools():
         list: A list of GitHub search tool instances.
     """
     import os
-    
+
     # Get GitHub token from environment
     github_token = os.getenv("GITHUB_TOKEN")
     if not github_token:
         # Return empty list if no token is available
         return []
-    
+
     try:
         # Try to create the GitHub tool
         github_tool = GithubSearchTool(
@@ -132,9 +132,9 @@ def get_all_web_tools():
         list: A comprehensive list of all web tools.
     """
     return (
-        get_search_tools() + 
-        get_news_tools() + 
-        get_scrape_tools() + 
+        get_search_tools() +
+        get_news_tools() +
+        get_scrape_tools() +
         get_website_search_tools() +
         get_github_tools() +
         get_pdf_tools() +

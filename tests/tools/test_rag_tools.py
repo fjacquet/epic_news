@@ -81,9 +81,9 @@ def test_default_rag_config_immutability(mock_default_config):
 
     # Call with a suffix, which should modify a copy
     get_rag_tools(collection_suffix="stocks")
-    
+
     # Assert that the mocked DEFAULT_RAG_CONFIG (our deep copy) was not changed by the call above
-    # This is implicitly tested by mock_default_config being a fresh deepcopy for each test, 
+    # This is implicitly tested by mock_default_config being a fresh deepcopy for each test,
     # but we can be more explicit by checking the original dict we defined for the test module.
     assert TEST_DEFAULT_RAG_CONFIG['vectordb']['config']['collection_name'] == original_collection_name
 

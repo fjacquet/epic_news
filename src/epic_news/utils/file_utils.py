@@ -19,7 +19,7 @@ def read_file_content(file_path):
     if not os.path.isabs(file_path):
         # If relative path, make it relative to the project root
         file_path = os.path.normpath(os.path.join(os.getcwd(), file_path))
-    
+
     try:
         with open(file_path, 'r', encoding='utf-8') as file:
             content = file.read()

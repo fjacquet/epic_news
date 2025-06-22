@@ -16,15 +16,15 @@ class BaseSearchTool:
     """Base class for search tools with common functionality."""
     api_key: Optional[str] = None
     session: Optional[requests.Session] = None
-    
+
     def __init__(self, api_key: str, **data):
         """Initialize with API key and create a session."""
         if not api_key:
             raise ValueError("api_key is required")
-            
+
         self.api_key = api_key
         self.session = self._create_session()
-    
+
     def _create_session(self) -> requests.Session:
         """Create a requests session with retry logic."""
         session = requests.Session()
@@ -37,14 +37,14 @@ class BaseSearchTool:
         session.mount("http://", adapter)
         session.mount("https://", adapter)
         return session
-    
+
     def _make_request(self, method: str, url: str, **kwargs) -> Optional[requests.Response]:
         """Make an HTTP request with error handling."""
         try:
             response = self.session.request(
-                method, 
-                url, 
-                timeout=10, 
+                method,
+                url,
+                timeout=10,
                 **kwargs
             )
             response.raise_for_status()
@@ -52,7 +52,7 @@ class BaseSearchTool:
         except requests.RequestException as e:
             logger.error(f"Request failed: {e}")
             return None
-    
+
     def _search_serper(self, query: str) -> Optional[Dict[str, Any]]:
         """
         Perform a search using the Serper API.
@@ -69,25 +69,25 @@ class BaseSearchTool:
             "Content-Type": "application/json"
         }
         payload = {"q": query}
-        
+
         logger.info(f"Performing search with query: {query}")
         response = self._make_request("POST", url, headers=headers, json=payload)
-        
+
         if not response:
             logger.error("No response received from search API")
             return None
-            
+
         try:
             data = response.json()
             logger.debug(f"Search API response: {data}")
-            
+
             # Check for API errors
             if 'error' in data:
                 logger.error(f"Search API error: {data.get('message', 'Unknown error')}")
                 return None
-                
+
             return data
-            
+
         except ValueError as e:
             logger.error(f"Failed to parse search response: {e}")
             return None

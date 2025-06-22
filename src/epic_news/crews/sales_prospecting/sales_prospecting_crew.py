@@ -40,7 +40,7 @@ class SalesProspectingCrew():
             tools=[*self.search_tools, *self.email_search_tools, *self.read_tools, *self.report_tools, *self.data_centric_tools],
             verbose=True,
             llm_timeout=300,
-            reasoning=True,     
+            reasoning=True,
             max_reasoning_attempts=5,
             respect_context_window=True
         )
@@ -51,7 +51,7 @@ class SalesProspectingCrew():
             config=self.agents_config["org_structure_analyst"],
             tools=[*self.search_tools, *self.email_search_tools, *self.read_tools, *self.report_tools, *self.data_centric_tools],
             verbose=True,
-            reasoning=True,     
+            reasoning=True,
             max_reasoning_attempts=5,
             llm_timeout=300,
             respect_context_window=True
@@ -63,7 +63,7 @@ class SalesProspectingCrew():
             config=self.agents_config["contact_finder"],
             tools=[*self.search_tools, *self.email_search_tools, *self.read_tools, *self.report_tools, *self.data_centric_tools],
             verbose=True,
-            reasoning=True,     
+            reasoning=True,
             max_reasoning_attempts=5,
             llm_timeout=300,
             respect_context_window=True
@@ -75,7 +75,7 @@ class SalesProspectingCrew():
             config=self.agents_config["sales_strategist"],
             tools=[*self.search_tools, *self.email_search_tools, *self.read_tools, *self.report_tools, *self.data_centric_tools],
             verbose=True,
-            reasoning=True,     
+            reasoning=True,
             max_reasoning_attempts=5,
             llm_timeout=300,
             respect_context_window=True
@@ -109,7 +109,7 @@ class SalesProspectingCrew():
             async_execution=False,
             output_pydantic=ReportHTMLOutput,
         )
-        
+
     @task
     def generate_sales_metrics_task(self) -> Task:
         return Task(
@@ -126,9 +126,9 @@ class SalesProspectingCrew():
             tasks=self.tasks, # Automatically created by the @task decorator
             process=Process.hierarchical, # Changed from sequential to hierarchical for parallel execution
             verbose=True,
-            reasoning=True,     
+            reasoning=True,
             max_reasoning_attempts=5,
             max_iter=5,
             max_retry_limit=3,
-            max_rpm=10, 
+            max_rpm=10,
         )

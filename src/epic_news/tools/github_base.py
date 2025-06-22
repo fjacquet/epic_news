@@ -14,19 +14,19 @@ class GitHubBaseTool:
     """Base class for GitHub tools with common functionality."""
     api_key: Optional[str] = None
     session: requests.Session = None
-    
+
     def __init__(self, api_key: str = None, **data):
         """Initialize with API key and create a session."""
         # If api_key is not provided, try to get it from data
         if api_key is None and 'api_key' in data:
             api_key = data.pop('api_key')
-            
+
         if api_key is None:
             raise ValueError("GitHub API key is required")
-            
+
         self.api_key = api_key
         self.session = self._create_session()
-    
+
     def _create_session(self) -> requests.Session:
         """Create a requests session with retry logic."""
         session = requests.Session()
@@ -39,14 +39,14 @@ class GitHubBaseTool:
         session.mount("http://", adapter)
         session.mount("https://", adapter)
         return session
-    
+
     def _make_request(self, method: str, url: str, **kwargs) -> Optional[requests.Response]:
         """Make an HTTP request with error handling."""
         try:
             response = self.session.request(
-                method, 
-                url, 
-                timeout=10, 
+                method,
+                url,
+                timeout=10,
                 **kwargs
             )
             response.raise_for_status()
