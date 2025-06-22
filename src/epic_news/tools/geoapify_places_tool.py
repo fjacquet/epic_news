@@ -187,7 +187,7 @@ class GeoapifyPlacesTool(BaseTool):
 
         # Add filter if provided
         if params.filter_type and params.filter_value:
-            query_params["filter"] = f"{params.filter_type}:{params.filter_value}"
+            query_params["filter"] = f"{params.filter_type.value}:{params.filter_value}"
 
         # Add bias if provided
         if params.bias:

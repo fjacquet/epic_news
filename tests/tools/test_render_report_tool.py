@@ -10,8 +10,10 @@ from epic_news.models.report_models import (
 )
 from epic_news.tools.render_report_tool import RenderReportTool
 
-# Define the correct template directory for testing
-TEMPLATE_DIR = Path("/Users/fjacquet/Projects/crews/epic_news/templates")
+# Define the correct template directory for testing relative to the project root.
+# This makes the test independent of the absolute path of the project.
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+TEMPLATE_DIR = PROJECT_ROOT / "templates"
 
 
 class TestRenderReportTool:
