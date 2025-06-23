@@ -27,6 +27,7 @@ class CoinMarketCapHistoricalTool(BaseTool):
     This tool provides historical price, volume, and market cap data for
     a given cryptocurrency over various time periods.
     """
+
     name: str = "CoinMarketCap Historical Data"
     description: str = (
         "Get historical price, volume, and market cap data for a specific cryptocurrency "
@@ -51,8 +52,12 @@ class CoinMarketCapHistoricalTool(BaseTool):
         logger.info(f"Retrieving {time_period} historical data for {symbol}")
 
         time_map = {
-            "24h": "hourly", "7d": "daily", "30d": "daily",
-            "3m": "daily", "1y": "weekly", "ytd": "daily",
+            "24h": "hourly",
+            "7d": "daily",
+            "30d": "daily",
+            "3m": "daily",
+            "1y": "weekly",
+            "ytd": "daily",
         }
         interval = time_map.get(time_period, "daily")
 
@@ -68,7 +73,9 @@ class CoinMarketCapHistoricalTool(BaseTool):
             )
 
             if id_response.status_code != 200:
-                error_msg = f"CoinMarketCap API error retrieving ID: {id_response.status_code} - {id_response.text}"
+                error_msg = (
+                    f"CoinMarketCap API error retrieving ID: {id_response.status_code} - {id_response.text}"
+                )
                 logger.error(error_msg)
                 return json.dumps({"error": error_msg})
 
@@ -79,18 +86,21 @@ class CoinMarketCapHistoricalTool(BaseTool):
 
             # Ensure 'data' is a list and has elements before accessing id_data["data"][0]
             if not isinstance(id_data["data"], list) or not id_data["data"]:
-                 logger.warning(f"Unexpected ID data format for symbol: {symbol}. Data: {id_data}")
-                 return json.dumps({"error": f"Unexpected ID data format for symbol: {symbol}"})
+                logger.warning(f"Unexpected ID data format for symbol: {symbol}. Data: {id_data}")
+                return json.dumps({"error": f"Unexpected ID data format for symbol: {symbol}"})
 
             crypto_id = id_data["data"][0]["id"]
 
             history_params = {
-                "id": crypto_id, "convert": "USD",
-                "interval": interval, "time_period": time_period,
+                "id": crypto_id,
+                "convert": "USD",
+                "interval": interval,
+                "time_period": time_period,
             }
             history_response = requests.get(
                 f"{CMC_BASE_URL}/cryptocurrency/quotes/historical",
-                headers=headers, params=history_params,
+                headers=headers,
+                params=history_params,
             )
 
             if history_response.status_code != 200:
@@ -115,7 +125,7 @@ class CoinMarketCapHistoricalTool(BaseTool):
                     # Historical API might not have percent_change_24h per entry,
                     # it's usually calculated based on previous point.
                     # Keeping it if API provides, otherwise might be None.
-                    "percent_change_24h": q_usd.get("percent_change_24h")
+                    "percent_change_24h": q_usd.get("percent_change_24h"),
                 }
                 historical_data_list.append(entry)
 
@@ -123,7 +133,7 @@ class CoinMarketCapHistoricalTool(BaseTool):
                 "symbol": symbol,
                 "time_period": time_period,
                 "interval": interval,
-                "historical_data": historical_data_list
+                "historical_data": historical_data_list,
             }
             logger.info(f"Successfully retrieved historical data for {symbol}")
             return json.dumps(result)

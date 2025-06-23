@@ -28,7 +28,9 @@ class CoinMarketCapNewsTool(BaseTool):
     args_schema: type[BaseModel] = CryptocurrencyNewsInput
 
     def _run(self, symbol: str | None = None, limit: int = 10) -> str:
-        logger.info(f"Retrieving {limit} news articles for {symbol if symbol else 'general cryptocurrencies'}")
+        logger.info(
+            f"Retrieving {limit} news articles for {symbol if symbol else 'general cryptocurrencies'}"
+        )
 
         if limit > 50:
             limit = 50
@@ -44,7 +46,7 @@ class CoinMarketCapNewsTool(BaseTool):
             params = {"limit": limit, "sort_by": "published_at"}
 
             if symbol:
-                if symbol.islower() and '-' in symbol or (symbol.islower() and not symbol.isupper()):
+                if symbol.islower() and "-" in symbol or (symbol.islower() and not symbol.isupper()):
                     params["slug"] = symbol
                 else:
                     params["symbol"] = symbol.upper()
@@ -59,39 +61,45 @@ class CoinMarketCapNewsTool(BaseTool):
             data = response.json()
 
             if "data" not in data or not isinstance(data.get("data"), list) or not data["data"]:
-                logger.info(f"No news articles found for {symbol if symbol else 'general'} or empty list returned.")
-                return json.dumps({
-                    "query_filter": symbol if symbol else "general",
-                    "count": 0,
-                    "articles": []
-                })
+                logger.info(
+                    f"No news articles found for {symbol if symbol else 'general'} or empty list returned."
+                )
+                return json.dumps(
+                    {"query_filter": symbol if symbol else "general", "count": 0, "articles": []}
+                )
 
             news_items = data["data"]
             articles_list = []
             for item in news_items:
-                source_name = None # Initialize
+                source_name = None  # Initialize
                 article_source_value = item.get("source")
                 if isinstance(article_source_value, dict):
                     source_name = article_source_value.get("name")
-                if not source_name: # If source was not a dict, or name was not in it, or source key was missing
-                    source_name = item.get("source_name") # Try direct source_name key
+                if (
+                    not source_name
+                ):  # If source was not a dict, or name was not in it, or source key was missing
+                    source_name = item.get("source_name")  # Try direct source_name key
 
                 article = {
                     "title": item.get("title"),
                     "source": source_name,
                     "url": item.get("url"),
-                    "published_at": item.get("publishedAt") or item.get("published_at") or item.get("timestamp"),
+                    "published_at": item.get("publishedAt")
+                    or item.get("published_at")
+                    or item.get("timestamp"),
                     "description": item.get("description") or item.get("subtitle"),
-                    "cover_image_url": item.get("cover")
+                    "cover_image_url": item.get("cover"),
                 }
                 articles_list.append(article)
 
             output_data = {
                 "query_filter": symbol if symbol else "general",
                 "count": len(articles_list),
-                "articles": articles_list
+                "articles": articles_list,
             }
-            logger.info(f"Successfully retrieved {len(articles_list)} news articles for {symbol if symbol else 'general'}")
+            logger.info(
+                f"Successfully retrieved {len(articles_list)} news articles for {symbol if symbol else 'general'}"
+            )
             return json.dumps(output_data)
 
         except requests.exceptions.RequestException as e:

@@ -15,7 +15,7 @@ def tool():
 
 
 @freeze_time("2024-01-08")
-@patch('src.epic_news.tools.rss_feed_parser_tool.feedparser')
+@patch("src.epic_news.tools.rss_feed_parser_tool.feedparser")
 def test_rss_feed_parser_success(mock_feedparser, tool):
     """Test successful parsing and filtering of a recent RSS feed entry."""
     # Mock feedparser to return a feed with one recent entry and one old entry
@@ -28,22 +28,18 @@ def test_rss_feed_parser_success(mock_feedparser, tool):
     old_entry_time = now - timedelta(days=10)
 
     def mock_get(key, default=None):
-        if key == 'title':
+        if key == "title":
             return "Recent Article"
-        if key == 'link':
+        if key == "link":
             return "http://fake-rss.com/recent"
-        if key == 'published':
+        if key == "published":
             return "Mon, 05 Jan 2024 00:00:00 GMT"
         return default
 
-    recent_entry = MagicMock(
-        published_parsed=recent_entry_time.timetuple()
-    )
+    recent_entry = MagicMock(published_parsed=recent_entry_time.timetuple())
     recent_entry.get.side_effect = mock_get
 
-    old_entry = MagicMock(
-        published_parsed=old_entry_time.timetuple()
-    )
+    old_entry = MagicMock(published_parsed=old_entry_time.timetuple())
 
     mock_feed.entries = [recent_entry, old_entry]
     mock_feedparser.parse.return_value = mock_feed
@@ -51,16 +47,18 @@ def test_rss_feed_parser_success(mock_feedparser, tool):
     result = tool._run(feed_url="http://fake-rss.com/feed")
 
     # The tool should return only the recent entry as a JSON string
-    expected_output = [{
-        "title": "Recent Article",
-        "link": "http://fake-rss.com/recent",
-        "published": "Mon, 05 Jan 2024 00:00:00 GMT"
-    }]
+    expected_output = [
+        {
+            "title": "Recent Article",
+            "link": "http://fake-rss.com/recent",
+            "published": "Mon, 05 Jan 2024 00:00:00 GMT",
+        }
+    ]
     assert json.loads(result) == expected_output
     mock_feedparser.parse.assert_called_once_with("http://fake-rss.com/feed")
 
 
-@patch('src.epic_news.tools.rss_feed_parser_tool.feedparser')
+@patch("src.epic_news.tools.rss_feed_parser_tool.feedparser")
 def test_rss_feed_parser_error(mock_feedparser, tool):
     """Test that the tool gracefully handles a parsing error."""
     mock_feedparser.parse.side_effect = Exception("Network Error")

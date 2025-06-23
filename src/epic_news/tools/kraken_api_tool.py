@@ -6,7 +6,6 @@ It allows for fetching market data like ticker information, order books, and his
 as well as account-specific information like asset balances.
 """
 
-
 import base64
 import hashlib
 import hmac
@@ -86,7 +85,9 @@ class KrakenAssetListTool(BaseTool):
     """
 
     name: str = "Kraken Asset List"
-    description: str = "Fetches your account's asset balances from Kraken, including asset names and quantities."
+    description: str = (
+        "Fetches your account's asset balances from Kraken, including asset names and quantities."
+    )
     args_schema: type[BaseModel] = KrakenAssetListInput
 
     def _get_kraken_signature(self, urlpath: str, data: dict, secret: str) -> str:
@@ -94,7 +95,7 @@ class KrakenAssetListTool(BaseTool):
         Create authentication signature for Kraken API private endpoints.
         """
         postdata = urllib.parse.urlencode(data)
-        encoded = (str(data['nonce']) + postdata).encode()
+        encoded = (str(data["nonce"]) + postdata).encode()
         message = urlpath.encode() + hashlib.sha256(encoded).digest()
 
         signature = hmac.new(base64.b64decode(secret), message, hashlib.sha512)
@@ -119,14 +120,11 @@ class KrakenAssetListTool(BaseTool):
         urlpath = "/0/private/Balance"
 
         # Prepare request data
-        data = {
-            "nonce": str(int(time.time() * 1000)),
-            "asset": asset_class
-        }
+        data = {"nonce": str(int(time.time() * 1000)), "asset": asset_class}
 
         # Get API credentials from environment variables
-        api_key = os.environ.get('KRAKEN_API_KEY')
-        api_secret = os.environ.get('KRAKEN_API_SECRET')
+        api_key = os.environ.get("KRAKEN_API_KEY")
+        api_secret = os.environ.get("KRAKEN_API_SECRET")
 
         if not api_key or not api_secret:
             error_result = "Error: Kraken API credentials not found in environment variables."
@@ -134,10 +132,7 @@ class KrakenAssetListTool(BaseTool):
             return error_result
 
         # Prepare headers with API key and signature
-        headers = {
-            'API-Key': api_key,
-            'API-Sign': self._get_kraken_signature(urlpath, data, api_secret)
-        }
+        headers = {"API-Key": api_key, "API-Sign": self._get_kraken_signature(urlpath, data, api_secret)}
 
         try:
             response = requests.post(url, headers=headers, data=data, timeout=10)
@@ -160,15 +155,14 @@ class KrakenAssetListTool(BaseTool):
                     # Skip assets with zero balance
                     if qty <= 0:
                         continue
-                    formatted_assets.append({
-                        "asset": asset_code,
-                        "quantity": qty
-                    })
+                    formatted_assets.append({"asset": asset_code, "quantity": qty})
                 except (ValueError, TypeError):
-                    formatted_assets.append({
-                        "asset": asset_code,
-                        "quantity": quantity  # Keep as string if conversion fails
-                    })
+                    formatted_assets.append(
+                        {
+                            "asset": asset_code,
+                            "quantity": quantity,  # Keep as string if conversion fails
+                        }
+                    )
 
             result = json.dumps(formatted_assets, indent=2)
             cache.set(cache_key, result)

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 from datetime import datetime
-from typing import Any, Union
+from typing import Any
 
 from crewai.tools import BaseTool
 from jinja2 import Environment, FileSystemLoader
@@ -416,7 +416,7 @@ class StructuredReportTool(BaseTool):
             return {"error": f"Failed to generate structured report: {str(e)}"}
 
 
-def get_data_centric_tools() -> list[Union[BaseTool, LangchainBaseTool]]:
+def get_data_centric_tools() -> list[BaseTool | LangchainBaseTool]:
     """Get a list of all data-centric tools."""
     return [
         MetricsCalculatorTool(),

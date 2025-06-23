@@ -178,7 +178,7 @@ def optimize_crew_process(
 
         # Find crew classes
         crew_classes = []
-        for name, obj in inspect.getmembers(module):
+        for _, obj in inspect.getmembers(module):
             if inspect.isclass(obj) and hasattr(obj, "crew"):
                 crew_classes.append(obj)
 

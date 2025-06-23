@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 CMC_BASE_URL = "https://pro-api.coinmarketcap.com/v1"
 
 
-class CoinMarketCapException(Exception):
+class CoinMarketCapError(Exception):
     """Exception raised for CoinMarketCap API errors."""
 
 
@@ -35,6 +35,7 @@ class CoinMarketCapInfoTool(BaseTool):
     This tool provides current price, market cap, volume, circulating supply,
     and other key metrics for a given cryptocurrency symbol.
     """
+
     name: str = "CoinMarketCap Cryptocurrency Info"
     description: str = (
         "Get detailed information about a specific cryptocurrency including price, "
@@ -54,7 +55,7 @@ class CoinMarketCapInfoTool(BaseTool):
             A JSON string containing detailed information about the cryptocurrency
 
         Raises:
-            CoinMarketCapException: If the API request fails
+            CoinMarketCapError: If the API request fails
         """
         logger.info(f"Retrieving information for cryptocurrency: {symbol}")
 
@@ -71,11 +72,11 @@ class CoinMarketCapInfoTool(BaseTool):
             )
 
             if response.status_code != 200:
-                error_msg = (
-                    f"CoinMarketCap API error: {response.status_code} - {response.text}"
-                )
+                error_msg = f"CoinMarketCap API error: {response.status_code} - {response.text}"
                 logger.error(error_msg)
-                return json.dumps({"error": f"CoinMarketCap API error: {response.status_code} - {response.text}"})
+                return json.dumps(
+                    {"error": f"CoinMarketCap API error: {response.status_code} - {response.text}"}
+                )
 
             data = response.json()
 
@@ -87,19 +88,21 @@ class CoinMarketCapInfoTool(BaseTool):
             quote = crypto_data["quote"]["USD"]
 
             info_dict = {
-                "name": crypto_data.get('name'),
-                "symbol": crypto_data.get('symbol'),
-                "price_usd": quote.get('price'),
-                "market_cap_usd": quote.get('market_cap'),
-                "volume_24h_usd": quote.get('volume_24h'),
-                "percent_change_24h": quote.get('percent_change_24h'),
-                "percent_change_7d": quote.get('percent_change_7d'),
-                "circulating_supply": crypto_data.get('circulating_supply'),
-                "max_supply": crypto_data.get('max_supply'),
-                "cmc_rank": crypto_data.get('cmc_rank'),
-                "last_updated": quote.get('last_updated'),
-                "platform": crypto_data.get('platform', {}).get('name') if crypto_data.get('platform') else None,
-                "tags": crypto_data.get('tags', [])[:5]
+                "name": crypto_data.get("name"),
+                "symbol": crypto_data.get("symbol"),
+                "price_usd": quote.get("price"),
+                "market_cap_usd": quote.get("market_cap"),
+                "volume_24h_usd": quote.get("volume_24h"),
+                "percent_change_24h": quote.get("percent_change_24h"),
+                "percent_change_7d": quote.get("percent_change_7d"),
+                "circulating_supply": crypto_data.get("circulating_supply"),
+                "max_supply": crypto_data.get("max_supply"),
+                "cmc_rank": crypto_data.get("cmc_rank"),
+                "last_updated": quote.get("last_updated"),
+                "platform": crypto_data.get("platform", {}).get("name")
+                if crypto_data.get("platform")
+                else None,
+                "tags": crypto_data.get("tags", [])[:5],
             }
 
             logger.info(f"Successfully retrieved information for {symbol}")

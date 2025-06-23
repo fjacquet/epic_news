@@ -31,16 +31,16 @@ def test_delegating_tool_instantiation(router_tool_instance):
 
 
 @patch("epic_news.tools.email_search.HunterIOTool")  # Patch where HunterIOTool is imported/used
-def test_run_delegates_to_hunter_success(MockHunterToolClass, router_tool_instance):
+def test_run_delegates_to_hunter_success(mock_hunter_tool_class, router_tool_instance):
     mock_hunter_instance = MagicMock()
     mock_hunter_instance._run.return_value = json.dumps({"hunter_data": "success"})
-    MockHunterToolClass.return_value = mock_hunter_instance
+    mock_hunter_tool_class.return_value = mock_hunter_instance
 
     query = "example.com"
     result_str = router_tool_instance._run(provider="hunter", query=query)
     result_data = json.loads(result_str)
 
-    MockHunterToolClass.assert_called_once_with()  # Check instantiation
+    mock_hunter_tool_class.assert_called_once_with()  # Check instantiation
     mock_hunter_instance._run.assert_called_once_with(domain=query)
     assert result_data == {"hunter_data": "success"}
 
@@ -48,16 +48,16 @@ def test_run_delegates_to_hunter_success(MockHunterToolClass, router_tool_instan
 @patch(
     "epic_news.tools.email_search.SerperEmailSearchTool"
 )  # Patch where SerperEmailSearchTool is imported/used
-def test_run_delegates_to_serper_success(MockSerperToolClass, router_tool_instance):
+def test_run_delegates_to_serper_success(mock_serper_tool_class, router_tool_instance):
     mock_serper_instance = MagicMock()
     mock_serper_instance._run.return_value = json.dumps({"serper_data": "success"})
-    MockSerperToolClass.return_value = mock_serper_instance
+    mock_serper_tool_class.return_value = mock_serper_instance
 
     query = "Example Inc"
     result_str = router_tool_instance._run(provider="serper", query=query)
     result_data = json.loads(result_str)
 
-    MockSerperToolClass.assert_called_once_with()  # Check instantiation
+    mock_serper_tool_class.assert_called_once_with()  # Check instantiation
     mock_serper_instance._run.assert_called_once_with(query=query)
     assert result_data == {"serper_data": "success"}
 
@@ -72,9 +72,9 @@ def test_run_invalid_provider(router_tool_instance):
 
 
 @patch("epic_news.tools.email_search.HunterIOTool")
-def test_run_hunter_init_error(MockHunterToolClass, router_tool_instance):
+def test_run_hunter_init_error(mock_hunter_tool_class, router_tool_instance):
     error_message = "Mocked Hunter API Key Error"
-    MockHunterToolClass.side_effect = ValueError(error_message)  # Error on instantiation
+    mock_hunter_tool_class.side_effect = ValueError(error_message)  # Error on instantiation
 
     result_str = router_tool_instance._run(provider="hunter", query="example.com")
     result_data = json.loads(result_str)
@@ -84,9 +84,9 @@ def test_run_hunter_init_error(MockHunterToolClass, router_tool_instance):
 
 
 @patch("epic_news.tools.email_search.SerperEmailSearchTool")
-def test_run_serper_init_error(MockSerperToolClass, router_tool_instance):
+def test_run_serper_init_error(mock_serper_tool_class, router_tool_instance):
     error_message = "Mocked Serper API Key Error"
-    MockSerperToolClass.side_effect = ValueError(error_message)  # Error on instantiation
+    mock_serper_tool_class.side_effect = ValueError(error_message)  # Error on instantiation
 
     result_str = router_tool_instance._run(provider="serper", query="Example Inc")
     result_data = json.loads(result_str)
@@ -96,11 +96,11 @@ def test_run_serper_init_error(MockSerperToolClass, router_tool_instance):
 
 
 @patch("epic_news.tools.email_search.HunterIOTool")
-def test_run_hunter_runtime_error(MockHunterToolClass, router_tool_instance):
+def test_run_hunter_runtime_error(mock_hunter_tool_class, router_tool_instance):
     mock_hunter_instance = MagicMock()
     error_message = "Mocked Hunter Runtime Error"
     mock_hunter_instance._run.side_effect = Exception(error_message)
-    MockHunterToolClass.return_value = mock_hunter_instance
+    mock_hunter_tool_class.return_value = mock_hunter_instance
 
     result_str = router_tool_instance._run(provider="hunter", query="example.com")
     result_data = json.loads(result_str)
@@ -110,11 +110,11 @@ def test_run_hunter_runtime_error(MockHunterToolClass, router_tool_instance):
 
 
 @patch("epic_news.tools.email_search.SerperEmailSearchTool")
-def test_run_serper_runtime_error(MockSerperToolClass, router_tool_instance):  # noqa: N803
+def test_run_serper_runtime_error(mock_serper_tool_class, router_tool_instance):
     mock_serper_instance = MagicMock()
     error_message = "Mocked Serper Runtime Error"
     mock_serper_instance._run.side_effect = Exception(error_message)
-    MockSerperToolClass.return_value = mock_serper_instance
+    mock_serper_tool_class.return_value = mock_serper_instance
 
     result_str = router_tool_instance._run(provider="serper", query="Example Inc")
     result_data = json.loads(result_str)

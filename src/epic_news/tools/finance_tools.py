@@ -80,4 +80,3 @@ def get_etf_research_tools() -> list[BaseTool]:
         YahooFinanceETFHoldingsTool(),
         YahooFinanceNewsTool(),
     ]
-

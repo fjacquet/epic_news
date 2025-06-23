@@ -158,7 +158,7 @@ class TechStackTool(BaseTool, BaseSearchTool):
             text = f"{result.get('title', '')} {result.get('snippet', '')}".lower()
 
             # Look for technologies in the text
-            for category, patterns in self.TECH_PATTERNS.items():
+            for _, patterns in self.TECH_PATTERNS.items():
                 for pattern in patterns:
                     if re.search(rf"\b{pattern}\b", text):
                         technologies.add(pattern.replace("\\.", "."))

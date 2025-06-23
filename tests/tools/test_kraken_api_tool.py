@@ -25,7 +25,7 @@ def test_instantiation():
 
 
 # --- _run Method Tests ---
-@patch('src.epic_news.tools.kraken_api_tool.requests.get')
+@patch("src.epic_news.tools.kraken_api_tool.requests.get")
 def test_run_success(mock_requests_get):
     tool = KrakenTickerInfoTool()
     pair_to_search = "XXBTZUSD"
@@ -37,7 +37,7 @@ def test_run_success(mock_requests_get):
                 "b": ["49999.0", "1", "1.000"],
                 "c": ["50000.0", "0.001"],
             }
-        }
+        },
     }
     mock_response = MagicMock()
     mock_response.json.return_value = mock_response_data
@@ -46,12 +46,11 @@ def test_run_success(mock_requests_get):
     mock_requests_get.return_value = mock_response
 
     result_str = tool._run(pair=pair_to_search)
-    expected_output = json.dumps(
-        mock_response_data["result"][pair_to_search], indent=2
-    )
+    expected_output = json.dumps(mock_response_data["result"][pair_to_search], indent=2)
     assert result_str == expected_output
 
-@patch('src.epic_news.tools.kraken_api_tool.requests.get')
+
+@patch("src.epic_news.tools.kraken_api_tool.requests.get")
 def test_run_api_returns_error_in_json(mock_requests_get):
     tool = KrakenTickerInfoTool()
     pair_to_search = "INVALIDPAIR"
@@ -66,7 +65,8 @@ def test_run_api_returns_error_in_json(mock_requests_get):
     expected_error_message = f"Error from Kraken API: {mock_response_data['error']}"
     assert result_str == expected_error_message
 
-@patch('src.epic_news.tools.kraken_api_tool.requests.get')
+
+@patch("src.epic_news.tools.kraken_api_tool.requests.get")
 def test_run_api_returns_empty_result(mock_requests_get):
     tool = KrakenTickerInfoTool()
     pair_to_search = "UNKNOWNPAIR"
@@ -81,7 +81,8 @@ def test_run_api_returns_empty_result(mock_requests_get):
     expected_message = f"No data found for pair {pair_to_search}. It may be an invalid pair."
     assert result_str == expected_message
 
-@patch('src.epic_news.tools.kraken_api_tool.requests.get')
+
+@patch("src.epic_news.tools.kraken_api_tool.requests.get")
 def test_run_requests_exception(mock_requests_get):
     tool = KrakenTickerInfoTool()
     pair_to_search = "XXBTZUSD"
@@ -92,7 +93,8 @@ def test_run_requests_exception(mock_requests_get):
     expected_message = f"Error fetching data from Kraken: {error_message}"
     assert result_str == expected_message
 
-@patch('src.epic_news.tools.kraken_api_tool.requests.get')
+
+@patch("src.epic_news.tools.kraken_api_tool.requests.get")
 def test_run_http_error(mock_requests_get):
     tool = KrakenTickerInfoTool()
     pair_to_search = "XXBTZUSD"
@@ -106,7 +108,8 @@ def test_run_http_error(mock_requests_get):
     expected_message = f"Error fetching data from Kraken: {error_message}"
     assert result_str == expected_message
 
-@patch('src.epic_news.tools.kraken_api_tool.requests.get')
+
+@patch("src.epic_news.tools.kraken_api_tool.requests.get")
 def test_run_json_decode_error(mock_requests_get):
     tool = KrakenTickerInfoTool()
     pair_to_search = "XXBTZUSD"

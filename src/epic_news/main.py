@@ -643,7 +643,7 @@ class ReceptionFlow(Flow[ContentState]):
 
         # Run the crew
         self.state.holiday_plan = HolidayPlannerCrew().crew().kickoff(inputs=current_inputs)
-        # return "generate_holiday_plan"
+        return "generate_holiday_plan"
 
     @listen("go_generate_marketing_content")
     def generate_marketing_content(self):

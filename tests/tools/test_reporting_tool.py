@@ -13,7 +13,7 @@ class TestReportingTool:
         self.tool = ReportingTool()
         # Correctly locate the project root and then the templates directory
         project_root = Path(__file__).resolve().parent.parent.parent
-        self.template_path = project_root / 'templates' / 'report_template.html'
+        self.template_path = project_root / "templates" / "report_template.html"
         self.test_output_path = "test_output/test_report.html"
 
     def teardown_method(self):
@@ -111,4 +111,6 @@ class TestReportingTool:
 
         # Clean up
         output_path.unlink(missing_ok=True)
-        output_path.parent.rmdir() if output_path.parent.exists() and not any(output_path.parent.iterdir()) else None
+        output_path.parent.rmdir() if output_path.parent.exists() and not any(
+            output_path.parent.iterdir()
+        ) else None

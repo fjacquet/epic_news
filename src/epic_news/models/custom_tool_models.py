@@ -1,4 +1,5 @@
 """Pydantic models for the Custom tool."""
+
 from pydantic import BaseModel, Field
 
 

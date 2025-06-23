@@ -53,10 +53,7 @@ class AlphaVantageCompanyOverviewTool(BaseTool):
             cache.set(cache_key, error_result)
             return error_result
 
-        url = (
-            f"https://www.alphavantage.co/query?function=OVERVIEW&symbol={ticker}"
-            f"&apikey={api_key}"
-        )
+        url = f"https://www.alphavantage.co/query?function=OVERVIEW&symbol={ticker}&apikey={api_key}"
 
         try:
             response = requests.get(url, timeout=10)

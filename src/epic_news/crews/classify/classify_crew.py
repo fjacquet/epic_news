@@ -26,13 +26,12 @@ class ClassifyCrew:
     @crew
     def crew(self) -> Crew:
         """Creates a simple classification crew"""
-        result = Crew(
+        return Crew(
             agents=self.agents,
             tasks=self.tasks,
             process=Process.sequential,
             verbose=True,
         )
-        return result
 
     def parse_result(self, result, categories=None):
         """

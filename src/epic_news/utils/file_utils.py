@@ -22,8 +22,7 @@ def read_file_content(file_path):
 
     try:
         with open(file_path, encoding="utf-8") as file:
-            content = file.read()
-        return content
+            return file.read()
     except FileNotFoundError:
         print(f"Error: File not found at path: {file_path}")
         return ""

@@ -19,31 +19,33 @@ class ContentState(BaseModel):
     selected_crew: str = ""  # Default crew type
     attachment_file: str = ""  # Attachment file for specific crew types
     current_year: str = str(datetime.datetime.now().year)  # Current year
-    categories:  dict = Field(default_factory=lambda: {
-        "SALES_PROSPECTING": "SALES_PROSPECTING",
-        "COOKING": "COOKING",
-        "HOLIDAY_PLANNER": "HOLIDAY_PLANNER",
-        "LEAD_SCORING": "LEAD_SCORING",
-        "LIBRARY": "LIBRARY",
-        "LOCATION": "LOCATION",
-        "MEETING_PREP": "MEETING_PREP",
-        "NEWSCOMPANY": "NEWSCOMPANY",
-        "OPEN_SOURCE_INTELLIGENCE": "OPEN_SOURCE_INTELLIGENCE",
-        "POEM": "POEM",
-        "SHOPPING": "SHOPPING",
-        "UNKNOWN": "UNKNOWN",
-        "MARKETING_WRITERS": "MARKETING_WRITERS",
-        "POST_ONLY": "POST_ONLY",
-        "RSS": "RSS",
-        "FINDAILY": "FINDAILY",
-        "NEWSDAILY": "NEWSDAILY",
-    })
+    categories: dict = Field(
+        default_factory=lambda: {
+            "SALES_PROSPECTING": "SALES_PROSPECTING",
+            "COOKING": "COOKING",
+            "HOLIDAY_PLANNER": "HOLIDAY_PLANNER",
+            "LEAD_SCORING": "LEAD_SCORING",
+            "LIBRARY": "LIBRARY",
+            "LOCATION": "LOCATION",
+            "MEETING_PREP": "MEETING_PREP",
+            "NEWSCOMPANY": "NEWSCOMPANY",
+            "OPEN_SOURCE_INTELLIGENCE": "OPEN_SOURCE_INTELLIGENCE",
+            "POEM": "POEM",
+            "SHOPPING": "SHOPPING",
+            "UNKNOWN": "UNKNOWN",
+            "MARKETING_WRITERS": "MARKETING_WRITERS",
+            "POST_ONLY": "POST_ONLY",
+            "RSS": "RSS",
+            "FINDAILY": "FINDAILY",
+            "NEWSDAILY": "NEWSDAILY",
+        }
+    )
     # Output file path
     output_file: str = ""
 
     # Crew results
     company_profile: Any | None = None
-    tech_stack: Any | None = None # Stores direct output from TechStackCrew
+    tech_stack: Any | None = None  # Stores direct output from TechStackCrew
     geospatial_analysis: Any | None = None
     post_report: Any | None = None
     poem: Any | None = None
@@ -55,16 +57,16 @@ class ContentState(BaseModel):
     shopping_advice_report: Any | None = None
     meeting_prep_report: Any | None = None
     final_report: str | None = None  # Stores the final consolidated report or error message
-    contact_info_report: Any | None = None # Renamed from contacts_report
+    contact_info_report: Any | None = None  # Renamed from contacts_report
     holiday_plan: Any | None = None
     marketing_report: Any | None = None
-    osint_report: Any | None = None # Potentially for a consolidated OSINT report
-    tech_stack_report: Any | None = None # Potentially for a formatted tech stack report
+    osint_report: Any | None = None  # Potentially for a consolidated OSINT report
+    tech_stack_report: Any | None = None  # Potentially for a formatted tech stack report
     hr_intelligence_report: Any | None = None
     legal_analysis_report: Any | None = None
     web_presence_report: Any | None = None
     cross_reference_report: Any | None = None
-    lead_score_report: Any | None = None # Added from the duplicated block
+    lead_score_report: Any | None = None  # Added from the duplicated block
     fin_daily_report: Any | None = None  # Stores the FinDaily crew report
     news_daily_report: Any | None = None  # Stores the NewsDaily crew report
 
@@ -83,13 +85,11 @@ class ContentState(BaseModel):
     participants: list = [
         "John Doe <john.doe@pictet.com> - CEO",
         "Jane Smith <jane.smith@pictet.com> - CTO",
-        "Bob Johnson <bob.johnson@pictet.com> - Sales Director"
+        "Bob Johnson <bob.johnson@pictet.com> - Sales Director",
     ]
     context: str = ""
     objective: str = ""
     prior_interactions: str = ""
-
-
 
     def to_crew_inputs(self) -> dict:
         """

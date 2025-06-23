@@ -1,4 +1,5 @@
 """Factory functions for creating GitHub-related tools."""
+
 import os
 
 from crewai.tools import BaseTool
@@ -8,6 +9,7 @@ from .github_search_tool import GitHubSearchTool
 
 # Load environment variables from .env file
 load_dotenv()
+
 
 def get_github_tools() -> list[BaseTool]:
     """Initializes and returns a list of GitHub tools."""

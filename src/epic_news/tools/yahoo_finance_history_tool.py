@@ -60,20 +60,18 @@ class YahooFinanceHistoryTool(BaseTool):
                 "interval": interval,
                 "start_date": earliest.get("date", "N/A"),
                 "end_date": latest.get("date", "N/A"),
-                "price_change": round(
-                    latest.get("close", 0) - earliest.get("close", 0), 2
-                ),
+                "price_change": round(latest.get("close", 0) - earliest.get("close", 0), 2),
                 "price_change_percent": round(
-                    (latest.get("close", 0) / (div if (div := earliest.get("close")) and div != 0 else 1) - 1) * 100, 2
+                    (latest.get("close", 0) / (div if (div := earliest.get("close")) and div != 0 else 1) - 1)
+                    * 100,
+                    2,
                 ),
                 "data_points": len(history_list),
             }
 
             result = {
                 "summary": summary,
-                "history": history_list[
-                    -10:
-                ],  # Return only last 10 data points to avoid overloading
+                "history": history_list[-10:],  # Return only last 10 data points to avoid overloading
             }
             return json.dumps(result)
         except Exception as e:

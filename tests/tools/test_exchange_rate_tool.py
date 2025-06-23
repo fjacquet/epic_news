@@ -1,4 +1,5 @@
 import os
+import unittest
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -20,7 +21,7 @@ def test_run_missing_api_key():
     assert tool_no_key.run(base_currency="USD", target_currencies=["EUR"]) == expected_error
 
 
-@patch('requests.get')
+@patch("requests.get")
 def test_run_successful_all_rates(mock_get, tool):
     mock_response = MagicMock()
     mock_response.status_code = 200
@@ -29,11 +30,7 @@ def test_run_successful_all_rates(mock_get, tool):
         "license": "...",
         "timestamp": 1678886400,
         "base": "USD",
-        "rates": {
-            "EUR": 0.93,
-            "CHF": 0.91,
-            "GBP": 0.82
-        }
+        "rates": {"EUR": 0.93, "CHF": 0.91, "GBP": 0.82},
     }
     mock_get.return_value = mock_response
 
@@ -43,12 +40,11 @@ def test_run_successful_all_rates(mock_get, tool):
     assert "'CHF': 0.91" in result
     assert "'GBP': 0.82" in result
     mock_get.assert_called_once_with(
-        "https://openexchangerates.org/api/latest.json",
-        params={'app_id': 'test_api_key', 'base': 'USD'}
+        "https://openexchangerates.org/api/latest.json", params={"app_id": "test_api_key", "base": "USD"}
     )
 
 
-@patch('requests.get')
+@patch("requests.get")
 def test_run_successful_specific_currencies(mock_get, tool):
     mock_response = MagicMock()
     mock_response.status_code = 200
@@ -59,7 +55,7 @@ def test_run_successful_specific_currencies(mock_get, tool):
             "EUR": 0.93,
             "CHF": 0.91,
             # GBP is intentionally omitted by API due to 'symbols' param
-        }
+        },
     }
     mock_get.return_value = mock_response
 
@@ -70,11 +66,11 @@ def test_run_successful_specific_currencies(mock_get, tool):
     assert "GBP" not in result
     mock_get.assert_called_once_with(
         "https://openexchangerates.org/api/latest.json",
-        params={'app_id': 'test_api_key', 'base': 'USD', 'symbols': 'EUR,CHF'}
+        params={"app_id": "test_api_key", "base": "USD", "symbols": "EUR,CHF"},
     )
 
 
-@patch('requests.get')
+@patch("requests.get")
 def test_run_api_error_in_response(mock_get, tool):
     mock_response = MagicMock()
     mock_response.status_code = 200  # API can return 200 but still have an error in JSON
@@ -82,7 +78,7 @@ def test_run_api_error_in_response(mock_get, tool):
         "error": True,
         "status": 401,
         "message": "invalid_app_id",
-        "description": "Invalid App ID provided."
+        "description": "Invalid App ID provided.",
     }
     mock_get.return_value = mock_response
 
@@ -90,7 +86,7 @@ def test_run_api_error_in_response(mock_get, tool):
     assert result == "API Error: Invalid App ID provided."
 
 
-@patch('requests.get')
+@patch("requests.get")
 def test_run_http_error(mock_get, tool):
     mock_response = MagicMock()
     mock_response.status_code = 500
@@ -103,20 +99,20 @@ def test_run_http_error(mock_get, tool):
     assert "Response: Internal Server Error" in result
 
 
-@patch('requests.get')
+@patch("requests.get")
 def test_run_request_exception(mock_get, tool):
     mock_get.side_effect = requests.exceptions.Timeout("Connection timed out")
     result = tool.run(base_currency="USD")
     assert result == "Request error occurred: Connection timed out"
 
 
-@patch('requests.get')
+@patch("requests.get")
 def test_run_no_rates_in_response(mock_get, tool):
     mock_response = MagicMock()
     mock_response.status_code = 200
     mock_response.json.return_value = {
         "timestamp": 1678886400,
-        "base": "USD"
+        "base": "USD",
         # 'rates' key is missing
     }
     mock_get.return_value = mock_response
@@ -124,17 +120,23 @@ def test_run_no_rates_in_response(mock_get, tool):
     assert result == "Error: Could not retrieve exchange rates from the API response."
 
 
-@patch('requests.get')
+@patch("requests.get")
 def test_run_no_rates_for_specified_targets(mock_get, tool):
     mock_response = MagicMock()
     mock_response.status_code = 200
     mock_response.json.return_value = {
         "timestamp": 1678886400,
         "base": "USD",
-        "rates": {"XYZ": 1.0}  # None of the target currencies are present
+        "rates": {"XYZ": 1.0},  # None of the target currencies are present
     }
     mock_get.return_value = mock_response
     target_currencies = ["EUR", "CHF"]
     result = tool.run(base_currency="USD", target_currencies=target_currencies)
-    expected_msg = f"Error: No rates found for the specified target currencies: {target_currencies} with base USD"
+    expected_msg = (
+        f"Error: No rates found for the specified target currencies: {target_currencies} with base USD"
+    )
     assert result == expected_msg
+
+
+if __name__ == "__main__":
+    unittest.main()

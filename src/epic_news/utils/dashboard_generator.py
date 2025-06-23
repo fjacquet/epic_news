@@ -237,31 +237,29 @@ class DashboardGenerator:
         """
         charts = []
 
-        if "system" in self.metrics:
-            # Generate system uptime chart if we have time-series data
-            if "uptime_series" in self.metrics["system"]:
-                timestamps = self.metrics["system"]["uptime_series"]["timestamps"]
-                values = self.metrics["system"]["uptime_series"]["values"]
+        if "system" in self.metrics and "uptime_series" in self.metrics["system"]:
+            timestamps = self.metrics["system"]["uptime_series"]["timestamps"]
+            values = self.metrics["system"]["uptime_series"]["values"]
 
-                plt.figure(figsize=(10, 6))
-                plt.plot(timestamps, values)
-                plt.title("System Uptime")
-                plt.xlabel("Time")
-                plt.ylabel("Uptime (s)")
-                plt.xticks(rotation=45)
-                plt.tight_layout()
+            plt.figure(figsize=(10, 6))
+            plt.plot(timestamps, values)
+            plt.title("System Uptime")
+            plt.xlabel("Time")
+            plt.ylabel("Uptime (s)")
+            plt.xticks(rotation=45)
+            plt.tight_layout()
 
-                # Convert plot to base64 image
-                buffer = io.BytesIO()
-                plt.savefig(buffer, format="png")
-                buffer.seek(0)
-                image_png = buffer.getvalue()
-                buffer.close()
+            # Convert plot to base64 image
+            buffer = io.BytesIO()
+            plt.savefig(buffer, format="png")
+            buffer.seek(0)
+            image_png = buffer.getvalue()
+            buffer.close()
 
-                chart_data = base64.b64encode(image_png).decode("utf-8")
-                charts.append({"title": "System Uptime", "data": chart_data})
+            chart_data = base64.b64encode(image_png).decode("utf-8")
+            charts.append({"title": "System Uptime", "data": chart_data})
 
-                plt.close()
+            plt.close()
 
         return charts
 

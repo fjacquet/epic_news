@@ -1,6 +1,7 @@
 """
 Tool for fetching Yahoo Finance News.
 """
+
 import datetime
 import json
 
@@ -58,12 +59,14 @@ class YahooFinanceNewsTool(BaseTool):
                     if published_timestamp
                     else "Unknown date"
                 )
-                news_list.append({
-                    "title": item.get("title") or "No title",
-                    "publisher": item.get("publisher") or "Unknown publisher",
-                    "link": item.get("link") or "#",
-                    "published_date": published_str,
-                })
+                news_list.append(
+                    {
+                        "title": item.get("title") or "No title",
+                        "publisher": item.get("publisher") or "Unknown publisher",
+                        "link": item.get("link") or "#",
+                        "published_date": published_str,
+                    }
+                )
             result = json.dumps({"ticker": ticker, "news": news_list})
             cache.set(cache_key, result)
             return result

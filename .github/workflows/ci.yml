@@ -58,18 +58,12 @@ jobs:
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         slug: fjacquet/epic_news
-
-    # - name: Upload coverage to Codecov
-    #   uses: codecov/codecov-action@v3
-    #   with:
-    #     token: ${{ secrets.CODECOV_TOKEN }}
-    #     file: ./coverage.xml
-    #     fail_ci_if_error: false
+        fail_ci_if_error: false
     
-    # - name: Run ruff linter
-    #   run: |
-    #     uv run ruff check .
+    - name: Run ruff linter
+      run: |
+        uv run ruff check .
     
-    # - name: Run ruff formatter check
-    #   run: |
-    #     uv run ruff format --check .
+    - name: Run ruff formatter check
+      run: |
+        uv run ruff format --check .

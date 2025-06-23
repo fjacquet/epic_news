@@ -14,32 +14,38 @@ def setup_tool_and_data():
 
     # Create sample test data
     test_article1 = Article(
-        title="Test Article 1",
-        link="https://example.com/article1",
-        published="2024-06-01T12:00:00Z"
+        title="Test Article 1", link="https://example.com/article1", published="2024-06-01T12:00:00Z"
     )
 
     test_article2 = Article(
-        title="Test Article 2",
-        link="https://example.com/article2",
-        published="2024-06-02T12:00:00Z"
+        title="Test Article 2", link="https://example.com/article2", published="2024-06-02T12:00:00Z"
     )
 
     test_feed = FeedWithArticles(
-        feed_url="https://example.com/feed.xml",
-        articles=[test_article1, test_article2]
+        feed_url="https://example.com/feed.xml", articles=[test_article1, test_article2]
     )
 
     test_feeds = RssFeeds(feeds=[test_feed])
-    return tool, test_feeds
+
+    # Mock the scrape_ninja_tool
+    tool.scrape_ninja_tool = MagicMock()
+    tool.scrape_ninja_tool._run.return_value = json.dumps({"content": "Test content"})
+
+    # Return all test objects
+    return {
+        "tool": tool,
+        "test_article1": test_article1,
+        "test_article2": test_article2,
+        "test_feed": test_feed,
+        "test_feeds": test_feeds,
+    }
 
 
 def test_run_with_pydantic_model(setup_tool_and_data):
     """Test _run method with a Pydantic model input."""
-    tool, test_feeds = setup_tool_and_data
-    # Create a direct mock of the scrape_ninja_tool instance
-    tool.scrape_ninja_tool = MagicMock()
-    tool.scrape_ninja_tool._run.return_value = json.dumps({"content": "Test content"})
+    data = setup_tool_and_data
+    tool = data["tool"]
+    test_feeds = data["test_feeds"]
 
     # Run the tool with a Pydantic model
     result = tool._run(test_feeds)
@@ -55,13 +61,15 @@ def test_run_with_pydantic_model(setup_tool_and_data):
 
 def test_run_with_dict(setup_tool_and_data):
     """Test _run method with a dictionary input."""
-    tool, test_feeds = setup_tool_and_data
+    data = setup_tool_and_data
+    tool = data["tool"]
+    test_feeds = data["test_feeds"]
     # Create a direct mock of the scrape_ninja_tool instance
     tool.scrape_ninja_tool = MagicMock()
     tool.scrape_ninja_tool._run.return_value = json.dumps({"content": "Test content"})
 
     # Convert Pydantic model to dict
-    if hasattr(test_feeds, 'model_dump_json'):
+    if hasattr(test_feeds, "model_dump_json"):
         feeds_dict = json.loads(test_feeds.model_dump_json())
     else:
         feeds_dict = json.loads(test_feeds.json())
@@ -80,16 +88,15 @@ def test_run_with_dict(setup_tool_and_data):
 
 def test_run_with_json_string(setup_tool_and_data):
     """Test _run method with a JSON string input."""
-    tool, test_feeds = setup_tool_and_data
+    data = setup_tool_and_data
+    tool = data["tool"]
+    test_feeds = data["test_feeds"]
     # Create a direct mock of the scrape_ninja_tool instance
     tool.scrape_ninja_tool = MagicMock()
     tool.scrape_ninja_tool._run.return_value = json.dumps({"content": "Test content"})
 
     # Convert Pydantic model to JSON string
-    if hasattr(test_feeds, 'model_dump_json'):
-        feeds_json = test_feeds.model_dump_json()
-    else:
-        feeds_json = test_feeds.json()
+    feeds_json = test_feeds.model_dump_json() if hasattr(test_feeds, "model_dump_json") else test_feeds.json()
 
     # Run the tool with a JSON string
     result = tool._run(feeds_json)
@@ -105,7 +112,9 @@ def test_run_with_json_string(setup_tool_and_data):
 
 def test_error_handling(setup_tool_and_data):
     """Test error handling in _run method."""
-    tool, test_feeds = setup_tool_and_data
+    data = setup_tool_and_data
+    tool = data["tool"]
+    test_feeds = data["test_feeds"]
     # Create a direct mock of the scrape_ninja_tool instance
     tool.scrape_ninja_tool = MagicMock()
     tool.scrape_ninja_tool._run.side_effect = Exception("Test error")
@@ -127,13 +136,15 @@ def test_error_handling(setup_tool_and_data):
 
 def test_invalid_input(setup_tool_and_data):
     """Test handling of invalid input types."""
-    tool, _ = setup_tool_and_data
+    data = setup_tool_and_data
+    tool = data["tool"]
     with pytest.raises(TypeError):
         tool._run(123)  # Integer is not a valid input type
 
 
 def test_invalid_json(setup_tool_and_data):
     """Test handling of invalid JSON string."""
-    tool, _ = setup_tool_and_data
-    with pytest.raises(ValueError):
-        tool._run("{invalid json}")
+    data = setup_tool_and_data
+    tool = data["tool"]
+    with pytest.raises(ValueError, match="Invalid JSON input"):
+        tool._run("invalid json")

@@ -6,10 +6,9 @@ from pydantic import BaseModel, Field
 
 class OpmlParserToolSchema(BaseModel):
     """Input schema for OpmlParserTool."""
-    opml_file_path: str = Field(
-        ...,
-        description="The absolute path to the OPML file to be parsed."
-    )
+
+    opml_file_path: str = Field(..., description="The absolute path to the OPML file to be parsed.")
+
 
 class OpmlParserTool(BaseTool):
     name: str = "OPML Parser"
@@ -22,8 +21,8 @@ class OpmlParserTool(BaseTool):
             tree = ET.parse(opml_file_path)
             root = tree.getroot()
             urls = []
-            for outline in root.findall('.//outline[@xmlUrl]'):
-                url = outline.get('xmlUrl')
+            for outline in root.findall(".//outline[@xmlUrl]"):
+                url = outline.get("xmlUrl")
                 if url:
                     urls.append(url)
             return urls

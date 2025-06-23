@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 
 class PaprikaRecipe(BaseModel):
     """Defines the structure for a recipe compatible with Paprika 3 YAML format."""
+
     name: str = Field(..., description="The name of the recipe.")
     servings: str | None = Field(None, description="Number of servings the recipe yields.")
     source: str | None = Field(None, description="The original source of the recipe.")
