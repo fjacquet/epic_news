@@ -16,7 +16,7 @@ echo "Running tests from: ./tests/"
 echo "Calculating coverage for: ./src/epic_news/tools/"
 echo "HTML coverage report will be generated in: ./htmlcov/"
 echo "----------------------------------------------------------------------"
-DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib:$DYLD_FALLBACK_LIBRARY_PATH uv run pytest tests/ --cov=src/epic_news/tools --cov-report=html
+DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib:$DYLD_FALLBACK_LIBRARY_PATH uv run pytest tests/ --cov=src --cov-report=html
 
 EXIT_CODE=$?
 

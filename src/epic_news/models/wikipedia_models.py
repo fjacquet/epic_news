@@ -1,6 +1,6 @@
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class WikipediaToolInput(BaseModel):
@@ -28,3 +28,14 @@ class WikipediaToolInput(BaseModel):
     count: int | None = Field(None, description="The number of facts to extract.")
     limit: int | None = Field(5, description="The maximum number of results to return for searches or lists.")
     max_length: int | None = Field(150, description="The maximum length for summaries.")
+
+    @model_validator(mode="after")
+    def check_action_requirements(self) -> "WikipediaToolInput":
+        """Validate that required fields are present for specific actions."""
+        if self.action in ["get_article", "get_links", "get_related_topics", "get_sections", "get_summary"] and self.title is None:
+            raise ValueError(f"`title` is required for action '{self.action}'")
+        if self.action == "search_wikipedia" and self.query is None:
+            raise ValueError("`query` is required for action 'search_wikipedia'")
+        if self.action == "summarize_article_section" and (self.title is None or self.section_title is None):
+            raise ValueError("`title` and `section_title` are required for action 'summarize_article_section'")
+        return self
