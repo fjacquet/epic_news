@@ -31,11 +31,11 @@ class OrchestrationStrategy:
                                   dependencies: dict[str, list[str]] = None) -> Process:
         """
         Determines the optimal orchestration strategy based on task dependencies.
-        
+
         Args:
             tasks: List of tasks to analyze
             dependencies: Dictionary mapping task IDs to lists of dependency task IDs
-            
+
         Returns:
             Process: The recommended Process strategy
         """
@@ -61,7 +61,7 @@ class TaskGroup:
     def __init__(self, tasks: list[Task], dependencies: dict[str, list[str]] = None):
         """
         Initialize a TaskGroup.
-        
+
         Args:
             tasks: List of tasks to manage
             dependencies: Dictionary mapping task IDs to lists of dependency task IDs
@@ -73,7 +73,7 @@ class TaskGroup:
     def get_optimal_process(self) -> Process:
         """
         Get the optimal process strategy for this task group.
-        
+
         Returns:
             Process: The recommended Process strategy
         """
@@ -84,7 +84,7 @@ class TaskGroup:
     def set_all_async(self, async_value: bool = True) -> None:
         """
         Set all tasks in the group to be async or not.
-        
+
         Args:
             async_value: Boolean value to set for async_execution
         """
@@ -95,10 +95,10 @@ class TaskGroup:
 def performance_monitor(func):
     """
     Decorator to monitor the performance of crew execution.
-    
+
     Args:
         func: The function to monitor
-        
+
     Returns:
         Callable: The wrapped function
     """
@@ -121,11 +121,11 @@ def performance_monitor(func):
 async def execute_tasks_in_parallel(tasks: list[Task], max_concurrent: int = 3) -> dict[str, Any]:
     """
     Execute multiple tasks in parallel with a concurrency limit.
-    
+
     Args:
         tasks: List of tasks to execute
         max_concurrent: Maximum number of tasks to run concurrently
-        
+
     Returns:
         Dict[str, Any]: Dictionary of task results
     """
@@ -160,12 +160,12 @@ def optimize_crew_process(crew_module_path: str,
                          analyze_only: bool = False) -> dict[str, Any]:
     """
     Analyzes and optionally updates a crew's process type.
-    
+
     Args:
         crew_module_path: Path to the crew module
         process_type: Process type to set (if None, will determine optimal)
         analyze_only: If True, only analyze and don't modify
-        
+
     Returns:
         Dict[str, Any]: Analysis results
     """
@@ -177,7 +177,7 @@ def optimize_crew_process(crew_module_path: str,
 
         # Find crew classes
         crew_classes = []
-        for name, obj in inspect.getmembers(module):
+        for _, obj in inspect.getmembers(module):
             if inspect.isclass(obj) and hasattr(obj, 'crew'):
                 crew_classes.append(obj)
 

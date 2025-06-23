@@ -18,8 +18,7 @@ CMC_BASE_URL = "https://pro-api.coinmarketcap.com/v1"
 def tool_for_instantiation_test():
     """Fixture for CoinMarketCapInfoTool instantiation testing."""
     with patch.dict(os.environ, {"X-CMC_PRO_API_KEY": TEST_CMC_API_KEY}, clear=True):
-        tool = CoinMarketCapInfoTool()
-    return tool
+        return CoinMarketCapInfoTool()
 
 def test_instantiation_success(tool_for_instantiation_test):
     """Test successful instantiation of CoinMarketCapInfoTool."""

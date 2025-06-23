@@ -1,5 +1,4 @@
 import json
-from typing import Optional
 
 import wikipedia
 from crewai.tools import BaseTool
@@ -29,34 +28,33 @@ class WikipediaTool(BaseTool):
 
             if action == "get_summary":
                 return self._get_summary(title=title)
-            elif action == "get_article":
+            if action == "get_article":
                 return self._get_article(title=title)
-            elif action == "get_links":
+            if action == "get_links":
                 return self._get_links(title=title)
-            elif action == "get_sections":
+            if action == "get_sections":
                 return self._get_sections(title=title)
-            elif action == "get_related_topics":
+            if action == "get_related_topics":
                 return self._get_related_topics(title=title, limit=kwargs.get("limit"))
-            elif action == "extract_key_facts":
+            if action == "extract_key_facts":
                 return self._extract_key_facts(
                     title=title,
                     topic_within_article=kwargs.get("topic_within_article"),
                     count=kwargs.get("count", 5),
                 )
-            elif action == "summarize_article_for_query":
+            if action == "summarize_article_for_query":
                 return self._summarize_article_for_query(
                     title=title,
                     query=kwargs.get("query"),
                     max_length=kwargs.get("max_length", 150),
                 )
-            elif action == "summarize_article_section":
+            if action == "summarize_article_section":
                 return self._summarize_article_section(
                     title=title,
                     section_title=kwargs.get("section_title"),
                     max_length=kwargs.get("max_length", 150),
                 )
-            else:
-                return f"Error: Unknown action '{action}'."
+            return f"Error: Unknown action '{action}'."
 
         except wikipedia.exceptions.PageError:
             page_identifier = kwargs.get("title") or kwargs.get("query")
@@ -100,7 +98,7 @@ class WikipediaTool(BaseTool):
         return json.dumps(page.links[:limit])
 
     def _extract_key_facts(
-        self, title: str, topic_within_article: Optional[str] = None, count: int = 5
+        self, title: str, topic_within_article: str | None = None, count: int = 5
     ) -> str:
         """Extract key facts from a Wikipedia article, optionally focused on a topic."""
         page = wikipedia.page(title, auto_suggest=True, redirect=True)

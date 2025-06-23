@@ -29,7 +29,7 @@ class TestUnifiedRssTool:
             </head>
             <body>
                 <outline text="Test" title="Test">
-                    <outline type="rss" text="Test Feed" title="Test Feed" 
+                    <outline type="rss" text="Test Feed" title="Test Feed"
                              xmlUrl="https://example.com/feed" htmlUrl="https://example.com"/>
                 </outline>
             </body>

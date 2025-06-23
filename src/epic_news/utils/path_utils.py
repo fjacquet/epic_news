@@ -17,9 +17,9 @@ import pathlib
 
 def get_project_root() -> pathlib.Path:
     """Get the absolute path to the project root directory.
-    
+
     This function returns the canonical project root path, ensuring no nested Users directories.
-    
+
     Returns:
         pathlib.Path: Absolute path to the project root directory
     """
@@ -50,13 +50,13 @@ def get_project_root() -> pathlib.Path:
 
 def validate_output_path(path: str) -> None:
     """Validate that an output path follows project design principles.
-    
+
     This function enforces the critical constraint that output paths
     must never create nested /Users/.../Users/... directory structures.
-    
+
     Args:
         path: The path to validate
-        
+
     Raises:
         ValueError: If the path violates design principles
     """
@@ -86,7 +86,7 @@ def validate_output_path(path: str) -> None:
 
 def get_template_dir() -> str:
     """Get the absolute path to the templates directory.
-    
+
     Returns:
         str: Absolute path to the templates directory
     """

@@ -39,7 +39,7 @@ class TraceEvent:
                 timestamp: float | None = None):
         """
         Initialize a trace event.
-        
+
         Args:
             event_type: Type of event (e.g., "task_start", "task_end", "tool_call")
             source: Source of the event (e.g., crew name, agent name)
@@ -55,7 +55,7 @@ class TraceEvent:
     def to_dict(self) -> dict[str, Any]:
         """
         Convert the trace event to a dictionary.
-        
+
         Returns:
             Dict[str, Any]: Dictionary representation of the trace event
         """
@@ -72,10 +72,10 @@ class TraceEvent:
     def from_dict(cls, data: dict[str, Any]) -> 'TraceEvent':
         """
         Create a trace event from a dictionary.
-        
+
         Args:
             data: Dictionary representation of a trace event
-            
+
         Returns:
             TraceEvent: The created trace event
         """
@@ -96,7 +96,7 @@ class Tracer:
     def __init__(self, trace_id: str | None = None):
         """
         Initialize a tracer.
-        
+
         Args:
             trace_id: ID for the trace (defaults to a timestamp-based ID)
         """
@@ -107,7 +107,7 @@ class Tracer:
     def add_event(self, event: TraceEvent) -> None:
         """
         Add an event to the trace.
-        
+
         Args:
             event: The trace event to add
         """
@@ -117,7 +117,7 @@ class Tracer:
     def _save_event(self, event: TraceEvent) -> None:
         """
         Save an event to the trace file.
-        
+
         Args:
             event: The trace event to save
         """
@@ -132,11 +132,11 @@ class Tracer:
                   source: str | None = None) -> list[TraceEvent]:
         """
         Get events matching the specified criteria.
-        
+
         Args:
             event_type: Filter by event type
             source: Filter by source
-            
+
         Returns:
             List[TraceEvent]: List of matching events
         """
@@ -154,10 +154,10 @@ class Tracer:
     def load_trace(cls, trace_id: str) -> 'Tracer':
         """
         Load a trace from a file.
-        
+
         Args:
             trace_id: ID of the trace to load
-            
+
         Returns:
             Tracer: The loaded tracer
         """
@@ -183,7 +183,7 @@ class HallucinationGuard:
                 fact_checking_enabled: bool = True):
         """
         Initialize a hallucination guard.
-        
+
         Args:
             confidence_threshold: Threshold for confidence scores
             fact_checking_enabled: Whether to enable fact checking
@@ -197,11 +197,11 @@ class HallucinationGuard:
                        context: dict[str, Any]) -> dict[str, Any]:
         """
         Check a statement for potential hallucinations.
-        
+
         Args:
             statement: The statement to check
             context: Context information for the check
-            
+
         Returns:
             Dict[str, Any]: Results of the hallucination check
         """
@@ -246,7 +246,7 @@ class HallucinationGuard:
     def add_known_fact(self, key: str, value: Any) -> None:
         """
         Add a known fact to the guard.
-        
+
         Args:
             key: Fact key
             value: Fact value
@@ -259,12 +259,12 @@ class HallucinationGuard:
                        fix_hallucinations: bool = False) -> dict[str, Any]:
         """
         Validate an output for hallucinations.
-        
+
         Args:
             output: The output to validate
             context: Context information for validation
             fix_hallucinations: Whether to attempt to fix hallucinations
-            
+
         Returns:
             Dict[str, Any]: Validation results
         """
@@ -305,7 +305,7 @@ class Dashboard:
     def __init__(self, dashboard_id: str | None = None):
         """
         Initialize a dashboard.
-        
+
         Args:
             dashboard_id: ID for the dashboard (defaults to a timestamp-based ID)
         """
@@ -329,7 +329,7 @@ class Dashboard:
                      value: Any) -> None:
         """
         Update a metric in the dashboard.
-        
+
         Args:
             category: Metric category (e.g., "crews", "agents")
             name: Name within the category
@@ -358,11 +358,11 @@ class Dashboard:
                    name: str | None = None) -> dict[str, Any]:
         """
         Get metrics from the dashboard.
-        
+
         Args:
             category: Filter by category
             name: Filter by name within category
-            
+
         Returns:
             Dict[str, Any]: Filtered metrics
         """
@@ -376,10 +376,10 @@ class Dashboard:
     def load_dashboard(cls, dashboard_id: str) -> 'Dashboard':
         """
         Load a dashboard from a file.
-        
+
         Args:
             dashboard_id: ID of the dashboard to load
-            
+
         Returns:
             Dashboard: The loaded dashboard
         """
@@ -397,10 +397,10 @@ class Dashboard:
 def trace_task(tracer: Tracer):
     """
     Decorator to trace task execution.
-    
+
     Args:
         tracer: The tracer to use
-        
+
     Returns:
         Callable: The decorator function
     """
@@ -453,10 +453,10 @@ def trace_task(tracer: Tracer):
 def monitor_agent(dashboard: Dashboard):
     """
     Decorator to monitor agent activity.
-    
+
     Args:
         dashboard: The dashboard to use
-        
+
     Returns:
         Callable: The decorator function
     """
@@ -504,11 +504,11 @@ def monitor_agent(dashboard: Dashboard):
 def guard_output(hallucination_guard: HallucinationGuard, context: dict[str, Any] = None):
     """
     Decorator to guard against hallucinations in function outputs.
-    
+
     Args:
         hallucination_guard: The hallucination guard to use
         context: Context information for validation
-        
+
     Returns:
         Callable: The decorator function
     """
@@ -556,10 +556,10 @@ def guard_output(hallucination_guard: HallucinationGuard, context: dict[str, Any
 def get_observability_tools(crew_name: str) -> dict[str, Any]:
     """
     Get observability tools for a crew.
-    
+
     Args:
         crew_name: Name of the crew
-        
+
     Returns:
         Dict[str, Any]: Dictionary of observability tools
     """

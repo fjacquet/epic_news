@@ -72,11 +72,11 @@ class TechStackTool(BaseTool, BaseSearchTool):
     def _run(self, domain: str, detailed: bool = False) -> str:
         """
         Analyze the technology stack of a website.
-        
+
         Args:
             domain: The domain to analyze (e.g., 'example.com')
             detailed: Whether to return detailed information
-            
+
         Returns:
             Dictionary containing the technology stack information
         """
@@ -122,7 +122,7 @@ class TechStackTool(BaseTool, BaseSearchTool):
             text = f"{result.get('title', '')} {result.get('snippet', '')}".lower()
 
             # Look for technologies in the text
-            for category, patterns in self.TECH_PATTERNS.items():
+            for _, patterns in self.TECH_PATTERNS.items():
                 for pattern in patterns:
                     if re.search(rf'\b{pattern}\b', text):
                         technologies.add(pattern.replace('\\.', '.'))

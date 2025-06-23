@@ -32,15 +32,15 @@ def test_save_to_rag_tool_instantiation_with_rag_tool(mock_rag_tool_instance):
 
 @patch('epic_news.tools.save_to_rag_tool.DEFAULT_RAG_CONFIG', MOCK_DEFAULT_RAG_CONFIG)
 @patch('epic_news.tools.save_to_rag_tool.RagTool')
-def test_save_to_rag_tool_instantiation_without_rag_tool(MockRagToolClass):
+def test_save_to_rag_tool_instantiation_without_rag_tool(mock_rag_tool_class):
     """Test tool instantiation when no RagTool instance is provided,
        so it creates its own."""
-    mock_rag_instance = MockRagToolClass.return_value # The instance RagTool() would return
+    mock_rag_instance = mock_rag_tool_class.return_value # The instance RagTool() would return
     mock_rag_instance.add = MagicMock()
 
     tool = SaveToRagTool()
 
-    MockRagToolClass.assert_called_once_with(config=MOCK_DEFAULT_RAG_CONFIG, summarize=True)
+    mock_rag_tool_class.assert_called_once_with(config=MOCK_DEFAULT_RAG_CONFIG, summarize=True)
     assert tool._rag_tool == mock_rag_instance
     assert tool.name == "SaveToRag"
 

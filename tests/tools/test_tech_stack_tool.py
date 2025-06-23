@@ -25,10 +25,8 @@ def test_tech_stack_tool_instantiation_success():
 @patch.dict(os.environ, {}, clear=True) # Ensure SERPER_API_KEY is not set
 def test_tech_stack_tool_instantiation_no_api_key():
     """Test instantiation failure when SERPER_API_KEY is not set."""
-    with pytest.raises(ValueError) as excinfo:
-        # Mock BaseSearchTool's _search_serper to avoid issues if it's called during init
-        with patch('epic_news.tools.search_base.BaseSearchTool._search_serper', MagicMock(return_value={})):
-            TechStackTool()
+    with pytest.raises(ValueError) as excinfo, patch('epic_news.tools.search_base.BaseSearchTool._search_serper', MagicMock(return_value={})):
+        TechStackTool()
     assert "SERPER_API_KEY environment variable not set" in str(excinfo.value)
 
 

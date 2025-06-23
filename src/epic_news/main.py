@@ -18,6 +18,7 @@ Key functionalities include:
     - Handles the final step of sending an email report with the generated content.
 - Utility functions to kickoff the flow (`kickoff`) and plot its structure (`plot`).
 """
+
 import datetime
 import os
 import warnings
@@ -32,7 +33,6 @@ from epic_news.crews.company_profiler.company_profiler_crew import CompanyProfil
 from epic_news.crews.cooking.cooking_crew import CookingCrew
 from epic_news.crews.cross_reference_report_crew.cross_reference_report_crew import CrossReferenceReportCrew
 from epic_news.crews.fin_daily.fin_daily import FinDailyCrew
-from epic_news.crews.news_daily.news_daily import NewsDailyCrew
 from epic_news.crews.geospatial_analysis.geospatial_analysis_crew import GeospatialAnalysisCrew
 from epic_news.crews.holiday_planner.holiday_planner_crew import HolidayPlannerCrew
 from epic_news.crews.hr_intelligence.hr_intelligence_crew import HRIntelligenceCrew
@@ -41,6 +41,7 @@ from epic_news.crews.legal_analysis.legal_analysis_crew import LegalAnalysisCrew
 from epic_news.crews.library.library_crew import LibraryCrew
 from epic_news.crews.marketing_writers.marketing_writers_crew import MarketingWritersCrew
 from epic_news.crews.meeting_prep.meeting_prep_crew import MeetingPrepCrew
+from epic_news.crews.news_daily.news_daily import NewsDailyCrew
 from epic_news.crews.poem.poem_crew import PoemCrew
 from epic_news.crews.post.post_crew import PostCrew
 from epic_news.crews.rss_weekly.rss_weekly_crew import RssWeeklyCrew
@@ -59,17 +60,14 @@ warnings.filterwarnings("ignore", category=PydanticDeprecatedSince20)
 # Suppress specific Pydantic deprecation warnings by message content
 warnings.filterwarnings("ignore", message=".*`max_items` is deprecated.*", category=DeprecationWarning)
 warnings.filterwarnings("ignore", message=".*`min_items` is deprecated.*", category=DeprecationWarning)
-warnings.filterwarnings(
-    "ignore",
-    category=DeprecationWarning,
-    module="pydantic"
-)
+warnings.filterwarnings("ignore", category=DeprecationWarning, module="pydantic")
 
 load_dotenv()
 
 """                                                                                      """
 """                     All the magic is here                                            """
 """                                                                                      """
+
 
 # Default user request for demonstration, testing, or standalone execution.
 # This can be dynamically set or replaced in a production environment.
@@ -119,9 +117,7 @@ class ReceptionFlow(Flow[ContentState]):
         print("🤖 Kicking off Information Extraction Crew...")
         # Instantiate and run the information extraction crew
         extraction_crew = InformationExtractionCrew()
-        extracted_data = extraction_crew.crew().kickoff(
-            inputs={"user_request": self.state.user_request}
-        )
+        extracted_data = extraction_crew.crew().kickoff(inputs={"user_request": self.state.user_request})
 
         # Update the state with the extracted information
         if extracted_data:
@@ -144,12 +140,10 @@ class ReceptionFlow(Flow[ContentState]):
         """
         topic = (
             self.state.extracted_info.main_subject_or_activity
-            if self.state.extracted_info and hasattr(self.state.extracted_info, 'main_subject_or_activity')
-            else "Unknown Topic" # Provide a default if topic extraction failed or info is missing
+            if self.state.extracted_info and hasattr(self.state.extracted_info, "main_subject_or_activity")
+            else "Unknown Topic"  # Provide a default if topic extraction failed or info is missing
         )
-        print(
-            f"Routing request: '{self.state.user_request}' with topic: '{topic}'"
-        )
+        print(f"Routing request: '{self.state.user_request}' with topic: '{topic}'")
         # Define the output file path for the classification decision.
         self.state.output_file = "output/classify/decision.md"
 
@@ -163,15 +157,17 @@ class ReceptionFlow(Flow[ContentState]):
         # Parse the result and update the state with the selected crew category.
         # The classification_result might contain 'Thought: ...' prefixes.
         # We need to extract the actual category name.
-        raw_classification = str(classification_result) # Ensure it's a string
-        parsed_category = "UNKNOWN" # Default to UNKNOWN
-        for category_key in self.state.categories.keys():
+        raw_classification = str(classification_result)  # Ensure it's a string
+        parsed_category = "UNKNOWN"  # Default to UNKNOWN
+        for category_key in self.state.categories:
             if category_key in raw_classification:
                 parsed_category = category_key
                 break
 
         self.state.selected_crew = parsed_category
-        print(f"✅ Classification complete. Raw: '{raw_classification}', Selected crew: {self.state.selected_crew}")
+        print(
+            f"✅ Classification complete. Raw: '{raw_classification}', Selected crew: {self.state.selected_crew}"
+        )
         # return "classify" # Implicitly returns the method name as the next step
 
     @router("classify")
@@ -279,8 +275,8 @@ class ReceptionFlow(Flow[ContentState]):
 
         # Prepare inputs for the crew, including the OPML file path
         inputs = self.state.to_crew_inputs()
-        opml_file = 'src/epic_news/crews/rss_weekly/data/feedly.opml'
-        inputs['opml_file_path'] = os.path.abspath(opml_file)
+        opml_file = "src/epic_news/crews/rss_weekly/data/feedly.opml"
+        inputs["opml_file_path"] = os.path.abspath(opml_file)
 
         # Kick off the crew
         report_content = RssWeeklyCrew().crew().kickoff(inputs=inputs)
@@ -301,9 +297,9 @@ class ReceptionFlow(Flow[ContentState]):
 
         # Prepare inputs for the crew
         inputs = self.state.to_crew_inputs()
-        stock_csv_file = 'data/stock.csv'
-        inputs['stock_csv_path'] = os.path.abspath(stock_csv_file)
-        inputs['current_date'] = datetime.datetime.now().strftime("%Y-%m-%d")
+        stock_csv_file = "data/stock.csv"
+        inputs["stock_csv_path"] = os.path.abspath(stock_csv_file)
+        inputs["current_date"] = datetime.datetime.now().strftime("%Y-%m-%d")
 
         # Kick off the crew
         report_content = FinDailyCrew().crew().kickoff(inputs=inputs)
@@ -324,8 +320,8 @@ class ReceptionFlow(Flow[ContentState]):
 
         # Prepare inputs for the crew
         inputs = self.state.to_crew_inputs()
-        inputs['current_date'] = datetime.datetime.now().strftime("%Y-%m-%d")
-        inputs['report_language'] = 'French'
+        inputs["current_date"] = datetime.datetime.now().strftime("%Y-%m-%d")
+        inputs["report_language"] = "French"
 
         # Kick off the crew
         report_content = NewsDailyCrew().crew().kickoff(inputs=inputs)
@@ -349,14 +345,18 @@ class ReceptionFlow(Flow[ContentState]):
         self.state.attachment_file = "output/cooking/recipe.yaml"
 
         # Get the topic and preferences from the user's request or extracted info
-        topic = (
-            self.state.user_request or ""
-        )
+        topic = self.state.user_request or ""
 
         if self.state.extracted_info:
-            if hasattr(self.state.extracted_info, 'main_subject_or_activity') and self.state.extracted_info.main_subject_or_activity:
+            if (
+                hasattr(self.state.extracted_info, "main_subject_or_activity")
+                and self.state.extracted_info.main_subject_or_activity
+            ):
                 topic = self.state.extracted_info.main_subject_or_activity
-            if hasattr(self.state.extracted_info, 'user_preferences_and_constraints') and self.state.extracted_info.user_preferences_and_constraints:
+            if (
+                hasattr(self.state.extracted_info, "user_preferences_and_constraints")
+                and self.state.extracted_info.user_preferences_and_constraints
+            ):
                 preferences = self.state.extracted_info.user_preferences_and_constraints
 
         # Enhance the topic with preferences if available
@@ -369,9 +369,9 @@ class ReceptionFlow(Flow[ContentState]):
         crew_inputs = self.state.to_crew_inputs()
 
         # Add topic and preferences to crew inputs instead of constructor
-        crew_inputs['topic'] = topic
+        crew_inputs["topic"] = topic
         if preferences:
-            crew_inputs['preferences'] = preferences
+            crew_inputs["preferences"] = preferences
 
         # Create crew using context-driven approach (no constructor parameters)
         crew = CookingCrew().crew()
@@ -442,10 +442,10 @@ class ReceptionFlow(Flow[ContentState]):
         self.state.output_file = "output/meeting/meeting_preparation.html"
         # Prepare inputs and handle company fallback
         current_inputs = self.state.to_crew_inputs()
-        company = current_inputs.get('company')
+        company = current_inputs.get("company")
         if not company:
-            company = current_inputs.get('topic') # Fallback to topic if company is not specified
-            current_inputs['company'] = company # Ensure 'company' key is in inputs for the crew
+            company = current_inputs.get("topic")  # Fallback to topic if company is not specified
+            current_inputs["company"] = company  # Ensure 'company' key is in inputs for the crew
             print(f"⚠️ No company specified for meeting prep, using topic as company: {company}")
 
         print(f"Generating meeting prep for company: {company or 'N/A'}")
@@ -465,13 +465,15 @@ class ReceptionFlow(Flow[ContentState]):
         in `self.state.contact_info_report`.
         """
         self.state.output_file = "output/sales_prospecting/approach_strategy.html"
-        company = self.state.to_crew_inputs().get('target_company') # Expects 'target_company' from inputs
-        our_product = self.state.to_crew_inputs().get('our_product', 'our product/service') # Default if not specified
-        print(
-            f"Generating sales prospecting report for: {company or 'N/A'} regarding {our_product}"
-        )
+        company = self.state.to_crew_inputs().get("target_company")  # Expects 'target_company' from inputs
+        our_product = self.state.to_crew_inputs().get(
+            "our_product", "our product/service"
+        )  # Default if not specified
+        print(f"Generating sales prospecting report for: {company or 'N/A'} regarding {our_product}")
 
-        self.state.contact_info_report = SalesProspectingCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
+        self.state.contact_info_report = (
+            SalesProspectingCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
+        )
         # return "generate_contact_info" # Original comment, implies this was a rename/refactor
 
     @listen("go_generate_osint")
@@ -498,7 +500,9 @@ class ReceptionFlow(Flow[ContentState]):
         and stores the profile in `self.state.company_profile`.
         """
         self.state.output_file = "output/osint/company_profile.html"
-        print(f"Generating company profile for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}")
+        print(
+            f"Generating company profile for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}"
+        )
 
         # Get company name from state inputs
 
@@ -515,7 +519,9 @@ class ReceptionFlow(Flow[ContentState]):
         and stores the report in `self.state.tech_stack`.
         """
         self.state.output_file = "output/osint/tech_stack.html"
-        print(f"Generating Tech Stack for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}")
+        print(
+            f"Generating Tech Stack for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}"
+        )
 
         # Get company name from state inputs
         self.state.tech_stack = TechStackCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
@@ -531,7 +537,9 @@ class ReceptionFlow(Flow[ContentState]):
         and stores the report in `self.state.web_presence_report`.
         """
         self.state.output_file = "output/osint/web_presence.html"
-        print(f"Generating Web Presence for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}")
+        print(
+            f"Generating Web Presence for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}"
+        )
 
         self.state.web_presence_report = WebPresenceCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
         # return "generate_company_profile"
@@ -546,9 +554,13 @@ class ReceptionFlow(Flow[ContentState]):
         and stores the report in `self.state.hr_intelligence_report`.
         """
         self.state.output_file = "output/osint/hr_intelligence.html"
-        print(f"Generating HR Intelligence for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}")
+        print(
+            f"Generating HR Intelligence for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}"
+        )
 
-        self.state.hr_intelligence_report = HRIntelligenceCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
+        self.state.hr_intelligence_report = (
+            HRIntelligenceCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
+        )
         # return "generate_company_profile"
 
     @listen("generate_osint")
@@ -561,9 +573,13 @@ class ReceptionFlow(Flow[ContentState]):
         and stores the report in `self.state.legal_analysis_report`.
         """
         self.state.output_file = "output/osint/legal_analysis.html"
-        print(f"Generating Legal Analysis for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}")
+        print(
+            f"Generating Legal Analysis for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}"
+        )
 
-        self.state.legal_analysis_report = LegalAnalysisCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
+        self.state.legal_analysis_report = (
+            LegalAnalysisCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
+        )
         # return "generate_company_profile"
 
     @listen("generate_osint")
@@ -576,9 +592,13 @@ class ReceptionFlow(Flow[ContentState]):
         and stores the report in `self.state.geospatial_analysis`.
         """
         self.state.output_file = "output/osint/geospatial_analysis.html"
-        print(f"Generating Geospatial Analysis for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}")
+        print(
+            f"Generating Geospatial Analysis for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}"
+        )
 
-        self.state.geospatial_analysis = GeospatialAnalysisCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
+        self.state.geospatial_analysis = (
+            GeospatialAnalysisCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
+        )
         # return "generate_company_profile"
 
     @listen("generate_osint")
@@ -592,9 +612,13 @@ class ReceptionFlow(Flow[ContentState]):
         the report in `self.state.cross_reference_report`.
         """
         self.state.output_file = "output/osint/global_report.html"
-        print(f"Generating Cross Reference Report for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}")
+        print(
+            f"Generating Cross Reference Report for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}"
+        )
 
-        self.state.cross_reference_report = CrossReferenceReportCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
+        self.state.cross_reference_report = (
+            CrossReferenceReportCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
+        )
         # return "generate_company_profile"
 
     @listen("go_generate_holiday_plan")
@@ -610,7 +634,7 @@ class ReceptionFlow(Flow[ContentState]):
         self.state.output_file = "output/travel_guides/itinerary.html"
         current_inputs = self.state.to_crew_inputs()
 
-        if not current_inputs.get('destination'):
+        if not current_inputs.get("destination"):
             print("⚠️ No destination found for holiday plan. Aborting and routing to error.")
             # TODO: Define an actual 'error' step or handle this more gracefully.
             return "error"  # Or another appropriate error state like 'go_unknown'
@@ -619,7 +643,7 @@ class ReceptionFlow(Flow[ContentState]):
 
         # Run the crew
         self.state.holiday_plan = HolidayPlannerCrew().crew().kickoff(inputs=current_inputs)
-        # return "generate_holiday_plan"
+        return "generate_holiday_plan"
 
     @listen("go_generate_marketing_content")
     def generate_marketing_content(self):
@@ -635,7 +659,9 @@ class ReceptionFlow(Flow[ContentState]):
         print(f"Generating marketing content for topic: {self.state.to_crew_inputs().get('topic', 'N/A')}")
 
         # Create and kickoff the marketing writers crew
-        self.state.marketing_report = MarketingWritersCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
+        self.state.marketing_report = (
+            MarketingWritersCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
+        )
         # return "generate_marketing_content"
 
     @listen(
@@ -653,7 +679,7 @@ class ReceptionFlow(Flow[ContentState]):
             "generate_marketing_content",
             "generate_rss_weekly",
             "generate_findaily",
-            "generate_news_daily"
+            "generate_news_daily",
         )
     )
     def join(self, *results):
@@ -680,14 +706,31 @@ class ReceptionFlow(Flow[ContentState]):
             is found.
         """
         report_attributes = [
-            "shopping_advice_report", "news_report", "recipe", "book_summary",
-            "poem", "holiday_plan", "marketing_report", "meeting_prep_report",
-            "contact_info_report", "cross_reference_report", "fin_daily_report",
-            "rss_weekly_report", "post_report", "location_report", "osint_report",
-            "company_profile", "tech_stack_report", "web_presence_report",
-            "hr_intelligence_report", "legal_analysis_report",
-            "geospatial_analysis", "lead_score_report", "tech_stack",
-            "final_report", "news_daily_report"
+            "shopping_advice_report",
+            "news_report",
+            "recipe",
+            "book_summary",
+            "poem",
+            "holiday_plan",
+            "marketing_report",
+            "meeting_prep_report",
+            "contact_info_report",
+            "cross_reference_report",
+            "fin_daily_report",
+            "rss_weekly_report",
+            "post_report",
+            "location_report",
+            "osint_report",
+            "company_profile",
+            "tech_stack_report",
+            "web_presence_report",
+            "hr_intelligence_report",
+            "legal_analysis_report",
+            "geospatial_analysis",
+            "lead_score_report",
+            "tech_stack",
+            "final_report",
+            "news_daily_report",
         ]
 
         for attr in report_attributes:
@@ -730,12 +773,7 @@ class ReceptionFlow(Flow[ContentState]):
         else:
             self.logger.warning(f"No final content to write to {output_file}.")
 
-    @listen(
-        or_(
-            "generate_cross_reference_report",
-            "join"
-        )
-    )
+    @listen(or_("generate_cross_reference_report", "join"))
     def send_email(self):
         """
         Sends the generated report via email after specific crew completions or general join.
@@ -753,8 +791,17 @@ class ReceptionFlow(Flow[ContentState]):
         if not self.state.email_sent:
             print("📬 Preparing to send email...")
             # Prepare email inputs
-            subject_topic = self.state.extracted_info.main_subject_or_activity if self.state.extracted_info and hasattr(self.state.extracted_info, 'main_subject_or_activity') else 'Your Report'
-            email_body_content = getattr(self.state, 'final_report', "Please find your report attached or view content above if no attachment was generated.")
+            subject_topic = (
+                self.state.extracted_info.main_subject_or_activity
+                if self.state.extracted_info
+                and hasattr(self.state.extracted_info, "main_subject_or_activity")
+                else "Your Report"
+            )
+            email_body_content = getattr(
+                self.state,
+                "final_report",
+                "Please find your report attached or view content above if no attachment was generated.",
+            )
 
             email_inputs = {
                 "recipient_email": os.environ.get("MAIL"),  # Fetched from environment variable
@@ -766,14 +813,20 @@ class ReceptionFlow(Flow[ContentState]):
 
             # Determine attachment: specific attachment_file takes precedence over output_file
             attachment_to_send = None
-            if hasattr(self.state, 'attachment_file') and self.state.attachment_file and os.path.exists(self.state.attachment_file):
+            if (
+                hasattr(self.state, "attachment_file")
+                and self.state.attachment_file
+                and os.path.exists(self.state.attachment_file)
+            ):
                 attachment_to_send = self.state.attachment_file
                 print(f"Using specific attachment: {attachment_to_send}")
             elif self.state.output_file and os.path.exists(self.state.output_file):
                 attachment_to_send = self.state.output_file
                 print(f"Using main output file as attachment: {attachment_to_send}")
             else:
-                print("⚠️ No valid attachment file found (neither specific attachment_file nor output_file exists or is set). Email will be sent without attachment.")
+                print(
+                    "⚠️ No valid attachment file found (neither specific attachment_file nor output_file exists or is set). Email will be sent without attachment."
+                )
 
             # Always include attachment_path, even if empty, to satisfy PostCrew's task template
             email_inputs["attachment_path"] = attachment_to_send if attachment_to_send else ""
@@ -799,7 +852,7 @@ def kickoff(user_input: str | None = None):
     crew orchestration process. It instantiates the `ReceptionFlow` and
     invokes its `run()` method to start the sequence of tasks.
     It can optionally take a user_input string to override the default.
-    
+
     Returns:
         The completed ReceptionFlow object.
     """
@@ -809,6 +862,7 @@ def kickoff(user_input: str | None = None):
     reception_flow = ReceptionFlow(user_request=request)
     reception_flow.kickoff()
     return reception_flow
+
 
 def plot(output_path: str = "flow.png"):
     """

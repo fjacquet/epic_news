@@ -1,9 +1,10 @@
 """Data-centric models for metrics, KPIs, and structured data reporting."""
+
 from __future__ import annotations
 
 from datetime import datetime
 from enum import Enum
-from typing import Any, Union
+from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -16,7 +17,7 @@ __all__ = [
     "DataTable",
     "MetricType",
     "TrendDirection",
-    "StructuredDataReport"
+    "StructuredDataReport",
 ]
 
 
@@ -47,35 +48,27 @@ class TrendDirection(str, Enum):
 class MetricValue(BaseModel):
     """A single metric value with optional comparison to previous period."""
 
-    value: Union[float, int, str, bool, datetime] = Field(
-        ..., description="The current value of the metric"
-    )
-    previous_value: Union[float, int, str, bool, datetime] | None = Field(
+    value: float | int | str | bool | datetime = Field(..., description="The current value of the metric")
+    previous_value: float | int | str | bool | datetime | None = Field(
         None, description="The previous value of the metric for comparison"
     )
-    change_percentage: float | None = Field(
-        None, description="Percentage change from previous value"
-    )
-    trend: TrendDirection = Field(
-        default=TrendDirection.UNKNOWN, description="Direction of trend"
-    )
+    change_percentage: float | None = Field(None, description="Percentage change from previous value")
+    trend: TrendDirection = Field(default=TrendDirection.UNKNOWN, description="Direction of trend")
 
     @field_validator("change_percentage")
-    def validate_change_percentage(cls, v, values):
+    def validate_change_percentage(self, v, values):
         """Calculate change percentage if not provided but previous value exists."""
         if v is None and "previous_value" in values.data and "value" in values.data:
             prev = values.data["previous_value"]
             curr = values.data["value"]
 
             # Only calculate for numeric types
-            if (isinstance(prev, (int, float)) and
-                isinstance(curr, (int, float)) and
-                prev != 0):
+            if isinstance(prev, int | float) and isinstance(curr, int | float) and prev != 0:
                 return ((curr - prev) / abs(prev)) * 100
         return v
 
     @field_validator("trend")
-    def validate_trend(cls, v, values):
+    def validate_trend(self, v, values):
         """Determine trend direction if not explicitly provided."""
         if v == TrendDirection.UNKNOWN and "change_percentage" in values.data:
             change = values.data["change_percentage"]
@@ -99,12 +92,10 @@ class Metric(BaseModel):
     unit: str | None = Field(None, description="Unit of measurement (e.g., '$', '%', 'days')")
     source: str | None = Field(None, description="Source of the metric data")
     timestamp: datetime = Field(default_factory=datetime.now, description="When the metric was recorded")
-    target: Union[float, int, str, bool] | None = Field(
+    target: float | int | str | bool | None = Field(
         None, description="Target value for this metric if applicable"
     )
-    is_key_metric: bool = Field(
-        default=False, description="Whether this is a key metric to highlight"
-    )
+    is_key_metric: bool = Field(default=False, description="Whether this is a key metric to highlight")
     metadata: dict[str, Any] = Field(
         default_factory=dict, description="Additional metadata about this metric"
     )
@@ -113,38 +104,28 @@ class Metric(BaseModel):
 class KPI(Metric):
     """A Key Performance Indicator extending the base Metric with additional properties."""
 
-    is_key_metric: bool = Field(
-        default=True, description="KPIs are always key metrics"
-    )
-    target: Union[float, int, str, bool] = Field(
-        ..., description="Target value for this KPI (required)"
-    )
-    target_date: datetime | None = Field(
-        None, description="Date by which the target should be reached"
-    )
-    progress_percentage: float | None = Field(
-        None, description="Percentage progress toward target"
-    )
+    is_key_metric: bool = Field(default=True, description="KPIs are always key metrics")
+    target: float | int | str | bool = Field(..., description="Target value for this KPI (required)")
+    target_date: datetime | None = Field(None, description="Date by which the target should be reached")
+    progress_percentage: float | None = Field(None, description="Percentage progress toward target")
     status: str = Field(
         default="pending", description="Status of this KPI (e.g., 'on track', 'at risk', 'achieved')"
     )
 
     @field_validator("progress_percentage")
-    def calculate_progress(cls, v, values):
+    def calculate_progress(self, v, values):
         """Calculate progress percentage if not provided but target exists."""
         if v is None and "target" in values.data and "value" in values.data:
             target = values.data["target"]
             curr_value = values.data["value"].value
 
             # Only calculate for numeric types
-            if (isinstance(target, (int, float)) and
-                isinstance(curr_value, (int, float)) and
-                target != 0):
+            if isinstance(target, int | float) and isinstance(curr_value, int | float) and target != 0:
                 return (curr_value / target) * 100
         return v
 
     @field_validator("status")
-    def determine_status(cls, v, values):
+    def determine_status(self, v, values):
         """Determine KPI status based on progress if not explicitly provided."""
         if v == "pending" and "progress_percentage" in values.data:
             progress = values.data["progress_percentage"]
@@ -175,9 +156,7 @@ class DataSeries(BaseModel):
     name: str = Field(..., description="Name of this data series")
     description: str | None = Field(None, description="Description of this data series")
     points: list[DataPoint] = Field(..., description="Data points in this series")
-    metadata: dict[str, Any] = Field(
-        default_factory=dict, description="Additional metadata for this series"
-    )
+    metadata: dict[str, Any] = Field(default_factory=dict, description="Additional metadata for this series")
 
 
 class DataTable(BaseModel):
@@ -187,9 +166,7 @@ class DataTable(BaseModel):
     description: str | None = Field(None, description="Description of this data table")
     columns: list[str] = Field(..., description="Column headers")
     rows: list[list[Any]] = Field(..., description="Row data")
-    metadata: dict[str, Any] = Field(
-        default_factory=dict, description="Additional metadata for this table"
-    )
+    metadata: dict[str, Any] = Field(default_factory=dict, description="Additional metadata for this table")
 
 
 class StructuredDataReport(BaseModel):
@@ -197,24 +174,14 @@ class StructuredDataReport(BaseModel):
 
     title: str = Field(..., description="Title of the report")
     description: str = Field(..., description="Description of what this report covers")
-    metrics: list[Metric] = Field(
-        default_factory=list, description="List of metrics included in this report"
-    )
-    kpis: list[KPI] = Field(
-        default_factory=list, description="List of KPIs included in this report"
-    )
+    metrics: list[Metric] = Field(default_factory=list, description="List of metrics included in this report")
+    kpis: list[KPI] = Field(default_factory=list, description="List of KPIs included in this report")
     data_series: list[DataSeries] = Field(
         default_factory=list, description="List of data series included in this report"
     )
     data_tables: list[DataTable] = Field(
         default_factory=list, description="List of data tables included in this report"
     )
-    timestamp: datetime = Field(
-        default_factory=datetime.now, description="When this report was generated"
-    )
-    metadata: dict[str, Any] = Field(
-        default_factory=dict, description="Additional metadata for this report"
-    )
-    html: str | None = Field(
-        None, description="HTML representation of this report if available"
-    )
+    timestamp: datetime = Field(default_factory=datetime.now, description="When this report was generated")
+    metadata: dict[str, Any] = Field(default_factory=dict, description="Additional metadata for this report")
+    html: str | None = Field(None, description="HTML representation of this report if available")

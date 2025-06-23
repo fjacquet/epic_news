@@ -30,7 +30,7 @@ logger = logging.getLogger("optimize_crews")
 def discover_crews() -> list[str]:
     """
     Discover all crew modules in the project.
-    
+
     Returns:
         List[str]: List of crew module paths
     """
@@ -50,7 +50,7 @@ def discover_crews() -> list[str]:
 def analyze_all_crews() -> dict[str, dict[str, Any]]:
     """
     Analyze all crews in the project.
-    
+
     Returns:
         Dict[str, Dict[str, Any]]: Analysis results for each crew
     """
@@ -74,10 +74,10 @@ def analyze_all_crews() -> dict[str, dict[str, Any]]:
 def analyze_crew_module(module_path: str) -> dict[str, Any]:
     """
     Analyze a crew module directly without using optimize_crew_process.
-    
+
     Args:
         module_path: Path to the crew module
-        
+
     Returns:
         Dict[str, Any]: Analysis results for the crew
     """
@@ -90,7 +90,7 @@ def analyze_crew_module(module_path: str) -> dict[str, Any]:
         # Find crew classes and methods
         results = {}
 
-        for name, obj in inspect.getmembers(module):
+        for _, obj in inspect.getmembers(module):
             if inspect.isclass(obj):
                 # Look for crew method in the class
                 for method_name, method in inspect.getmembers(obj):
@@ -149,7 +149,7 @@ def analyze_crew_module(module_path: str) -> dict[str, Any]:
 def display_results(results: dict[str, dict[str, Any]]) -> None:
     """
     Display analysis results in a tabular format.
-    
+
     Args:
         results: Analysis results for each crew
     """

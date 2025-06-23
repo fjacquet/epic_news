@@ -103,32 +103,21 @@ class RetryLLMWrapper(BaseLLM):
         for attempt in retryer:
             with attempt:
                 try:
-                    if self.verbose:
-                        if attempt.retry_state.attempt_number > 1:
-                            logger.warning(
-                                f"Retrying LLM call, attempt {attempt.retry_state.attempt_number}/{self.max_retries}"
-                            )
+                    if self.verbose and attempt.retry_state.attempt_number > 1:
+                        logger.warning(
+                            f"Retrying LLM call, attempt {attempt.retry_state.attempt_number}/{self.max_retries}"
+                        )
 
                     # Call the underlying LLM
-                    result = self.llm._generate(
-                        prompts, stop=stop, run_manager=run_manager, **kwargs
-                    )
+                    result = self.llm._generate(prompts, stop=stop, run_manager=run_manager, **kwargs)
 
                     # Check if result is empty or None
-                    if (
-                        not result
-                        or not result.generations
-                        or not result.generations[0]
-                    ):
+                    if not result or not result.generations or not result.generations[0]:
                         raise ValueError("Empty response from LLM call")
 
                     # Additional validation to check for empty content
                     for gen_list in result.generations:
-                        if (
-                            not gen_list
-                            or not gen_list[0].text
-                            or gen_list[0].text.strip() == ""
-                        ):
+                        if not gen_list or not gen_list[0].text or gen_list[0].text.strip() == "":
                             raise ValueError("Empty content in LLM response")
 
                     return result
@@ -169,14 +158,10 @@ class RetryLLMWrapper(BaseLLM):
         while attempt < self.max_retries:
             try:
                 if self.verbose and attempt > 0:
-                    logger.warning(
-                        f"Retrying async LLM call, attempt {attempt + 1}/{self.max_retries}"
-                    )
+                    logger.warning(f"Retrying async LLM call, attempt {attempt + 1}/{self.max_retries}")
 
                 # Call the underlying LLM
-                result = await self.llm._agenerate(
-                    prompts, stop=stop, run_manager=run_manager, **kwargs
-                )
+                result = await self.llm._agenerate(prompts, stop=stop, run_manager=run_manager, **kwargs)
 
                 # Check if result is empty or None
                 if not result or not result.generations or not result.generations[0]:
@@ -184,38 +169,26 @@ class RetryLLMWrapper(BaseLLM):
 
                 # Additional validation to check for empty content
                 for gen_list in result.generations:
-                    if (
-                        not gen_list
-                        or not gen_list[0].text
-                        or gen_list[0].text.strip() == ""
-                    ):
+                    if not gen_list or not gen_list[0].text or gen_list[0].text.strip() == "":
                         raise ValueError("Empty content in async LLM response")
 
                 return result
 
             except Exception as e:
-                logger.warning(
-                    f"Async LLM call failed with error: {str(e)}. Retrying..."
-                )
+                logger.warning(f"Async LLM call failed with error: {str(e)}. Retrying...")
                 attempt += 1
                 if attempt >= self.max_retries:
-                    logger.error(
-                        f"All {self.max_retries} async LLM call attempts failed"
-                    )
+                    logger.error(f"All {self.max_retries} async LLM call attempts failed")
                     raise
 
                 # Exponential backoff
-                wait_time = min(
-                    self.max_seconds, self.min_seconds * (self.factor**attempt)
-                )
+                wait_time = min(self.max_seconds, self.min_seconds * (self.factor**attempt))
                 await asyncio.sleep(wait_time)
 
         raise RuntimeError("All async LLM call attempts failed")
 
 
-def get_llm_with_retries(
-    llm: BaseLLM, max_retries: int = 5, verbose: bool = False
-) -> BaseLLM:
+def get_llm_with_retries(llm: BaseLLM, max_retries: int = 5, verbose: bool = False) -> BaseLLM:
     """
     Wrap an LLM with retry capabilities.
 

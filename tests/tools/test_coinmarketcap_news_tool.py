@@ -18,8 +18,7 @@ CMC_PRO_API_BASE_URL = "https://pro-api.coinmarketcap.com"
 def news_tool():
     """Fixture for CoinMarketCapNewsTool instantiation with patched API key."""
     with patch.dict(os.environ, {"X-CMC_PRO_API_KEY": TEST_CMC_API_KEY}, clear=True):
-        tool = CoinMarketCapNewsTool()
-    return tool
+        return CoinMarketCapNewsTool()
 
 def test_instantiation_success(news_tool):
     """Test successful instantiation of CoinMarketCapNewsTool."""

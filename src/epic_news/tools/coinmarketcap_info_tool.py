@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 CMC_BASE_URL = "https://pro-api.coinmarketcap.com/v1"
 
 
-class CoinMarketCapException(Exception):
+class CoinMarketCapError(Exception):
     """Exception raised for CoinMarketCap API errors."""
 
 
@@ -54,7 +54,7 @@ class CoinMarketCapInfoTool(BaseTool):
             A JSON string containing detailed information about the cryptocurrency
 
         Raises:
-            CoinMarketCapException: If the API request fails
+            CoinMarketCapError: If the API request fails
         """
         logger.info(f"Retrieving information for cryptocurrency: {symbol}")
 
