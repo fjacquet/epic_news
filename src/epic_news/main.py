@@ -50,7 +50,7 @@ from epic_news.crews.sales_prospecting.sales_prospecting_crew import SalesProspe
 from epic_news.crews.shopping_advisor.shopping_advisor import ShoppingAdvisorCrew
 from epic_news.crews.tech_stack.tech_stack_crew import TechStackCrew
 from epic_news.crews.web_presence.web_presence_crew import WebPresenceCrew
-from epic_news.models import ContentState
+from epic_news.models.content_state import ContentState
 from epic_news.utils.directory_utils import ensure_output_directories
 from epic_news.utils.logger import get_logger
 
