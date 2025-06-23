@@ -45,6 +45,7 @@ from epic_news.crews.news_daily.news_daily import NewsDailyCrew
 from epic_news.crews.poem.poem_crew import PoemCrew
 from epic_news.crews.post.post_crew import PostCrew
 from epic_news.crews.rss_weekly.rss_weekly_crew import RssWeeklyCrew
+from epic_news.crews.saint_daily.saint_daily import SaintDailyCrew
 from epic_news.crews.sales_prospecting.sales_prospecting_crew import SalesProspectingCrew
 from epic_news.crews.shopping_advisor.shopping_advisor import ShoppingAdvisorCrew
 from epic_news.crews.tech_stack.tech_stack_crew import TechStackCrew
@@ -204,6 +205,8 @@ class ReceptionFlow(Flow[ContentState]):
             return "go_generate_findaily"
         if self.state.selected_crew == "NEWSDAILY":
             return "go_generate_news_daily"
+        if self.state.selected_crew == "SAINT":
+            return "go_generate_saint_daily"
         if self.state.selected_crew == "SALES_PROSPECTING":
             return "go_generate_sales_prospecting_report"
         # Fallback for unhandled or unknown crew types.
@@ -326,6 +329,30 @@ class ReceptionFlow(Flow[ContentState]):
         # Kick off the crew
         report_content = NewsDailyCrew().crew().kickoff(inputs=inputs)
         self.state.news_daily_report = report_content
+
+    @listen("go_generate_saint_daily")
+    def generate_saint_daily(self):
+        """
+        Handles requests classified for the 'SaintDailyCrew'.
+
+        Invokes the `SaintDailyCrew` to generate a daily saint report in French
+        covering the saint of the day in Switzerland, including biography,
+        significance, and connection to Swiss Catholic traditions.
+        Sets `output_file` to `output/saint_daily/report.html`
+        and stores the report in `self.state.saint_daily_report`.
+        """
+        self.state.output_file = "output/saint_daily/report.html"
+        print("⛪ Generating daily saint report in French...")
+
+        # Prepare inputs for the crew
+        inputs = self.state.to_crew_inputs()
+        inputs["current_date"] = datetime.datetime.now().strftime("%Y-%m-%d")
+        inputs["report_language"] = "French"
+        inputs["target_country"] = "Switzerland"
+
+        # Kick off the crew
+        report_content = SaintDailyCrew().crew().kickoff(inputs=inputs)
+        self.state.saint_daily_report = report_content
 
     @listen("go_generate_recipe")
     def generate_recipe(self):
@@ -680,6 +707,7 @@ class ReceptionFlow(Flow[ContentState]):
             "generate_rss_weekly",
             "generate_findaily",
             "generate_news_daily",
+            "generate_saint_daily",
         )
     )
     def join(self, *results):
@@ -731,6 +759,7 @@ class ReceptionFlow(Flow[ContentState]):
             "tech_stack",
             "final_report",
             "news_daily_report",
+            "saint_daily_report",
         ]
 
         for attr in report_attributes:
@@ -857,7 +886,7 @@ def kickoff(user_input: str | None = None):
         The completed ReceptionFlow object.
     """
     # If user_input is not provided, use a default value.
-    request = user_input if user_input else "Get the Daily news Report"
+    request = user_input if user_input else "Qui est le saint du jour ?"
 
     reception_flow = ReceptionFlow(user_request=request)
     reception_flow.kickoff()

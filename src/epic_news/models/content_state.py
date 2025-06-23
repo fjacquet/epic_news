@@ -38,6 +38,7 @@ class ContentState(BaseModel):
             "RSS": "RSS",
             "FINDAILY": "FINDAILY",
             "NEWSDAILY": "NEWSDAILY",
+            "SAINT": "SAINT",
         }
     )
     # Output file path
@@ -69,6 +70,7 @@ class ContentState(BaseModel):
     lead_score_report: Any | None = None  # Added from the duplicated block
     fin_daily_report: Any | None = None  # Stores the FinDaily crew report
     news_daily_report: Any | None = None  # Stores the NewsDaily crew report
+    saint_daily_report: Any | None = None  # Stores the SaintDaily crew report
 
     # Email settings
     sendto: str = "fred.jacquet@gmail.com"
