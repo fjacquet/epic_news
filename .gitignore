@@ -13,6 +13,7 @@ db/
 prompts.txt
 output/
 report.md
-reports
+reports/
 
 data/stock.csv
+prompts.md
