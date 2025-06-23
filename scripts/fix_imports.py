@@ -16,8 +16,8 @@ def fix_imports_in_file(file_path):
 
     # Define the patterns to search for
     patterns = [
-        r'from\s+crewai_tools\s+import\s+BaseTool(\s*#.*)?$',
-        r'from\s+crewai_tools\s+import\s+(\w+,\s+)*BaseTool(,\s+\w+)*(\s*#.*)?$',
+        r"from\s+crewai_tools\s+import\s+BaseTool(\s*#.*)?$",
+        r"from\s+crewai_tools\s+import\s+(\w+,\s+)*BaseTool(,\s+\w+)*(\s*#.*)?$",
     ]
 
     # Keep track if file was modified
@@ -32,11 +32,11 @@ def fix_imports_in_file(file_path):
         for match in matches:
             old_import = match.group(0)
             # Create the replacement import
-            if 'import BaseTool' in old_import:
-                new_import = old_import.replace('crewai_tools', 'crewai.tools')
+            if "import BaseTool" in old_import:
+                new_import = old_import.replace("crewai_tools", "crewai.tools")
             else:
                 # Handle more complex imports with multiple items
-                new_import = old_import.replace('crewai_tools', 'crewai.tools')
+                new_import = old_import.replace("crewai_tools", "crewai.tools")
 
             # Replace the import in the content
             content = content.replace(old_import, new_import)
@@ -45,7 +45,7 @@ def fix_imports_in_file(file_path):
 
     # Write the modified content back to the file if changes were made
     if modified:
-        with open(file_path, 'w') as f:
+        with open(file_path, "w") as f:
             f.write(content)
         return True
 
@@ -59,7 +59,7 @@ def find_and_fix_imports(directory):
     # Walk through the directory
     for root, _, files in os.walk(directory):
         for file in files:
-            if file.endswith('.py'):
+            if file.endswith(".py"):
                 file_path = os.path.join(root, file)
                 print(f"Checking {file_path}")
                 if fix_imports_in_file(file_path):

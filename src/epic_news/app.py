@@ -14,16 +14,18 @@ st.markdown("""Welcome! Enter your request below, and the `ReceptionFlow` will a
 and dispatch the appropriate crew to handle the job.""")
 
 # --- State Management ---
-if 'crew_running' not in st.session_state:
+if "crew_running" not in st.session_state:
     st.session_state.crew_running = False
-if 'log_messages' not in st.session_state:
+if "log_messages" not in st.session_state:
     st.session_state.log_messages = []
-if 'final_report' not in st.session_state:
+if "final_report" not in st.session_state:
     st.session_state.final_report = None
+
 
 # --- Real-time Logging Setup ---
 class QueueLogger(logging.Handler):
     """A custom logging handler that puts messages into a queue."""
+
     def __init__(self, queue):
         super().__init__()
         self.queue = queue
@@ -31,14 +33,16 @@ class QueueLogger(logging.Handler):
     def emit(self, record):
         self.queue.put(self.format(record))
 
+
 log_queue = Queue()
 queue_handler = QueueLogger(log_queue)
 # You can customize the formatter for a cleaner look in the UI
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
 queue_handler.setFormatter(formatter)
 
 # Add the handler to the root logger to capture logs from crewai and other libs
 logging.basicConfig(level=logging.INFO, handlers=[queue_handler])
+
 
 # --- Crew Execution Logic ---
 def run_crew_thread(user_request: str):
@@ -49,7 +53,7 @@ def run_crew_thread(user_request: str):
 
         # After running, put the result into the queue
         if flow and flow.state.output_file and os.path.exists(flow.state.output_file):
-            with open(flow.state.output_file, encoding='utf-8') as f:
+            with open(flow.state.output_file, encoding="utf-8") as f:
                 report_content = f.read()
             log_queue.put(("REPORT", report_content))
         else:
@@ -62,11 +66,12 @@ def run_crew_thread(user_request: str):
     finally:
         log_queue.put(("END", "Crew execution finished."))
 
+
 # --- UI Components ---
 user_request = st.text_input(
     "Enter your request",
     "Summarize 'Art of War by Sun Tzu' and suggest similar books.",
-    disabled=st.session_state.crew_running
+    disabled=st.session_state.crew_running,
 )
 
 if st.button("🚀 Kickoff Flow", disabled=st.session_state.crew_running):
@@ -83,7 +88,7 @@ if st.session_state.crew_running:
     report_placeholder = st.empty()
 
     # Start the crew thread only on the first run
-    if 'thread' not in st.session_state or not st.session_state.thread.is_alive():
+    if "thread" not in st.session_state or not st.session_state.thread.is_alive():
         st.session_state.thread = Thread(target=run_crew_thread, args=(user_request,))
         st.session_state.thread.start()
 
@@ -99,15 +104,15 @@ if st.session_state.crew_running:
                     st.session_state.log_messages.append(f"❌ ERROR: {content}")
                 elif msg_type == "END":
                     st.session_state.crew_running = False
-                    break # Exit the loop
+                    break  # Exit the loop
             else:
                 st.session_state.log_messages.append(message)
 
             # Update the log display
-            log_placeholder.code('\n'.join(st.session_state.log_messages), language='log')
+            log_placeholder.code("\n".join(st.session_state.log_messages), language="log")
 
         except Empty:
-            continue # Continue polling
+            continue  # Continue polling
 
     # Final state update after loop
     st.session_state.crew_running = False
@@ -118,5 +123,5 @@ if st.session_state.crew_running:
         report_placeholder.error("Crew finished, but no report was generated.")
 
     # Clean up the thread
-    del st.session_state['thread']
-    st.rerun() # Rerun to reset the UI to its initial state
+    del st.session_state["thread"]
+    st.rerun()  # Rerun to reset the UI to its initial state

@@ -35,23 +35,21 @@ def get_rag_tools(collection_suffix: str | None = None) -> list[Tool]:
         config["vectordb"]["config"]["collection_name"] = f"epic_news-{collection_suffix}"
 
     # Instantiate the LLM and Embedder
-    llm = ChatOpenAI(**config['llm']['config'])
-    embedder = OpenAIEmbeddings(**config['embedder']['config'])
+    llm = ChatOpenAI(**config["llm"]["config"])
+    embedder = OpenAIEmbeddings(**config["embedder"]["config"])
 
     # Determine the collection name
-    collection_name = config['vectordb']['config']['collection_name']
+    collection_name = config["vectordb"]["config"]["collection_name"]
 
     # Create the RAG tool for retrieval with app_config to ensure collection_name is properly set
     rag_tool = RagTool(
         llm=llm,
         embedder=embedder,
-        chunker_config=config['chunker'],
-        vectordb_config=config['vectordb'],
+        chunker_config=config["chunker"],
+        vectordb_config=config["vectordb"],
         app_config={
-            'collection_name': collection_name,  # This ensures the collection name is properly set
-            'db': {
-                'dir': config['vectordb']['config'].get('dir', '/tmp/chroma_db')
-            }
+            "collection_name": collection_name,  # This ensures the collection name is properly set
+            "db": {"dir": config["vectordb"]["config"].get("dir", "/tmp/chroma_db")},
         },
         summarize=True,
         description=(

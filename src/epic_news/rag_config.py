@@ -22,9 +22,7 @@ DEFAULT_RAG_CONFIG = {
         "provider": "chroma",
         "config": {
             "collection_name": "finwiz",
-            "dir": os.path.join(
-                PROJECT_ROOT, "db"
-            ),  # Absolute path to storage directory
+            "dir": os.path.join(PROJECT_ROOT, "db"),  # Absolute path to storage directory
             "allow_reset": True,
         },
     },

@@ -1,4 +1,3 @@
-
 from crewai import Agent, Crew, Process, Task
 from crewai.agents.agent_builder.base_agent import BaseAgent
 from crewai.project import CrewBase, agent, crew, task
@@ -13,6 +12,7 @@ from epic_news.tools.web_tools import get_scrape_tools, get_search_tools
 # If you want to run a snippet of code before or after the crew starts,
 # you can use the @before_kickoff and @after_kickoff decorators
 # https://docs.crewai.com/concepts/crews#example-crew-class-with-decorators
+
 
 @CrewBase
 class CrossReferenceReportCrew:
@@ -31,14 +31,20 @@ class CrossReferenceReportCrew:
     def osint_coordinator(self) -> Agent:
         """Creates the OSINT coordinator agent"""
         # Get all tools
-        search_tools =  get_search_tools()
+        search_tools = get_search_tools()
         scrape_tools = get_scrape_tools()
         rag_tools = get_rag_tools()
         html_to_pdf_tool = HtmlToPdfTool()
         directory_read_tool = DirectoryReadTool("output/osint")
         file_read_tool = FileReadTool()
 
-        all_tools = search_tools + scrape_tools + rag_tools + [html_to_pdf_tool, directory_read_tool, file_read_tool] + get_report_tools()
+        all_tools = (
+            search_tools
+            + scrape_tools
+            + rag_tools
+            + [html_to_pdf_tool, directory_read_tool, file_read_tool]
+            + get_report_tools()
+        )
 
         return Agent(
             config=self.agents_config["osint_coordinator"],
@@ -109,8 +115,8 @@ class CrossReferenceReportCrew:
         # https://docs.crewai.com/concepts/knowledge#what-is-knowledge
 
         return Crew(
-            agents=self.agents, # Automatically created by the @agent decorator
-            tasks=self.tasks, # Automatically created by the @task decorator
+            agents=self.agents,  # Automatically created by the @agent decorator
+            tasks=self.tasks,  # Automatically created by the @task decorator
             process=Process.sequential,
             verbose=True,
             # process=Process.hierarchical, # In case you wanna use that instead https://docs.crewai.com/how-to/Hierarchical/

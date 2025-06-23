@@ -67,7 +67,7 @@ class GeoapifyPlacesInput(BaseModel):
     lang: str = Field("en", description="Language code (ISO 639-1) for results", min_length=2, max_length=2)
 
     @field_validator("bias")
-    def validate_bias(self, v):
+    def validate_bias(cls, v):  # noqa: N805
         if v is not None:
             try:
                 lon, lat = map(float, v.split(","))
@@ -78,7 +78,7 @@ class GeoapifyPlacesInput(BaseModel):
         return v
 
     @field_validator("filter_value")
-    def validate_filter_value(self, v, info):
+    def validate_filter_value(cls, v, info):  # noqa: N805
         values = info.data
         if "filter_type" not in values or values.get("filter_type") is None:
             if v is not None:

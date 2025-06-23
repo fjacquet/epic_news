@@ -1,4 +1,5 @@
 """Technology stack analysis tool implementation."""
+
 import json
 import os
 import re
@@ -18,16 +19,19 @@ load_dotenv()
 # Use project's logger
 logger = get_logger(__name__)
 
+
 class TechStackInput(BaseModel):
     """Input schema for tech stack analysis."""
+
     domain: str = Field(..., description="Domain name to analyze (e.g., 'example.com')")
     detailed: bool = Field(
-        default=False,
-        description="Whether to return detailed information about each technology"
+        default=False, description="Whether to return detailed information about each technology"
     )
+
 
 class TechStackTool(BaseTool, BaseSearchTool):
     """Tool for analyzing the technology stack of websites."""
+
     name: str = "tech_stack_analysis"
     description: str = "Analyze the technology stack used by a website"
     args_schema: type[BaseModel] = TechStackInput
@@ -35,33 +39,68 @@ class TechStackTool(BaseTool, BaseSearchTool):
 
     # Common technology patterns to look for
     TECH_PATTERNS: ClassVar[dict[str, list[str]]] = {
-        'frameworks': [
-            'react', 'angular', 'vue', 'next.js', 'nuxt.js', 'gatsby', 'svelte',
-            'django', 'flask', 'laravel', 'ruby on rails', 'express', 'spring', 'asp.net'
+        "frameworks": [
+            "react",
+            "angular",
+            "vue",
+            "next.js",
+            "nuxt.js",
+            "gatsby",
+            "svelte",
+            "django",
+            "flask",
+            "laravel",
+            "ruby on rails",
+            "express",
+            "spring",
+            "asp.net",
         ],
-        'cms': [
-            'wordpress', 'drupal', 'joomla', 'wix', 'squarespace', 'shopify', 'webflow',
-            'ghost', 'contentful', 'strapi', 'sanity'
+        "cms": [
+            "wordpress",
+            "drupal",
+            "joomla",
+            "wix",
+            "squarespace",
+            "shopify",
+            "webflow",
+            "ghost",
+            "contentful",
+            "strapi",
+            "sanity",
         ],
-        'analytics': [
-            'google analytics', 'google tag manager', 'matomo', 'hotjar', 'mixpanel',
-            'amplitude', 'segment', 'heap'
+        "analytics": [
+            "google analytics",
+            "google tag manager",
+            "matomo",
+            "hotjar",
+            "mixpanel",
+            "amplitude",
+            "segment",
+            "heap",
         ],
-        'hosting': [
-            'aws', 'google cloud', 'azure', 'cloudflare', 'vercel', 'netlify', 'heroku',
-            'digitalocean', 'linode', 'vultr'
-        ]
+        "hosting": [
+            "aws",
+            "google cloud",
+            "azure",
+            "cloudflare",
+            "vercel",
+            "netlify",
+            "heroku",
+            "digitalocean",
+            "linode",
+            "vultr",
+        ],
     }
 
     def __init__(self, **data):
         """Initialize with API key from environment."""
         # Get API key from environment
-        api_key = os.getenv("SERPER_API_KEY") # Changed to SERPER_API_KEY
+        api_key = os.getenv("SERPER_API_KEY")  # Changed to SERPER_API_KEY
         if not api_key:
-            raise ValueError("SERPER_API_KEY environment variable not set") # Changed to SERPER_API_KEY
+            raise ValueError("SERPER_API_KEY environment variable not set")  # Changed to SERPER_API_KEY
 
         # Store API key in data for BaseTool initialization
-        data['api_key'] = api_key
+        data["api_key"] = api_key
 
         # Initialize BaseTool with the API key in data
         BaseTool.__init__(self, **data)
@@ -95,16 +134,13 @@ class TechStackTool(BaseTool, BaseSearchTool):
             result = {
                 "domain": domain,
                 "technologies": list(tech_stack),
-                "detailed_analysis": detailed_info if detailed else None
+                "detailed_analysis": detailed_info if detailed else None,
             }
             return json.dumps(result)
 
         except Exception as e:
             logger.error(f"Error in tech stack analysis: {e}")
-            error_result = {
-                "domain": domain,
-                "error": f"An error occurred during analysis: {str(e)}"
-            }
+            error_result = {"domain": domain, "error": f"An error occurred during analysis: {str(e)}"}
             return json.dumps(error_result)
 
     def _search_tech_sites(self, domain: str) -> list[dict[str, Any]]:
@@ -124,8 +160,8 @@ class TechStackTool(BaseTool, BaseSearchTool):
             # Look for technologies in the text
             for _, patterns in self.TECH_PATTERNS.items():
                 for pattern in patterns:
-                    if re.search(rf'\b{pattern}\b', text):
-                        technologies.add(pattern.replace('\\.', '.'))
+                    if re.search(rf"\b{pattern}\b", text):
+                        technologies.add(pattern.replace("\\.", "."))
 
         return technologies
 
@@ -138,13 +174,14 @@ class TechStackTool(BaseTool, BaseSearchTool):
             category_techs = []
             for tech in technologies:
                 for pattern in patterns:
-                    if re.search(rf'\b{pattern}\b', tech.lower()):
+                    if re.search(rf"\b{pattern}\b", tech.lower()):
                         category_techs.append(tech)
                         break
             if category_techs:
                 analysis[category] = category_techs
 
         return analysis
+
 
 # For backward compatibility
 SearchStack = TechStackTool

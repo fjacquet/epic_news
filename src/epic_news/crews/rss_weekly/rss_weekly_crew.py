@@ -12,13 +12,13 @@ from src.epic_news.tools.unified_rss_tool import UnifiedRssTool
 class RssWeeklyCrew:
     """RssWeeklyCrew crew - Simplified version using UnifiedRssTool"""
 
-    agents_config = 'config/agents.yaml'
-    tasks_config = 'config/tasks.yaml'
+    agents_config = "config/agents.yaml"
+    tasks_config = "config/tasks.yaml"
 
     @agent
     def content_summarizer(self) -> Agent:
         return Agent(
-            config=self.agents_config['content_summarizer'],
+            config=self.agents_config["content_summarizer"],
             verbose=True,
             tools=[FileReadTool(), UnifiedRssTool(), SaveToRagTool(), ReportingTool()] + get_rag_tools(),
             reasoning=False,
@@ -27,10 +27,7 @@ class RssWeeklyCrew:
 
     @task
     def compile_digest_task(self) -> Task:
-        return Task(
-            config=self.tasks_config['compile_digest_task'],
-            async_execution=False
-        )
+        return Task(config=self.tasks_config["compile_digest_task"], async_execution=False)
 
     @crew
     def crew(self) -> Crew:

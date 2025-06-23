@@ -10,14 +10,16 @@ from epic_news.tools.yahoo_finance_company_info_tool import GetCompanyInfoInput,
 def tool_instance():
     return YahooFinanceCompanyInfoTool()
 
+
 # --- Instantiation Tests ---
 def test_instantiation(tool_instance):
     assert tool_instance.name == "Yahoo Finance Company Info Tool"
     assert "Get detailed company information" in tool_instance.description
     assert tool_instance.args_schema == GetCompanyInfoInput
 
+
 # --- _run Method Tests ---
-@patch('yfinance.Ticker')
+@patch("yfinance.Ticker")
 def test_run_successful_info_retrieval_all_fields(mock_yf_ticker, tool_instance):
     ticker_symbol = "GOODTICKER"
     mock_ticker_instance = MagicMock()
@@ -42,7 +44,7 @@ def test_run_successful_info_retrieval_all_fields(mock_yf_ticker, tool_instance)
         "trailingPE": 20,
         "forwardPE": 18,
         "priceToBook": 3,
-        "priceToSalesTrailing12Months": 2
+        "priceToSalesTrailing12Months": 2,
     }
 
     result_str = tool_instance._run(ticker=ticker_symbol)
@@ -78,7 +80,8 @@ def test_run_successful_info_retrieval_all_fields(mock_yf_ticker, tool_instance)
     }
     assert result_data == expected_data
 
-@patch('yfinance.Ticker')
+
+@patch("yfinance.Ticker")
 def test_run_successful_info_retrieval_some_fields_na(mock_yf_ticker, tool_instance):
     ticker_symbol = "MIXEDTICKER"
     mock_ticker_instance = MagicMock()
@@ -90,16 +93,16 @@ def test_run_successful_info_retrieval_some_fields_na(mock_yf_ticker, tool_insta
         # sector is missing -> will be N/A and then removed
         "website": "mixed.com",
         "country": "Canada",
-        "fullTimeEmployees": None, # -> will be N/A and then removed
+        "fullTimeEmployees": None,  # -> will be N/A and then removed
         "longBusinessSummary": "A mixed bag.",
         "totalRevenue": 200000,
-        "profitMargins": "N/A", # -> will be N/A and then removed from financial_metrics
+        "profitMargins": "N/A",  # -> will be N/A and then removed from financial_metrics
         "ebitda": 50000,
         # debtToEquity is missing
         "returnOnEquity": 0.05,
         "marketCap": 1000000,
-        "trailingPE": "N/A", # -> will be N/A and then removed from valuation_metrics
-        "forwardPE": 15
+        "trailingPE": "N/A",  # -> will be N/A and then removed from valuation_metrics
+        "forwardPE": 15,
         # priceToBook, priceToSalesTrailing12Months missing
     }
 
@@ -114,7 +117,7 @@ def test_run_successful_info_retrieval_some_fields_na(mock_yf_ticker, tool_insta
         "industry": "Retail",
         "website": "mixed.com",
         "country": "Canada",
-        "employees": None, # Added to reflect tool's behavior with None values
+        "employees": None,  # Added to reflect tool's behavior with None values
         "business_summary": "A mixed bag.",
         "financial_metrics": {
             "revenue": 200000,
@@ -134,12 +137,13 @@ def test_run_successful_info_retrieval_some_fields_na(mock_yf_ticker, tool_insta
 
     assert result_data == expected_data
 
-@patch('yfinance.Ticker')
+
+@patch("yfinance.Ticker")
 def test_run_empty_info_object(mock_yf_ticker, tool_instance):
     ticker_symbol = "EMPTYINFOTICKER"
     mock_ticker_instance = MagicMock()
     mock_yf_ticker.return_value = mock_ticker_instance
-    mock_ticker_instance.info = {} # Empty info
+    mock_ticker_instance.info = {}  # Empty info
 
     result_str = tool_instance._run(ticker=ticker_symbol)
     result_data = json.loads(result_str)
@@ -148,7 +152,8 @@ def test_run_empty_info_object(mock_yf_ticker, tool_instance):
     # financial_metrics and valuation_metrics would be empty and thus removed by the tool's logic
     assert result_data == {"symbol": ticker_symbol}
 
-@patch('yfinance.Ticker')
+
+@patch("yfinance.Ticker")
 def test_run_yfinance_exception(mock_yf_ticker, tool_instance):
     ticker_symbol = "ERRORTICKER"
     error_message = "Test yfinance error"

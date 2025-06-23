@@ -9,6 +9,7 @@ from epic_news.tools.alpha_vantage_tool import AlphaVantageCompanyOverviewTool, 
 
 TEST_ALPHA_VANTAGE_API_KEY = "test_alpha_vantage_key_123"
 
+
 # Test Instantiation
 def test_alpha_vantage_tool_instantiation_success():
     """Test successful instantiation of AlphaVantageCompanyOverviewTool."""
@@ -17,6 +18,7 @@ def test_alpha_vantage_tool_instantiation_success():
     assert tool.name == "Alpha Vantage Company Overview"
     assert tool.description is not None
     assert tool.args_schema == CompanyOverviewInput
+
 
 def test_alpha_vantage_tool_instantiation_no_api_key_env():
     """
@@ -31,10 +33,11 @@ def test_alpha_vantage_tool_instantiation_no_api_key_env():
         result = tool._run(ticker="AAPL")
         assert "ALPHA_VANTAGE_API_KEY environment variable not set" in result
 
+
 # Test _run method
-@patch('epic_news.tools.alpha_vantage_tool.get_cache_manager')
-@patch('epic_news.tools.alpha_vantage_tool.requests.get')
-@patch('epic_news.tools.alpha_vantage_tool.os.getenv')
+@patch("epic_news.tools.alpha_vantage_tool.get_cache_manager")
+@patch("epic_news.tools.alpha_vantage_tool.requests.get")
+@patch("epic_news.tools.alpha_vantage_tool.os.getenv")
 def test_run_successful_response(mock_os_getenv, mock_requests_get, mock_get_cache_manager):
     """Test _run method with a successful API response."""
     # Mock the environment variable
@@ -49,7 +52,7 @@ def test_run_successful_response(mock_os_getenv, mock_requests_get, mock_get_cac
     mock_api_data = {"Symbol": "AAPL", "CompanyName": "Apple Inc.", "MarketCapitalization": "2000B"}
     mock_response.json.return_value = mock_api_data
     mock_response.status_code = 200
-    mock_response.raise_for_status = MagicMock() # Ensure it doesn't raise for 200
+    mock_response.raise_for_status = MagicMock()  # Ensure it doesn't raise for 200
     mock_requests_get.return_value = mock_response
 
     with patch.dict(os.environ, {"ALPHA_VANTAGE_API_KEY": TEST_ALPHA_VANTAGE_API_KEY}):
@@ -60,15 +63,14 @@ def test_run_successful_response(mock_os_getenv, mock_requests_get, mock_get_cac
     assert result_data == mock_api_data
 
     expected_url = (
-        f"https://www.alphavantage.co/query?function=OVERVIEW&symbol=AAPL"
-        f"&apikey={TEST_ALPHA_VANTAGE_API_KEY}"
+        f"https://www.alphavantage.co/query?function=OVERVIEW&symbol=AAPL&apikey={TEST_ALPHA_VANTAGE_API_KEY}"
     )
     mock_requests_get.assert_called_once_with(expected_url, timeout=10)
 
 
-@patch('epic_news.tools.alpha_vantage_tool.get_cache_manager')
-@patch('epic_news.tools.alpha_vantage_tool.requests.get')
-@patch('epic_news.tools.alpha_vantage_tool.os.getenv')
+@patch("epic_news.tools.alpha_vantage_tool.get_cache_manager")
+@patch("epic_news.tools.alpha_vantage_tool.requests.get")
+@patch("epic_news.tools.alpha_vantage_tool.os.getenv")
 def test_run_api_http_error(mock_os_getenv, mock_requests_get, mock_get_cache_manager):
     """Test _run method when Alpha Vantage API returns an HTTP error."""
     # Mock the environment variable
@@ -90,14 +92,14 @@ def test_run_api_http_error(mock_os_getenv, mock_requests_get, mock_get_cache_ma
 
     assert "Error fetching data from Alpha Vantage: Server Error" in result
     expected_url = (
-        f"https://www.alphavantage.co/query?function=OVERVIEW&symbol=FAIL"
-        f"&apikey={TEST_ALPHA_VANTAGE_API_KEY}"
+        f"https://www.alphavantage.co/query?function=OVERVIEW&symbol=FAIL&apikey={TEST_ALPHA_VANTAGE_API_KEY}"
     )
     mock_requests_get.assert_called_once_with(expected_url, timeout=10)
 
-@patch('epic_news.tools.alpha_vantage_tool.get_cache_manager')
-@patch('epic_news.tools.alpha_vantage_tool.requests.get')
-@patch('epic_news.tools.alpha_vantage_tool.os.getenv')
+
+@patch("epic_news.tools.alpha_vantage_tool.get_cache_manager")
+@patch("epic_news.tools.alpha_vantage_tool.requests.get")
+@patch("epic_news.tools.alpha_vantage_tool.os.getenv")
 def test_run_invalid_json_response(mock_os_getenv, mock_requests_get, mock_get_cache_manager):
     """Test _run method when Alpha Vantage API returns invalid JSON."""
     # Mock the environment variable
@@ -120,9 +122,10 @@ def test_run_invalid_json_response(mock_os_getenv, mock_requests_get, mock_get_c
 
     assert "Error: Failed to parse JSON response from Alpha Vantage" in result
 
-@patch('epic_news.tools.alpha_vantage_tool.get_cache_manager')
-@patch('epic_news.tools.alpha_vantage_tool.requests.get')
-@patch('epic_news.tools.alpha_vantage_tool.os.getenv')
+
+@patch("epic_news.tools.alpha_vantage_tool.get_cache_manager")
+@patch("epic_news.tools.alpha_vantage_tool.requests.get")
+@patch("epic_news.tools.alpha_vantage_tool.os.getenv")
 def test_run_api_returns_note_or_empty(mock_os_getenv, mock_requests_get, mock_get_cache_manager):
     """Test _run method when API returns a 'Note' (e.g. rate limit) or empty data."""
     # Mock the environment variable
@@ -137,7 +140,9 @@ def test_run_api_returns_note_or_empty(mock_os_getenv, mock_requests_get, mock_g
     mock_response_note = MagicMock()
     mock_response_note.status_code = 200
     mock_response_note.raise_for_status = MagicMock()
-    mock_response_note.json.return_value = {"Note": "Thank you for using Alpha Vantage! Our standard API call frequency is 5 calls per minute and 500 calls per day."}
+    mock_response_note.json.return_value = {
+        "Note": "Thank you for using Alpha Vantage! Our standard API call frequency is 5 calls per minute and 500 calls per day."
+    }
     mock_requests_get.return_value = mock_response_note
 
     with patch.dict(os.environ, {"ALPHA_VANTAGE_API_KEY": TEST_ALPHA_VANTAGE_API_KEY}):
@@ -146,30 +151,30 @@ def test_run_api_returns_note_or_empty(mock_os_getenv, mock_requests_get, mock_g
     assert "No data found for ticker NOTE. It might be an invalid symbol." in result_note
     mock_requests_get.assert_called_with(
         f"https://www.alphavantage.co/query?function=OVERVIEW&symbol=NOTE&apikey={TEST_ALPHA_VANTAGE_API_KEY}",
-        timeout=10
+        timeout=10,
     )
 
     # Scenario 2: API returns empty data
-    mock_requests_get.reset_mock() # Reset for the next call
+    mock_requests_get.reset_mock()  # Reset for the next call
     mock_response_empty = MagicMock()
     mock_response_empty.status_code = 200
     mock_response_empty.raise_for_status = MagicMock()
-    mock_response_empty.json.return_value = {} # Empty dictionary
+    mock_response_empty.json.return_value = {}  # Empty dictionary
     mock_requests_get.return_value = mock_response_empty
 
     with patch.dict(os.environ, {"ALPHA_VANTAGE_API_KEY": TEST_ALPHA_VANTAGE_API_KEY}):
-        tool = AlphaVantageCompanyOverviewTool() # Re-instantiate or ensure state is clean if needed
+        tool = AlphaVantageCompanyOverviewTool()  # Re-instantiate or ensure state is clean if needed
         result_empty = tool._run(ticker="EMPTY")
     assert "No data found for ticker EMPTY. It might be an invalid symbol." in result_empty
     mock_requests_get.assert_called_with(
         f"https://www.alphavantage.co/query?function=OVERVIEW&symbol=EMPTY&apikey={TEST_ALPHA_VANTAGE_API_KEY}",
-        timeout=10
+        timeout=10,
     )
 
 
-@patch('epic_news.tools.alpha_vantage_tool.get_cache_manager')
-@patch('epic_news.tools.alpha_vantage_tool.requests.get')
-@patch('epic_news.tools.alpha_vantage_tool.os.getenv')
+@patch("epic_news.tools.alpha_vantage_tool.get_cache_manager")
+@patch("epic_news.tools.alpha_vantage_tool.requests.get")
+@patch("epic_news.tools.alpha_vantage_tool.os.getenv")
 def test_run_network_request_exception(mock_os_getenv, mock_requests_get, mock_get_cache_manager):
     """Test _run method when a requests.exceptions.RequestException occurs."""
     # Mock the environment variable
@@ -188,5 +193,6 @@ def test_run_network_request_exception(mock_os_getenv, mock_requests_get, mock_g
         result = tool._run(ticker="NETERR")
 
     assert f"Error fetching data from Alpha Vantage: {network_error_message}" in result
+
 
 # More tests will follow for API errors, invalid ticker, network issues etc.

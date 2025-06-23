@@ -99,7 +99,7 @@ def get_github_tools():
         # Try to create the GitHub tool
         github_tool = GithubSearchTool(
             gh_token=github_token,
-            content_types=['code', 'repo', 'pr', 'issue']  # Search all content types
+            content_types=["code", "repo", "pr", "issue"],  # Search all content types
         )
         return [github_tool]
     except (ImportError, ValueError) as e:
@@ -131,11 +131,11 @@ def get_all_web_tools():
         list: A comprehensive list of all web tools.
     """
     return (
-        get_search_tools() +
-        get_news_tools() +
-        get_scrape_tools() +
-        get_website_search_tools() +
-        get_github_tools() +
-        get_pdf_tools() +
-        get_youtube_tools()
+        get_search_tools()
+        + get_news_tools()
+        + get_scrape_tools()
+        + get_website_search_tools()
+        + get_github_tools()
+        + get_pdf_tools()
+        + get_youtube_tools()
     )

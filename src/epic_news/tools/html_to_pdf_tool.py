@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 from weasyprint import HTML
 
 # Silence WeasyPrint's verbose logging to keep output clean.
-logging.getLogger('weasyprint').setLevel(logging.WARNING)
+logging.getLogger("weasyprint").setLevel(logging.WARNING)
 
 
 logger = logging.getLogger(__name__)

@@ -4,82 +4,18 @@ This handbook provides a comprehensive overview of the tools available to agents
 
 ---
 
-## Web Search Tools
-
-The project provides a factory for creating web search tools from different providers. This allows for a consistent way to access web search functionality while keeping the underlying implementations modular.
-
-### WebSearchFactory
+## AccuWeatherTool
 
 **Description:**
-A factory for creating web search tools. Use this to get an instance of a specific search tool provider.
-
-**Usage Example:**
-
-```python
-from src.epic_news.tools.web_search_factory import WebSearchFactory
-
-# Get the Tavily search tool
-tavily_search_tool = WebSearchFactory.create('tavily')
-results = tavily_search_tool._run(query="Latest news on AI")
-print(results)
-
-# Get the SerpAPI search tool
-serpapi_search_tool = WebSearchFactory.create('serpapi')
-results = serpapi_search_tool._run(query="Latest news on AI")
-print(results)
-```
-
----
-
-### TavilyTool
-
-**Description:**
-A tool for performing web searches using the Tavily API. It returns a concise summary of search results for a given query. This tool can be instantiated via the `WebSearchFactory`.
+A tool to get the current weather conditions for a specific location. It first finds the location key for the given city name and then uses it to fetch the current weather data.
 
 **Prerequisites:**
 
-- The `TAVILY_API_KEY` environment variable must be set with a valid Tavily API key.
+- The `ACCUWEATHER_API_KEY` environment variable must be set with a valid AccuWeather API key.
 
 **Parameters:**
 
-- `query` (str): The search query.
-
-**Usage Example:**
-
-```python
-from src.epic_news.tools.web_search_factory import WebSearchFactory
-
-tavily_tool = WebSearchFactory.create('tavily')
-results = tavily_tool._run(query="What are the latest trends in AI?")
-print(results)
-```
-
-**Output Format:**
-
-A string containing the search results from the Tavily API.
-
----
-
-### SerpApiTool
-
-**Description:**
-A tool for performing web searches using the SerpAPI. It provides detailed search results including titles, links, and snippets.
-
-**Prerequisites:**
-
-- The `SERPAPI_API_KEY` environment variable must be set with a valid SerpAPI API key.
-
-**Parameters:**
-
-- `query` (str): The search query.
-- `num_results` (int): Number of results to return (default: 5, max: 10).
-- `country` (str): Country code for localized results (e.g., 'us').
-- `language` (str): Language code for results (e.g., 'en').
-- `page` (int): Pagination number (default: 1).
-
-**Output Format:**
-
-A JSON string containing the search results.
+- `location` (str): The city name to get the current weather for (e.g., 'London').
 
 ---
 
@@ -92,66 +28,155 @@ A tool for creating a new record in a specified Airtable table. It requires the 
 
 - The `AIRTABLE_API_KEY` environment variable must be set with a valid Airtable API key.
 
-**Supported Actions:**
-
-- `create_record`: Creates a new record in a table.
-
 **Parameters:**
 
 - `base_id` (str): The ID of the Airtable base.
 - `table_name` (str): The name of the table within the base.
 - `data` (dict): A dictionary representing the data for the new record.
 
-**Usage Example:**
-
-```python
-from src.epic_news.tools.airtable_tool import AirtableTool
-
-airtable_tool = AirtableTool()
-result = airtable_tool._run(
-    base_id="appYOUR_BASE_ID",
-    table_name="Your Table Name",
-    data={"Name": "New Lead", "Status": "Open"}
-)
-print(result)
-```
-
-**Output Format:**
-
-A string confirming the successful creation of the record, including its new ID.
-
 ---
 
-## AccuWeatherTool
+## Alpha Vantage Company Overview Tool
 
 **Description:**
-A tool to get the current weather conditions for a specific location. It first finds the location key for the given city name and then uses it to fetch the current weather data.
+Use to fetch fundamental data and a company overview for a specific stock ticker from Alpha Vantage. This tool helps get detailed financial metrics like Market Cap, P/E Ratio, EPS, and more.
 
 **Prerequisites:**
 
-- The `ACCUWEATHER_API_KEY` environment variable must be set with a valid AccuWeather API key.
-
-**Supported Actions:**
-
-- `get_current_weather`: Retrieves the current weather for a location.
+- The `ALPHA_VANTAGE_API_KEY` environment variable must be set.
 
 **Parameters:**
 
-- `location` (str): The city name to get the current weather for (e.g., 'London').
+- `ticker` (string, required): The stock ticker symbol to get information for (e.g., AAPL, MSFT).
 
-**Usage Example:**
+---
 
-```python
-from src.epic_news.tools.accuweather_tool import AccuWeatherTool
+## CoinMarketCap Tools
 
-accuweather_tool = AccuWeatherTool()
-weather = accuweather_tool._run(location="London")
-print(weather)
-```
+### CoinMarketCap Cryptocurrency Historical Data
 
-**Output Format:**
+**Description:**
+Use to get historical price, volume, and market cap data for a specific cryptocurrency.
 
-A string containing the current weather conditions, for example: "Current weather in your location: 20°C, Sunny."
+**Prerequisites:**
+
+- `COINMARKETCAP_API_KEY` must be set in the environment.
+
+**Parameters:**
+
+- `symbol` (string, required): The cryptocurrency symbol (e.g., 'BTC', 'ETH') or slug.
+- `time_period` (string, optional, default: '30d'): The time period for historical data (e.g., '7d', '30d', '1y').
+
+### CoinMarketCap Cryptocurrency Info
+
+**Description:**
+Use to get detailed information about a specific cryptocurrency including price, market cap, volume, circulating supply, and other key metrics.
+
+**Prerequisites:**
+
+- `COINMARKETCAP_API_KEY` must be set in the environment.
+
+**Parameters:**
+
+- `symbol` (string, required): The cryptocurrency symbol (e.g., 'BTC', 'ETH') or slug.
+
+### CoinMarketCap Cryptocurrency List
+
+**Description:**
+Use to get a list of top cryptocurrencies.
+
+**Prerequisites:**
+
+- `COINMARKETCAP_API_KEY` must be set in the environment.
+
+**Parameters:**
+
+- `limit` (integer, optional, default: 25): Number of results to return (max 100).
+- `sort` (string, optional, default: 'market_cap'): Sort criteria (e.g., 'market_cap', 'volume_24h').
+
+### CoinMarketCap Cryptocurrency News
+
+**Description:**
+Use to get the latest cryptocurrency news articles.
+
+**Prerequisites:**
+
+- `COINMARKETCAP_API_KEY` must be set in the environment.
+
+**Parameters:**
+
+- `symbol` (string, optional): The cryptocurrency symbol (e.g., 'BTC', 'ETH') or slug to filter news.
+- `limit` (integer, optional, default: 10): Number of news articles to return (max 50).
+
+---
+
+## Delegating Email Search Tool
+
+**Description:**
+Routes email search queries to Hunter.io or Serper based on the specified provider. Use 'hunter' for domain-specific searches (e.g., 'example.com'). Use 'serper' for company name or broader web searches (e.g., 'Example Inc').
+
+**Prerequisites:**
+
+- `HUNTER_API_KEY` if `provider` is 'hunter'.
+- `SERPER_API_KEY` if `provider` is 'serper'.
+
+**Parameters:**
+
+- `provider` (string, required): Email search provider: 'hunter' or 'serper'.
+- `query` (string, required): Domain name for 'hunter' (e.g., 'example.com'), or company name/general query for 'serper' (e.g., 'Example Inc').
+
+---
+
+## Firecrawl Tools
+
+### FirecrawlScrapeWebsiteTool
+
+**Description:**
+Use when you have a specific URL and need to extract its full content for detailed analysis. This is ideal for deep dives into articles, reports, or documentation pages.
+
+**Prerequisites:**
+
+- `FIRECRAWL_API_KEY` must be set in the environment.
+
+**Parameters:**
+
+- `url` (string, required): The URL of the website to scrape.
+
+### FirecrawlSearchTool
+
+**Description:**
+Use to perform a targeted search within a specific website. This is useful when you know a site contains the information you need but you have to find the exact page.
+
+**Prerequisites:**
+
+- `FIRECRAWL_API_KEY` must be set in the environment.
+
+**Parameters:**
+
+- `query` (string, required): The search query.
+- `site` (string, required): The specific website URL to search within (e.g., `example.com`).
+
+---
+
+## Geoapify Places Search Tool
+
+**Description:**
+Use to search for points of interest (POIs) using the Geoapify Places API. Supports searching by categories, conditions, and location filters.
+
+**Prerequisites:**
+
+- `GEOAPIFY_API_KEY` must be set in the environment.
+
+**Parameters:**
+
+- `categories` (list of strings, optional): List of category IDs to search for (e.g., `['catering.restaurant', 'commercial.supermarket']`).
+- `conditions` (list of strings, optional): List of conditions to filter results (e.g., `['vegetarian', 'wheelchair']`).
+- `filter_type` (string, optional): Type of filter to apply. Options: 'circle', 'rect', 'place', or 'geometry'.
+- `filter_value` (string, optional): Filter values based on filter_type.
+- `bias` (string, optional): Bias results by proximity to a point as 'lon,lat'.
+- `limit` (integer, optional, default: 20): Maximum number of results to return (1-100).
+- `offset` (integer, optional, default: 0): Offset for pagination.
+- `lang` (string, optional, default: 'en'): Language code for results.
 
 ---
 
@@ -162,48 +187,56 @@ A tool for interacting with the Todoist API. It allows you to manage tasks and p
 
 **Prerequisites:**
 
-- You must have a Todoist account.
-- You must obtain an API token from your Todoist settings (Integrations -> Developer).
-- The API token must be set as an environment variable named `TODOIST_API_KEY`.
+- The `TODOIST_API_KEY` environment variable must be set.
 
 **Actions:**
-The tool supports the following actions, specified via the `action` parameter:
 
-1. `get_tasks`
-    - **Description:** Retrieves a list of tasks.
-    - **Parameters:**
-        - `project_id` (optional): The ID of the project to filter tasks by. If not provided, it fetches all tasks.
-    - **Example:** `tool._run(action="get_tasks", project_id="12345")`
+- `get_tasks`: Retrieves a list of tasks.
+- `create_task`: Creates a new task.
+- `complete_task`: Marks a task as complete.
+- `get_projects`: Retrieves a list of all your projects.
 
-2. `create_task`
-    - **Description:** Creates a new task.
-    - **Parameters:**
-        - `task_content` (required): The content of the task (e.g., "Buy milk").
-        - `project_id` (optional): The ID of the project to add the task to.
-        - `due_string` (optional): A human-readable due date (e.g., "tomorrow at 10am", "every day").
-        - `priority` (optional): The task priority from 1 (normal) to 4 (urgent).
-    - **Example:** `tool._run(action="create_task", task_content="Finish report", due_string="Friday", priority=4)`
+**Parameters:**
 
-3. `complete_task`
-    - **Description:** Marks a task as complete.
-    - **Parameters:**
-        - `task_id` (required): The ID of the task to complete.
-    - **Example:** `tool._run(action="complete_task", task_id="67890")`
-
-4. `get_projects`
-    - **Description:** Retrieves a list of all your projects.
-    - **Parameters:** None.
-    - **Example:** `tool._run(action="get_projects")`
-
-**Output:**
-The tool returns a string indicating the result of the operation, which could be a success message, an error message, or the data requested (e.g., a list of tasks or projects).
+- See tool for detailed parameters for each action.
 
 ---
 
-## WikipediaTool
+## Web Search Tools
+
+The project provides a factory for creating web search tools from different providers.
+
+### WebSearchFactory
 
 **Description:**
-A comprehensive tool to interact with Wikipedia. It can search for articles, fetch content, get summaries, and extract specific information like links, sections, or key facts.
+A factory for creating web search tools. Use this to get an instance of a specific search tool provider.
+
+### TavilyTool
+
+**Description:**
+A tool for performing web searches using the Tavily API.
+
+**Prerequisites:**
+
+- The `TAVILY_API_KEY` environment variable must be set.
+
+### SerpApiTool
+
+**Description:**
+A tool for performing web searches using the SerpAPI.
+
+**Prerequisites:**
+
+- The `SERPAPI_API_KEY` environment variable must be set.
+
+---
+
+## Wikipedia Tools
+
+### WikipediaArticleTool
+
+**Description:**
+A tool to fetch various types of content from a Wikipedia article. Actions include getting a summary, full content, links, sections, or related topics.
 
 **Prerequisites:**
 
@@ -211,193 +244,98 @@ A comprehensive tool to interact with Wikipedia. It can search for articles, fet
 
 **Actions:**
 
-The tool's behavior is controlled by the `action` parameter.
+- `get_summary`: Retrieves a concise summary of a Wikipedia article.
+- `get_article`: Fetches the full plain text content of a Wikipedia article.
+- `get_links`: Gets all the links contained within a Wikipedia article.
+- `get_sections`: Retrieves the table of contents (all section titles) for an article.
+- `get_related_topics`: Gets a list of topics related to an article, based on its outgoing links.
 
-1. **`search_wikipedia`**
-    - **Description:** Searches Wikipedia for articles matching a query.
-    - **Parameters:**
-        - `query` (str, required): The search term.
-        - `limit` (int, optional, default: 5): The maximum number of results to return.
-    - **Example:** `tool._run(action="search_wikipedia", query="Python programming", limit=3)`
-    - **Output:** A JSON string list of article titles.
+**Parameters:**
 
-2. **`get_summary`**
-    - **Description:** Retrieves a concise summary of a Wikipedia article.
-    - **Parameters:**
-        - `title` (str, required): The exact title of the Wikipedia article.
-    - **Example:** `tool._run(action="get_summary", title="Artificial intelligence")`
-    - **Output:** A string containing the summary.
+- `title` (str, required): The title of the Wikipedia article.
+- `action` (str, required): The action to perform on the article.
+- `limit` (int, optional, default: 10): Limit for actions like 'get_related_topics'.
 
-3. **`get_article`**
-    - **Description:** Fetches the full plain text content of a Wikipedia article.
-    - **Parameters:**
-        - `title` (str, required): The exact title of the article.
-    - **Example:** `tool._run(action="get_article", title="History of computing")`
-    - **Output:** A string with the full article content.
+**Usage Example:**
 
-4. **`get_links`**
-    - **Description:** Gets all the links contained within a Wikipedia article.
-    - **Parameters:**
-        - `title` (str, required): The exact title of the article.
-    - **Example:** `tool._run(action="get_links", title="World Wide Web")`
-    - **Output:** A JSON string list of all link titles.
+```python
+from src.epic_news.tools.wikipedia_article_tool import WikipediaArticleTool, ArticleAction
 
-5. **`get_sections`**
-    - **Description:** Retrieves the table of contents (all section titles) for an article.
-    - **Parameters:**
-        - `title` (str, required): The exact title of the article.
-    - **Example:** `tool._run(action="get_sections", title="Python (programming language)")`
-    - **Output:** A JSON string list of section titles.
+tool = WikipediaArticleTool()
+summary = tool._run(title="Artificial intelligence", action=ArticleAction.GET_SUMMARY)
+print(summary)
+```
 
-6. **`get_related_topics`**
-    - **Description:** Gets a list of topics related to an article, based on its outgoing links.
-    - **Parameters:**
-        - `title` (str, required): The exact title of the article.
-        - `limit` (int, optional, default: 10): The maximum number of related topics to return.
-    - **Example:** `tool._run(action="get_related_topics", title="Machine learning", limit=5)`
-    - **Output:** A JSON string list of related article titles.
+**Output Format:**
+A string containing the requested content (summary, article text) or a JSON string list (links, sections).
 
-7. **`extract_key_facts`**
-    - **Description:** Extracts the first few sentences from an article's summary or a specific section to serve as key facts.
-    - **Parameters:**
-        - `title` (str, required): The exact title of the article.
-        - `topic_within_article` (str, optional): The title of a specific section to extract facts from. If not provided, uses the main summary.
-        - `count` (int, optional, default: 5): The number of sentences to extract.
-    - **Example:** `tool._run(action="extract_key_facts", title="Albert Einstein", topic_within_article="Annus Mirabilis papers", count=2)`
-    - **Output:** A string containing the key facts.
+### WikipediaProcessingTool
 
-8. **`summarize_article_for_query`**
-    - **Description:** Creates a summary of an article focused on paragraphs relevant to a specific query.
-    - **Parameters:**
-        - `title` (str, required): The exact title of the article.
-        - `query` (str, required): The term or question to focus the summary on.
-        - `max_length` (int, optional, default: 150): The maximum length of the summary.
-    - **Example:** `tool._run(action="summarize_article_for_query", title="World War II", query="D-Day", max_length=200)`
-    - **Output:** A query-focused summary string.
+**Description:**
+A tool to process content from a Wikipedia article, such as extracting key facts or creating query-specific summaries.
 
-9. **`summarize_article_section`**
-    - **Description:** Provides a summary of a specific section within an article.
-    - **Parameters:**
-        - `title` (str, required): The exact title of the article.
-        - `section_title` (str, required): The title of the section to summarize.
-        - `max_length` (int, optional, default: 150): The maximum length of the summary.
-    - **Example:** `tool._run(action="summarize_article_section", title="Photosynthesis", section_title="Efficiency", max_length=100)`
-    - **Output:** A summary string of the specified section.
+**Prerequisites:**
 
-This document provides a comprehensive list and detailed descriptions of all tools available to AI agents within the epic_news project.
+- The `wikipedia` python package must be installed.
 
----
+**Actions:**
 
-- **`Alpha Vantage Company Overview`**: Use to fetch fundamental data and a company overview for a specific stock ticker from Alpha Vantage. This tool helps get detailed financial metrics like Market Cap, P/E Ratio, EPS, and more.
-  - `Tool Identifier`: `AlphaVantageCompanyOverviewTool`
-  - `Arguments`:
-    - `ticker` (string, required): The stock ticker symbol to get information for (e.g., AAPL, MSFT).
+- `extract_key_facts`: Extracts the first few sentences from an article's summary or a specific section.
+- `summarize_article_for_query`: Creates a summary of an article focused on paragraphs relevant to a specific query.
+- `summarize_article_section`: Provides a summary of a specific section within an article.
 
----
+**Parameters:**
 
-- **`Geoapify Places Search`**: Use to search for points of interest (POIs) using the Geoapify Places API. Supports searching by categories, conditions, and location filters.
-  - `Tool Identifier`: `GeoapifyPlacesTool`
-  - `Arguments`:
-    - `categories` (list of strings, optional): List of category IDs to search for (e.g., `['catering.restaurant', 'commercial.supermarket']`). See [Geoapify Categories](https://apidocs.geoapify.com/docs/places/) for full list.
-    - `conditions` (list of strings, optional): List of conditions to filter results (e.g., `['vegetarian', 'wheelchair']`).
-    - `filter_type` (string, optional): Type of filter to apply. Options: 'circle' (lon,lat,radiusM), 'rect' (lon1,lat1,lon2,lat2), 'place' (place ID), or 'geometry' (geometry ID).
-    - `filter_value` (string, optional): Filter values as comma-separated string based on filter_type. Example for circle: `'-0.1,51.5,1000'` (lon,lat,radiusM).
-    - `bias` (string, optional): Bias results by proximity to a point as 'lon,lat'. Results will be sorted by distance from this point.
-    - `limit` (integer, optional, default: 20): Maximum number of results to return (1-100).
-    - `offset` (integer, optional, default: 0): Offset for pagination.
-    - `lang` (string, optional, default: 'en'): Language code (ISO 639-1) for results.
-  - `API Key(s)`: Requires `GEOAPIFY_API_KEY` to be set in the environment.
-  - `Example`:
+- `title` (str, required): The title of the Wikipedia article.
+- `action` (str, required): The processing action to perform.
+- `query` (str, optional): The query to tailor the summary for.
+- `section_title` (str, optional): The title of the section to summarize or extract facts from.
+- `max_length` (int, optional, default: 150): The maximum length of the summary.
+- `count` (int, optional, default: 5): The number of key facts to extract.
 
-    ```python
-    tool = GeoapifyPlacesTool()
-    result = tool._run(
-        categories=["catering.restaurant"],
-        conditions=["vegetarian"],
-        filter_type="circle",
-        filter_value="-0.1,51.5,1000",  # lon,lat,radiusM
-        bias="-0.1,51.5",  # Sort by proximity to this point
-        limit=5,
-        lang="en"
-    )
-    ```
+**Usage Example:**
 
----
+```python
+from src.epic_news.tools.wikipedia_processing_tool import WikipediaProcessingTool, ProcessingAction
 
-- **`Alpha Vantage Company Overview`**: Use to fetch fundamental data and a company overview for a specific stock ticker from Alpha Vantage. This tool helps get detailed financial metrics like Market Cap, P/E Ratio, EPS, and more.
-  - `Tool Identifier`: `AlphaVantageCompanyOverviewTool`
-  - `Arguments`:
-    - `ticker` (string, required): The stock ticker symbol to get information for (e.g., AAPL, MSFT).
-  - `API Key(s)`: Requires `ALPHA_VANTAGE_API_KEY` to be set in the environment.
+tool = WikipediaProcessingTool()
+facts = tool._run(
+    title="Albert Einstein",
+    action=ProcessingAction.EXTRACT_KEY_FACTS,
+    count=2
+)
+print(facts)
+```
 
----
+**Output Format:**
+A string containing the processed content (key facts, summary).
 
-- **`CoinMarketCap Cryptocurrency Historical Data`**: Use to get historical price, volume, and market cap data for a specific cryptocurrency.
-  - `Tool Identifier`: `CoinMarketCapHistoricalTool`
-  - `Arguments`:
-    - `symbol` (string, required): The cryptocurrency symbol (e.g., 'BTC', 'ETH') or slug.
-    - `time_period` (string, optional, default: '30d'): The time period for historical data (e.g., '7d', '30d', '1y').
-  - `API Key(s)`: Requires `COINMARKETCAP_API_KEY` to be set in the environment.
+### WikipediaSearchTool
 
----
+**Description:**
+A tool to search for articles on Wikipedia.
 
-- **`CoinMarketCap Cryptocurrency Info`**: Use to get detailed information about a specific cryptocurrency including price, market cap, volume, circulating supply, and other key metrics.
-  - `Tool Identifier`: `CoinMarketCapInfoTool`
-  - `Arguments`:
-    - `symbol` (string, required): The cryptocurrency symbol (e.g., 'BTC', 'ETH') or slug.
-  - `API Key(s)`: Requires `COINMARKETCAP_API_KEY` to be set in the environment.
+**Prerequisites:**
 
----
+- The `wikipedia` python package must be installed.
 
-- **`CoinMarketCap Cryptocurrency List`**: Use to get a list of top cryptocurrencies.
-  - `Tool Identifier`: `CoinMarketCapListTool`
-  - `Arguments`:
-    - `limit` (integer, optional, default: 25): Number of results to return (max 100).
-    - `sort` (string, optional, default: 'market_cap'): Sort criteria (e.g., 'market_cap', 'volume_24h').
-  - `API Key(s)`: Requires `COINMARKETCAP_API_KEY` to be set in the environment.
+**Parameters:**
 
----
+- `query` (str, required): The search query for Wikipedia.
+- `limit` (int, optional, default: 5): The maximum number of results to return.
 
-- **`CoinMarketCap Cryptocurrency News`**: Use to get the latest cryptocurrency news articles.
-  - `Tool Identifier`: `CoinMarketCapNewsTool`
-  - `Arguments`:
-    - `symbol` (string, optional): The cryptocurrency symbol (e.g., 'BTC', 'ETH') or slug to filter news.
-    - `limit` (integer, optional, default: 10): Number of news articles to return (max 50).
-  - `API Key(s)`: Requires `COINMARKETCAP_API_KEY` to be set in the environment.
+**Usage Example:**
 
----
+```python
+from src.epic_news.tools.wikipedia_search_tool import WikipediaSearchTool
 
-- **`Delegating Email Search Tool`**: Routes email search queries to Hunter.io or Serper based on the specified provider. Use 'hunter' for domain-specific searches (e.g., 'example.com'). Use 'serper' for company name or broader web searches (e.g., 'Example Inc').
-  - `Tool Identifier`: `DelegatingEmailSearchTool` (from `email_search.py`, uses name `email_search_router`)
-  - `Arguments`:
-    - `provider` (string, required): Email search provider: 'hunter' or 'serper'.
-    - `query` (string, required): Domain name for 'hunter' (e.g., 'example.com'), or company name/general query for 'serper' (e.g., 'Example Inc').
-  - `API Key(s)`: Requires `HUNTER_API_KEY` if `provider` is 'hunter'; `SERPER_API_KEY` if `provider` is 'serper'.
+tool = WikipediaSearchTool()
+results = tool._run(query="Python programming", limit=3)
+print(results)
+```
 
----
-
-- **`FirecrawlScrapeWebsiteTool`**: Use when you have a specific URL and need to extract its full content for detailed analysis. This is ideal for deep dives into articles, reports, or documentation pages.
-  - `Tool Identifier`: `FirecrawlScrapeWebsiteTool` (from `crewai_tools`, configured in `web_tools.py`)
-  - `Arguments`:
-    - `url` (string, required): The URL of the website to scrape.
-  - `API Key(s)`: Requires `FIRECRAWL_API_KEY` to be set in the environment.
-  - `Configuration` (in `get_scrape_tools()`):
-    - `limit`: 25
-    - `save_file`: True
-
----
-
-- **`FirecrawlSearchTool`**: Use to perform a targeted search within a specific website. This is useful when you know a site contains the information you need but you have to find the exact page.
-  - `Tool Identifier`: `FirecrawlSearchTool` (from `crewai_tools`, configured in `web_tools.py`)
-  - `Arguments`:
-    - `query` (string, required): The search query.
-    - `site` (string, required): The specific website URL to search within (e.g., `example.com`).
-  - `API Key(s)`: Requires `FIRECRAWL_API_KEY` to be set in the environment.
-  - `Configuration` (in `get_search_tools()`):
-    - `limit`: 25
-    - `save_file`: True
-
----
+**Output Format:**
+A JSON string list of article titles.
 
 - **`GitHub Organization Search`**: Use to search for a GitHub organization and retrieve its basic information, including description, URL, and top public repositories.
   - `Tool Identifier`: `GitHubOrgSearchTool`

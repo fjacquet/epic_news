@@ -23,9 +23,9 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../.
 from epic_news.utils.task_orchestration import OrchestrationStrategy
 
 # Configure logging
-logging.basicConfig(level=logging.INFO,
-                   format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("optimize_crews")
+
 
 def discover_crews() -> list[str]:
     """
@@ -46,6 +46,7 @@ def discover_crews() -> list[str]:
                 crew_modules.append(module_path)
 
     return crew_modules
+
 
 def analyze_all_crews() -> dict[str, dict[str, Any]]:
     """
@@ -94,7 +95,7 @@ def analyze_crew_module(module_path: str) -> dict[str, Any]:
             if inspect.isclass(obj):
                 # Look for crew method in the class
                 for method_name, method in inspect.getmembers(obj):
-                    if method_name == 'crew' and callable(method):
+                    if method_name == "crew" and callable(method):
                         # This is likely a crew class
                         try:
                             # Try to instantiate the class
@@ -104,7 +105,7 @@ def analyze_crew_module(module_path: str) -> dict[str, Any]:
                             crew_obj = instance.crew()
 
                             # Get the process type
-                            process_type = getattr(crew_obj, 'process', None)
+                            process_type = getattr(crew_obj, "process", None)
                             process_name = "Unknown"
                             if process_type == Process.sequential:
                                 process_name = "Sequential"
@@ -117,11 +118,11 @@ def analyze_crew_module(module_path: str) -> dict[str, Any]:
 
                             # Look for task methods
                             for task_name, task_method in inspect.getmembers(instance):
-                                if task_name.endswith('_task') and callable(task_method):
+                                if task_name.endswith("_task") and callable(task_method):
                                     try:
                                         task_obj = task_method()
                                         task_count += 1
-                                        if getattr(task_obj, 'async_execution', False):
+                                        if getattr(task_obj, "async_execution", False):
                                             async_tasks += 1
                                     except Exception:
                                         pass
@@ -145,6 +146,7 @@ def analyze_crew_module(module_path: str) -> dict[str, Any]:
     except Exception as e:
         logger.error(f"Error importing module {module_path}: {str(e)}")
         return {}
+
 
 def display_results(results: dict[str, dict[str, Any]]) -> None:
     """
@@ -171,18 +173,19 @@ def display_results(results: dict[str, dict[str, Any]]) -> None:
 
             needs_change = current != optimal and current != "Unknown"
 
-            table_data.append([
-                module_path.split(".")[-2],  # Crew name
-                crew_name,
-                current,
-                optimal,
-                analysis.get("task_count", 0),
-                analysis.get("async_tasks", 0),
-                "✓" if needs_change else ""
-            ])
+            table_data.append(
+                [
+                    module_path.split(".")[-2],  # Crew name
+                    crew_name,
+                    current,
+                    optimal,
+                    analysis.get("task_count", 0),
+                    analysis.get("async_tasks", 0),
+                    "✓" if needs_change else "",
+                ]
+            )
 
-    headers = ["Crew", "Class", "Current Process", "Optimal Process",
-               "Tasks", "Async Tasks", "Needs Change"]
+    headers = ["Crew", "Class", "Current Process", "Optimal Process", "Tasks", "Async Tasks", "Needs Change"]
 
     print("\nCrew Orchestration Analysis")
     print("==========================\n")
@@ -192,6 +195,7 @@ def display_results(results: dict[str, dict[str, Any]]) -> None:
     # Count crews that need changes
     needs_change_count = sum(1 for row in table_data if row[-1] == "✓")
     print(f"Found {needs_change_count} crews that would benefit from process type changes.")
+
 
 def main():
     """Main function to run the optimization script."""
@@ -205,6 +209,7 @@ def main():
 
     if args.apply:
         print("\nThis feature is not yet implemented. For now, please apply changes manually.")
+
 
 if __name__ == "__main__":
     main()

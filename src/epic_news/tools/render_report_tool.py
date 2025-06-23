@@ -13,6 +13,7 @@ Inputs (passed via **kwargs):
 Returns:
     str: Rendered HTML string.
 """
+
 from __future__ import annotations
 
 import datetime as _dt
@@ -55,17 +56,16 @@ class RenderReportTool(BaseTool):
             self._template_dir = Path(template_dir)
         else:
             # Robustly determine the project root and then the templates directory
-            project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
-            self._template_dir = Path(os.path.join(project_root, 'templates'))
+            project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+            self._template_dir = Path(os.path.join(project_root, "templates"))
 
         if not self._template_dir.exists():
             raise FileNotFoundError(f"Template directory not found: {self._template_dir}")
 
         self._env = Environment(
-            loader=FileSystemLoader(str(self._template_dir)),
-            autoescape=select_autoescape(['html', 'xml'])
+            loader=FileSystemLoader(str(self._template_dir)), autoescape=select_autoescape(["html", "xml"])
         )
-        self._env.filters['date'] = RenderReportTool._format_date
+        self._env.filters["date"] = RenderReportTool._format_date
 
     # ---------------------------------------------------------------------
     # Jinja2 filter
@@ -77,7 +77,7 @@ class RenderReportTool(BaseTool):
             return ""
         try:
             # Handles both date and datetime ISO strings
-            date_obj = _dt.datetime.fromisoformat(date_str.replace('Z', '+00:00')).date()
+            date_obj = _dt.datetime.fromisoformat(date_str.replace("Z", "+00:00")).date()
             return date_obj.strftime("%B %d, %Y")
         except (ValueError, TypeError):
             return date_str  # Return original string if parsing fails

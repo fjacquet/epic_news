@@ -76,7 +76,9 @@ def main():
     parser = argparse.ArgumentParser(description="Test Kraken API connection and list assets.")
     parser.add_argument("--api-key", help="Your Kraken API key (overrides env var)")
     parser.add_argument("--api-secret", help="Your Kraken API secret (overrides env var)")
-    parser.add_argument("--pair", default="XXBTZUSD", help="Cryptocurrency pair for ticker test (default: XXBTZUSD)")
+    parser.add_argument(
+        "--pair", default="XXBTZUSD", help="Cryptocurrency pair for ticker test (default: XXBTZUSD)"
+    )
 
     args = parser.parse_args()
 

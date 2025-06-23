@@ -9,6 +9,7 @@ class AirtableReaderToolInput(BaseModel):
     base_id: str = Field(..., description="The ID of the Airtable base.")
     table_name: str = Field(..., description="The name of the table within the base.")
 
+
 class AirtableToolInput(BaseModel):
     """Input schema for the AirtableTool."""
 

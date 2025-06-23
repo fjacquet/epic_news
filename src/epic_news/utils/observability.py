@@ -16,8 +16,7 @@ from functools import wraps
 from typing import Any
 
 # Configure logging
-logging.basicConfig(level=logging.INFO,
-                   format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("observability")
 
 # Constants
@@ -28,15 +27,13 @@ DASHBOARD_DATA_DIR = os.path.join("output", "dashboard_data")
 os.makedirs(TRACE_DIR, exist_ok=True)
 os.makedirs(DASHBOARD_DATA_DIR, exist_ok=True)
 
+
 class TraceEvent:
     """
     Represents a trace event in the system.
     """
-    def __init__(self,
-                event_type: str,
-                source: str,
-                details: dict[str, Any],
-                timestamp: float | None = None):
+
+    def __init__(self, event_type: str, source: str, details: dict[str, Any], timestamp: float | None = None):
         """
         Initialize a trace event.
 
@@ -65,11 +62,11 @@ class TraceEvent:
             "source": self.source,
             "details": self.details,
             "timestamp": self.timestamp,
-            "datetime": datetime.fromtimestamp(self.timestamp).isoformat()
+            "datetime": datetime.fromtimestamp(self.timestamp).isoformat(),
         }
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> 'TraceEvent':
+    def from_dict(cls, data: dict[str, Any]) -> "TraceEvent":
         """
         Create a trace event from a dictionary.
 
@@ -83,7 +80,7 @@ class TraceEvent:
             event_type=data["event_type"],
             source=data["source"],
             details=data["details"],
-            timestamp=data["timestamp"]
+            timestamp=data["timestamp"],
         )
         event.event_id = data["event_id"]
         return event
@@ -93,6 +90,7 @@ class Tracer:
     """
     Traces events in the system for observability.
     """
+
     def __init__(self, trace_id: str | None = None):
         """
         Initialize a tracer.
@@ -127,9 +125,7 @@ class Tracer:
         with open(self.trace_file, "a") as f:
             f.write(json.dumps(event_dict) + "\n")
 
-    def get_events(self,
-                  event_type: str | None = None,
-                  source: str | None = None) -> list[TraceEvent]:
+    def get_events(self, event_type: str | None = None, source: str | None = None) -> list[TraceEvent]:
         """
         Get events matching the specified criteria.
 
@@ -151,7 +147,7 @@ class Tracer:
         return filtered_events
 
     @classmethod
-    def load_trace(cls, trace_id: str) -> 'Tracer':
+    def load_trace(cls, trace_id: str) -> "Tracer":
         """
         Load a trace from a file.
 
@@ -178,9 +174,8 @@ class HallucinationGuard:
     """
     Guards against hallucinations in AI agent outputs.
     """
-    def __init__(self,
-                confidence_threshold: float = 0.7,
-                fact_checking_enabled: bool = True):
+
+    def __init__(self, confidence_threshold: float = 0.7, fact_checking_enabled: bool = True):
         """
         Initialize a hallucination guard.
 
@@ -192,9 +187,7 @@ class HallucinationGuard:
         self.fact_checking_enabled = fact_checking_enabled
         self.known_facts: dict[str, Any] = {}
 
-    def check_statement(self,
-                       statement: str,
-                       context: dict[str, Any]) -> dict[str, Any]:
+    def check_statement(self, statement: str, context: dict[str, Any]) -> dict[str, Any]:
         """
         Check a statement for potential hallucinations.
 
@@ -211,19 +204,19 @@ class HallucinationGuard:
             "is_likely_hallucination": False,
             "confidence": 1.0,
             "warnings": [],
-            "context_used": context
+            "context_used": context,
         }
 
         # Check for specific hallucination patterns
         patterns = [
-            (r"\b(definitely|certainly|absolutely|undoubtedly)\b",
-             "Overly confident language detected", 0.8),
-            (r"\b(all|every|always|never)\b",
-             "Absolute statements detected", 0.7),
-            (r"\b(famous|well-known|renowned|celebrated)\b",
-             "Potentially exaggerated importance", 0.6),
-            (r"\b(recent studies show|research indicates|experts agree)\b",
-             "Vague appeal to authority without citation", 0.5),
+            (r"\b(definitely|certainly|absolutely|undoubtedly)\b", "Overly confident language detected", 0.8),
+            (r"\b(all|every|always|never)\b", "Absolute statements detected", 0.7),
+            (r"\b(famous|well-known|renowned|celebrated)\b", "Potentially exaggerated importance", 0.6),
+            (
+                r"\b(recent studies show|research indicates|experts agree)\b",
+                "Vague appeal to authority without citation",
+                0.5,
+            ),
         ]
 
         for pattern, warning, confidence_penalty in patterns:
@@ -253,10 +246,9 @@ class HallucinationGuard:
         """
         self.known_facts[key] = value
 
-    def validate_output(self,
-                       output: str,
-                       context: dict[str, Any],
-                       fix_hallucinations: bool = False) -> dict[str, Any]:
+    def validate_output(
+        self, output: str, context: dict[str, Any], fix_hallucinations: bool = False
+    ) -> dict[str, Any]:
         """
         Validate an output for hallucinations.
 
@@ -269,13 +261,13 @@ class HallucinationGuard:
             Dict[str, Any]: Validation results
         """
         # Split output into sentences for checking
-        sentences = re.split(r'(?<=[.!?])\s+', output)
+        sentences = re.split(r"(?<=[.!?])\s+", output)
 
         results = {
             "original_output": output,
             "hallucination_score": 0.0,
             "warnings": [],
-            "fixed_output": output if fix_hallucinations else None
+            "fixed_output": output if fix_hallucinations else None,
         }
 
         hallucination_count = 0
@@ -302,6 +294,7 @@ class Dashboard:
     """
     Provides dashboard capabilities for monitoring system activity.
     """
+
     def __init__(self, dashboard_id: str | None = None):
         """
         Initialize a dashboard.
@@ -316,17 +309,10 @@ class Dashboard:
             "agents": {},
             "tasks": {},
             "tools": {},
-            "system": {
-                "start_time": time.time(),
-                "events_count": 0
-            }
+            "system": {"start_time": time.time(), "events_count": 0},
         }
 
-    def update_metric(self,
-                     category: str,
-                     name: str,
-                     metric: str,
-                     value: Any) -> None:
+    def update_metric(self, category: str, name: str, metric: str, value: Any) -> None:
         """
         Update a metric in the dashboard.
 
@@ -353,9 +339,7 @@ class Dashboard:
         with open(self.data_file, "w") as f:
             json.dump(self.metrics, f, indent=2)
 
-    def get_metrics(self,
-                   category: str | None = None,
-                   name: str | None = None) -> dict[str, Any]:
+    def get_metrics(self, category: str | None = None, name: str | None = None) -> dict[str, Any]:
         """
         Get metrics from the dashboard.
 
@@ -373,7 +357,7 @@ class Dashboard:
         return self.metrics
 
     @classmethod
-    def load_dashboard(cls, dashboard_id: str) -> 'Dashboard':
+    def load_dashboard(cls, dashboard_id: str) -> "Dashboard":
         """
         Load a dashboard from a file.
 
@@ -404,6 +388,7 @@ def trace_task(tracer: Tracer):
     Returns:
         Callable: The decorator function
     """
+
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -411,11 +396,7 @@ def trace_task(tracer: Tracer):
             task_name = func.__name__
 
             # Record task start
-            start_details = {
-                "task_name": task_name,
-                "args": str(args),
-                "kwargs": str(kwargs)
-            }
+            start_details = {"task_name": task_name, "args": str(args), "kwargs": str(kwargs)}
             tracer.add_event(TraceEvent("task_start", f"task:{task_name}", start_details))
 
             # Execute the task
@@ -426,10 +407,7 @@ def trace_task(tracer: Tracer):
             except Exception as e:
                 result = str(e)
                 success = False
-                error_details = {
-                    "task_name": task_name,
-                    "error": str(e)
-                }
+                error_details = {"task_name": task_name, "error": str(e)}
                 tracer.add_event(TraceEvent("task_error", f"task:{task_name}", error_details))
                 raise
             finally:
@@ -439,7 +417,7 @@ def trace_task(tracer: Tracer):
                     "task_name": task_name,
                     "duration": end_time - start_time,
                     "success": success,
-                    "result_type": type(result).__name__ if success else None
+                    "result_type": type(result).__name__ if success else None,
                 }
                 tracer.add_event(TraceEvent("task_end", f"task:{task_name}", end_details))
 
@@ -460,6 +438,7 @@ def monitor_agent(dashboard: Dashboard):
     Returns:
         Callable: The decorator function
     """
+
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -471,7 +450,7 @@ def monitor_agent(dashboard: Dashboard):
                 category="agents",
                 name=agent_name,
                 metric="calls",
-                value=dashboard.get_metrics("agents", agent_name).get("calls", 0) + 1
+                value=dashboard.get_metrics("agents", agent_name).get("calls", 0) + 1,
             )
 
             # Execute the agent function
@@ -481,17 +460,14 @@ def monitor_agent(dashboard: Dashboard):
 
             # Update more metrics
             dashboard.update_metric(
-                category="agents",
-                name=agent_name,
-                metric="last_execution_time",
-                value=end_time - start_time
+                category="agents", name=agent_name, metric="last_execution_time", value=end_time - start_time
             )
 
             dashboard.update_metric(
                 category="agents",
                 name=agent_name,
                 metric="last_execution_timestamp",
-                value=datetime.now().isoformat()
+                value=datetime.now().isoformat(),
             )
 
             return result
@@ -512,6 +488,7 @@ def guard_output(hallucination_guard: HallucinationGuard, context: dict[str, Any
     Returns:
         Callable: The decorator function
     """
+
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -521,24 +498,17 @@ def guard_output(hallucination_guard: HallucinationGuard, context: dict[str, Any
             # Only validate string outputs
             if isinstance(result, str):
                 # Use function name and args as context if not provided
-                ctx = context or {
-                    "function": func.__name__,
-                    "args": str(args),
-                    "kwargs": str(kwargs)
-                }
+                ctx = context or {"function": func.__name__, "args": str(args), "kwargs": str(kwargs)}
 
                 # Validate the output
                 validation = hallucination_guard.validate_output(
-                    output=result,
-                    context=ctx,
-                    fix_hallucinations=True
+                    output=result, context=ctx, fix_hallucinations=True
                 )
 
                 # Log warnings if any
                 if validation["warnings"]:
                     logger.warning(
-                        f"Potential hallucinations in {func.__name__} output: "
-                        f"{validation['warnings']}"
+                        f"Potential hallucinations in {func.__name__} output: {validation['warnings']}"
                     )
 
                 # Return the fixed output if available
@@ -578,5 +548,5 @@ def get_observability_tools(crew_name: str) -> dict[str, Any]:
         "hallucination_guard": hallucination_guard,
         "trace_task": lambda: trace_task(tracer),
         "monitor_agent": lambda: monitor_agent(dashboard),
-        "guard_output": lambda ctx=None: guard_output(hallucination_guard, ctx)
+        "guard_output": lambda ctx=None: guard_output(hallucination_guard, ctx),
     }

@@ -8,8 +8,9 @@ from epic_news.tools.web_tools import get_news_tools, get_search_tools
 @CrewBase
 class NewsDailyCrew:
     """NewsDaily crew for collecting and reporting daily news in French"""
-    agents_config = 'config/agents.yaml'
-    tasks_config = 'config/tasks.yaml'
+
+    agents_config = "config/agents.yaml"
+    tasks_config = "config/tasks.yaml"
 
     def __init__(self) -> None:
         self._init_tools()

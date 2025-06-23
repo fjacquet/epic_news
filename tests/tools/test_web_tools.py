@@ -71,7 +71,7 @@ def test_get_github_tools():
     github_tool = tools[0]
     assert isinstance(github_tool, GithubSearchTool)
     # Verify the content types are set correctly
-    assert github_tool.content_types == ['code', 'repo', 'pr', 'issue']
+    assert github_tool.content_types == ["code", "repo", "pr", "issue"]
 
 
 def test_get_pdf_tools():

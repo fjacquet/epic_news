@@ -12,26 +12,26 @@ from epic_news.tools.save_to_rag_tool import SaveToRagTool
 # This structure should mirror epic_news.rag_config.DEFAULT_RAG_CONFIG
 TEST_DEFAULT_RAG_CONFIG = {
     "llm": {
-        "provider": "openai", # Using a common provider for tests
+        "provider": "openai",  # Using a common provider for tests
         "config": {
-            "model": "gpt-3.5-turbo", # Example model
+            "model": "gpt-3.5-turbo",  # Example model
         },
     },
     "embedder": {
-        "provider": "openai", # Using a common provider
+        "provider": "openai",  # Using a common provider
         "config": {
-            "model": "text-embedding-ada-002", # Key is 'model', not 'model_name'
+            "model": "text-embedding-ada-002",  # Key is 'model', not 'model_name'
         },
     },
-    "vectordb": { # Top-level key for vector database configuration
+    "vectordb": {  # Top-level key for vector database configuration
         "provider": "chroma",
         "config": {
-            "collection_name": "epic_news_default_collection", # Test default collection name
-            "dir": "/tmp/test_chroma_db", # Mocked path for tests
+            "collection_name": "epic_news_default_collection",  # Test default collection name
+            "dir": "/tmp/test_chroma_db",  # Mocked path for tests
             "allow_reset": True,
         },
     },
-    "chunker": { # Adding chunker as it's in the actual config
+    "chunker": {  # Adding chunker as it's in the actual config
         "chunk_size": 500,
         "chunk_overlap": 50,
         "length_function": "len",
@@ -39,7 +39,11 @@ TEST_DEFAULT_RAG_CONFIG = {
     },
 }
 
-@patch('epic_news.tools.rag_tools.DEFAULT_RAG_CONFIG', new_callable=lambda: copy.deepcopy(TEST_DEFAULT_RAG_CONFIG))
+
+@patch(
+    "epic_news.tools.rag_tools.DEFAULT_RAG_CONFIG",
+    new_callable=lambda: copy.deepcopy(TEST_DEFAULT_RAG_CONFIG),
+)
 def test_get_rag_tools_no_suffix(mock_default_config):
     tools = get_rag_tools()
 
@@ -51,13 +55,17 @@ def test_get_rag_tools_no_suffix(mock_default_config):
     # The RagTool always uses 'embedchain_store' as the collection name regardless of the config
     assert retrieval_tool.adapter.embedchain_app.db.collection.name == "embedchain_store"
     assert "retrieve information from the epic_news knowledge base" in retrieval_tool.description
-    assert retrieval_tool.summarize is True # as per current implementation
+    assert retrieval_tool.summarize is True  # as per current implementation
 
     # Test SaveToRagTool
     assert isinstance(save_tool, SaveToRagTool)
-    assert save_tool._rag_tool == retrieval_tool # Check if it's the same instance
+    assert save_tool._rag_tool == retrieval_tool  # Check if it's the same instance
 
-@patch('epic_news.tools.rag_tools.DEFAULT_RAG_CONFIG', new_callable=lambda: copy.deepcopy(TEST_DEFAULT_RAG_CONFIG))
+
+@patch(
+    "epic_news.tools.rag_tools.DEFAULT_RAG_CONFIG",
+    new_callable=lambda: copy.deepcopy(TEST_DEFAULT_RAG_CONFIG),
+)
 def test_get_rag_tools_with_suffix(mock_default_config):
     suffix = "test_crew"
     tools = get_rag_tools(collection_suffix=suffix)
@@ -75,9 +83,13 @@ def test_get_rag_tools_with_suffix(mock_default_config):
     assert isinstance(save_tool, SaveToRagTool)
     assert save_tool._rag_tool == retrieval_tool
 
-@patch('epic_news.tools.rag_tools.DEFAULT_RAG_CONFIG', new_callable=lambda: copy.deepcopy(TEST_DEFAULT_RAG_CONFIG))
+
+@patch(
+    "epic_news.tools.rag_tools.DEFAULT_RAG_CONFIG",
+    new_callable=lambda: copy.deepcopy(TEST_DEFAULT_RAG_CONFIG),
+)
 def test_default_rag_config_immutability(mock_default_config):
-    original_collection_name = TEST_DEFAULT_RAG_CONFIG['vectordb']['config']['collection_name']
+    original_collection_name = TEST_DEFAULT_RAG_CONFIG["vectordb"]["config"]["collection_name"]
 
     # Call with a suffix, which should modify a copy
     get_rag_tools(collection_suffix="stocks")
@@ -85,7 +97,7 @@ def test_default_rag_config_immutability(mock_default_config):
     # Assert that the mocked DEFAULT_RAG_CONFIG (our deep copy) was not changed by the call above
     # This is implicitly tested by mock_default_config being a fresh deepcopy for each test,
     # but we can be more explicit by checking the original dict we defined for the test module.
-    assert TEST_DEFAULT_RAG_CONFIG['vectordb']['config']['collection_name'] == original_collection_name
+    assert TEST_DEFAULT_RAG_CONFIG["vectordb"]["config"]["collection_name"] == original_collection_name
 
     # Call again without suffix, should use the original default name from the *fresh* mock
     tools_no_suffix = get_rag_tools()

@@ -1,4 +1,5 @@
 """Pydantic models for Alpha Vantage tools."""
+
 from pydantic import BaseModel, Field
 
 

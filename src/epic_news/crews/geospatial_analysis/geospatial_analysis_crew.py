@@ -16,11 +16,11 @@ from epic_news.tools.scrape_ninja_tool import ScrapeNinjaTool
 
 load_dotenv()
 
+
 @CrewBase
 class GeospatialAnalysisCrew:
     agents_config = "config/agents.yaml"
     tasks_config = "config/tasks.yaml"
-
 
     @agent
     def geospatial_analyst(self) -> Agent:
@@ -41,7 +41,6 @@ class GeospatialAnalysisCrew:
             respect_context_window=True,
             reasoning=True,
             max_reasoning_attempts=5,
-
             max_iter=5,
             max_retry_limit=3,
             max_rpm=10,

@@ -15,20 +15,15 @@ class TestBatchArticleScraperTool(unittest.TestCase):
 
         # Create sample test data
         self.test_article1 = Article(
-            title="Test Article 1",
-            link="https://example.com/article1",
-            published="2024-06-01T12:00:00Z"
+            title="Test Article 1", link="https://example.com/article1", published="2024-06-01T12:00:00Z"
         )
 
         self.test_article2 = Article(
-            title="Test Article 2",
-            link="https://example.com/article2",
-            published="2024-06-02T12:00:00Z"
+            title="Test Article 2", link="https://example.com/article2", published="2024-06-02T12:00:00Z"
         )
 
         self.test_feed = FeedWithArticles(
-            feed_url="https://example.com/feed.xml",
-            articles=[self.test_article1, self.test_article2]
+            feed_url="https://example.com/feed.xml", articles=[self.test_article1, self.test_article2]
         )
 
         self.test_feeds = RssFeeds(feeds=[self.test_feed])
@@ -57,7 +52,7 @@ class TestBatchArticleScraperTool(unittest.TestCase):
         self.tool.scrape_ninja_tool._run.return_value = json.dumps({"content": "Test content"})
 
         # Convert Pydantic model to dict
-        if hasattr(self.test_feeds, 'model_dump_json'):
+        if hasattr(self.test_feeds, "model_dump_json"):
             feeds_dict = json.loads(self.test_feeds.model_dump_json())
         else:
             feeds_dict = json.loads(self.test_feeds.json())
@@ -80,7 +75,7 @@ class TestBatchArticleScraperTool(unittest.TestCase):
         self.tool.scrape_ninja_tool._run.return_value = json.dumps({"content": "Test content"})
 
         # Convert Pydantic model to JSON string
-        if hasattr(self.test_feeds, 'model_dump_json'):
+        if hasattr(self.test_feeds, "model_dump_json"):
             feeds_json = self.test_feeds.model_dump_json()
         else:
             feeds_json = self.test_feeds.json()

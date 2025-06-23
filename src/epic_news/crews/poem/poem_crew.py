@@ -8,7 +8,6 @@ from epic_news.tools.report_tools import get_report_tools
 load_dotenv()
 
 
-
 @CrewBase
 class PoemCrew:
     agents_config = "config/agents.yaml"
@@ -20,7 +19,7 @@ class PoemCrew:
             config=self.agents_config["poem_writer"],
             respect_context_window=True,
             verbose=True,
-            tools=get_report_tools()
+            tools=get_report_tools(),
         )
 
     @task
@@ -28,7 +27,7 @@ class PoemCrew:
         return Task(
             config=self.tasks_config["write_poem"],
             agent=self.poem_writer(),
-            output_file='output/poem/poem.html',
+            output_file="output/poem/poem.html",
             output_pydantic=ReportHTMLOutput,
         )
 

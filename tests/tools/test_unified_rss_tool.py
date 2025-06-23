@@ -54,7 +54,7 @@ class TestUnifiedRssTool:
         with pytest.raises(FileNotFoundError):
             tool._parse_opml_file("/nonexistent/path.opml")
 
-    @patch('feedparser.parse')
+    @patch("feedparser.parse")
     def test_fetch_and_filter_articles(self, mock_parse, tool):
         """Test fetching and filtering articles."""
         # Mock feedparser response
@@ -81,7 +81,7 @@ class TestUnifiedRssTool:
         assert articles[0].link == "https://example.com/article"
         assert articles[0].content is None
 
-    @patch('feedparser.parse')
+    @patch("feedparser.parse")
     def test_fetch_and_filter_articles_old(self, mock_parse, tool):
         """Test filtering out old articles."""
         # Mock feedparser response with old article
@@ -107,7 +107,7 @@ class TestUnifiedRssTool:
         # Feed should not be marked as invalid just because articles are old
         assert "https://example.com/feed" not in invalid_sources
 
-    @patch('feedparser.parse')
+    @patch("feedparser.parse")
     def test_fetch_and_filter_articles_http_error(self, mock_parse, tool):
         """Test handling of HTTP errors in feeds."""
         # Mock feedparser response with HTTP error
@@ -124,7 +124,7 @@ class TestUnifiedRssTool:
         # Feed should be marked as invalid due to HTTP error
         assert "https://example.com/feed" in invalid_sources
 
-    @patch('feedparser.parse')
+    @patch("feedparser.parse")
     def test_fetch_and_filter_articles_parse_error(self, mock_parse, tool):
         """Test handling of feed parsing errors."""
         # Mock feedparser response with parsing error
@@ -142,7 +142,7 @@ class TestUnifiedRssTool:
         # Feed should be marked as invalid due to parsing error
         assert "https://example.com/feed" in invalid_sources
 
-    @patch('newspaper.Article')
+    @patch("newspaper.Article")
     def test_scrape_article_content_newspaper(self, mock_article_class, tool):
         """Test scraping article content with Newspaper3k."""
         # Mock Newspaper3k article
@@ -161,7 +161,7 @@ class TestUnifiedRssTool:
         # We don't assert on download() being called since the implementation
         # might catch exceptions before calling it
 
-    @patch('newspaper.Article')
+    @patch("newspaper.Article")
     def test_scrape_article_content_fallback(self, mock_article_class, tool):
         """Test fallback to ScrapeNinjaTool when Newspaper3k fails."""
         # Make Newspaper3k fail
@@ -175,8 +175,8 @@ class TestUnifiedRssTool:
         assert content == "Mocked article content"
         tool.scrape_ninja_tool._run.assert_called_once_with("https://example.com/article")
 
-    @patch('newspaper.Article')
-    @patch('feedparser.parse')
+    @patch("newspaper.Article")
+    @patch("feedparser.parse")
     def test_run_end_to_end(self, mock_parse, mock_article_class, tool, sample_opml_path, output_path):
         """Test the entire pipeline end-to-end."""
         # Mock feedparser
@@ -206,7 +206,7 @@ class TestUnifiedRssTool:
             opml_file_path=sample_opml_path,
             days_to_look_back=7,
             output_file_path=output_path,
-            invalid_sources_file_path=invalid_sources_path
+            invalid_sources_file_path=invalid_sources_path,
         )
 
         # Check result message

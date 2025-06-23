@@ -1,6 +1,7 @@
 """
 Tool for fetching Yahoo Finance Ticker Information.
 """
+
 import json
 
 import yfinance as yf
@@ -45,9 +46,7 @@ class YahooFinanceTickerInfoTool(BaseTool):
                 "symbol": ticker,
                 "name": info.get("shortName", "N/A"),
                 "currency": info.get("currency", "N/A"),
-                "current_price": info.get(
-                    "currentPrice", info.get("regularMarketPrice", "N/A")
-                ),
+                "current_price": info.get("currentPrice", info.get("regularMarketPrice", "N/A")),
                 "previous_close": info.get("previousClose", "N/A"),
                 "market_cap": info.get("marketCap", "N/A"),
                 "volume": info.get("volume", "N/A"),

@@ -2,4 +2,4 @@
 
 from epic_news.crews.legal_analysis.legal_analysis_crew import LegalAnalysisCrew
 
-__all__ = ['LegalAnalysisCrew']
+__all__ = ["LegalAnalysisCrew"]

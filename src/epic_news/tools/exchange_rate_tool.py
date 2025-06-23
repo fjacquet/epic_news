@@ -25,10 +25,7 @@ class ExchangeRateTool(BaseTool):
         if not self.api_key:
             return "Error: OPENEXCHANGERATES_API_KEY environment variable not set. Please get an API key from openexchangerates.org."
 
-        params = {
-            "app_id": self.api_key,
-            "base": base_currency
-        }
+        params = {"app_id": self.api_key, "base": base_currency}
 
         if target_currencies:
             params["symbols"] = ",".join(target_currencies)
@@ -64,7 +61,8 @@ class ExchangeRateTool(BaseTool):
         except Exception as e:
             return f"An unexpected error occurred: {e}"
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     # This is for basic manual testing.
     # Ensure OPENEXCHANGERATES_API_KEY is set in your environment.
     tool = ExchangeRateTool()

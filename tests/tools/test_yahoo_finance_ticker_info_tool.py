@@ -93,9 +93,9 @@ def test_run_success_etf(mock_yfinance_ticker, mock_get_cache_manager, ticker_in
     mock_ticker_instance.info = {
         "shortName": "Vanguard Total Stock Market ETF",
         "currency": "USD",
-        "regularMarketPrice": 230.50, # Using regularMarketPrice
+        "regularMarketPrice": 230.50,  # Using regularMarketPrice
         "previousClose": 229.80,
-        "marketCap": 1300000000000, # ETFs can have marketCap (Net Assets)
+        "marketCap": 1300000000000,  # ETFs can have marketCap (Net Assets)
         "volume": 3000000,
         "averageVolume": 2500000,
         "fiftyTwoWeekHigh": 250.00,
@@ -143,7 +143,7 @@ def test_run_success_crypto(mock_yfinance_ticker, mock_get_cache_manager, ticker
         "marketCap": 750000000000,
         "volume": 25000000000,
         # Crypto might not have averageVolume, 52wk high/low from some sources or yf
-        "fiftyTwoWeekHigh": 69000.00, # Assuming it's available
+        "fiftyTwoWeekHigh": 69000.00,  # Assuming it's available
         "fiftyTwoWeekLow": 28000.00,  # Assuming it's available
     }
     mock_yfinance_ticker.return_value = mock_ticker_instance
@@ -168,7 +168,9 @@ def test_run_success_crypto(mock_yfinance_ticker, mock_get_cache_manager, ticker
 
 @patch("src.epic_news.tools.yahoo_finance_ticker_info_tool.get_cache_manager")
 @patch("src.epic_news.tools.yahoo_finance_ticker_info_tool.yf.Ticker")
-def test_run_success_with_regular_market_price(mock_yfinance_ticker, mock_get_cache_manager, ticker_info_tool_instance):
+def test_run_success_with_regular_market_price(
+    mock_yfinance_ticker, mock_get_cache_manager, ticker_info_tool_instance
+):
     # Mock the cache manager to return None (no cached result)
     mock_cache = MagicMock()
     mock_cache.get.return_value = None  # No cached result
@@ -181,7 +183,7 @@ def test_run_success_with_regular_market_price(mock_yfinance_ticker, mock_get_ca
     mock_ticker_instance.info = {
         "shortName": "Test Ticker",
         "currency": "USD",
-        "regularMarketPrice": 99.00, # No currentPrice
+        "regularMarketPrice": 99.00,  # No currentPrice
         "previousClose": 98.00,
     }
     mock_yfinance_ticker.return_value = mock_ticker_instance
@@ -241,14 +243,14 @@ def test_run_yfinance_exception(mock_yfinance_ticker, mock_get_cache_manager, ti
     result_data = json.loads(result_str)
 
     assert "error" in result_data
-    assert (
-        result_data["error"] == "Error fetching ticker info for ERROR: Test yfinance error"
-    )
+    assert result_data["error"] == "Error fetching ticker info for ERROR: Test yfinance error"
 
 
 @patch("src.epic_news.tools.yahoo_finance_ticker_info_tool.get_cache_manager")
 @patch("src.epic_news.tools.yahoo_finance_ticker_info_tool.yf.Ticker")
-def test_run_invalid_ticker_empty_info(mock_yfinance_ticker, mock_get_cache_manager, ticker_info_tool_instance):
+def test_run_invalid_ticker_empty_info(
+    mock_yfinance_ticker, mock_get_cache_manager, ticker_info_tool_instance
+):
     # Mock the cache manager to return None (no cached result)
     mock_cache = MagicMock()
     mock_cache.get.return_value = None  # No cached result

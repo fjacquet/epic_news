@@ -21,14 +21,11 @@ SAMPLE_RESPONSE = {
             "properties": {
                 "name": "Test Restaurant",
                 "categories": ["catering.restaurant"],
-                "distance": 123.45
+                "distance": 123.45,
             },
-            "geometry": {
-                "type": "Point",
-                "coordinates": [0.0, 0.0]
-            }
+            "geometry": {"type": "Point", "coordinates": [0.0, 0.0]},
         }
-    ]
+    ],
 }
 
 
@@ -40,7 +37,7 @@ class TestGeoapifyPlacesInput:
         input_data = {
             "filter_type": "circle",
             "filter_value": "-0.1,51.5,1000",  # lon,lat,radiusM
-            "limit": 5
+            "limit": 5,
         }
         result = GeoapifyPlacesInput(**input_data)
         assert result.filter_type == "circle"
@@ -51,7 +48,7 @@ class TestGeoapifyPlacesInput:
         input_data = {
             "filter_type": "rect",
             "filter_value": "-0.2,51.4,-0.1,51.5",  # lon1,lat1,lon2,lat2
-            "limit": 5
+            "limit": 5,
         }
         result = GeoapifyPlacesInput(**input_data)
         assert result.filter_type == "rect"
@@ -59,10 +56,7 @@ class TestGeoapifyPlacesInput:
 
     def test_valid_bias(self):
         """Test valid bias input."""
-        input_data = {
-            "bias": "-0.1,51.5",
-            "limit": 5
-        }
+        input_data = {"bias": "-0.1,51.5", "limit": 5}
         result = GeoapifyPlacesInput(**input_data)
         assert result.bias == "-0.1,51.5"
 
@@ -77,7 +71,7 @@ class TestGeoapifyPlacesInput:
             GeoapifyPlacesInput(
                 filter_type="circle",
                 filter_value="-0.1,51.5",  # Missing radius
-                limit=5
+                limit=5,
             )
 
 
@@ -108,13 +102,13 @@ class TestGeoapifyPlacesTool:
 
     def test_search_with_circle_filter(self, mock_env_geoapify_key, mock_successful_response):
         """Test search with circle filter."""
-        with patch('requests.get', return_value=mock_successful_response) as mock_get:
+        with patch("requests.get", return_value=mock_successful_response) as mock_get:
             tool = GeoapifyPlacesTool()
             result = tool._run(
                 categories=["catering.restaurant"],
                 filter_type="circle",
                 filter_value="-0.1,51.5,1000",  # lon,lat,radiusM
-                limit=5
+                limit=5,
             )
 
             # Verify the result
@@ -124,51 +118,43 @@ class TestGeoapifyPlacesTool:
             mock_get.assert_called_once()
             args, kwargs = mock_get.call_args
             assert args[0] == "https://api.geoapify.com/v2/places"
-            assert kwargs['params']['apiKey'] == 'test_api_key_123'
-            assert kwargs['params']['categories'] == 'catering.restaurant'
-            assert kwargs['params']['filter'] == 'circle:-0.1,51.5,1000'
-            assert kwargs['params']['limit'] == 5
-            assert kwargs['params']['lang'] == 'en'
+            assert kwargs["params"]["apiKey"] == "test_api_key_123"
+            assert kwargs["params"]["categories"] == "catering.restaurant"
+            assert kwargs["params"]["filter"] == "circle:-0.1,51.5,1000"
+            assert kwargs["params"]["limit"] == 5
+            assert kwargs["params"]["lang"] == "en"
 
     def test_search_with_bias(self, mock_env_geoapify_key, mock_successful_response):
         """Test search with proximity bias."""
-        with patch('requests.get', return_value=mock_successful_response) as mock_get:
+        with patch("requests.get", return_value=mock_successful_response) as mock_get:
             tool = GeoapifyPlacesTool()
-            tool._run(
-                categories=["commercial.supermarket"],
-                bias="-0.1,51.5",
-                limit=3
-            )
+            tool._run(categories=["commercial.supermarket"], bias="-0.1,51.5", limit=3)
 
             # Verify the API call was made with bias parameter
             mock_get.assert_called_once()
             args, kwargs = mock_get.call_args
             assert args[0] == "https://api.geoapify.com/v2/places"
-            assert kwargs['params']['apiKey'] == 'test_api_key_123'
-            assert kwargs['params']['categories'] == 'commercial.supermarket'
-            assert kwargs['params']['bias'] == 'proximity:-0.1,51.5'
-            assert kwargs['params']['limit'] == 3
-            assert kwargs['params']['lang'] == 'en'
+            assert kwargs["params"]["apiKey"] == "test_api_key_123"
+            assert kwargs["params"]["categories"] == "commercial.supermarket"
+            assert kwargs["params"]["bias"] == "proximity:-0.1,51.5"
+            assert kwargs["params"]["limit"] == 3
+            assert kwargs["params"]["lang"] == "en"
 
     def test_search_with_conditions(self, mock_env_geoapify_key, mock_successful_response):
         """Test search with conditions."""
-        with patch('requests.get', return_value=mock_successful_response) as mock_get:
+        with patch("requests.get", return_value=mock_successful_response) as mock_get:
             tool = GeoapifyPlacesTool()
-            tool._run(
-                categories=["catering.restaurant"],
-                conditions=["vegetarian", "wheelchair"],
-                limit=5
-            )
+            tool._run(categories=["catering.restaurant"], conditions=["vegetarian", "wheelchair"], limit=5)
 
             # Verify the API call was made with conditions
             mock_get.assert_called_once()
             args, kwargs = mock_get.call_args
             assert args[0] == "https://api.geoapify.com/v2/places"
-            assert kwargs['params']['apiKey'] == 'test_api_key_123'
-            assert kwargs['params']['categories'] == 'catering.restaurant'
-            assert kwargs['params']['conditions'] == 'vegetarian,wheelchair'
-            assert kwargs['params']['limit'] == 5
-            assert kwargs['params']['lang'] == 'en'
+            assert kwargs["params"]["apiKey"] == "test_api_key_123"
+            assert kwargs["params"]["categories"] == "catering.restaurant"
+            assert kwargs["params"]["conditions"] == "vegetarian,wheelchair"
+            assert kwargs["params"]["limit"] == 5
+            assert kwargs["params"]["lang"] == "en"
 
     def test_missing_api_key(self, monkeypatch):
         """Test behavior when API key is missing."""
@@ -182,7 +168,7 @@ class TestGeoapifyPlacesTool:
 
     def test_api_error_handling(self, mock_env_geoapify_key, mock_error_response):
         """Test error handling for API errors."""
-        with patch('requests.get', return_value=mock_error_response) as mock_get:
+        with patch("requests.get", return_value=mock_error_response) as mock_get:
             tool = GeoapifyPlacesTool()
             with pytest.raises(Exception) as exc_info:
                 tool._run(categories=["catering.restaurant"], limit=1)
@@ -194,10 +180,10 @@ class TestGeoapifyPlacesTool:
             mock_get.assert_called_once()
             args, kwargs = mock_get.call_args
             assert args[0] == "https://api.geoapify.com/v2/places"
-            assert kwargs['params']['apiKey'] == 'test_api_key_123'
-            assert kwargs['params']['categories'] == 'catering.restaurant'
-            assert kwargs['params']['limit'] == 1
-            assert kwargs['params']['lang'] == 'en'
+            assert kwargs["params"]["apiKey"] == "test_api_key_123"
+            assert kwargs["params"]["categories"] == "catering.restaurant"
+            assert kwargs["params"]["limit"] == 1
+            assert kwargs["params"]["lang"] == "en"
 
     def test_invalid_parameters(self, mock_env_geoapify_key):
         """Test validation of input parameters."""
