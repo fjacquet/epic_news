@@ -1,8 +1,8 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 
-from epic_news.tools.web_tools import get_news_tools, get_search_tools
 from epic_news.tools.utility_tools import get_reporting_tools
+from epic_news.tools.web_tools import get_news_tools, get_search_tools
 
 
 @CrewBase

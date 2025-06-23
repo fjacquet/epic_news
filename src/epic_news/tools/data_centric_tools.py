@@ -1,4 +1,5 @@
 """Data-centric tools for metrics, KPIs, and structured data reporting."""
+
 from __future__ import annotations
 
 import os
@@ -38,7 +39,7 @@ class MetricsCalculatorTool(BaseTool):
     1. Create new metrics with proper typing and validation
     2. Calculate changes and trends over time
     3. Format metrics for display with appropriate units
-    
+
     Input should be a JSON object with:
     - name: Name of the metric
     - display_name: Display-friendly name
@@ -50,15 +51,24 @@ class MetricsCalculatorTool(BaseTool):
     - source: (Optional) Source of the data
     - target: (Optional) Target value if applicable
     - is_key_metric: (Optional) Whether this is a key metric
-    
+
     Output will be a properly formatted Metric object with calculated trends and changes.
     """
 
-    def _run(self, name: str, display_name: str, description: str,
-             value: Any, type: str, previous_value: Any | None = None,
-             unit: str | None = None, source: str | None = None,
-             target: Any | None = None, is_key_metric: bool = False,
-             **kwargs) -> dict[str, Any]:
+    def _run(
+        self,
+        name: str,
+        display_name: str,
+        description: str,
+        value: Any,
+        type: str,
+        previous_value: Any | None = None,
+        unit: str | None = None,
+        source: str | None = None,
+        target: Any | None = None,
+        is_key_metric: bool = False,
+        **kwargs,
+    ) -> dict[str, Any]:
         """Run the metrics calculator tool."""
         try:
             # Validate metric type
@@ -83,7 +93,7 @@ class MetricsCalculatorTool(BaseTool):
                 target=target,
                 is_key_metric=is_key_metric,
                 timestamp=datetime.now(),
-                metadata=kwargs.get("metadata", {})
+                metadata=kwargs.get("metadata", {}),
             )
 
             # Return as dictionary for easier consumption by LLMs
@@ -102,7 +112,7 @@ class KPITrackerTool(BaseTool):
     1. Create new KPIs with targets and deadlines
     2. Calculate progress toward targets
     3. Determine KPI status (on track, at risk, achieved)
-    
+
     Input should be a JSON object with:
     - name: Name of the KPI
     - display_name: Display-friendly name
@@ -114,15 +124,24 @@ class KPITrackerTool(BaseTool):
     - source: (Optional) Source of the data
     - target: Target value (required for KPIs)
     - target_date: (Optional) Date by which target should be reached
-    
+
     Output will be a properly formatted KPI object with calculated progress and status.
     """
 
-    def _run(self, name: str, display_name: str, description: str,
-             value: Any, type: str, target: Any,
-             previous_value: Any | None = None, unit: str | None = None,
-             source: str | None = None, target_date: str | None = None,
-             **kwargs) -> dict[str, Any]:
+    def _run(
+        self,
+        name: str,
+        display_name: str,
+        description: str,
+        value: Any,
+        type: str,
+        target: Any,
+        previous_value: Any | None = None,
+        unit: str | None = None,
+        source: str | None = None,
+        target_date: str | None = None,
+        **kwargs,
+    ) -> dict[str, Any]:
         """Run the KPI tracker tool."""
         try:
             # Validate metric type
@@ -155,7 +174,7 @@ class KPITrackerTool(BaseTool):
                 target=target,
                 target_date=parsed_target_date,
                 timestamp=datetime.now(),
-                metadata=kwargs.get("metadata", {})
+                metadata=kwargs.get("metadata", {}),
                 # Let the model validators handle progress and status
             )
 
@@ -175,21 +194,21 @@ class DataVisualizationTool(BaseTool):
     1. Format data for visualization
     2. Generate visualization configurations
     3. Create data series and tables for reporting
-    
+
     Input should be a JSON object with either:
     - For data series:
       - type: "series"
       - name: Name of the data series
       - description: (Optional) Description of the series
       - points: List of data points with label and value
-    
+
     - For data tables:
       - type: "table"
       - name: Name of the data table
       - description: (Optional) Description of the table
       - columns: List of column headers
       - rows: List of rows (each row is a list of values)
-    
+
     Output will be a properly formatted data structure ready for visualization.
     """
 
@@ -200,17 +219,19 @@ class DataVisualizationTool(BaseTool):
                 # Create a data series
                 points = []
                 for point in kwargs.get("points", []):
-                    points.append(DataPoint(
-                        label=point.get("label", ""),
-                        value=point.get("value"),
-                        metadata=point.get("metadata", {})
-                    ))
+                    points.append(
+                        DataPoint(
+                            label=point.get("label", ""),
+                            value=point.get("value"),
+                            metadata=point.get("metadata", {}),
+                        )
+                    )
 
                 series = DataSeries(
                     name=name,
                     description=kwargs.get("description"),
                     points=points,
-                    metadata=kwargs.get("metadata", {})
+                    metadata=kwargs.get("metadata", {}),
                 )
 
                 return series.model_dump()
@@ -222,7 +243,7 @@ class DataVisualizationTool(BaseTool):
                     description=kwargs.get("description"),
                     columns=kwargs.get("columns", []),
                     rows=kwargs.get("rows", []),
-                    metadata=kwargs.get("metadata", {})
+                    metadata=kwargs.get("metadata", {}),
                 )
 
                 return table.model_dump()
@@ -242,7 +263,7 @@ class StructuredReportTool(BaseTool):
     1. Combine metrics, KPIs, and data visualizations into a single report
     2. Format the report for presentation
     3. Generate HTML output for the report
-    
+
     Input should be a JSON object with:
     - title: Title of the report
     - description: Description of what the report covers
@@ -250,7 +271,7 @@ class StructuredReportTool(BaseTool):
     - kpis: (Optional) List of KPIs to include
     - data_series: (Optional) List of data series to include
     - data_tables: (Optional) List of data tables to include
-    
+
     Output will be a structured data report with all components properly formatted.
     """
 
@@ -265,23 +286,25 @@ class StructuredReportTool(BaseTool):
                     "value": metric_data.get("value"),
                     "previous_value": metric_data.get("previous_value"),
                     "change_percentage": metric_data.get("change_percentage"),
-                    "trend": metric_data.get("trend", TrendDirection.UNKNOWN)
+                    "trend": metric_data.get("trend", TrendDirection.UNKNOWN),
                 }
 
                 # Create metric
-                metrics.append(Metric(
-                    name=metric_data.get("name", ""),
-                    display_name=metric_data.get("display_name", ""),
-                    description=metric_data.get("description", ""),
-                    value=metric_value,
-                    type=metric_data.get("type", MetricType.NUMERIC),
-                    unit=metric_data.get("unit"),
-                    source=metric_data.get("source"),
-                    target=metric_data.get("target"),
-                    is_key_metric=metric_data.get("is_key_metric", False),
-                    timestamp=datetime.now(),
-                    metadata=metric_data.get("metadata", {})
-                ))
+                metrics.append(
+                    Metric(
+                        name=metric_data.get("name", ""),
+                        display_name=metric_data.get("display_name", ""),
+                        description=metric_data.get("description", ""),
+                        value=metric_value,
+                        type=metric_data.get("type", MetricType.NUMERIC),
+                        unit=metric_data.get("unit"),
+                        source=metric_data.get("source"),
+                        target=metric_data.get("target"),
+                        is_key_metric=metric_data.get("is_key_metric", False),
+                        timestamp=datetime.now(),
+                        metadata=metric_data.get("metadata", {}),
+                    )
+                )
 
             # Process KPIs if provided
             kpis = []
@@ -291,54 +314,62 @@ class StructuredReportTool(BaseTool):
                     "value": kpi_data.get("value"),
                     "previous_value": kpi_data.get("previous_value"),
                     "change_percentage": kpi_data.get("change_percentage"),
-                    "trend": kpi_data.get("trend", TrendDirection.UNKNOWN)
+                    "trend": kpi_data.get("trend", TrendDirection.UNKNOWN),
                 }
 
                 # Create KPI
-                kpis.append(KPI(
-                    name=kpi_data.get("name", ""),
-                    display_name=kpi_data.get("display_name", ""),
-                    description=kpi_data.get("description", ""),
-                    value=metric_value,
-                    type=kpi_data.get("type", MetricType.NUMERIC),
-                    unit=kpi_data.get("unit"),
-                    source=kpi_data.get("source"),
-                    target=kpi_data.get("target", 0),
-                    target_date=kpi_data.get("target_date"),
-                    progress_percentage=kpi_data.get("progress_percentage"),
-                    status=kpi_data.get("status", "pending"),
-                    timestamp=datetime.now(),
-                    metadata=kpi_data.get("metadata", {})
-                ))
+                kpis.append(
+                    KPI(
+                        name=kpi_data.get("name", ""),
+                        display_name=kpi_data.get("display_name", ""),
+                        description=kpi_data.get("description", ""),
+                        value=metric_value,
+                        type=kpi_data.get("type", MetricType.NUMERIC),
+                        unit=kpi_data.get("unit"),
+                        source=kpi_data.get("source"),
+                        target=kpi_data.get("target", 0),
+                        target_date=kpi_data.get("target_date"),
+                        progress_percentage=kpi_data.get("progress_percentage"),
+                        status=kpi_data.get("status", "pending"),
+                        timestamp=datetime.now(),
+                        metadata=kpi_data.get("metadata", {}),
+                    )
+                )
 
             # Process data series if provided
             data_series = []
             for series_data in kwargs.get("data_series", []):
                 points = []
                 for point in series_data.get("points", []):
-                    points.append(DataPoint(
-                        label=point.get("label", ""),
-                        value=point.get("value"),
-                        metadata=point.get("metadata", {})
-                    ))
+                    points.append(
+                        DataPoint(
+                            label=point.get("label", ""),
+                            value=point.get("value"),
+                            metadata=point.get("metadata", {}),
+                        )
+                    )
 
-                data_series.append(DataSeries(
-                    name=series_data.get("name", ""),
-                    description=series_data.get("description"),
-                    points=points,
-                    metadata=series_data.get("metadata", {})
-                ))
+                data_series.append(
+                    DataSeries(
+                        name=series_data.get("name", ""),
+                        description=series_data.get("description"),
+                        points=points,
+                        metadata=series_data.get("metadata", {}),
+                    )
+                )
 
             # Process data tables if provided
             data_tables = []
             for table_data in kwargs.get("data_tables", []):
-                data_tables.append(DataTable(
-                    name=table_data.get("name", ""),
-                    description=table_data.get("description"),
-                    columns=table_data.get("columns", []),
-                    rows=table_data.get("rows", []),
-                    metadata=table_data.get("metadata", {})
-                ))
+                data_tables.append(
+                    DataTable(
+                        name=table_data.get("name", ""),
+                        description=table_data.get("description"),
+                        columns=table_data.get("columns", []),
+                        rows=table_data.get("rows", []),
+                        metadata=table_data.get("metadata", {}),
+                    )
+                )
 
             # Create the structured report
             report = StructuredDataReport(
@@ -349,17 +380,14 @@ class StructuredReportTool(BaseTool):
                 data_series=data_series,
                 data_tables=data_tables,
                 timestamp=datetime.now(),
-                metadata=kwargs.get("metadata", {})
+                metadata=kwargs.get("metadata", {}),
             )
 
             # Generate HTML if requested
             if kwargs.get("generate_html", False):
                 # Get the path to the templates directory
                 templates_dir = os.path.abspath(
-                    os.path.join(
-                        os.path.dirname(__file__),
-                        "..", "..", "..", "templates"
-                    )
+                    os.path.join(os.path.dirname(__file__), "..", "..", "..", "templates")
                 )
 
                 # Create Jinja2 environment
@@ -375,7 +403,7 @@ class StructuredReportTool(BaseTool):
                     data_series=report.data_series,
                     data_tables=report.data_tables,
                     timestamp=report.timestamp,
-                    metadata=report.metadata
+                    metadata=report.metadata,
                 )
 
                 # Add the HTML to the report

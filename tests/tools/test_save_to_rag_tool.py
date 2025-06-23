@@ -12,15 +12,17 @@ from epic_news.tools.save_to_rag_tool import SaveToRagInput, SaveToRagTool
 MOCK_DEFAULT_RAG_CONFIG = {
     "type": "chroma",
     "db_path": "/tmp/mock_rag_db",
-    "collection_name": "mock_rag_collection"
+    "collection_name": "mock_rag_collection",
 }
+
 
 @pytest.fixture
 def mock_rag_tool_instance():
     """Fixture to create a MagicMock instance of RagTool."""
     mock_rag = MagicMock(spec=RagTool)
-    mock_rag.add = MagicMock() # Mock the 'add' method specifically
+    mock_rag.add = MagicMock()  # Mock the 'add' method specifically
     return mock_rag
+
 
 def test_save_to_rag_tool_instantiation_with_rag_tool(mock_rag_tool_instance):
     """Test tool instantiation when a RagTool instance is provided."""
@@ -30,12 +32,13 @@ def test_save_to_rag_tool_instantiation_with_rag_tool(mock_rag_tool_instance):
     assert "Persist text so it can be retrieved later via the RAG tool." in tool.description
     assert tool.args_schema == SaveToRagInput
 
-@patch('epic_news.tools.save_to_rag_tool.DEFAULT_RAG_CONFIG', MOCK_DEFAULT_RAG_CONFIG)
-@patch('epic_news.tools.save_to_rag_tool.RagTool')
-def test_save_to_rag_tool_instantiation_without_rag_tool(MockRagToolClass):
+
+@patch("epic_news.tools.save_to_rag_tool.DEFAULT_RAG_CONFIG", MOCK_DEFAULT_RAG_CONFIG)
+@patch("epic_news.tools.save_to_rag_tool.RagTool")
+def test_save_to_rag_tool_instantiation_without_rag_tool(MockRagToolClass):  # noqa: N803
     """Test tool instantiation when no RagTool instance is provided,
-       so it creates its own."""
-    mock_rag_instance = MockRagToolClass.return_value # The instance RagTool() would return
+    so it creates its own."""
+    mock_rag_instance = MockRagToolClass.return_value  # The instance RagTool() would return
     mock_rag_instance.add = MagicMock()
 
     tool = SaveToRagTool()
@@ -43,6 +46,7 @@ def test_save_to_rag_tool_instantiation_without_rag_tool(MockRagToolClass):
     MockRagToolClass.assert_called_once_with(config=MOCK_DEFAULT_RAG_CONFIG, summarize=True)
     assert tool._rag_tool == mock_rag_instance
     assert tool.name == "SaveToRag"
+
 
 def test_save_to_rag_tool_run_success(mock_rag_tool_instance):
     """Test the _run method for successful operation."""
@@ -57,6 +61,7 @@ def test_save_to_rag_tool_run_success(mock_rag_tool_instance):
 
     # Assert the expected JSON output
     assert result == {"status": "success", "message": "stored"}
+
 
 def test_save_to_rag_tool_run_with_empty_text(mock_rag_tool_instance):
     """Test the _run method with empty text."""

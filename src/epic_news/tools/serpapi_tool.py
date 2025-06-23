@@ -1,4 +1,5 @@
 """Web search tool implementation using SerpAPI."""
+
 import json
 import os
 
@@ -16,8 +17,10 @@ load_dotenv()
 # Use project's logger
 logger = get_logger(__name__)
 
+
 class SerpApiTool(BaseTool):
     """Tool for performing web searches using SerpAPI."""
+
     name: str = "serpapi_search"
     description: str = "Perform a web search to find information on the internet"
     args_schema: type[BaseModel] = SerpApiInput
@@ -33,14 +36,14 @@ class SerpApiTool(BaseTool):
     def _run(self, **kwargs) -> str:
         """
         Perform a web search using SerpAPI.
-        
+
         Args:
             query: The search query
             num_results: Number of results to return (1-10)
             country: Country code for localized results (e.g., 'us', 'uk')
             language: Language code for results (e.g., 'en', 'fr')
             page: Pagination number
-            
+
         Returns:
             JSON string containing search results or error message
         """
@@ -64,7 +67,7 @@ class SerpApiTool(BaseTool):
             "start": (page - 1) * num_results + 1,
             "hl": language,
             "gl": country,
-            "safe": "active"
+            "safe": "active",
         }
 
         try:
@@ -74,41 +77,46 @@ class SerpApiTool(BaseTool):
                 debug_params["api_key"] = "***"
 
             # Log the request details for debugging
-            logger.debug(f"Sending request to: {url}") # Changed to logger.debug
-            logger.debug(f"Parameters: {json.dumps(debug_params, indent=2)}") # Changed to logger.debug
+            logger.debug(f"Sending request to: {url}")  # Changed to logger.debug
+            logger.debug(f"Parameters: {json.dumps(debug_params, indent=2)}")  # Changed to logger.debug
 
             # Make the API request with proper error handling
             try:
                 response = requests.get(url, params=params, timeout=30)
-                logger.debug(f"Response status: {response.status_code}") # Changed to logger.debug
+                logger.debug(f"Response status: {response.status_code}")  # Changed to logger.debug
             except requests.exceptions.Timeout:
-                return json.dumps({
-                    "error": "Request timed out. The SerpAPI server took too long to respond.",
-                    "query": query,
-                    "suggestion": "Try again later or with a simpler query."
-                })
+                return json.dumps(
+                    {
+                        "error": "Request timed out. The SerpAPI server took too long to respond.",
+                        "query": query,
+                        "suggestion": "Try again later or with a simpler query.",
+                    }
+                )
             except requests.exceptions.ConnectionError:
-                return json.dumps({
-                    "error": "Connection error. Could not connect to the SerpAPI server.",
-                    "query": query,
-                    "suggestion": "Check your internet connection or try again later."
-                })
+                return json.dumps(
+                    {
+                        "error": "Connection error. Could not connect to the SerpAPI server.",
+                        "query": query,
+                        "suggestion": "Check your internet connection or try again later.",
+                    }
+                )
 
             if response.status_code != 200:
-                return json.dumps({
-                    "error": f"API request failed with status {response.status_code}",
-                    "query": query,
-                    "response": response.text[:500]  # Include first 500 chars of response
-                })
+                return json.dumps(
+                    {
+                        "error": f"API request failed with status {response.status_code}",
+                        "query": query,
+                        "response": response.text[:500],  # Include first 500 chars of response
+                    }
+                )
 
             data = response.json()
 
             # Check for API errors
             if "error" in data:
-                return json.dumps({
-                    "error": f"API error: {data.get('error', 'Unknown error')}",
-                    "query": query
-                })
+                return json.dumps(
+                    {"error": f"API error: {data.get('error', 'Unknown error')}", "query": query}
+                )
 
             # Extract organic results
             results = []
@@ -119,39 +127,30 @@ class SerpApiTool(BaseTool):
                     "title": item.get("title", "No title available"),
                     "link": item.get("link", ""),
                     "snippet": item.get("snippet", "No description available"),
-                    "source": "web_search"
+                    "source": "web_search",
                 }
                 results.append(result)
 
             if not results:
-                return json.dumps({
-                    "error": f"No results found for query: {query}",
-                    "query": query,
-                    "suggestion": "Try a different search query or check your API key's search quota"
-                })
+                return json.dumps(
+                    {
+                        "error": f"No results found for query: {query}",
+                        "query": query,
+                        "suggestion": "Try a different search query or check your API key's search quota",
+                    }
+                )
 
-            return json.dumps({
-                "query": query,
-                "results": results,
-                "count": len(results)
-            }, indent=2)
+            return json.dumps({"query": query, "results": results, "count": len(results)}, indent=2)
 
         except requests.exceptions.RequestException as e:
-            return json.dumps({
-                "error": f"Error performing search: {str(e)}",
-                "query": query
-            })
+            return json.dumps({"error": f"Error performing search: {str(e)}", "query": query})
         except json.JSONDecodeError as e:
-            return json.dumps({
-                "error": f"Error parsing API response: {str(e)}",
-                "query": query
-            })
+            return json.dumps({"error": f"Error parsing API response: {str(e)}", "query": query})
         except Exception as e:
-            return json.dumps({
-                "error": f"Unexpected error: {str(e)}",
-                "query": query,
-                "type": type(e).__name__
-            })
+            return json.dumps(
+                {"error": f"Unexpected error: {str(e)}", "query": query, "type": type(e).__name__}
+            )
+
 
 def test_web_search():
     """Test function for web search tool."""
@@ -172,12 +171,7 @@ def test_web_search():
         print("\n1. Testing basic search...")
         query = "Sicpa company information"
         print(f"Query: {query}")
-        result = tool._run(
-            query=query,
-            num_results=3,
-            country="us",
-            language="en"
-        )
+        result = tool._run(query=query, num_results=3, country="us", language="en")
 
         # Parse the result to check for errors
         try:
@@ -190,20 +184,24 @@ def test_web_search():
                 print("3. Try a different search query")
             else:
                 print(f"✅ Search successful! Found {result_json.get('count', 0)} results.")
-                if result_json.get('results'):
-                    for i, res in enumerate(result_json['results'], 1):
+                if result_json.get("results"):
+                    for i, res in enumerate(result_json["results"], 1):
                         print(f"  Result {i}: {res.get('title', 'No title')}")
                         print(f"    Link: {res.get('link', 'No link')}")
-                        print(f"    Snippet: {res.get('snippet', 'No snippet')[:100]}..." if len(res.get('snippet', '')) > 100 else f"    Snippet: {res.get('snippet', 'No snippet')}")
+                        print(
+                            f"    Snippet: {res.get('snippet', 'No snippet')[:100]}..."
+                            if len(res.get("snippet", "")) > 100
+                            else f"    Snippet: {res.get('snippet', 'No snippet')}"
+                        )
         except json.JSONDecodeError:
             print(f"❌ Could not parse result as JSON: {result[:200]}...")
 
     except Exception as e:
         print(f"❌ Test failed: {str(e)}")
         import traceback
+
         traceback.print_exc()
+
 
 if __name__ == "__main__":
     test_web_search()
-
-

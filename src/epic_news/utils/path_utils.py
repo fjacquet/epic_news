@@ -10,6 +10,7 @@ Design Principles:
 - Single source of truth for path calculations
 - Validation to prevent path misuse
 """
+
 from __future__ import annotations
 
 import pathlib
@@ -17,9 +18,9 @@ import pathlib
 
 def get_project_root() -> pathlib.Path:
     """Get the absolute path to the project root directory.
-    
+
     This function returns the canonical project root path, ensuring no nested Users directories.
-    
+
     Returns:
         pathlib.Path: Absolute path to the project root directory
     """
@@ -28,35 +29,32 @@ def get_project_root() -> pathlib.Path:
     home_dir = pathlib.Path.home()
 
     # The project is always at ~/Projects/crews/epic_news or equivalent
-    project_root = home_dir / 'Projects' / 'crews' / 'epic_news'
+    project_root = home_dir / "Projects" / "crews" / "epic_news"
 
     # Final sanity check - this can't be wrong
-    if not (project_root / 'pyproject.toml').exists():
-        raise FileNotFoundError(
-            f"Cannot locate project root at expected location: {project_root}"
-        )
+    if not (project_root / "pyproject.toml").exists():
+        raise FileNotFoundError(f"Cannot locate project root at expected location: {project_root}")
 
     # Get canonical path without any duplicate /Users/ segments
     clean_path = project_root.resolve()
 
     # Extra validation to prevent pathological paths
     path_str = str(clean_path)
-    if path_str.count('Users') > 1:
+    if path_str.count("Users") > 1:
         raise ValueError(f"Invalid nested Users in path: {path_str}")
 
     return clean_path
 
 
-
 def validate_output_path(path: str) -> None:
     """Validate that an output path follows project design principles.
-    
+
     This function enforces the critical constraint that output paths
     must never create nested /Users/.../Users/... directory structures.
-    
+
     Args:
         path: The path to validate
-        
+
     Raises:
         ValueError: If the path violates design principles
     """
@@ -64,7 +62,7 @@ def validate_output_path(path: str) -> None:
         raise ValueError("Output path cannot be empty")
 
     # Check for nested /Users/ directories (critical bug prevention)
-    if '/Users/' in path and path.count('/Users/') > 1:
+    if "/Users/" in path and path.count("/Users/") > 1:
         raise ValueError(
             f"Invalid output path: '{path}'\n"
             "Detected nested /Users/.../Users/... directory structure.\n"
@@ -86,11 +84,10 @@ def validate_output_path(path: str) -> None:
 
 def get_template_dir() -> str:
     """Get the absolute path to the templates directory.
-    
+
     Returns:
         str: Absolute path to the templates directory
     """
     project_root = get_project_root()
-    template_dir = project_root / 'templates'
+    template_dir = project_root / "templates"
     return str(template_dir)
-

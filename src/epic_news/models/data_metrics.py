@@ -5,7 +5,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Union
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, FieldValidationInfo, field_validator
 
 __all__ = [
     "MetricValue",
@@ -61,30 +61,35 @@ class MetricValue(BaseModel):
     )
 
     @field_validator("change_percentage")
-    def validate_change_percentage(cls, v, values):
+    @classmethod
+    def validate_change_percentage(
+        cls, v: float | None, info: FieldValidationInfo
+    ) -> float | None:
         """Calculate change percentage if not provided but previous value exists."""
-        if v is None and "previous_value" in values.data and "value" in values.data:
-            prev = values.data["previous_value"]
-            curr = values.data["value"]
+        if v is None and info.data.get("previous_value") and info.data.get("value"):
+            prev = info.data["previous_value"]
+            curr = info.data["value"]
 
             # Only calculate for numeric types
-            if (isinstance(prev, (int, float)) and
-                isinstance(curr, (int, float)) and
-                prev != 0):
+            if (
+                isinstance(prev, (int, float))
+                and isinstance(curr, (int, float))
+                and prev != 0
+            ):
                 return ((curr - prev) / abs(prev)) * 100
         return v
 
     @field_validator("trend")
-    def validate_trend(cls, v, values):
+    @classmethod
+    def validate_trend(cls, v: TrendDirection, info: FieldValidationInfo) -> TrendDirection:
         """Determine trend direction if not explicitly provided."""
-        if v == TrendDirection.UNKNOWN and "change_percentage" in values.data:
-            change = values.data["change_percentage"]
-            if change is not None:
-                if change > 5:
-                    return TrendDirection.UP
-                if change < -5:
-                    return TrendDirection.DOWN
-                return TrendDirection.STABLE
+        if v == TrendDirection.UNKNOWN and info.data.get("change_percentage") is not None:
+            change = info.data["change_percentage"]
+            if change > 5:
+                return TrendDirection.UP
+            if change < -5:
+                return TrendDirection.DOWN
+            return TrendDirection.STABLE
         return v
 
 
@@ -130,24 +135,30 @@ class KPI(Metric):
     )
 
     @field_validator("progress_percentage")
-    def calculate_progress(cls, v, values):
+    @classmethod
+    def calculate_progress(
+        cls, v: float | None, info: FieldValidationInfo
+    ) -> float | None:
         """Calculate progress percentage if not provided but target exists."""
-        if v is None and "target" in values.data and "value" in values.data:
-            target = values.data["target"]
-            curr_value = values.data["value"].value
+        if v is None and info.data.get("target") and info.data.get("value"):
+            target = info.data["target"]
+            curr_value = info.data["value"].value
 
             # Only calculate for numeric types
-            if (isinstance(target, (int, float)) and
-                isinstance(curr_value, (int, float)) and
-                target != 0):
+            if (
+                isinstance(target, (int, float))
+                and isinstance(curr_value, (int, float))
+                and target != 0
+            ):
                 return (curr_value / target) * 100
         return v
 
     @field_validator("status")
-    def determine_status(cls, v, values):
+    @classmethod
+    def determine_status(cls, v: str, info: FieldValidationInfo) -> str:
         """Determine KPI status based on progress if not explicitly provided."""
-        if v == "pending" and "progress_percentage" in values.data:
-            progress = values.data["progress_percentage"]
+        if v == "pending" and info.data.get("progress_percentage") is not None:
+            progress = info.data["progress_percentage"]
             if progress is not None:
                 if progress >= 100:
                     return "achieved"
