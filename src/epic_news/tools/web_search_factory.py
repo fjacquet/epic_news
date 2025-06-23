@@ -10,10 +10,10 @@ class WebSearchFactory:
     """Factory for creating web search tools."""
 
     @staticmethod
-    def create(provider: Literal['serpapi', 'tavily']) -> BaseTool:
+    def create(provider: Literal["serpapi", "tavily"]) -> BaseTool:
         """Create a web search tool based on the provider."""
-        if provider == 'serpapi':
+        if provider == "serpapi":
             return SerpApiTool()
-        if provider == 'tavily':
+        if provider == "tavily":
             return TavilyTool()
         raise ValueError(f"Unknown web search provider: {provider}")

@@ -1,4 +1,3 @@
-
 from pydantic import BaseModel, Field
 
 
@@ -17,12 +16,8 @@ class ExtractedInfo(BaseModel):
         default=None,
         description="Specific user needs, preferences, or constraints (e.g., 'vegetarian meals, window seat').",
     )
-    context: str | None = Field(
-        default=None, description="Additional context for the request."
-    )
-    objective: str | None = Field(
-        default=None, description="The primary objective of the request."
-    )
+    context: str | None = Field(default=None, description="Additional context for the request.")
+    objective: str | None = Field(default=None, description="The primary objective of the request.")
     target_company: str | None = Field(
         default=None,
         description="The name of the company that is the target of the request (e.g., 'Apple Inc.').",

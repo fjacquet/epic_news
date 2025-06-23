@@ -22,6 +22,7 @@ class TestRenderReportTool:
     @pytest.fixture(autouse=True)
     def mock_html_validation(self, monkeypatch):
         """Automatically mock HTML validation for all tests in this class."""
+
         # Define a mock validation function that always passes
         def mock_validate_html(html, raise_on_error=True):
             return True
@@ -63,7 +64,7 @@ class TestRenderReportTool:
         title = "Test Report"
         sections = [
             {"heading": "Introduction", "content": "<p>This is an introduction.</p>"},
-            {"heading": "Conclusion", "content": "<p>This is a conclusion.</p>"}
+            {"heading": "Conclusion", "content": "<p>This is a conclusion.</p>"},
         ]
 
         html_output = tool.run(title=title, sections=sections)
@@ -73,7 +74,7 @@ class TestRenderReportTool:
         assert "Introduction" in html_output, "Section heading not in HTML output"
         assert "<p>This is an introduction.</p>" in html_output, "Section content not in HTML output"
         assert "<!DOCTYPE html>" in html_output, "Doctype missing from HTML output"
-        assert "<meta name=\"viewport\"" in html_output, "Viewport meta tag missing from HTML"
+        assert '<meta name="viewport"' in html_output, "Viewport meta tag missing from HTML"
 
     def test_render_with_images_and_citations(self):
         """Test rendering a report with images and citations."""
@@ -81,20 +82,10 @@ class TestRenderReportTool:
 
         title = "Report with Images and Citations"
         sections = [{"heading": "Content", "content": "<p>Some content here.</p>"}]
-        images = [
-            {"src": "https://example.com/image.jpg", "alt": "Example image", "caption": "Figure 1"}
-        ]
-        citations = [
-            "Smith, J. (2022). Example citation.",
-            "<a href='https://example.com'>Example link</a>"
-        ]
+        images = [{"src": "https://example.com/image.jpg", "alt": "Example image", "caption": "Figure 1"}]
+        citations = ["Smith, J. (2022). Example citation.", "<a href='https://example.com'>Example link</a>"]
 
-        html_output = tool.run(
-            title=title,
-            sections=sections,
-            images=images,
-            citations=citations
-        )
+        html_output = tool.run(title=title, sections=sections, images=images, citations=citations)
 
         assert "https://example.com/image.jpg" in html_output, "Image source not in HTML"
         assert "Example image" in html_output, "Image alt text not in HTML"
@@ -135,9 +126,7 @@ class TestRenderReportTool:
 
         # Test with caption
         image_with_caption = ReportImage(
-            src="https://example.com/test2.jpg",
-            alt="Test alt 2",
-            caption="Test caption"
+            src="https://example.com/test2.jpg", alt="Test alt 2", caption="Test caption"
         )
         assert image_with_caption.caption == "Test caption"
 
@@ -146,7 +135,7 @@ class TestRenderReportTool:
             title="Test Schema",
             sections=[section],
             images=[image, image_with_caption],
-            citations=["Citation 1", "Citation 2"]
+            citations=["Citation 1", "Citation 2"],
         )
         assert schema.title == "Test Schema"
         assert len(schema.sections) == 1
@@ -171,10 +160,7 @@ class TestRenderReportTool:
         monkeypatch.setattr("epic_news.utils.validate_html.validate_html", mock_validate_html)
 
         # Render a report - this should call our mock validator
-        tool.run(
-            title="Validation Test",
-            sections=[{"heading": "Test", "content": "<p>Content</p>"}]
-        )
+        tool.run(title="Validation Test", sections=[{"heading": "Test", "content": "<p>Content</p>"}])
 
         assert validation_called, "HTML validation was not called during rendering"
 

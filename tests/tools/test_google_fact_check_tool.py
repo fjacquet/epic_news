@@ -23,9 +23,8 @@ def test_create_google_fact_check_tool(factory):
 
 def test_google_fact_check_tool_missing_api_key():
     """Test that GoogleFactCheckTool raises an error if the API key is missing."""
-    with patch.dict(os.environ, {}, clear=True):  # noqa: SIM117
-        with pytest.raises(ValueError, match="Google API key is not set"):
-            GoogleFactCheckTool()
+    with patch.dict(os.environ, {}, clear=True), pytest.raises(ValueError, match="Google API key is not set"):
+        GoogleFactCheckTool()
 
 
 @patch("requests.get")

@@ -59,11 +59,13 @@ class UnifiedRssTool(BaseTool):
         logger = logging.getLogger(__name__)
         """
         Execute the entire RSS processing pipeline.
+
         Args:
             opml_file_path: Path to the OPML file containing RSS feed sources
             days_to_look_back: Number of days to look back for articles
             output_file_path: Path where the JSON output should be saved
             invalid_sources_file_path: Path where the invalid sources JSON output should be saved
+
         Returns:
             A string message indicating the result of the operation
         """

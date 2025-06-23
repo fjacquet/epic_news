@@ -32,6 +32,10 @@ Epic News operates on the **CrewAI Flow paradigm** - a revolutionary approach to
 - Use Pydantic models for structured data
 - Clear state transitions between flow steps
 
+### 4. Code Style and Quality
+
+- **Whitespace**: Avoid trailing whitespace (`W291`) and whitespace on blank lines (`W293`). These are enforced by `ruff` and help maintain a clean, readable codebase.
+
 ## CrewAI Best Practices
 
 ### Context Injection (CRITICAL)

@@ -4,12 +4,15 @@ from epic_news.tools.html_to_pdf_tool import HtmlToPdfTool
 
 
 # Helper function to create a dummy HTML file for testing
-def create_dummy_html(filepath, content="<html><body><h1>Test PDF Content</h1><p>This is a test.</p></body></html>"):
+def create_dummy_html(
+    filepath, content="<html><body><h1>Test PDF Content</h1><p>This is a test.</p></body></html>"
+):
     # Ensure the directory for the dummy HTML file exists
     os.makedirs(os.path.dirname(filepath), exist_ok=True)
     with open(filepath, "w", encoding="utf-8") as f:
         f.write(content)
     return filepath
+
 
 class TestHtmlToPdfTool:
     def test_successful_conversion(self, tmp_path):
@@ -49,7 +52,9 @@ class TestHtmlToPdfTool:
 
         # The tool should check for absolute paths irrespective of CWD
         result = tool.run(html_file_path=relative_html_path, output_pdf_path=absolute_pdf_path)
-        assert f"Error: HTML file path '{relative_html_path}' must be an absolute path." in result, f"Incorrect error for relative HTML path: {result}"
+        assert f"Error: HTML file path '{relative_html_path}' must be an absolute path." in result, (
+            f"Incorrect error for relative HTML path: {result}"
+        )
 
     def test_non_absolute_pdf_path(self, tmp_path):
         """Test that the tool returns an error for a non-absolute PDF output path."""
@@ -60,7 +65,9 @@ class TestHtmlToPdfTool:
         relative_pdf_path = "output.pdf"  # This is a relative path
 
         result = tool.run(html_file_path=absolute_html_path, output_pdf_path=relative_pdf_path)
-        assert f"Error: Output PDF path '{relative_pdf_path}' must be an absolute path." in result, f"Incorrect error for relative PDF path: {result}"
+        assert f"Error: Output PDF path '{relative_pdf_path}' must be an absolute path." in result, (
+            f"Incorrect error for relative PDF path: {result}"
+        )
 
     def test_output_directory_creation(self, tmp_path):
         """Test that the tool creates the output directory if it doesn't exist."""

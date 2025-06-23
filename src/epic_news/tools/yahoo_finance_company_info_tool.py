@@ -1,6 +1,7 @@
 """
 Tool for fetching Yahoo Finance Company Information.
 """
+
 import json
 
 import yfinance as yf
@@ -61,10 +62,7 @@ class YahooFinanceCompanyInfoTool(BaseTool):
 
             # Clean up N/A values
             result = {
-                k:
-                v
-                if not isinstance(v, dict)
-                else {k2: v2 for k2, v2 in v.items() if v2 != "N/A"}
+                k: v if not isinstance(v, dict) else {k2: v2 for k2, v2 in v.items() if v2 != "N/A"}
                 for k, v in company_info.items()
                 if v != "N/A"
             }

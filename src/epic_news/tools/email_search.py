@@ -1,4 +1,5 @@
 """Delegating email search tool that routes to specific providers."""
+
 import json
 
 from crewai.tools import BaseTool
@@ -18,9 +19,9 @@ load_dotenv()
 logger = get_logger(__name__)
 
 
-
 class DelegatingEmailSearchTool(BaseTool):
     """Routes email search queries to Hunter.io or Serper based on the specified provider."""
+
     name: str = "email_search_router"
     description: str = (
         "Finds professional email addresses using a specified provider. "
@@ -51,6 +52,7 @@ class DelegatingEmailSearchTool(BaseTool):
             logger.error(f"Error running email search with provider '{provider}' for query '{query}': {e}")
             return json.dumps({"error": f"Failed to execute search with {provider}: {str(e)}"})
 
+
 def get_email_search_tools() -> list[BaseTool]:
     """Returns a list of email search tools."""
     return [DelegatingEmailSearchTool()]
@@ -65,7 +67,7 @@ if __name__ == "__main__":
     router_tool = DelegatingEmailSearchTool()
 
     print("--- Testing Hunter.io via Router ---")
-    hunter_query = "hunter.io" # A domain that should work
+    hunter_query = "hunter.io"  # A domain that should work
     try:
         hunter_result = router_tool._run(provider="hunter", query=hunter_query)
         print(f"Hunter.io results for '{hunter_query}': {hunter_result}")
@@ -73,7 +75,7 @@ if __name__ == "__main__":
         print(f"Error testing Hunter.io: {e}")
 
     print("\n--- Testing Serper via Router ---")
-    serper_query = "Serper dev" # A company name
+    serper_query = "Serper dev"  # A company name
     try:
         serper_result = router_tool._run(provider="serper", query=serper_query)
         print(f"Serper results for '{serper_query}': {serper_result}")

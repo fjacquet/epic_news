@@ -1,4 +1,5 @@
 """Base classes and common functionality for email search tools."""
+
 import re
 
 import requests
@@ -9,6 +10,7 @@ from epic_news.utils.logger import get_logger  # Added project logger
 
 # Use project's logger
 logger = get_logger(__name__)
+
 
 class EmailSearchTool:
     """Base class for email search tools with common functionality."""

@@ -18,9 +18,7 @@ class GoogleFactCheckTool(BaseTool):
         super().__init__(**kwargs)
         self.api_key = api_key or os.getenv("GOOGLE_API_KEY")
         if not self.api_key:
-            raise ValueError(
-                "Google API key is not set. Please set the GOOGLE_API_KEY environment variable."
-            )
+            raise ValueError("Google API key is not set. Please set the GOOGLE_API_KEY environment variable.")
 
     def _run(self, **kwargs) -> str:
         """Run the tool."""

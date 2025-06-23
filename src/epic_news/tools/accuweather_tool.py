@@ -16,7 +16,7 @@ class AccuWeatherTool(BaseTool):
     def _run(self, location: str) -> str:
         """Run the AccuWeather tool to get current weather conditions."""
         try:
-            api_key = os.getenv('ACCUWEATHER_API_KEY')
+            api_key = os.getenv("ACCUWEATHER_API_KEY")
             if not api_key:
                 raise ValueError("ACCUWEATHER_API_KEY environment variable not set.")
 
@@ -38,7 +38,7 @@ class AccuWeatherTool(BaseTool):
         data = response.json()
         if not data:
             raise ValueError(f"Location '{location}' not found.")
-        return data[0]['Key']
+        return data[0]["Key"]
 
     def _get_current_conditions(self, location_key: str, api_key: str) -> str:
         """Get the current weather conditions for a given location key."""
@@ -51,7 +51,7 @@ class AccuWeatherTool(BaseTool):
             return "Could not retrieve weather data."
 
         weather_info = data[0]
-        temp = weather_info['Temperature']['Metric']['Value']
-        unit = weather_info['Temperature']['Metric']['Unit']
-        weather_text = weather_info['WeatherText']
+        temp = weather_info["Temperature"]["Metric"]["Value"]
+        unit = weather_info["Temperature"]["Metric"]["Unit"]
+        weather_text = weather_info["WeatherText"]
         return f"Current weather in your location: {temp}°{unit}, {weather_text}."

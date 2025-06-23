@@ -27,6 +27,7 @@ def test_get_yahoo_finance_tools():
     assert any(isinstance(t, YahooFinanceETFHoldingsTool) for t in tools)
     assert any(isinstance(t, YahooFinanceNewsTool) for t in tools)
 
+
 def test_get_stock_research_tools():
     tools = get_stock_research_tools()
     assert isinstance(tools, list)
@@ -39,6 +40,7 @@ def test_get_stock_research_tools():
     assert any(isinstance(t, YahooFinanceNewsTool) for t in tools)
     assert any(isinstance(t, AlphaVantageCompanyOverviewTool) for t in tools)
 
+
 def test_get_crypto_research_tools():
     tools = get_crypto_research_tools()
     assert isinstance(tools, list)
@@ -49,6 +51,7 @@ def test_get_crypto_research_tools():
     assert any(isinstance(t, YahooFinanceNewsTool) for t in tools)
     assert any(isinstance(t, YahooFinanceTickerInfoTool) for t in tools)
     assert any(isinstance(t, KrakenTickerInfoTool) for t in tools)
+
 
 def test_get_etf_research_tools():
     tools = get_etf_research_tools()

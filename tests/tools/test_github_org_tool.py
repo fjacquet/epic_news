@@ -242,13 +242,12 @@ def test_run_no_keys_available(mock_env_no_keys):
     ):  # Init with GitHub token
         tool = GitHubOrgSearchTool()
 
-    with patch.dict(  # noqa: SIM117
-        os.environ, {"GITHUB_TOKEN": "", "SERPER_API_KEY": ""}, clear=True
-    ):  # Clear keys before _run  # noqa: SIM117
-        # Patch os.getenv specifically for the _run method's checks
-        with patch("os.getenv") as mock_os_getenv:
-            # First getenv is for GITHUB_TOKEN, second for SERPER_API_KEY inside _run
-            mock_os_getenv.side_effect = ["", ""]
-            result_json = tool._run(org_name="anyorg")
-            result = json.loads(result_json)
-            assert result["error"] == "Configuration error: Neither GITHUB_TOKEN nor SERPER_API_KEY is set."
+    with (
+        patch.dict(os.environ, {"GITHUB_TOKEN": "", "SERPER_API_KEY": ""}, clear=True),
+        patch("os.getenv") as mock_os_getenv,
+    ):
+        # First getenv is for GITHUB_TOKEN, second for SERPER_API_KEY inside _run
+        mock_os_getenv.side_effect = ["", ""]
+        result_json = tool._run(org_name="anyorg")
+        result = json.loads(result_json)
+        assert result["error"] == "Configuration error: Neither GITHUB_TOKEN nor SERPER_API_KEY is set."

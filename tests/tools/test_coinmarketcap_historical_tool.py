@@ -13,13 +13,14 @@ from epic_news.tools.coinmarketcap_historical_tool import (
 TEST_CMC_API_KEY = "test_cmc_api_key_123"
 CMC_BASE_URL = "https://pro-api.coinmarketcap.com/v1"
 
+
 # Test Instantiation - Uses a simple fixture as _run is not called
 @pytest.fixture
 def tool_for_instantiation_test():
     # This patch is for instantiation time if the tool read env vars in __init__
     with patch.dict(os.environ, {"X-CMC_PRO_API_KEY": TEST_CMC_API_KEY}, clear=True):
-        tool = CoinMarketCapHistoricalTool()
-    return tool
+        return CoinMarketCapHistoricalTool()
+
 
 def test_instantiation_success(tool_for_instantiation_test):
     """Test successful instantiation of CoinMarketCapHistoricalTool."""
@@ -27,32 +28,56 @@ def test_instantiation_success(tool_for_instantiation_test):
     assert tool_for_instantiation_test.description is not None
     assert tool_for_instantiation_test.args_schema == CryptocurrencyHistoricalInput
 
+
 # Test _run method
-@patch('requests.get')
-def test_run_successful_response(mock_requests_get): # No fixture for the tool here
+@patch("requests.get")
+def test_run_successful_response(mock_requests_get):  # No fixture for the tool here
     """Test _run method with a successful API response for both ID and historical data."""
     mock_id_response = MagicMock()
     mock_id_response.status_code = 200
     mock_id_response.json.return_value = {
-        "status": {"timestamp": "2023-10-27T00:00:00.000Z", "error_code": 0, "error_message": None, "elapsed": 10, "credit_count": 1},
-        "data": [{"id": 1, "name": "Bitcoin", "symbol": "BTC", "slug": "bitcoin"}]
+        "status": {
+            "timestamp": "2023-10-27T00:00:00.000Z",
+            "error_code": 0,
+            "error_message": None,
+            "elapsed": 10,
+            "credit_count": 1,
+        },
+        "data": [{"id": 1, "name": "Bitcoin", "symbol": "BTC", "slug": "bitcoin"}],
     }
 
     mock_historical_response = MagicMock()
     mock_historical_response.status_code = 200
     mock_historical_response.json.return_value = {
-        "status": {"timestamp": "2023-10-27T00:00:00.000Z", "error_code": 0, "error_message": None, "elapsed": 10, "credit_count": 1},
+        "status": {
+            "timestamp": "2023-10-27T00:00:00.000Z",
+            "error_code": 0,
+            "error_message": None,
+            "elapsed": 10,
+            "credit_count": 1,
+        },
         "data": {
-            "id": 1, "name": "Bitcoin", "symbol": "BTC",
+            "id": 1,
+            "name": "Bitcoin",
+            "symbol": "BTC",
             "quotes": [
                 {
-                    "time_open": "2023-09-27T00:00:00.000Z", "time_close": "2023-09-27T23:59:59.999Z", "time_high": "2023-09-27T12:00:00.000Z", "time_low": "2023-09-27T06:00:00.000Z",
+                    "time_open": "2023-09-27T00:00:00.000Z",
+                    "time_close": "2023-09-27T23:59:59.999Z",
+                    "time_high": "2023-09-27T12:00:00.000Z",
+                    "time_low": "2023-09-27T06:00:00.000Z",
                     "quote": {
-                        "USD": {"price": 26000.00, "volume_24h": 15000000000, "market_cap": 500000000000, "timestamp": "2023-09-27T23:59:59.999Z", "percent_change_24h": 0.5}
-                    }
+                        "USD": {
+                            "price": 26000.00,
+                            "volume_24h": 15000000000,
+                            "market_cap": 500000000000,
+                            "timestamp": "2023-09-27T23:59:59.999Z",
+                            "percent_change_24h": 0.5,
+                        }
+                    },
                 }
-            ]
-        }
+            ],
+        },
     }
     mock_requests_get.side_effect = [mock_id_response, mock_historical_response]
 
@@ -81,15 +106,16 @@ def test_run_successful_response(mock_requests_get): # No fixture for the tool h
 
     # Call 1: ID lookup
     assert call_args_list[0].args[0] == expected_id_url
-    assert call_args_list[0].kwargs['headers'] == expected_headers
-    assert call_args_list[0].kwargs['params'] == expected_id_params
+    assert call_args_list[0].kwargs["headers"] == expected_headers
+    assert call_args_list[0].kwargs["params"] == expected_id_params
 
     # Call 2: Historical data
     assert call_args_list[1].args[0] == expected_historical_url
-    assert call_args_list[1].kwargs['headers'] == expected_headers # Should use the same patched headers
-    assert call_args_list[1].kwargs['params'] == expected_historical_params
+    assert call_args_list[1].kwargs["headers"] == expected_headers  # Should use the same patched headers
+    assert call_args_list[1].kwargs["params"] == expected_historical_params
 
-@patch('requests.get')
+
+@patch("requests.get")
 def test_run_api_key_missing_simulated_by_id_failure(mock_requests_get):
     mock_id_response_fail = MagicMock()
     mock_id_response_fail.status_code = 401
@@ -108,10 +134,11 @@ def test_run_api_key_missing_simulated_by_id_failure(mock_requests_get):
     mock_requests_get.assert_called_once_with(
         f"{CMC_BASE_URL}/cryptocurrency/map",
         headers=expected_headers_with_empty_key,
-        params={"symbol": "BTC"}
+        params={"symbol": "BTC"},
     )
 
-@patch('requests.get')
+
+@patch("requests.get")
 def test_run_id_lookup_fails_not_200(mock_requests_get):
     mock_id_response_fail = MagicMock()
     mock_id_response_fail.status_code = 500
@@ -125,7 +152,8 @@ def test_run_id_lookup_fails_not_200(mock_requests_get):
     assert "error" in result_data
     assert "CoinMarketCap API error retrieving ID: 500 - Server Error" in result_data["error"]
 
-@patch('requests.get')
+
+@patch("requests.get")
 def test_run_id_not_found_for_symbol(mock_requests_get):
     mock_id_response_no_data = MagicMock()
     mock_id_response_no_data.status_code = 200
@@ -139,7 +167,8 @@ def test_run_id_not_found_for_symbol(mock_requests_get):
     assert "error" in result_data
     assert "No ID found for cryptocurrency symbol: UNKNOWN" in result_data["error"]
 
-@patch('requests.get')
+
+@patch("requests.get")
 def test_run_id_unexpected_data_format(mock_requests_get):
     mock_id_response_bad_format = MagicMock()
     mock_id_response_bad_format.status_code = 200
@@ -153,7 +182,8 @@ def test_run_id_unexpected_data_format(mock_requests_get):
     assert "error" in result_data
     assert "Unexpected ID data format for symbol: BADFORMAT" in result_data["error"]
 
-@patch('requests.get')
+
+@patch("requests.get")
 def test_run_historical_lookup_fails_not_200(mock_requests_get):
     mock_id_response = MagicMock()
     mock_id_response.status_code = 200
@@ -171,7 +201,8 @@ def test_run_historical_lookup_fails_not_200(mock_requests_get):
     assert "error" in result_data
     assert "CoinMarketCap API error retrieving historical data: 503" in result_data["error"]
 
-@patch('requests.get')
+
+@patch("requests.get")
 def test_run_no_historical_data_found(mock_requests_get):
     mock_id_response = MagicMock()
     mock_id_response.status_code = 200
@@ -189,7 +220,8 @@ def test_run_no_historical_data_found(mock_requests_get):
     assert "error" in result_data
     assert "No historical data found for BTC over 1y" in result_data["error"]
 
-@patch('requests.get')
+
+@patch("requests.get")
 def test_run_general_exception_during_processing(mock_requests_get):
     mock_id_response = MagicMock()
     mock_id_response.status_code = 200

@@ -16,12 +16,11 @@ from epic_news.tools.scrape_ninja_tool import ScrapeNinjaTool
 
 load_dotenv()
 
+
 @CrewBase
 class CompanyProfilerCrew:
     agents_config = "config/agents.yaml"
     tasks_config = "config/tasks.yaml"
-
-
 
     @agent
     def company_profiler(self) -> Agent:

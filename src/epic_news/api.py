@@ -9,8 +9,10 @@ app = FastAPI(
     version="0.1.0",
 )
 
+
 class KickoffRequest(BaseModel):
     user_request: str
+
 
 @app.post("/kickoff", status_code=202)
 async def kickoff_endpoint(request: KickoffRequest, background_tasks: BackgroundTasks):

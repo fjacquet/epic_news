@@ -1,6 +1,5 @@
 import json
 import logging
-from typing import Union
 
 from crewai.tools import BaseTool
 from pydantic import BaseModel
@@ -30,8 +29,10 @@ class BatchArticleScraperTool(BaseTool):
         rss_feeds = input_data if input_data is not None else kwargs.get("rss_feeds", kwargs)
         """
         Scrapes the content for each article in the provided RssFeeds object.
+
         Args:
             rss_feeds: Can be a RssFeeds Pydantic model, a dictionary, or a JSON string
+
         Returns:
             A JSON string representation of the updated RssFeeds object
         """
@@ -83,7 +84,7 @@ class BatchArticleScraperTool(BaseTool):
                 }
             )
 
-    def _ensure_rss_feeds_object(self, input_data: Union[RssFeeds, dict, str]) -> RssFeeds:
+    def _ensure_rss_feeds_object(self, input_data: RssFeeds | dict | str) -> RssFeeds:
         """
         Ensures that the input is converted to a RssFeeds object.
 

@@ -1,4 +1,5 @@
 """Serper.dev email search tool implementation."""
+
 import json
 import os
 
@@ -15,9 +16,9 @@ load_dotenv()
 SERPER_API_URL = "https://google.serper.dev/search"
 
 
-
 class SerperEmailSearchTool(BaseTool):
     """Search for company emails using Serper API."""
+
     name: str = "serper_email_search"
     description: str = "Search the web for publicly available email addresses related to a company"
     args_schema: type[BaseModel] = SerperSearchInput
@@ -34,22 +35,14 @@ class SerperEmailSearchTool(BaseTool):
 
     def _run(self, query: str) -> str:
         """Search for emails using Serper API."""
-        headers = {
-            "X-API-KEY": self.searcher.api_key,
-            "Content-Type": "application/json"
-        }
+        headers = {"X-API-KEY": self.searcher.api_key, "Content-Type": "application/json"}
 
         # Clean up the query for better search results
         clean_query = query.strip().lower()
         search_query = f'"{clean_query}" "@{clean_query.replace(" ", "")}" email'
 
         payload = {"q": search_query}
-        response = self.searcher._make_request(
-            "POST",
-            SERPER_API_URL,
-            headers=headers,
-            json=payload
-        )
+        response = self.searcher._make_request("POST", SERPER_API_URL, headers=headers, json=payload)
 
         if not response:
             return json.dumps([{"error": "Failed to fetch data from Serper API"}])
@@ -62,8 +55,9 @@ class SerperEmailSearchTool(BaseTool):
             link = result.get("link", "")
             emails_found.update(self.searcher._extract_emails(f"{snippet} {link}"))
 
-        result = [{"emails": sorted(list(emails_found))}] if emails_found else [{"message": "No emails found"}]
+        result = [{"emails": sorted(emails_found)}] if emails_found else [{"message": "No emails found"}]
         return json.dumps(result)
+
 
 # For backward compatibility
 SearchMailSerper = SerperEmailSearchTool

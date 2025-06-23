@@ -9,7 +9,6 @@ import argparse
 import json
 import os
 import sys
-from typing import Union
 
 from dotenv import load_dotenv
 
@@ -18,6 +17,8 @@ from src.epic_news.tools.kraken_api_tool import KrakenAssetListTool, KrakenTicke
 
 def check_ticker_info(pair: str = "XXBTZUSD") -> bool:
     """
+    Test the connection to Kraken API by fetching ticker information.
+
     Check the connection to Kraken API by fetching ticker information.
 
     Args:
@@ -43,7 +44,7 @@ def check_ticker_info(pair: str = "XXBTZUSD") -> bool:
         return False
 
 
-def list_assets(api_key: str, api_secret: str) -> list[dict[str, Union[str, float]]] | None:
+def list_assets(api_key: str, api_secret: str) -> list[dict[str, str | float]] | None:
     """
     List assets in the Kraken account.
 

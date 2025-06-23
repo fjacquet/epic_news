@@ -5,6 +5,7 @@ This exposes:
     - ReportingTool (professional HTML report generation with templates)
     - HtmlToPdfTool    (existing conversion utility)
 """
+
 from __future__ import annotations
 
 from epic_news.tools.render_report_tool import RenderReportTool

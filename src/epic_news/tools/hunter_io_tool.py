@@ -1,4 +1,5 @@
 """Hunter.io email search tool implementation."""
+
 import json
 import os
 
@@ -15,9 +16,9 @@ load_dotenv()
 HUNTER_API_URL = "https://api.hunter.io/v2/domain-search"
 
 
-
 class HunterIOTool(BaseTool):
     """Search for company emails using Hunter.io API."""
+
     name: str = "hunter_io_search"
     description: str = "Find professional email addresses for a given domain using Hunter.io"
     args_schema: type[BaseModel] = HunterIOInput
@@ -34,14 +35,14 @@ class HunterIOTool(BaseTool):
 
     def _run(self, domain: str) -> str:
         """Search for emails using Hunter.io API."""
-        params = {
-            "domain": domain,
-            "api_key": self.searcher.api_key
-        }
+        params = {"domain": domain, "api_key": self.searcher.api_key}
 
         response = self.searcher._make_request("GET", HUNTER_API_URL, params=params)
-        result = response.json().get("data", {}) if response else {"error": "Failed to fetch data from Hunter.io"}
+        result = (
+            response.json().get("data", {}) if response else {"error": "Failed to fetch data from Hunter.io"}
+        )
         return json.dumps(result)
+
 
 # For backward compatibility
 SearchMailHunter = HunterIOTool

@@ -80,7 +80,6 @@ ignore = [
     "E501",   # Line too long (handled by formatter)
     "B008",   # Do not perform function calls in argument defaults
     "B904",   # Within an `except` clause, raise exceptions with `raise ... from err`
-    "UP007",  # Use `X | Y` for type annotations (not compatible with Python 3.10)
 ]
 
 [tool.ruff.format]

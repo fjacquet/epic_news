@@ -19,13 +19,10 @@ class TodoistTool(BaseTool):
     base_url: str = "https://api.todoist.com/rest/v2"
 
     def _get_headers(self):
-        api_token = os.getenv('TODOIST_API_KEY')
+        api_token = os.getenv("TODOIST_API_KEY")
         if not api_token:
             raise ValueError("TODOIST_API_KEY environment variable not set. Please set it in your .env file.")
-        return {
-            "Authorization": f"Bearer {api_token}",
-            "Content-Type": "application/json"
-        }
+        return {"Authorization": f"Bearer {api_token}", "Content-Type": "application/json"}
 
     def _run(
         self,

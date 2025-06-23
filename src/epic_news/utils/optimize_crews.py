@@ -91,7 +91,7 @@ def analyze_crew_module(module_path: str) -> dict[str, Any]:
         # Find crew classes and methods
         results = {}
 
-        for name, obj in inspect.getmembers(module):
+        for _, obj in inspect.getmembers(module):
             if inspect.isclass(obj):
                 # Look for crew method in the class
                 for method_name, method in inspect.getmembers(obj):

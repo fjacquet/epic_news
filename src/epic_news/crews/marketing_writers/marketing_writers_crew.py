@@ -10,10 +10,13 @@ load_dotenv()
 
 # Set up the tools for marketing tasks
 toolset = ComposioToolSet()
-marketing_tools = toolset.get_tools(actions=[
-    'COMPOSIO_SEARCH_SEARCH',
-    'COMPOSIO_SEARCH_DUCK_DUCK_GO_SEARCH',
-])
+marketing_tools = toolset.get_tools(
+    actions=[
+        "COMPOSIO_SEARCH_SEARCH",
+        "COMPOSIO_SEARCH_DUCK_DUCK_GO_SEARCH",
+    ]
+)
+
 
 @CrewBase
 class MarketingWritersCrew:
@@ -27,7 +30,7 @@ class MarketingWritersCrew:
             tools=marketing_tools + get_report_tools(),
             verbose=True,
             llm_timeout=300,
-            respect_context_window=True
+            respect_context_window=True,
         )
 
     @agent
@@ -37,7 +40,7 @@ class MarketingWritersCrew:
             tools=marketing_tools + get_report_tools(),
             verbose=True,
             llm_timeout=300,
-            respect_context_window=True
+            respect_context_window=True,
         )
 
     @task
@@ -46,7 +49,7 @@ class MarketingWritersCrew:
             config=self.tasks_config["analyze_market_task"],
             agent=self.marketing_specialist(),
             verbose=True,
-            llm_timeout=300
+            llm_timeout=300,
         )
 
     @task
@@ -54,10 +57,10 @@ class MarketingWritersCrew:
         return Task(
             config=self.tasks_config["enhance_message_task"],
             agent=self.copywriter(),
-            output_file='output/marketing/enhanced_message.html',
+            output_file="output/marketing/enhanced_message.html",
             output_pydantic=ReportHTMLOutput,
             verbose=True,
-            llm_timeout=300
+            llm_timeout=300,
         )
 
     @crew

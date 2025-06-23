@@ -20,7 +20,7 @@ class AirtableReaderTool(BaseTool):
     def _run(self, base_id: str, table_name: str) -> str:
         """Run the Airtable tool to read all records."""
         try:
-            api_key = os.getenv('AIRTABLE_API_KEY')
+            api_key = os.getenv("AIRTABLE_API_KEY")
             if not api_key:
                 raise ValueError("AIRTABLE_API_KEY environment variable not set.")
 
@@ -29,6 +29,7 @@ class AirtableReaderTool(BaseTool):
             return json.dumps(records)
         except Exception as e:
             return f"Error reading records from Airtable: {e}"
+
 
 class AirtableTool(BaseTool):
     name: str = "airtable_create_record"
@@ -41,7 +42,7 @@ class AirtableTool(BaseTool):
     def _run(self, base_id: str, table_name: str, data: dict[str, Any]) -> str:
         """Run the Airtable tool to create a new record."""
         try:
-            api_key = os.getenv('AIRTABLE_API_KEY')
+            api_key = os.getenv("AIRTABLE_API_KEY")
             if not api_key:
                 raise ValueError("AIRTABLE_API_KEY environment variable not set.")
 

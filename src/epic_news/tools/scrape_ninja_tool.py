@@ -14,6 +14,7 @@ load_dotenv()
 
 class ScrapeNinjaTool(BaseTool):
     """Tool for scraping website content using the ScrapeNinja API."""
+
     name: str = "ScrapeNinja"
     description: str = "Scrapes website content using the ScrapeNinja API with advanced options"
     args_schema: type[BaseModel] = ScrapeNinjaInput
@@ -37,14 +38,14 @@ class ScrapeNinjaTool(BaseTool):
             "Content-Type": "application/json",
             "Accept": "application/json",
             "X-RapidAPI-Key": self.api_key,
-            "X-RapidAPI-Host": "scrapeninja.p.rapidapi.com"
+            "X-RapidAPI-Host": "scrapeninja.p.rapidapi.com",
         }
 
         payload = {
             "url": kwargs["url"],
             "retryNum": kwargs.get("retry_num", 1),
             "followRedirects": kwargs.get("follow_redirects", 1),
-            "timeout": kwargs.get("timeout", 8)
+            "timeout": kwargs.get("timeout", 8),
         }
 
         # Add optional parameters if provided
@@ -84,6 +85,7 @@ def test_scrapeninja():
     print(f"Result: {result[:200]}..." if len(result) > 200 else f"Result: {result}")
 
     print(f"Result: {result}")
+
 
 if __name__ == "__main__":
     test_scrapeninja()

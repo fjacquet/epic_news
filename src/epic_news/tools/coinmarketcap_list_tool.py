@@ -27,6 +27,7 @@ class CoinMarketCapListTool(BaseTool):
     This tool provides a list of cryptocurrencies sorted by market cap,
     volume, or price with their current metrics.
     """
+
     name: str = "CoinMarketCap Cryptocurrency List"
     description: str = (
         "Get a list of top cryptocurrencies sorted by market cap, volume, price, "
@@ -78,11 +79,11 @@ class CoinMarketCapListTool(BaseTool):
             )
 
             if response.status_code != 200:
-                error_msg = (
-                    f"CoinMarketCap API error: {response.status_code} - {response.text}"
-                )
+                error_msg = f"CoinMarketCap API error: {response.status_code} - {response.text}"
                 logger.error(error_msg)
-                return json.dumps({"error": f"CoinMarketCap API error: {response.status_code} - {response.text}"})
+                return json.dumps(
+                    {"error": f"CoinMarketCap API error: {response.status_code} - {response.text}"}
+                )
 
             data = response.json()
 
@@ -94,19 +95,17 @@ class CoinMarketCapListTool(BaseTool):
             for crypto in data["data"]:
                 quote = crypto["quote"]["USD"]
                 crypto_info = {
-                    "rank": crypto.get('cmc_rank'),
-                    "name": crypto.get('name'),
-                    "symbol": crypto.get('symbol'),
-                    "price_usd": quote.get('price'),
-                    "percent_change_24h": quote.get('percent_change_24h'),
-                    "market_cap_usd": quote.get('market_cap'),
-                    "volume_24h_usd": quote.get('volume_24h')
+                    "rank": crypto.get("cmc_rank"),
+                    "name": crypto.get("name"),
+                    "symbol": crypto.get("symbol"),
+                    "price_usd": quote.get("price"),
+                    "percent_change_24h": quote.get("percent_change_24h"),
+                    "market_cap_usd": quote.get("market_cap"),
+                    "volume_24h_usd": quote.get("volume_24h"),
                 }
                 results_list.append(crypto_info)
 
-            logger.info(
-                f"Successfully retrieved list of {len(results_list)} cryptocurrencies"
-            )
+            logger.info(f"Successfully retrieved list of {len(results_list)} cryptocurrencies")
             return json.dumps(results_list)
 
         except Exception as e:

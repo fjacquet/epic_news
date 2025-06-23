@@ -1,4 +1,3 @@
-
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import DirectoryReadTool, FileReadTool
@@ -17,8 +16,9 @@ load_dotenv()
 @CrewBase
 class SalesProspectingCrew:
     """Sales Prospecting crew for finding sales contacts at target companies"""
-    agents_config = 'config/agents.yaml'
-    tasks_config = 'config/tasks.yaml'
+
+    agents_config = "config/agents.yaml"
+    tasks_config = "config/tasks.yaml"
 
     def __init__(self) -> None:
         self._init_tools()
@@ -37,48 +37,72 @@ class SalesProspectingCrew:
     def company_researcher(self) -> Agent:
         return Agent(
             config=self.agents_config["company_researcher"],
-            tools=[*self.search_tools, *self.email_search_tools, *self.read_tools, *self.report_tools, *self.data_centric_tools],
+            tools=[
+                *self.search_tools,
+                *self.email_search_tools,
+                *self.read_tools,
+                *self.report_tools,
+                *self.data_centric_tools,
+            ],
             verbose=True,
             llm_timeout=300,
             reasoning=True,
             max_reasoning_attempts=5,
-            respect_context_window=True
+            respect_context_window=True,
         )
 
     @agent
     def org_structure_analyst(self) -> Agent:
         return Agent(
             config=self.agents_config["org_structure_analyst"],
-            tools=[*self.search_tools, *self.email_search_tools, *self.read_tools, *self.report_tools, *self.data_centric_tools],
+            tools=[
+                *self.search_tools,
+                *self.email_search_tools,
+                *self.read_tools,
+                *self.report_tools,
+                *self.data_centric_tools,
+            ],
             verbose=True,
             reasoning=True,
             max_reasoning_attempts=5,
             llm_timeout=300,
-            respect_context_window=True
+            respect_context_window=True,
         )
 
     @agent
     def contact_finder(self) -> Agent:
         return Agent(
             config=self.agents_config["contact_finder"],
-            tools=[*self.search_tools, *self.email_search_tools, *self.read_tools, *self.report_tools, *self.data_centric_tools],
+            tools=[
+                *self.search_tools,
+                *self.email_search_tools,
+                *self.read_tools,
+                *self.report_tools,
+                *self.data_centric_tools,
+            ],
             verbose=True,
             reasoning=True,
             max_reasoning_attempts=5,
             llm_timeout=300,
-            respect_context_window=True
+            respect_context_window=True,
         )
 
     @agent
     def sales_strategist(self) -> Agent:
         return Agent(
             config=self.agents_config["sales_strategist"],
-            tools=[*self.search_tools, *self.email_search_tools, *self.read_tools, *self.report_tools, *self.data_centric_tools],
+            tools=[
+                *self.search_tools,
+                *self.email_search_tools,
+                *self.read_tools,
+                *self.report_tools,
+                *self.data_centric_tools,
+            ],
             verbose=True,
             reasoning=True,
             max_reasoning_attempts=5,
             llm_timeout=300,
-            respect_context_window=True
+            respect_context_window=True,
         )
 
     @task
@@ -122,9 +146,9 @@ class SalesProspectingCrew:
     def crew(self) -> Crew:
         """Creates the Sales Prospecting crew"""
         return Crew(
-            agents=self.agents, # Automatically created by the @agent decorator
-            tasks=self.tasks, # Automatically created by the @task decorator
-            process=Process.hierarchical, # Changed from sequential to hierarchical for parallel execution
+            agents=self.agents,  # Automatically created by the @agent decorator
+            tasks=self.tasks,  # Automatically created by the @task decorator
+            process=Process.hierarchical,  # Changed from sequential to hierarchical for parallel execution
             verbose=True,
             reasoning=True,
             max_reasoning_attempts=5,

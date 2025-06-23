@@ -1,6 +1,7 @@
 """
 Tool for fetching Yahoo Finance ETF Holdings.
 """
+
 import json
 
 import pandas as pd  # Required for pd.isna()
