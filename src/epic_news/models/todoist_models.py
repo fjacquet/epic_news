@@ -1,6 +1,6 @@
 """Pydantic models for the Todoist tool."""
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class TodoistToolInput(BaseModel):
@@ -22,3 +22,12 @@ class TodoistToolInput(BaseModel):
         None, description="Due date as a string (e.g., 'today', 'tomorrow', 'next Monday')."
     )
     priority: int | None = Field(None, description="Task priority (1-4, where 4 is highest).")
+
+    @model_validator(mode="after")
+    def check_action_requirements(self) -> "TodoistToolInput":
+        """Validate that required fields are present for specific actions."""
+        if self.action == "create_task" and self.task_content is None:
+            raise ValueError("`task_content` is required when action is 'create_task'")
+        if self.action == "complete_task" and self.task_id is None:
+            raise ValueError("`task_id` is required when action is 'complete_task'")
+        return self

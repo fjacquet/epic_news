@@ -6,7 +6,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Any
 
-from pydantic import BaseModel, Field, FieldValidationInfo, field_validator
+from pydantic import BaseModel, Field, model_validator
 
 __all__ = [
     "MetricValue",
@@ -55,31 +55,27 @@ class MetricValue(BaseModel):
     change_percentage: float | None = Field(None, description="Percentage change from previous value")
     trend: TrendDirection = Field(default=TrendDirection.UNKNOWN, description="Direction of trend")
 
-    @field_validator("change_percentage")
-    @classmethod
-    def validate_change_percentage(cls, v: float | None, info: FieldValidationInfo) -> float | None:
-        """Calculate change percentage if not provided but previous value exists."""
-        if v is None and info.data.get("previous_value") and info.data.get("value"):
-            prev = info.data["previous_value"]
-            curr = info.data["value"]
+    @model_validator(mode="after")
+    def calculate_change_and_trend(self) -> MetricValue:
+        """Calculate change percentage and trend direction after validation."""
+        # Calculate change percentage
+        if self.change_percentage is None and self.previous_value is not None and self.value is not None:
+            prev = self.previous_value
+            curr = self.value
 
-            # Only calculate for numeric types
             if isinstance(prev, int | float) and isinstance(curr, int | float) and prev != 0:
-                return ((curr - prev) / abs(prev)) * 100
-        return v
+                self.change_percentage = ((curr - prev) / abs(prev)) * 100
 
-    @field_validator("trend")
-    @classmethod
-    def validate_trend(cls, v: TrendDirection, info: FieldValidationInfo) -> TrendDirection:
-        """Determine trend direction if not explicitly provided."""
-        if v == TrendDirection.UNKNOWN and info.data.get("change_percentage") is not None:
-            change = info.data["change_percentage"]
+        # Determine trend
+        if self.trend == TrendDirection.UNKNOWN and self.change_percentage is not None:
+            change = self.change_percentage
             if change > 5:
-                return TrendDirection.UP
-            if change < -5:
-                return TrendDirection.DOWN
-            return TrendDirection.STABLE
-        return v
+                self.trend = TrendDirection.UP
+            elif change < -5:
+                self.trend = TrendDirection.DOWN
+            else:
+                self.trend = TrendDirection.STABLE
+        return self
 
 
 class Metric(BaseModel):
@@ -113,34 +109,29 @@ class KPI(Metric):
         default="pending", description="Status of this KPI (e.g., 'on track', 'at risk', 'achieved')"
     )
 
-    @field_validator("progress_percentage")
-    @classmethod
-    def calculate_progress(cls, v: float | None, info: FieldValidationInfo) -> float | None:
-        """Calculate progress percentage if not provided but target exists."""
-        if v is None and info.data.get("target") and info.data.get("value"):
-            target = info.data["target"]
-            curr_value = info.data["value"].value
+    @model_validator(mode="after")
+    def calculate_progress_and_status(self) -> KPI:
+        """Calculate progress percentage and status after validation."""
+        # Calculate progress
+        if self.progress_percentage is None and self.target is not None and self.value is not None:
+            target = self.target
+            curr_value = self.value.value
 
-            # Only calculate for numeric types
             if isinstance(target, int | float) and isinstance(curr_value, int | float) and target != 0:
-                return (curr_value / target) * 100
-        return v
+                self.progress_percentage = (curr_value / target) * 100
 
-    @field_validator("status")
-    @classmethod
-    def validate_status(cls, v: str, info: FieldValidationInfo) -> str:
-        """Determine KPI status based on progress if not explicitly provided."""
-        if v == "pending" and info.data.get("progress_percentage") is not None:
-            progress = info.data["progress_percentage"]
-            if progress is not None:
-                if progress >= 100:
-                    return "achieved"
-                if progress >= 75:
-                    return "on track"
-                if progress >= 50:
-                    return "needs attention"
-                return "at risk"
-        return v
+        # Determine status
+        if self.status == "pending" and self.progress_percentage is not None:
+            progress = self.progress_percentage
+            if progress >= 100:
+                self.status = "achieved"
+            elif progress >= 75:
+                self.status = "on track"
+            elif progress >= 50:
+                self.status = "needs attention"
+            else:
+                self.status = "at risk"
+        return self
 
 
 class DataPoint(BaseModel):

@@ -45,7 +45,7 @@ logging.basicConfig(level=logging.INFO, handlers=[queue_handler])
 
 
 # --- Crew Execution Logic ---
-def run_crew_thread(user_request: str):
+def run_crew_thread(user_request: str, log_queue: Queue):
     """Runs the ReceptionFlow in a separate thread to avoid blocking the UI."""
     try:
         # The kickoff function will run the flow. The flow's state will hold the output path.
@@ -89,7 +89,7 @@ if st.session_state.crew_running:
 
     # Start the crew thread only on the first run
     if "thread" not in st.session_state or not st.session_state.thread.is_alive():
-        st.session_state.thread = Thread(target=run_crew_thread, args=(user_request,))
+        st.session_state.thread = Thread(target=run_crew_thread, args=(user_request, log_queue))
         st.session_state.thread.start()
 
     # Poll the queue for updates

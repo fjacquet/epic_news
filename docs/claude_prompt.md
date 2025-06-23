@@ -33,3 +33,27 @@ Remember :
 - create a test for this tool
 - update documentation while ensure that we stay in proper alphabetical order for the list of tools
 - add a main to tool to show how to use the tool
+
+## Create a team
+
+J'aimerais creer une equipe d'ai agents avec crewai.
+
+Le but est de pouvoir obtenir  en francais à l'execution
+
+- un menu de la semaine adapté
+
+-- à mes contraintes (famille, enfant, condition medicale, .... )
+
+-- à la saison à partir de la date du jour
+
+-- avec entree, plat et dessert uniquement le midi des weekend
+
+-- pour le midi et le soir uniquement (pas le matin)
+
+- les recettes pour chaque élément du menu
+
+-- au format html
+
+-- au format paprika3 (via un tools existant)
+
+- la liste agrégée des ingrédients pour faire les courses pour la semaine
