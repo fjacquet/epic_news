@@ -1,4 +1,5 @@
 """Base classes and common functionality for search tools."""
+
 import logging
 from typing import Any, TypeVar
 
@@ -10,10 +11,12 @@ from urllib3.util.retry import Retry
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-T = TypeVar('T')
+T = TypeVar("T")
+
 
 class BaseSearchTool:
     """Base class for search tools with common functionality."""
+
     api_key: str | None = None
     session: requests.Session | None = None
 
@@ -41,12 +44,7 @@ class BaseSearchTool:
     def _make_request(self, method: str, url: str, **kwargs) -> requests.Response | None:
         """Make an HTTP request with error handling."""
         try:
-            response = self.session.request(
-                method,
-                url,
-                timeout=10,
-                **kwargs
-            )
+            response = self.session.request(method, url, timeout=10, **kwargs)
             response.raise_for_status()
             return response
         except requests.RequestException as e:
@@ -56,18 +54,15 @@ class BaseSearchTool:
     def _search_serper(self, query: str) -> dict[str, Any] | None:
         """
         Perform a search using the Serper API.
-        
+
         Args:
             query: The search query string
-            
+
         Returns:
             Dict containing search results or error information
         """
         url = "https://google.serper.dev/search"
-        headers = {
-            "X-API-KEY": self.api_key,
-            "Content-Type": "application/json"
-        }
+        headers = {"X-API-KEY": self.api_key, "Content-Type": "application/json"}
         payload = {"q": query}
 
         logger.info(f"Performing search with query: {query}")
@@ -82,7 +77,7 @@ class BaseSearchTool:
             logger.debug(f"Search API response: {data}")
 
             # Check for API errors
-            if 'error' in data:
+            if "error" in data:
                 logger.error(f"Search API error: {data.get('message', 'Unknown error')}")
                 return None
 

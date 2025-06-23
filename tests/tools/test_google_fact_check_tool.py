@@ -12,6 +12,7 @@ from src.epic_news.tools.google_fact_check_tool import GoogleFactCheckTool
 def factory():
     return FactCheckingToolsFactory()
 
+
 def test_create_google_fact_check_tool(factory):
     """Test creating a GoogleFactCheckTool from the factory."""
     with patch.dict(os.environ, {"GOOGLE_API_KEY": "test_api_key"}):
@@ -19,13 +20,15 @@ def test_create_google_fact_check_tool(factory):
         assert isinstance(tool, GoogleFactCheckTool)
         assert tool.api_key == "test_api_key"
 
+
 def test_google_fact_check_tool_missing_api_key():
     """Test that GoogleFactCheckTool raises an error if the API key is missing."""
-    with patch.dict(os.environ, {}, clear=True):
+    with patch.dict(os.environ, {}, clear=True):  # noqa: SIM117
         with pytest.raises(ValueError, match="Google API key is not set"):
             GoogleFactCheckTool()
 
-@patch('requests.get')
+
+@patch("requests.get")
 def test_google_fact_check_tool_run_success(mock_get):
     """Test a successful run of the GoogleFactCheckTool."""
     mock_response = MagicMock()
@@ -47,7 +50,8 @@ def test_google_fact_check_tool_run_success(mock_get):
         },
     )
 
-@patch('requests.get')
+
+@patch("requests.get")
 def test_google_fact_check_tool_run_error(mock_get):
     """Test an unsuccessful run of the GoogleFactCheckTool due to a request exception."""
     mock_get.side_effect = requests.exceptions.RequestException("API error")

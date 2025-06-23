@@ -28,10 +28,11 @@ class DashboardGenerator:
     """
     Generates HTML dashboards for visualizing observability data.
     """
+
     def __init__(self, dashboard_id: str):
         """
         Initialize a dashboard generator.
-        
+
         Args:
             dashboard_id: ID of the dashboard to visualize
         """
@@ -46,7 +47,7 @@ class DashboardGenerator:
     def _load_metrics(self) -> dict[str, Any]:
         """
         Load metrics from the data file.
-        
+
         Returns:
             Dict[str, Any]: Loaded metrics
         """
@@ -58,7 +59,7 @@ class DashboardGenerator:
     def _generate_crew_charts(self) -> list[dict[str, str]]:
         """
         Generate charts for crew metrics.
-        
+
         Returns:
             List[Dict[str, str]]: List of chart data
         """
@@ -68,8 +69,7 @@ class DashboardGenerator:
             # Generate crew execution time chart
             crew_names = list(self.metrics["crews"].keys())
             execution_times = [
-                self.metrics["crews"][crew].get("last_execution_time", 0)
-                for crew in crew_names
+                self.metrics["crews"][crew].get("last_execution_time", 0) for crew in crew_names
             ]
 
             plt.figure(figsize=(10, 6))
@@ -82,16 +82,13 @@ class DashboardGenerator:
 
             # Convert plot to base64 image
             buffer = io.BytesIO()
-            plt.savefig(buffer, format='png')
+            plt.savefig(buffer, format="png")
             buffer.seek(0)
             image_png = buffer.getvalue()
             buffer.close()
 
-            chart_data = base64.b64encode(image_png).decode('utf-8')
-            charts.append({
-                "title": "Crew Execution Times",
-                "data": chart_data
-            })
+            chart_data = base64.b64encode(image_png).decode("utf-8")
+            charts.append({"title": "Crew Execution Times", "data": chart_data})
 
             plt.close()
 
@@ -100,7 +97,7 @@ class DashboardGenerator:
     def _generate_agent_charts(self) -> list[dict[str, str]]:
         """
         Generate charts for agent metrics.
-        
+
         Returns:
             List[Dict[str, str]]: List of chart data
         """
@@ -109,10 +106,7 @@ class DashboardGenerator:
         if "agents" in self.metrics and self.metrics["agents"]:
             # Generate agent calls chart
             agent_names = list(self.metrics["agents"].keys())
-            agent_calls = [
-                self.metrics["agents"][agent].get("calls", 0)
-                for agent in agent_names
-            ]
+            agent_calls = [self.metrics["agents"][agent].get("calls", 0) for agent in agent_names]
 
             plt.figure(figsize=(10, 6))
             plt.bar(agent_names, agent_calls)
@@ -124,16 +118,13 @@ class DashboardGenerator:
 
             # Convert plot to base64 image
             buffer = io.BytesIO()
-            plt.savefig(buffer, format='png')
+            plt.savefig(buffer, format="png")
             buffer.seek(0)
             image_png = buffer.getvalue()
             buffer.close()
 
-            chart_data = base64.b64encode(image_png).decode('utf-8')
-            charts.append({
-                "title": "Agent Call Counts",
-                "data": chart_data
-            })
+            chart_data = base64.b64encode(image_png).decode("utf-8")
+            charts.append({"title": "Agent Call Counts", "data": chart_data})
 
             plt.close()
 
@@ -142,7 +133,7 @@ class DashboardGenerator:
     def _generate_task_charts(self) -> list[dict[str, str]]:
         """
         Generate charts for task metrics.
-        
+
         Returns:
             List[Dict[str, str]]: List of chart data
         """
@@ -151,10 +142,7 @@ class DashboardGenerator:
         if "tasks" in self.metrics and self.metrics["tasks"]:
             # Generate task execution time chart
             task_names = list(self.metrics["tasks"].keys())
-            task_times = [
-                self.metrics["tasks"][task].get("average_execution_time", 0)
-                for task in task_names
-            ]
+            task_times = [self.metrics["tasks"][task].get("average_execution_time", 0) for task in task_names]
 
             plt.figure(figsize=(10, 6))
             plt.bar(task_names, task_times)
@@ -166,23 +154,19 @@ class DashboardGenerator:
 
             # Convert plot to base64 image
             buffer = io.BytesIO()
-            plt.savefig(buffer, format='png')
+            plt.savefig(buffer, format="png")
             buffer.seek(0)
             image_png = buffer.getvalue()
             buffer.close()
 
-            chart_data = base64.b64encode(image_png).decode('utf-8')
-            charts.append({
-                "title": "Task Average Execution Times",
-                "data": chart_data
-            })
+            chart_data = base64.b64encode(image_png).decode("utf-8")
+            charts.append({"title": "Task Average Execution Times", "data": chart_data})
 
             plt.close()
 
             # Generate task success rate chart
             task_success_rates = [
-                self.metrics["tasks"][task].get("success_rate", 0) * 100
-                for task in task_names
+                self.metrics["tasks"][task].get("success_rate", 0) * 100 for task in task_names
             ]
 
             plt.figure(figsize=(10, 6))
@@ -196,16 +180,13 @@ class DashboardGenerator:
 
             # Convert plot to base64 image
             buffer = io.BytesIO()
-            plt.savefig(buffer, format='png')
+            plt.savefig(buffer, format="png")
             buffer.seek(0)
             image_png = buffer.getvalue()
             buffer.close()
 
-            chart_data = base64.b64encode(image_png).decode('utf-8')
-            charts.append({
-                "title": "Task Success Rates",
-                "data": chart_data
-            })
+            chart_data = base64.b64encode(image_png).decode("utf-8")
+            charts.append({"title": "Task Success Rates", "data": chart_data})
 
             plt.close()
 
@@ -214,7 +195,7 @@ class DashboardGenerator:
     def _generate_tool_charts(self) -> list[dict[str, str]]:
         """
         Generate charts for tool metrics.
-        
+
         Returns:
             List[Dict[str, str]]: List of chart data
         """
@@ -223,10 +204,7 @@ class DashboardGenerator:
         if "tools" in self.metrics and self.metrics["tools"]:
             # Generate tool usage chart
             tool_names = list(self.metrics["tools"].keys())
-            tool_usage = [
-                self.metrics["tools"][tool].get("usage_count", 0)
-                for tool in tool_names
-            ]
+            tool_usage = [self.metrics["tools"][tool].get("usage_count", 0) for tool in tool_names]
 
             plt.figure(figsize=(10, 6))
             plt.bar(tool_names, tool_usage)
@@ -238,16 +216,13 @@ class DashboardGenerator:
 
             # Convert plot to base64 image
             buffer = io.BytesIO()
-            plt.savefig(buffer, format='png')
+            plt.savefig(buffer, format="png")
             buffer.seek(0)
             image_png = buffer.getvalue()
             buffer.close()
 
-            chart_data = base64.b64encode(image_png).decode('utf-8')
-            charts.append({
-                "title": "Tool Usage Counts",
-                "data": chart_data
-            })
+            chart_data = base64.b64encode(image_png).decode("utf-8")
+            charts.append({"title": "Tool Usage Counts", "data": chart_data})
 
             plt.close()
 
@@ -256,7 +231,7 @@ class DashboardGenerator:
     def _generate_system_charts(self) -> list[dict[str, str]]:
         """
         Generate charts for system metrics.
-        
+
         Returns:
             List[Dict[str, str]]: List of chart data
         """
@@ -278,16 +253,13 @@ class DashboardGenerator:
 
                 # Convert plot to base64 image
                 buffer = io.BytesIO()
-                plt.savefig(buffer, format='png')
+                plt.savefig(buffer, format="png")
                 buffer.seek(0)
                 image_png = buffer.getvalue()
                 buffer.close()
 
-                chart_data = base64.b64encode(image_png).decode('utf-8')
-                charts.append({
-                    "title": "System Uptime",
-                    "data": chart_data
-                })
+                chart_data = base64.b64encode(image_png).decode("utf-8")
+                charts.append({"title": "System Uptime", "data": chart_data})
 
                 plt.close()
 
@@ -299,10 +271,10 @@ class DashboardGenerator:
         plt.figure(figsize=(10, 4))
 
         # Get metrics data (use real data when available or generate sample data)
-        if hasattr(self, 'metrics') and self.metrics.get('daily_metrics'):
-            days = [m.get('day_number', i) for i, m in enumerate(self.metrics['daily_metrics'])]
-            success_rates = [m.get('success_rate', 0) for m in self.metrics['daily_metrics']]
-            completion_times = [m.get('avg_completion_time', 0) for m in self.metrics['daily_metrics']]
+        if hasattr(self, "metrics") and self.metrics.get("daily_metrics"):
+            days = [m.get("day_number", i) for i, m in enumerate(self.metrics["daily_metrics"])]
+            success_rates = [m.get("success_rate", 0) for m in self.metrics["daily_metrics"]]
+            completion_times = [m.get("avg_completion_time", 0) for m in self.metrics["daily_metrics"]]
         else:
             # Example data if real metrics not available
             days = np.arange(1, 8)
@@ -310,18 +282,18 @@ class DashboardGenerator:
             completion_times = np.random.uniform(10, 30, 7)
 
         # Plot data
-        plt.plot(days, success_rates, 'o-', color='#1a73e8', label='Success Rate (%)')
-        plt.plot(days, completion_times, 's-', color='#34a853', label='Avg Completion Time (s)')
-        plt.xlabel('Day')
-        plt.ylabel('Value')
-        plt.title('System Performance Over Time')
+        plt.plot(days, success_rates, "o-", color="#1a73e8", label="Success Rate (%)")
+        plt.plot(days, completion_times, "s-", color="#34a853", label="Avg Completion Time (s)")
+        plt.xlabel("Day")
+        plt.ylabel("Value")
+        plt.title("System Performance Over Time")
         plt.legend()
-        plt.grid(True, linestyle='--', alpha=0.7)
+        plt.grid(True, linestyle="--", alpha=0.7)
         plt.tight_layout()
 
         # Convert plot to base64 string
         buffer = io.BytesIO()
-        plt.savefig(buffer, format='png', dpi=80)
+        plt.savefig(buffer, format="png", dpi=80)
         buffer.seek(0)
         image_png = buffer.getvalue()
         buffer.close()
@@ -329,12 +301,12 @@ class DashboardGenerator:
 
         # Encode the PNG image to base64 string
         encoded = base64.b64encode(image_png)
-        return encoded.decode('utf-8')
+        return encoded.decode("utf-8")
 
     def generate_dashboard(self) -> str:
         """
         Generate an HTML dashboard.
-        
+
         Returns:
             str: Path to the generated dashboard HTML file
         """
@@ -354,54 +326,96 @@ class DashboardGenerator:
             "agent_charts": agent_charts,
             "task_charts": task_charts,
             "tool_charts": tool_charts,
-            "system_charts": system_charts
+            "system_charts": system_charts,
         }
 
         # Render template
-        template = self.env.get_template('dashboard_template.html')
+        template = self.env.get_template("dashboard_template.html")
 
         # Add additional context for our new template
-        today = datetime.now().strftime('%Y-%m-%d')
-        one_week_ago = datetime.now().strftime('%Y-%m-%d')  # In production, calculate actual date
+        today = datetime.now().strftime("%Y-%m-%d")
+        one_week_ago = datetime.now().strftime("%Y-%m-%d")  # In production, calculate actual date
 
         # Extract or generate metrics for dashboard template
-        total_runs = self.metrics.get('total_runs', 0) if self.metrics else 0
-        success_rate = self.metrics.get('success_rate', 95.0) if self.metrics else 95.0
-        success_trend = self.metrics.get('success_trend', 2.3) if self.metrics else 2.3
-        avg_time = self.metrics.get('avg_completion_time', 18.2) if self.metrics else 18.2
-        hallucination_score = self.metrics.get('hallucination_score', 0.12) if self.metrics else 0.12
+        total_runs = self.metrics.get("total_runs", 0) if self.metrics else 0
+        success_rate = self.metrics.get("success_rate", 95.0) if self.metrics else 95.0
+        success_trend = self.metrics.get("success_trend", 2.3) if self.metrics else 2.3
+        avg_time = self.metrics.get("avg_completion_time", 18.2) if self.metrics else 18.2
+        hallucination_score = self.metrics.get("hallucination_score", 0.12) if self.metrics else 0.12
         hallucination_percent = min(int(hallucination_score * 100), 100)
 
         # Generate performance chart
         performance_chart = self._generate_performance_chart()
 
         # Prepare recent runs data
-        recent_runs = self.metrics.get('recent_runs', []) if self.metrics else [
-            {'timestamp': f'{today} 14:32:11', 'crew': 'CompanyNewsCrew', 'duration': 32.5, 'status': 'Success', 'hallucination_score': 0.08},
-            {'timestamp': f'{today} 12:15:09', 'crew': 'MarketingWritersCrew', 'duration': 15.3, 'status': 'Success', 'hallucination_score': 0.14},
-            {'timestamp': f'{today} 10:45:22', 'crew': 'TechStackCrew', 'duration': 45.8, 'status': 'Success', 'hallucination_score': 0.11},
-            {'timestamp': f'{today} 08:12:45', 'crew': 'SalesProspectingCrew', 'duration': 28.1, 'status': 'Failure', 'hallucination_score': 0.35},
-        ]
+        recent_runs = (
+            self.metrics.get("recent_runs", [])
+            if self.metrics
+            else [
+                {
+                    "timestamp": f"{today} 14:32:11",
+                    "crew": "CompanyNewsCrew",
+                    "duration": 32.5,
+                    "status": "Success",
+                    "hallucination_score": 0.08,
+                },
+                {
+                    "timestamp": f"{today} 12:15:09",
+                    "crew": "MarketingWritersCrew",
+                    "duration": 15.3,
+                    "status": "Success",
+                    "hallucination_score": 0.14,
+                },
+                {
+                    "timestamp": f"{today} 10:45:22",
+                    "crew": "TechStackCrew",
+                    "duration": 45.8,
+                    "status": "Success",
+                    "hallucination_score": 0.11,
+                },
+                {
+                    "timestamp": f"{today} 08:12:45",
+                    "crew": "SalesProspectingCrew",
+                    "duration": 28.1,
+                    "status": "Failure",
+                    "hallucination_score": 0.35,
+                },
+            ]
+        )
 
         # Prepare alerts
-        alerts = self.metrics.get('alerts', []) if self.metrics else [
-            {'level': 'warning', 'title': 'High Hallucination Score', 'message': 'SalesProspectingCrew showed high hallucination tendencies in recent runs.'},
-            {'level': 'info', 'title': 'System Update', 'message': f'New model version deployed on {today}.'},
-        ]
+        alerts = (
+            self.metrics.get("alerts", [])
+            if self.metrics
+            else [
+                {
+                    "level": "warning",
+                    "title": "High Hallucination Score",
+                    "message": "SalesProspectingCrew showed high hallucination tendencies in recent runs.",
+                },
+                {
+                    "level": "info",
+                    "title": "System Update",
+                    "message": f"New model version deployed on {today}.",
+                },
+            ]
+        )
 
         # Add template data for new dashboard
-        template_data.update({
-            'date_range': f"{one_week_ago} to {today}",
-            'total_runs': total_runs,
-            'success_rate': success_rate,
-            'success_trend': success_trend,
-            'avg_time': avg_time,
-            'hallucination_score': hallucination_score,
-            'hallucination_percent': hallucination_percent,
-            'performance_chart': performance_chart,
-            'recent_runs': recent_runs,
-            'alerts': alerts
-        })
+        template_data.update(
+            {
+                "date_range": f"{one_week_ago} to {today}",
+                "total_runs": total_runs,
+                "success_rate": success_rate,
+                "success_trend": success_trend,
+                "avg_time": avg_time,
+                "hallucination_score": hallucination_score,
+                "hallucination_percent": hallucination_percent,
+                "performance_chart": performance_chart,
+                "recent_runs": recent_runs,
+                "alerts": alerts,
+            }
+        )
 
         html_content = template.render(**template_data)
 
@@ -415,7 +429,7 @@ class DashboardGenerator:
 def generate_all_dashboards() -> list[str]:
     """
     Generate dashboards for all available dashboard data.
-    
+
     Returns:
         List[str]: Paths to generated dashboard HTML files
     """

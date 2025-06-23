@@ -10,11 +10,12 @@ from epic_news.tools.tech_stack_tool import TechStackInput, TechStackTool
 # Sample SERPER API Key for tests
 TEST_SERPER_API_KEY = "test_serper_api_key_123"
 
+
 @patch.dict(os.environ, {"SERPER_API_KEY": TEST_SERPER_API_KEY})
 def test_tech_stack_tool_instantiation_success():
     """Test successful instantiation when SERPER_API_KEY is set."""
     # Mock BaseSearchTool's _search_serper to avoid issues if it's called during init
-    with patch('epic_news.tools.search_base.BaseSearchTool._search_serper', MagicMock(return_value={})):
+    with patch("epic_news.tools.search_base.BaseSearchTool._search_serper", MagicMock(return_value={})):
         tool = TechStackTool()
     assert tool.api_key == TEST_SERPER_API_KEY
     assert tool.name == "tech_stack_analysis"
@@ -22,36 +23,38 @@ def test_tech_stack_tool_instantiation_success():
     assert "Analyze the technology stack used by a website" in tool.description
     assert tool.args_schema == TechStackInput
 
-@patch.dict(os.environ, {}, clear=True) # Ensure SERPER_API_KEY is not set
+
+@patch.dict(os.environ, {}, clear=True)  # Ensure SERPER_API_KEY is not set
 def test_tech_stack_tool_instantiation_no_api_key():
     """Test instantiation failure when SERPER_API_KEY is not set."""
-    with pytest.raises(ValueError) as excinfo:
+    with pytest.raises(ValueError) as excinfo:  # noqa: SIM117
         # Mock BaseSearchTool's _search_serper to avoid issues if it's called during init
-        with patch('epic_news.tools.search_base.BaseSearchTool._search_serper', MagicMock(return_value={})):
+        with patch("epic_news.tools.search_base.BaseSearchTool._search_serper", MagicMock(return_value={})):
             TechStackTool()
     assert "SERPER_API_KEY environment variable not set" in str(excinfo.value)
 
 
 @pytest.fixture
-def tech_stack_tool_instance_with_mock(): # Renamed fixture
+def tech_stack_tool_instance_with_mock():  # Renamed fixture
     """Fixture to create a TechStackTool instance with SERPER_API_KEY set and _search_serper mocked."""
     # Patch _search_serper on BaseSearchTool where it's defined
-    with patch('epic_news.tools.search_base.BaseSearchTool._search_serper') as mock_search_serper_method:
+    with patch("epic_news.tools.search_base.BaseSearchTool._search_serper") as mock_search_serper_method:
         with patch.dict(os.environ, {"SERPER_API_KEY": TEST_SERPER_API_KEY}):
             tool = TechStackTool()
-        yield tool, mock_search_serper_method # Yield tool and the mock
+        yield tool, mock_search_serper_method  # Yield tool and the mock
 
-def test_run_simple_success(tech_stack_tool_instance_with_mock): # Updated to use new fixture
+
+def test_run_simple_success(tech_stack_tool_instance_with_mock):  # Updated to use new fixture
     """Test _run method with detailed=False and successful tech identification."""
     domain_to_test = "example.com"
     mock_search_results = [
         {"title": "Example Tech", "snippet": "Uses React and Google Analytics"},
-        {"title": "Another Example", "snippet": "Powered by WordPress"}
+        {"title": "Another Example", "snippet": "Powered by WordPress"},
     ]
     tool, mock_search_serper = tech_stack_tool_instance_with_mock
     mock_search_serper.return_value = {"organic": mock_search_results}
 
-    expected_tech = sorted(['react', 'google analytics', 'wordpress']) # From TECH_PATTERNS
+    expected_tech = sorted(["react", "google analytics", "wordpress"])  # From TECH_PATTERNS
 
     result_json = tool._run(domain=domain_to_test, detailed=False)
     result = json.loads(result_json)
@@ -70,17 +73,20 @@ def test_run_detailed_success(tech_stack_tool_instance_with_mock):
     tool, mock_search_serper = tech_stack_tool_instance_with_mock
     domain_to_test = "detailed-example.com"
     mock_search_results = [
-        {"title": "Detailed Tech Co", "snippet": "We use React, Next.js, and Google Analytics for our analytics."},
-        {"title": "Platform Info", "snippet": "Hosted on Vercel, CMS is WordPress."}
+        {
+            "title": "Detailed Tech Co",
+            "snippet": "We use React, Next.js, and Google Analytics for our analytics.",
+        },
+        {"title": "Platform Info", "snippet": "Hosted on Vercel, CMS is WordPress."},
     ]
     mock_search_serper.return_value = {"organic": mock_search_results}
 
-    expected_raw_tech = sorted(['react', 'next.js', 'google analytics', 'vercel', 'wordpress'])
+    expected_raw_tech = sorted(["react", "next.js", "google analytics", "vercel", "wordpress"])
     expected_detailed_analysis = {
-        'frameworks': sorted(['react', 'next.js']),
-        'analytics': ['google analytics'],
-        'hosting': ['vercel'],
-        'cms': ['wordpress']
+        "frameworks": sorted(["react", "next.js"]),
+        "analytics": ["google analytics"],
+        "hosting": ["vercel"],
+        "cms": ["wordpress"],
     }
 
     result_json = tool._run(domain=domain_to_test, detailed=True)
@@ -174,5 +180,6 @@ def test_run_search_api_error(tech_stack_tool_instance_with_mock):
     mock_search_serper.assert_called_once_with(
         f"site:builtwith.com OR site:wappalyzer.com OR site:stackshare.io {domain_to_test}"
     )
+
 
 # More tests will follow for _run (detailed, errors, etc.) and direct tests for helper methods will follow.
