@@ -7,6 +7,7 @@ import requests
 
 from epic_news.tools.exchange_rate_tool import ExchangeRateTool
 
+
 @pytest.fixture
 @patch.dict(os.environ, {"OPENEXCHANGERATES_API_KEY": "test_api_key"})
 def tool():
@@ -135,7 +136,6 @@ def test_run_no_rates_for_specified_targets(mock_get, tool):
         f"Error: No rates found for the specified target currencies: {target_currencies} with base USD"
     )
     assert result == expected_msg
-
 
 
 if __name__ == "__main__":

@@ -6,6 +6,7 @@ import pytest
 from src.epic_news.models.rss_models import Article, FeedWithArticles, RssFeeds
 from src.epic_news.tools.batch_article_scraper_tool import BatchArticleScraperTool
 
+
 @pytest.fixture
 def setup_tool_and_data():
     """Set up test fixtures."""
@@ -147,4 +148,3 @@ def test_invalid_json(setup_tool_and_data):
     tool = data["tool"]
     with pytest.raises(ValueError, match="Invalid JSON input"):
         tool._run("invalid json")
-
