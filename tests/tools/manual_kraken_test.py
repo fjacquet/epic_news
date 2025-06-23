@@ -15,12 +15,13 @@ from dotenv import load_dotenv
 from src.epic_news.tools.kraken_api_tool import KrakenAssetListTool, KrakenTickerInfoTool
 
 
-def test_ticker_info(pair: str = "XXBTZUSD") -> None:
+def check_ticker_info(pair: str = "XXBTZUSD") -> bool:
     """
-    Test the connection to Kraken API by fetching ticker information.
-
+    Check the connection to Kraken API by fetching ticker information.
     Args:
         pair: The cryptocurrency pair to get ticker information for.
+    Returns:
+        True if the connection is successful, False otherwise.
     """
     print(f"Testing Kraken API connection by fetching ticker info for {pair}...")
 
@@ -90,7 +91,7 @@ def main():
     api_secret = args.api_secret or os.environ.get("KRAKEN_API_SECRET")
 
     # First test the connection using the public API (no auth required)
-    connection_ok = test_ticker_info(args.pair)
+    connection_ok = check_ticker_info(args.pair)
     print("\n" + "-" * 50 + "\n")
 
     if not connection_ok:
