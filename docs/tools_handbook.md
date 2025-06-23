@@ -153,6 +153,8 @@ print(weather)
 
 A string containing the current weather conditions, for example: "Current weather in your location: 20°C, Sunny."
 
+---
+
 ## TodoistTool
 
 **Description:**
@@ -195,6 +197,92 @@ The tool supports the following actions, specified via the `action` parameter:
 
 **Output:**
 The tool returns a string indicating the result of the operation, which could be a success message, an error message, or the data requested (e.g., a list of tasks or projects).
+
+---
+
+## WikipediaTool
+
+**Description:**
+A comprehensive tool to interact with Wikipedia. It can search for articles, fetch content, get summaries, and extract specific information like links, sections, or key facts.
+
+**Prerequisites:**
+
+- The `wikipedia` python package must be installed.
+
+**Actions:**
+
+The tool's behavior is controlled by the `action` parameter.
+
+1. **`search_wikipedia`**
+    - **Description:** Searches Wikipedia for articles matching a query.
+    - **Parameters:**
+        - `query` (str, required): The search term.
+        - `limit` (int, optional, default: 5): The maximum number of results to return.
+    - **Example:** `tool._run(action="search_wikipedia", query="Python programming", limit=3)`
+    - **Output:** A JSON string list of article titles.
+
+2. **`get_summary`**
+    - **Description:** Retrieves a concise summary of a Wikipedia article.
+    - **Parameters:**
+        - `title` (str, required): The exact title of the Wikipedia article.
+    - **Example:** `tool._run(action="get_summary", title="Artificial intelligence")`
+    - **Output:** A string containing the summary.
+
+3. **`get_article`**
+    - **Description:** Fetches the full plain text content of a Wikipedia article.
+    - **Parameters:**
+        - `title` (str, required): The exact title of the article.
+    - **Example:** `tool._run(action="get_article", title="History of computing")`
+    - **Output:** A string with the full article content.
+
+4. **`get_links`**
+    - **Description:** Gets all the links contained within a Wikipedia article.
+    - **Parameters:**
+        - `title` (str, required): The exact title of the article.
+    - **Example:** `tool._run(action="get_links", title="World Wide Web")`
+    - **Output:** A JSON string list of all link titles.
+
+5. **`get_sections`**
+    - **Description:** Retrieves the table of contents (all section titles) for an article.
+    - **Parameters:**
+        - `title` (str, required): The exact title of the article.
+    - **Example:** `tool._run(action="get_sections", title="Python (programming language)")`
+    - **Output:** A JSON string list of section titles.
+
+6. **`get_related_topics`**
+    - **Description:** Gets a list of topics related to an article, based on its outgoing links.
+    - **Parameters:**
+        - `title` (str, required): The exact title of the article.
+        - `limit` (int, optional, default: 10): The maximum number of related topics to return.
+    - **Example:** `tool._run(action="get_related_topics", title="Machine learning", limit=5)`
+    - **Output:** A JSON string list of related article titles.
+
+7. **`extract_key_facts`**
+    - **Description:** Extracts the first few sentences from an article's summary or a specific section to serve as key facts.
+    - **Parameters:**
+        - `title` (str, required): The exact title of the article.
+        - `topic_within_article` (str, optional): The title of a specific section to extract facts from. If not provided, uses the main summary.
+        - `count` (int, optional, default: 5): The number of sentences to extract.
+    - **Example:** `tool._run(action="extract_key_facts", title="Albert Einstein", topic_within_article="Annus Mirabilis papers", count=2)`
+    - **Output:** A string containing the key facts.
+
+8. **`summarize_article_for_query`**
+    - **Description:** Creates a summary of an article focused on paragraphs relevant to a specific query.
+    - **Parameters:**
+        - `title` (str, required): The exact title of the article.
+        - `query` (str, required): The term or question to focus the summary on.
+        - `max_length` (int, optional, default: 150): The maximum length of the summary.
+    - **Example:** `tool._run(action="summarize_article_for_query", title="World War II", query="D-Day", max_length=200)`
+    - **Output:** A query-focused summary string.
+
+9. **`summarize_article_section`**
+    - **Description:** Provides a summary of a specific section within an article.
+    - **Parameters:**
+        - `title` (str, required): The exact title of the article.
+        - `section_title` (str, required): The title of the section to summarize.
+        - `max_length` (int, optional, default: 150): The maximum length of the summary.
+    - **Example:** `tool._run(action="summarize_article_section", title="Photosynthesis", section_title="Efficiency", max_length=100)`
+    - **Output:** A summary string of the specified section.
 
 This document provides a comprehensive list and detailed descriptions of all tools available to AI agents within the epic_news project.
 

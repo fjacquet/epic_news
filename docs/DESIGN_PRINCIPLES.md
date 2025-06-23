@@ -246,6 +246,9 @@ epic_news/
 - **Focus on Tools**: Test deterministic components (tools)
 - **E2E Validation**: Use `crewai flow kickoff` for integration testing
 - **No Agent Tests**: Agents are non-deterministic by nature
+- **Pytest**: Use pytest for unit testing
+- **pydantic v2**: Use pydantic v2 for data validation
+- **Type Hints**: Use type hints for data validation
 
 ### Documentation
 

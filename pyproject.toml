@@ -43,6 +43,7 @@ dependencies = [
     "feedparser>=6.0.11",
     "newspaper3k>=0.2.8",
     "lxml-html-clean>=0.4.2",
+    "wikipedia>=1.4.0",
 ]
 
 [project.scripts]
