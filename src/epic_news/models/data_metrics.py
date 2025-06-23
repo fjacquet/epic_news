@@ -58,6 +58,7 @@ class MetricValue(BaseModel):
     @field_validator("change_percentage")
     @classmethod
     def validate_change_percentage(cls, v: float | None, info: FieldValidationInfo) -> float | None:
+
         """Calculate change percentage if not provided but previous value exists."""
         if v is None and info.data.get("previous_value") and info.data.get("value"):
             prev = info.data["previous_value"]
@@ -71,6 +72,7 @@ class MetricValue(BaseModel):
     @field_validator("trend")
     @classmethod
     def validate_trend(cls, v: TrendDirection, info: FieldValidationInfo) -> TrendDirection:
+
         """Determine trend direction if not explicitly provided."""
         if v == TrendDirection.UNKNOWN and info.data.get("change_percentage") is not None:
             change = info.data["change_percentage"]
@@ -114,8 +116,10 @@ class KPI(Metric):
     )
 
     @field_validator("progress_percentage")
+
     @classmethod
     def calculate_progress(cls, v: float | None, info: FieldValidationInfo) -> float | None:
+
         """Calculate progress percentage if not provided but target exists."""
         if v is None and info.data.get("target") and info.data.get("value"):
             target = info.data["target"]
@@ -128,7 +132,6 @@ class KPI(Metric):
 
     @field_validator("status")
     @classmethod
-    def determine_status(cls, v: str, info: FieldValidationInfo) -> str:
         """Determine KPI status based on progress if not explicitly provided."""
         if v == "pending" and info.data.get("progress_percentage") is not None:
             progress = info.data["progress_percentage"]

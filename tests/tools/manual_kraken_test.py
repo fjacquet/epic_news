@@ -17,13 +17,9 @@ from src.epic_news.tools.kraken_api_tool import KrakenAssetListTool, KrakenTicke
 
 def check_ticker_info(pair: str = "XXBTZUSD") -> bool:
     """
-    Test the connection to Kraken API by fetching ticker information.
-
     Check the connection to Kraken API by fetching ticker information.
-
     Args:
         pair: The cryptocurrency pair to get ticker information for.
-
     Returns:
         True if the connection is successful, False otherwise.
     """
