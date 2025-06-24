@@ -28,6 +28,7 @@ jobs:
          echo RAPIDAPI_KEY=${{ secrets.RAPIDAPI_KEY }} >> .env    
          echo OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }} >> .env    
          echo OPENAI_MODEL_NAME=${{ secrets.OPENAI_MODEL_NAME }} >> .env    
+         echo COMPOSIO_API_KEY=${{ secrets.COMPOSIO_API_KEY }} >> .env    
          echo MAIL=${{ secrets.MAIL }} >> .env    
 
     - name: Set up Python
