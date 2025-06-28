@@ -118,6 +118,7 @@ class LibraryCrew:
             verbose=True,
             respect_context_window=True,
             tools=self.all_tools,
+            llm="gpt-4.1-mini",  # Use more powerful model for research
             reasoning=True,
             llm_timeout=300,
         )
@@ -134,6 +135,7 @@ class LibraryCrew:
             verbose=True,
             respect_context_window=True,
             tools=self.rag_tools + [self.html_to_pdf_tool, self.file_read_tool] + self.report_tools,
+            llm="gpt-4.1-mini",  # Use more powerful model for report generation
             reasoning=True,
             llm_timeout=300,
         )
@@ -169,26 +171,55 @@ class LibraryCrew:
         """Define the reporting task for creating HTML reports based on research.
 
         This task is assigned to the reporting analyst agent and produces an HTML file
-        with a properly structured report using the standard report template with styling,
-        table of contents, and emojis.
+        with a properly structured report using the universal report template with
+        consistent styling, dark mode support, and proper structure.
 
         Returns:
             Task: Configured reporting task from YAML configuration
         """
+        # Import here to avoid circular imports
+        from datetime import datetime
+
+        from epic_news.utils.html.templates import render_universal_report
+
+        def process_report_output(output: str, **kwargs) -> str:
+            """Process the markdown output and render it using the universal template.
+
+            Args:
+                output: The markdown content from the agent
+                **kwargs: Additional keyword arguments including 'topic'
+
+            Returns:
+                str: Rendered HTML content
+            """
+            # Get the topic from the task context
+            topic = kwargs.get("topic", self.topic)
+
+            # Render the markdown content using the universal template
+            return render_universal_report(
+                title=f"Book Summary: {topic}",
+                content=output,
+                generation_date=datetime.now().strftime("%Y-%m-%d %H:%M"),
+            )
+
         # Create task config with dynamic topic
         task_config = dict(self.tasks_config["reporting_task"])
         task_config["description"] = task_config["description"].format(topic=self.topic)
 
-        # KISS approach: Use simple relative paths
-        output_file = f"output/library/{self.topic.replace(' ', '_')}_library_report.html"
+        # Create output directory if it doesn't exist
+        output_dir = "output/library"
+        os.makedirs(output_dir, exist_ok=True)
 
-        # Ensure output directory exists
-        os.makedirs(os.path.dirname(output_file), exist_ok=True)
+        # Use topic slug for filename to ensure compatibility with WeeklyMenuPlan
+        topic_slug = self.topic.lower().replace(" ", "-")
+        output_file = os.path.join(output_dir, f"{topic_slug}_library_report.html")
 
         return Task(
             config=task_config,
             output_file=output_file,
-            # Final task in sequential process must be synchronous per CrewAI framework
+            process_output=process_report_output,
+            verbose=True,
+            async_execution=True,
         )
 
     @task

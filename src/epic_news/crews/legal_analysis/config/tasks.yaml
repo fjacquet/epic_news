@@ -1,3 +1,4 @@
+---
 legal_compliance_assessment:
   description: >
     Assess the legal compliance status of {company}, including: - Regulatory
@@ -5,7 +6,6 @@ legal_compliance_assessment:
     violations - Required licenses and permits - Corporate governance
     structure - Ethics policies and implementation - Recent regulatory changes
     affecting the company
-
     Use the RAG tools to save your findings for later use by other agents.
     Format your findings in a clear, structured, and comprehensive Markdown
     document, ensuring all relevant details are included for a precise and
@@ -17,14 +17,12 @@ legal_compliance_assessment:
     RAG database for use by other agents.
   agent: legal_analyst
   output_file: output/osint/{company}_legal_compliance_assessment.md
-
 intellectual_property_analysis:
   description: >
     Analyze {company}'s intellectual property portfolio, including: - Patent
     portfolio and filing trends - Trademark registrations - Copyright holdings
     - Trade secrets protection measures - IP litigation history - Licensing
     agreements (if public)
-
     Use the RAG tools to retrieve any relevant information already collected
     and save your findings for later use by other agents. Format your findings
     in a clear, structured, and comprehensive Markdown document, ensuring all
@@ -36,7 +34,6 @@ intellectual_property_analysis:
     findings to the RAG database for use by other agents.
   agent: legal_analyst
   output_file: output/osint/{company}_intellectual_property_analysis.md
-
 regulatory_risk_assessment:
   description: >
     Assess the regulatory risks facing {company}, including: -
@@ -44,7 +41,6 @@ regulatory_risk_assessment:
     requirements - Pending legislation that may impact operations - Historical
     regulatory issues - Regulatory compliance costs - Relationships with
     regulatory bodies
-
     Use the RAG tools to retrieve any relevant information already collected
     and save your findings for later use by other agents. Format your findings
     in a clear, structured, and comprehensive Markdown document, ensuring all
@@ -56,13 +52,11 @@ regulatory_risk_assessment:
     database for use by other agents.
   agent: legal_analyst
   output_file: output/osint/{company}_regulatory_risk_assessment.md
-
 litigation_history_analysis:
   description: >
     Analyze {company}'s litigation history, including: - Major lawsuits (past
     and ongoing) - Settlement patterns - Areas of frequent litigation -
     Notable court decisions - Class action exposure - Legal defense strategies
-
     Use the RAG tools to retrieve any relevant information already collected
     and save your findings for later use by other agents. Format your findings
     in a clear, structured, and comprehensive Markdown document, ensuring all
@@ -74,14 +68,12 @@ litigation_history_analysis:
     RAG database for use by other agents.
   agent: legal_analyst
   output_file: output/osint/{company}_litigation_history_analysis.md
-
 mergers_and_acquisitions_due_diligence:
   description: >
     Conduct legal due diligence for {company}'s mergers and acquisitions,
     including: - M&A history and patterns - Integration challenges from past
     acquisitions - Regulatory approvals for past deals - Post-acquisition
     litigation - Divestiture history - Current M&A targets or rumors
-
     Use the RAG tools to retrieve any relevant information already collected
     and save your findings for later use by other agents. Format your findings
     in a clear, structured, and comprehensive Markdown document, ensuring all

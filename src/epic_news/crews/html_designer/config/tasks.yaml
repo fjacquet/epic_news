@@ -1,0 +1,131 @@
+---
+data_analysis_task:
+  description: >
+    Analyser intelligemment les données d'état selon le type de crew sélectionné et
+    extraire
+    les informations pertinentes pour générer un rapport HTML contextualisé.
+    ÉTAPE 1 - IDENTIFICATION DU CONTEXTE :
+    - Examiner le champ 'selected_crew' dans state_data pour identifier le type de
+    contenu
+    - Analyser le champ 'user_request' pour comprendre l'intention utilisateur
+    - Identifier les données spécifiques disponibles selon le type de crew
+    ÉTAPE 2 - EXTRACTION CONTEXTUELLE DES DONNÉES :
+    Selon le selected_crew, extraire les informations pertinentes :
+    - POEM : Extraire titre, contenu poétique, thème, structure, métaphores
+    - COOKING : Extraire nom de recette, ingrédients, étapes, temps de cuisson, difficulté
+    - NEWS : Extraire titres, sources, dates, catégories d'actualités, résumés
+    - SHOPPING : Extraire produits, prix, comparaisons, recommandations, avis
+    - HOLIDAY_PLANNER : Extraire destinations, itinéraires, budgets, activités, dates
+    - LIBRARY : Extraire titres de livres, auteurs, résumés, analyses, recommandations
+    - MEETING_PREP : Extraire participants, agenda, objectifs, documents, actions
+    - SAINT : Extraire nom du saint, biographie, fête, prières, traditions
+    - MENU : Extraire plats, planning hebdomadaire, équilibre nutritionnel, saisons
+    ÉTAPE 3 - STRUCTURATION POUR HTML :
+    - Organiser les données selon la logique du domaine
+    - Identifier les éléments visuels appropriés (emojis, couleurs, mise en page)
+    - Préparer les métadonnées pour le template HTML
+    - Recommander le template le plus adapté au type de contenu
+  expected_output: >
+    Une analyse contextuelle complète comprenant :
+    1. CONTEXTE IDENTIFIÉ :
+    - Type de crew détecté (POEM, COOKING, NEWS, etc.)
+    - Intention utilisateur extraite de la requête
+    - Données principales disponibles pour ce type de contenu
+    2. DONNÉES EXTRAITES ET STRUCTURÉES :
+    - Contenu principal organisé selon la logique du domaine
+    - Métadonnées pertinentes (auteur, date, source, etc.)
+    - Éléments secondaires (tags, catégories, liens, etc.)
+    3. RECOMMANDATIONS POUR LE DESIGN HTML :
+    - Template recommandé selon le type de contenu
+    - Palette d'emojis appropriée au domaine
+    - Structure de sections optimale
+    - Éléments visuels spécifiques (tableaux, listes, citations, etc.)
+    4. DONNÉES PRÊTES POUR LA GÉNÉRATION :
+    - Structure JSON organisée pour le template HTML
+    - Titre et sous-titres contextualisés
+    - Contenu formaté et prêt à l'affichage
+    - Métadonnées pour l'en-tête HTML
+  agent: data_analyzer
+html_generation_task:
+  description: >
+    Générer un rapport HTML spécialisé et contextualisé selon le type de crew identifié
+    dans l'analyse précédente, en utilisant des templates et styles adaptés.
+    PROCESSUS DE GÉNÉRATION CONTEXTUELLE :
+    1. ADAPTATION AU TYPE DE CREW :
+    Selon le selected_crew identifié, appliquer le style approprié :
+    - POEM : Template poétique avec typographie élégante, espacement rythmé, citations
+    en italique
+    - COOKING : Template culinaire avec sections ingrédients/étapes, temps de cuisson,
+    difficulté
+    - NEWS : Template journalistique avec hiérarchie d'information, sources, dates
+    de publication
+    - SHOPPING : Template commercial avec comparaisons de prix, tableaux, recommandations
+    - HOLIDAY_PLANNER : Template voyage avec itinéraires, cartes, planning temporel
+    - LIBRARY : Template littéraire avec résumés, citations, analyses critiques
+    - MEETING_PREP : Template professionnel avec agenda, participants, actions à suivre
+    - SAINT : Template spirituel avec biographie, prières, traditions, calendrier
+    liturgique
+    - MENU : Template gastronomique avec planning hebdomadaire, équilibre nutritionnel
+    2. PERSONNALISATION DU CONTENU :
+    - Adapter le titre principal selon le contexte (ex: "Poème sur la Voie Lactée"
+    pour POEM)
+    - Utiliser les emojis appropriés au domaine (🌌 pour POEM, 🍳 pour COOKING, etc.)
+    - Structurer les sections selon la logique métier
+    - Intégrer les données extraites de manière cohérente
+    3. OPTIMISATION VISUELLE :
+    - Appliquer les couleurs et styles adaptés au type de contenu
+    - Utiliser la mise en page optimale (colonnes, grilles, listes)
+    - Intégrer les éléments visuels recommandés par l'analyse
+    - Assurer la responsivité et l'accessibilité
+    4. FINALISATION ET QUALITÉ :
+    - Générer un document HTML5 complet et valide
+    - Inclure les métadonnées appropriées (titre, description, mots-clés)
+    - Ajouter la date de génération et les sources si pertinentes
+    - Optimiser pour l'impression et le partage par email
+    UTILISATION DU SYSTÈME DE TEMPLATES UNIFIÉ :
+    - Utiliser EXCLUSIVEMENT le système de templates unifié via TemplateManager
+    - Le template universal_report_template.html fournit CSS unifié et dark mode
+    - Extraire les données contextuelles selon le type de crew
+    - Laisser le TemplateManager gérer la génération HTML finale
+    EXIGENCES TECHNIQUES CRITIQUES :
+    - Le TemplateManager génère automatiquement du HTML5 valide
+    - Support automatique du dark mode et responsive design
+    - CSS unifié pour expérience utilisateur cohérente
+    - Encodage UTF-8 et accessibilité intégrés dans le template
+    INTERDICTIONS ABSOLUES :
+    - JAMAIS générer du HTML manuellement - utiliser TemplateManager
+    - JAMAIS ignorer le système de templates unifié
+    - JAMAIS de CSS personnalisé - utiliser le template universel
+    - JAMAIS de contenu générique - adapter au type de crew
+    Le TemplateManager produit automatiquement un document HTML complet avec
+    dark mode, CSS unifié et expérience utilisateur cohérente.
+  expected_output: >
+    Un document HTML5 en français généré par le système de templates unifié comprenant
+    :
+    AVANTAGES DU TEMPLATE UNIFIÉ :
+    - CSS cohérent avec variables CSS pour thèmes light/dark
+    - Bouton de basculement de thème intégré automatiquement
+    - Responsive design optimisé pour tous les appareils
+    - Accessibilité complète (ARIA, contraste, navigation clavier)
+    - Performance optimisée avec styles intégrés
+    STRUCTURE AUTOMATIQUE :
+    - DOCTYPE HTML5 et métadonnées complètes
+    - Système de thème avec localStorage et préférences système
+    - Container responsive avec breakpoints optimisés
+    - Footer automatique avec branding Epic News
+    CONTENU CONTEXTUALISÉ PAR LE TEMPLATEMANAGER :
+    - Titre généré automatiquement selon le type de crew
+    - Emojis appropriés intégrés dans les titres
+    - Sections HTML spécialisées selon le domaine
+    - Styles CSS contextuels pour chaque type de contenu
+    EXPÉRIENCE UTILISATEUR COHÉRENTE :
+    - Interface identique sur tous les rapports Epic News
+    - Transition fluide entre thèmes light/dark
+    - Typographie et espacement uniformes
+    - Couleurs et contrastes optimisés pour la lisibilité
+    Le document final est automatiquement optimisé pour l'impression,
+    le partage par email, et l'affichage sur tous les appareils.
+  agent: html_designer
+  async_execution: false
+  output_file: '{output_file}'
+  context: [data_analysis_task]

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="css/menu_report.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1><span class="emoji">🍽️</span> {{ title }}</h1>
+            <p class="subtitle">{{ subtitle }}</p>
+        </header>
+
+        <section class="menu-section">
+            <h2><span class="emoji">📅</span> Planning Hebdomadaire</h2>
+            <div class="menu-structure">
+                {{ menu_structure | safe }}
+            </div>
+        </section>
+
+        <section class="menu-section">
+            <h2><span class="emoji">📋</span> Statistiques des Recettes</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <span class="stat-number">{{ total_recipes }}</span>
+                    <div class="stat-label">Recettes Générées</div>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number">{{ paprika_files }}</span>
+                    <div class="stat-label">Fichiers Paprika</div>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number">{{ html_files }}</span>
+                    <div class="stat-label">Recettes HTML</div>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number">{{ total_files }}</span>
+                    <div class="stat-label">Fichiers Totaux</div>
+                </div>
+            </div>
+        </section>
+
+        {% if generated_recipes %}
+        <section class="menu-section">
+            <h2><span class="emoji">👨‍🍳</span> Recettes Détaillées</h2>
+            {% for recipe in generated_recipes %}
+            <div class="menu-day">
+                <h3>{{ recipe.name }}</h3>
+                <p>{{ recipe.description }}</p>
+                {% if recipe.files %}
+                <div class="recipe-links">
+                    {% for file in recipe.files %}
+                    <a href="{{ file.path }}" class="recipe-link">{{ file.name }}</a>
+                    {% if not loop.last %} | {% endif %}
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </section>
+        {% endif %}
+
+        <section class="validation">
+            <h3><span class="emoji">✅</span> Validation du Menu</h3>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: {{ progress_percentage }}%"></div>
+            </div>
+            <p>Progression: {{ completed_files }}/{{ expected_files }} fichiers générés ({{ progress_percentage }}%)</p>
+            
+            <ul>
+                <li>Menu principal: Généré</li>
+                <li>Liste de courses: Générée</li>
+                <li>Recettes Paprika: {{ paprika_files }}/{{ expected_paprika }}</li>
+                <li>Recettes HTML: {{ html_files }}/{{ expected_html }}</li>
+            </ul>
+        </section>
+
+        <footer class="footer">
+            <p><em>Généré le {{ generation_date }}</em></p>
+            <p>Créé avec <span class="emoji">❤️</span> par Epic News Crew</p>
+        </footer>
+    </div>
+</body>
+</html>

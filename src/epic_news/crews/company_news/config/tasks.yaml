@@ -1,3 +1,4 @@
+---
 research_task:
   description: >
     Conduct thorough research on the latest news about {topic}, with a focus on {company}.
@@ -11,10 +12,10 @@ research_task:
     3. Date of publication for each item
     4. Brief summary of each news item
   agent: researcher
-
 analysis_task:
   description: >
-    Analyze the research findings to identify patterns, trends, and insights related to {topic}, specifically for {company}.
+    Analyze the research findings to identify patterns, trends, and insights related
+    to {topic}, specifically for {company}.
     Look for connections between different news items and their potential implications.
     Consider financial, social, and political aspects where relevant.
   expected_output: >
@@ -24,35 +25,35 @@ analysis_task:
     3. Data-backed insights
     4. Visual representation suggestions (charts, graphs) if applicable
   agent: analyst
-
 verification_task:
   description: >
     Verify the accuracy and reliability of the news information gathered about {company}.
     Check facts against multiple sources.
     Identify any potential misinformation or biased reporting.
     Rate the credibility of each news item.
-    
     IMPORTANT: For each news item that includes a source or claim:
-    1. Use all available search tools (COMPOSIO_SEARCH_TAVILY_SEARCH, COMPOSIO_SEARCH_DUCK_DUCK_GO_SEARCH, 
-       COMPOSIO_SEARCH_NEWS_SEARCH, COMPOSIO_SEARCH_SEARCH) to verify the claim by searching for 
+    1. Use all available search tools (COMPOSIO_SEARCH_TAVILY_SEARCH, COMPOSIO_SEARCH_DUCK_DUCK_GO_SEARCH,
+       COMPOSIO_SEARCH_NEWS_SEARCH, COMPOSIO_SEARCH_SEARCH) to verify the claim by
+    searching for 
        corroborating evidence and checking the credibility of sources
-    2. For each source, verify that the information is current and up-to-date (from 2024-2025)
+    2. For each source, verify that the information is current and up-to-date (from
+    2024-2025)
     3. Confirm that the source actually discusses {topic} and {company} specifically
-    4. Try to find the actual title, publication date, and source name 
-    5. Search for direct quotes or excerpts that support the specific claim
+    4. Try to find the actual title, publication date, and source name  5. Search
+    for direct quotes or excerpts that support the specific claim
     6. If a claim cannot be verified from credible sources, either:
        a. Find an alternative, verifiable source using search tools
        b. Clearly mark the information as "Source Needed"
     7. Do not accept generic website homepages (e.g., www.example.com) as sources
     8. Always try to find the exact publication date (day, month, year) whenever possible
-    9. For solutions or products, verify company names and product features from official sources or reputable reviews
-    
+    9. For solutions or products, verify company names and product features from official
+    sources or reputable reviews
     You must be extremely thorough and meticulous in your verification. For each claim:
     1. Use multiple search tools to find corroborating evidence
-    2. Verify that the sources explicitly discuss {topic} and {company} and support the specific claim
+    2. Verify that the sources explicitly discuss {topic} and {company} and support
+    the specific claim
     3. Try to find direct quotes that substantiate the claims being made
     4. Rate the credibility of each source on a scale of 1-5
-    
   expected_output: >
     A verification report in french containing:
     1. Fact-check results for each news item concerning {company}
@@ -65,13 +66,12 @@ verification_task:
        c. Publication date (as specific as possible)
        d. Full citation in format: "Title" - Publisher/Source, Publication Date
   agent: fact_checker
-
 editing_task:
   description: >
-    Compile and organize the verified news information in french about {company} into a comprehensive, actionable report.
+    Compile and organize the verified news information in french about {company} into
+    a comprehensive, actionable report.
     Prioritize the most important stories based on relevance and impact.
     Ensure the report is clear, concise, and follows journalistic standards.
-    
     IMPORTANT: When including links in the final report:
     1. ONLY include URLs that have been fully verified by the fact checker
     2. For each link, use the actual article title as verified by the fact checker
@@ -82,16 +82,19 @@ editing_task:
        - Source name/publication
        - A brief quote from the source (in quotation marks)
     5. Do not include any links that were marked as "Source Needed" by the fact checker
-    6. For any information without a verified link, clearly indicate it as "Source Needed" or "Based on multiple sources"
+    6. For any information without a verified link, clearly indicate it as "Source
+    Needed" or "Based on multiple sources"
        rather than fabricating a source
-    7. Do not use generic phrases like "justification:" in source citations - use the actual verified quote instead
-    
-    You must carefully review the verification report for each source. If a source has:
-    1. A credibility rating below 3 out of 5: Find a better source or mark as "Source Needed"
-    2. No direct quote from the content: Mark as "Source Needed" 
-    3. No specific publication date: Try to find the exact date or, if not possible, include the most precise date available
+    7. Do not use generic phrases like "justification:" in source citations - use
+    the actual verified quote instead
+    You must carefully review the verification report for each source. If a source
+    has:
+    1. A credibility rating below 3 out of 5: Find a better source or mark as "Source
+    Needed"
+    2. No direct quote from the content: Mark as "Source Needed"  3. No specific publication
+    date: Try to find the exact date or, if not possible, include the most precise
+    date available
     4. A "Source Needed" designation: Maintain this designation in your final report
-    
   expected_output: >
     A professionally edited news report in french about {company} containing:
     1. Executive summary of key findings
@@ -103,7 +106,7 @@ editing_task:
        - The linked text should be the actual article title
        - A publication date should be included (day, month, year whenever possible)
        - A direct quote from the source should be included
-       - No sources marked as "Source Needed" by the verification team should appear as verified
+       - No sources marked as "Source Needed" by the verification team should appear
+    as verified
     Formatted as html properly laid out with relevant emojis
   agent: editor
-

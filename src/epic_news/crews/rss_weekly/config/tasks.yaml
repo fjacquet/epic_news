@@ -1,20 +1,24 @@
-
+---
 compile_digest_task:
   description: >
     Process the content.json file containing RSS feed articles. You should:
     1. Read the content.json file from output/rss_weekly/content.json using FileReadTool
     2. Parse the JSON to extract feed URLs and their associated articles
     3. Filter out any articles with empty or null 'content'
-    4. For each remaining article, summarize the content in elegant, professional French
+    4. For each remaining article, summarize the content in elegant, professional
+    French
     5. Group summaries by their original RSS feed source (feed_url)
-    6. Create HTML content with all summaries, ensuring each includes a hyperlink to the original article
-    7. Use the ReportingTool to generate a professional HTML report with the following parameters:
+    6. Create HTML content with all summaries, ensuring each includes a hyperlink
+    to the original article
+    7. Use the ReportingTool to generate a professional HTML report with the following
+    parameters:
        - report_title: "Résumé Hebdomadaire des Flux RSS"
        - report_body: Your generated HTML content with all summaries
        - output_file_path: output/rss_weekly/report.html
   expected_output: >
     A single, well-formed HTML document containing all summarized articles,
     grouped by their original RSS feed source. Each summary must include a
-    hyperlink to the original article. All content should be in elegant, professional French.
+    hyperlink to the original article. All content should be in elegant, professional
+    French.
   agent: content_summarizer
   output_file: output/rss_weekly/report.html

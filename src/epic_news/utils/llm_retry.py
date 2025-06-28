@@ -33,6 +33,13 @@ class RetryLLMWrapper(BaseLLM):
     logic to handle transient errors in API calls.
     """
 
+    llm: BaseLLM
+    max_retries: int = 3
+    min_seconds: float = 1
+    max_seconds: float = 60
+    factor: float = 2
+    verbose: bool = False
+
     def __init__(
         self,
         llm: BaseLLM,

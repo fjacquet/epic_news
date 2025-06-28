@@ -34,6 +34,7 @@ Epic News operates on the **CrewAI Flow paradigm** - a revolutionary approach to
 
 ### 4. Code Style and Quality
 
+- **Imports**: ALL imports must be placed at the top of Python files, never inside functions or methods. This ensures clarity, prevents circular imports, and follows PEP 8 standards.
 - **Whitespace**: Avoid trailing whitespace (`W291`) and whitespace on blank lines (`W293`). These are enforced by `ruff` and help maintain a clean, readable codebase.
 
 ## CrewAI Best Practices
@@ -51,10 +52,24 @@ result = MyCrew().crew().kickoff(inputs=crew_inputs)
 crew = MyCrew(topic=topic, objective=objective)
 ```
 
-**Always verify** that `{topic}` and `{objective}` placeholders receive correct user input:
+### Python Type Compatibility (CRITICAL)
 
-- Debug flow: User Request → Information Extraction → `to_crew_inputs()` → Task Placeholders
-- Check task descriptions in execution logs for proper context injection
+**CrewAI Pydantic Schema Parser Limitation**: CrewAI's internal schema parser is incompatible with Python 3.10+ Union syntax (`X | Y`). Always use the legacy `Union[X, Y]` syntax for all Pydantic models used with CrewAI.
+
+```python
+from typing import Union, Optional
+
+# ✅ CORRECT - Compatible with CrewAI
+field: Union[str, None] = None
+field: Optional[str] = None
+
+# ❌ WRONG - Causes AttributeError in CrewAI
+field: str | None = None
+```
+
+**Rationale**: CrewAI's `PydanticSchemaParser` attempts to access `field_type.__name__` on `types.UnionType` objects, which don't have this attribute. This causes runtime errors during schema generation for task outputs.
+
+**Enforcement**: This constraint is enforced via Ruff rule `UP007` (disabled) to prevent automatic conversion to the newer syntax.
 
 ### Tool Selection Strategy
 
@@ -125,6 +140,35 @@ output_dir = str(project_root / 'output' / 'news')
 ```
 
 **Never** create nested `/Users/.../Users/...` directory structures.
+
+### Directory Management
+
+**CRITICAL**: Directory creation should be centralized and happen only once at application startup:
+
+```python
+# ✅ CORRECT - Centralized directory creation at initialization
+from epic_news.utils.directory_utils import ensure_output_directories
+
+def __init__(self):
+    ensure_output_directories()  # Creates all required directories at once
+    # Rest of initialization...
+
+# ✅ CORRECT - Just use the directories, don't create them again
+def generate_report(self):
+    self.state.output_file = "output/report/result.html"  # Directory already exists
+
+# ❌ WRONG - Redundant directory creation
+def generate_report(self):
+    os.makedirs("output/report", exist_ok=True)  # Redundant, already created at init
+    self.state.output_file = "output/report/result.html"
+```
+
+**Why**:
+
+- Minimizes redundant directory creation calls
+- Simplifies code by removing scattered directory management
+- Improves performance by creating directories only once
+- Makes directory structure explicit and centrally managed
 
 ## Tool Architecture
 
@@ -260,6 +304,142 @@ epic_news/
 - Include API key requirements
 - Provide usage examples
 
+## HTML Output Architecture
+
+### CrewAI Agent Output Patterns
+
+**CRITICAL**: CrewAI has a known issue where agents with tools write action traces to output files instead of final results.
+
+#### Single Agent Pattern (Problematic)
+
+```python
+# ❌ PROBLEMATIC - Agent with tools writes action traces to output file
+@agent
+def researcher_reporter(self) -> Agent:
+    return Agent(
+        tools=[WikipediaSearchTool(), SerperDevTool()],  # Tools cause action traces
+        # Output file gets: "Action: Wikipedia Search\n{\"query\": \"...\"}" instead of HTML
+    )
+```
+
+**Result**: Output file contains action traces like:
+
+```
+Thought: I will search for information about...
+Action: Wikipedia Search
+{"query": "saint june 23"}
+```
+
+#### Two-Agent Pattern (Recommended)
+
+```python
+# ✅ CORRECT - Separate research and reporting agents
+@agent
+def researcher(self) -> Agent:
+    return Agent(
+        tools=[WikipediaSearchTool(), SerperDevTool()],  # Research with tools
+        # No output_file - passes data to next agent
+    )
+
+@agent
+def reporter(self) -> Agent:
+    return Agent(
+        tools=[],  # NO TOOLS = No action traces
+        # Generates clean HTML output
+    )
+```
+
+**Result**: Clean HTML output without action traces.
+
+#### Pattern Examples
+
+**ShoppingAdvisorCrew** (Working):
+
+- `product_researcher` → Tools for research
+- `price_analyst` → Tools for analysis  
+- `competitor_analyst` → Tools for competition
+- `shopping_advisor` → **NO TOOLS** → Clean HTML output
+
+**SaintDailyCrew** (Fixed):
+
+- `saint_researcher` → **NO TOOLS** → Direct HTML generation
+- Alternative: Add separate research agent with tools + reporter without tools
+
+### HTML Generation Best Practices
+
+#### Agent Configuration for HTML Output
+
+```yaml
+# agents.yaml - Final reporting agent
+reporter:
+  role: "HTML Report Specialist"
+  goal: >
+    Generate complete HTML5 document based on research data.
+    Output only pure HTML starting with <!DOCTYPE html>.
+    No JSON wrapper, no markdown, no tool usage traces.
+  backstory: >
+    Expert at creating professional HTML reports based on provided research.
+    Can generate comprehensive reports without needing research tools.
+```
+
+#### Task Configuration for HTML Output
+
+```yaml
+# tasks.yaml - HTML generation task
+html_report_task:
+  agent: reporter
+  description: >
+    Generate a complete HTML5 document with the following structure:
+    - <!DOCTYPE html> declaration
+    - Professional CSS styling
+    - Structured content sections
+    Start your response immediately with <!DOCTYPE html>.
+    Do not write any text before or after the HTML.
+  expected_output: >
+    Raw HTML5 document starting with <!DOCTYPE html> and ending with </html>.
+    No JSON wrapper, no markdown, no explanatory text - just pure HTML.
+  output_file: output/reports/result.html
+```
+
+### Troubleshooting HTML Output Issues
+
+#### Problem: Action Traces in Output
+
+```
+# Output file contains:
+Thought: I will research...
+Action: Wikipedia Search
+{"query": "..."}
+```
+
+**Solution**: Remove tools from the final reporting agent:
+
+```python
+@agent
+def reporter(self) -> Agent:
+    return Agent(
+        tools=[],  # Remove all tools
+        # Agent generates HTML based on knowledge/context
+    )
+```
+
+#### Problem: JSON-Wrapped HTML
+
+```json
+{"html": "<!DOCTYPE html>..."}
+```
+
+**Solution**: Use post-processing HTML extractor or ensure agent outputs raw HTML.
+
+#### Problem: Markdown Instead of HTML
+
+```markdown
+# Report Title
+## Section 1
+```
+
+**Solution**: Explicitly require HTML5 in agent goal and task description.
+
 ## Agent Guidelines
 
 ### Research Agents
@@ -267,12 +447,15 @@ epic_news/
 - Exhaustive information gathering (20+ data points)
 - Include metrics, sources, and limitations
 - Structured output for downstream agents
+- **Use tools freely** - they don't write to output files
 
 ### Reporting Agents
 
 - Transform research into professional reports
 - Maintain information depth
 - Use consistent formatting and tone
+- **NO TOOLS** - prevents action traces in output
+- Generate HTML directly based on research context
 
 ### Collaboration Standards
 
@@ -280,6 +463,8 @@ epic_news/
 - Document reasoning and uncertainty
 - Reference prior work consistently
 - Highlight data limitations
+- **Research agents** provide comprehensive data
+- **Reporting agents** focus on clean output generation
 
 ## Error Handling
 

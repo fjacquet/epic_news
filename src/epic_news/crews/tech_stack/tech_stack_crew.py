@@ -1,5 +1,3 @@
-import os
-
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import SerperDevTool
@@ -89,8 +87,6 @@ class TechStackCrew:
     @crew
     def crew(self) -> Crew:
         """Creates the Tech Stack Analysis crew"""
-        # Ensure output directory exists for final reports
-        os.makedirs("output/tech_stack", exist_ok=True)
 
         return Crew(
             agents=self.agents,

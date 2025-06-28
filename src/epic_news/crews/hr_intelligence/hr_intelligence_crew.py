@@ -1,5 +1,3 @@
-import os
-
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import SerperDevTool
@@ -35,6 +33,7 @@ class HRIntelligenceCrew:
             config=self.agents_config["hr_intelligence_analyst"],
             verbose=True,
             tools=all_tools,
+            llm="gpt-4.1-mini",  # Use more powerful model for HR intelligence analysis
             allow_delegation=False,
             respect_context_window=True,
             reasoning=True,
@@ -88,8 +87,6 @@ class HRIntelligenceCrew:
     @crew
     def crew(self) -> Crew:
         """Creates the HR Intelligence Analysis crew"""
-        # Ensure output directory exists for final reports
-        os.makedirs("output/hr_intelligence", exist_ok=True)
 
         return Crew(
             agents=self.agents,

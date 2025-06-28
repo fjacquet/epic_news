@@ -1,18 +1,32 @@
+---
 classification_task:
   description: >
     Analyze the provided user request: "{user_request}" and classify it into
     the most appropriate category from the following options:
-
     {categories}
-
     Your task is to determine which specialized team should handle this
     request. Consider the content, intent, and subject matter of the request.
-
+    IMPORTANT DISTINCTIONS:
+    - COOKING: For requests about individual recipes, single dishes, specific cooking
+    techniques, or ingredient-focused queries
+    - MENU: For requests about meal planning, weekly menus, menu design, multiple
+    recipes for a period, shopping lists, or dietary planning over time
+    - SHOPPING_ADVISOR: For product purchase advice, price comparisons, product
+    recommendations, buying guides, or consumer advice requests
+    - HOLIDAY_PLANNER: For vacation planning, travel itineraries, destination research
+    - LIBRARY: For book summaries, reading recommendations, literary analysis
+    - MEETING_PREP: For meeting preparation, agenda creation, research for meetings
+    - And so on for other categories...
+    Pay special attention to keywords like:
+    - "menu", "weekly", "planner", "planning", "multiple recipes", "shopping list"
+    → MENU
+    - "recipe", "dish", "cooking technique", "ingredient", "single meal" → COOKING
+    - "achat", "acheter", "conseil", "prix", "comparaison", "recommandation", "produit"
+    → SHOPPING_ADVISOR
     Provide your final classification decision along with a brief explanation
     of your reasoning.
   expected_output: >
     CATEGORY_NAME
-
     Where CATEGORY_NAME is one of the provided category options. Your response
     must start with the category name on the first line.
   agent: classifier

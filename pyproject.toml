@@ -44,15 +44,28 @@ dependencies = [
     "newspaper3k>=0.2.8",
     "lxml-html-clean>=0.4.2",
     "wikipedia>=1.4.0",
+    "yamllint>=1.37.1",
+    "pytest-asyncio>=1.0.0",
 ]
 
 [project.scripts]
 kickoff = "epic_news.main:kickoff"
 plot = "epic_news.main:plot"
 
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+
+[project.optional-dependencies]
+dev = [
+    "yamllint",
+    "pre-commit", # Très recommandé pour automatiser yamllint
+    "ruff",
+    # Autres dépendances de dev
+]
+test = [
+    "pytest",
+    "pytest-cov",
+    "pytest-asyncio",
+    "langsmith",
+]
 
 [tool.crewai]
 type = "flow"
@@ -80,6 +93,7 @@ ignore = [
     "E501",   # Line too long (handled by formatter)
     "B008",   # Do not perform function calls in argument defaults
     "B904",   # Within an `except` clause, raise exceptions with `raise ... from err`
+    "UP007",  # Use `X | Y` for type annotations - DISABLED for CrewAI compatibility
 ]
 
 [tool.ruff.format]
@@ -100,6 +114,62 @@ filterwarnings = [
     # 'ignore:Using extra keyword arguments on `Field` is deprecated:pydantic.PydanticDeprecatedSince20',
 ]
 
+[tool.yamllint]
+# Voici les configurations pour yamllint
+# Chaque clé correspond à une règle ou une option de yamllint
 
-[tool.hatch.build.targets.wheel]
-packages = ["src/epic_news"]
+# Désactivez des règles spécifiques
+disable = ["line-length"]
+
+# Activez et configurez des règles spécifiques
+# Note: Les valeurs ci-dessous sont des exemples. Référez-vous à la
+# documentation de yamllint pour toutes les options.
+
+# indentation (indentation à 2 espaces, pas de tabulation)
+# Indentation spaces
+# indentation = { spaces = 2, indent-sequences = true, check-multi-line-strings = true }
+
+# trailing-spaces (pas d'espaces en fin de ligne)
+trailing-spaces = { forbid = true }
+
+# document-start (le document doit commencer par '---')
+document-start = { present = true }
+
+# document-end (le document ne doit pas se terminer par '...')
+document-end = { present = false }
+
+# empty-lines (nombre d'espaces maximum entre les lignes vides)
+empty-lines = { max = 1 }
+
+# line-length (longueur de ligne maximale)
+line-length = { max = 120 }
+
+# new-line-at-end-of-file (s'assurer qu'il y a une nouvelle ligne à la fin du fichier)
+new-line-at-end-of-file = { present = true }
+
+# key-duplicates (pas de clés dupliquées dans le même objet)
+key-duplicates = { forbid = true }
+
+# hyphens (espaces après les tirets dans les listes)
+hyphens = { max-spaces-after = 1 }
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.2.0",
+    "ruff>=0.12.1",
+    "yamlfix>=1.17.0",
+    "yamllint>=1.37.1",
+]
+
+# quoted-strings (exiger les guillemets pour les chaînes multi-lignes)
+# quoted-strings = { required = true }
+
+# forbidden-contents (interdire certains contenus, par exemple des noms d'hôtes en dur)
+# forbidden-contents = { forbidden = [ "http://evil.com" ] }
+
+# Commande de fichier (utile pour cibler des fichiers spécifiques ou exclure)
+# parse = { pattern = "\\.yaml$" } # Par défaut yamllint traite .yaml, .yml
+# exclude = [
+#     "path/to/ignore/**/*.yaml",
+#     "another/path/generated.yml"
+# ]

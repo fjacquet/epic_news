@@ -2,7 +2,6 @@ from datetime import datetime
 from pathlib import Path
 
 from crewai.tools import BaseTool
-from jinja2 import Environment, FileSystemLoader
 from pydantic import BaseModel, Field
 
 
@@ -38,39 +37,27 @@ class ReportingTool(BaseTool):
             A success message indicating the report was generated and saved.
         """
         try:
-            # Correctly locate the project root and then the templates directory
+            # Locate the template file
             project_root = Path(__file__).resolve().parent.parent.parent.parent
-            template_dir = project_root / "templates"
-            template_path = template_dir / "report_template.html"
+            template_path = project_root / "templates" / "professional_report_template.html"
 
             if not template_path.exists():
-                return f" Error: Template file not found. Tried to open: {template_path}"
+                return f"❌ Error: Template file not found at {template_path}"
 
-            # Set up Jinja2 environment
-            env = Environment(loader=FileSystemLoader(str(template_dir)))
-            template = env.get_template("report_template.html")
+            # Read template content
+            template_content = template_path.read_text(encoding="utf-8")
 
-            # Create output directory if it doesn't exist
+            # Simple string replacement (no Jinja2)
+            report_html = template_content.replace("{{ report_title }}", report_title)
+            report_html = report_html.replace("{{ generation_date }}", datetime.now().strftime("%Y-%m-%d"))
+            report_html = report_html.replace("{{ report_body }}", report_body)
+
+            # Create output directory and save file
             output_path = Path(output_file_path)
             output_path.parent.mkdir(parents=True, exist_ok=True)
+            output_path.write_text(report_html, encoding="utf-8")
 
-            # Prepare context for the template
-            context = {
-                "title": report_title,
-                "date": datetime.now().strftime("%Y-%m-%d"),
-                "sections": [{"heading": "Summary", "content": report_body}],
-                "images": [],
-                "citations": [],
-            }
-
-            # Render the template
-            report_html = template.render(context)
-
-            # Save the report to file
-            with open(output_path, "w", encoding="utf-8") as f:
-                f.write(report_html)
-
-            return f" Professional HTML report successfully generated and saved to {output_path}. The report includes proper styling, formatting, and structure."
+            return f"✅ Professional HTML report successfully generated and saved to {output_path}"
 
         except Exception as e:
-            return f" An unexpected error occurred while generating the report: {str(e)}"
+            return f"❌ Error generating report: {str(e)}"

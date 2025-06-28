@@ -1,11 +1,7 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
-from dotenv import load_dotenv
 
-from epic_news.models.report import ReportHTMLOutput
-from epic_news.tools.report_tools import get_report_tools
-
-load_dotenv()
+from epic_news.models.poem_models import PoemJSONOutput
 
 
 @CrewBase
@@ -19,7 +15,6 @@ class PoemCrew:
             config=self.agents_config["poem_writer"],
             respect_context_window=True,
             verbose=True,
-            tools=get_report_tools(),
         )
 
     @task
@@ -27,8 +22,7 @@ class PoemCrew:
         return Task(
             config=self.tasks_config["write_poem"],
             agent=self.poem_writer(),
-            output_file="output/poem/poem.html",
-            output_pydantic=ReportHTMLOutput,
+            output_pydantic=PoemJSONOutput,
         )
 
     @crew
@@ -38,5 +32,4 @@ class PoemCrew:
             tasks=self.tasks,
             process=Process.sequential,
             verbose=True,
-            # process=Process.hierarchical, # In case you wanna use that instead https://docs.crewai.com/how-to/Hierarchical/
         )

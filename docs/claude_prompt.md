@@ -23,7 +23,7 @@ The resulting report should :
 Remember :
 
 - @agents.yaml should be brief on the tools they can use
-- async_execution: true is welcome
+- async_execution: false is welcome
 - be sure to follow the flow for adding this crews, it has many impact, review @DESIGN_PRINCIPLES.md and @content_state.py and @main.py
 
 ## Create a tool

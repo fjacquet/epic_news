@@ -1,16 +1,14 @@
+---
 routing_task:
   description: >
-    Analyze the user request: "{user_request}" and determine which specialized crew should handle it.
-    
+    Analyze the user request: "{user_request}" and determine which specialized crew
+    should handle it.
     Based on your analysis, classify the request into one of the following categories:
-    
     1. NEWS - If the request is about current events, news topics, or research
     2. POEM - If the request is about creative writing, poetry, or artistic expression
     3. COOKING - If the request is about food, recipes, or culinary topics
     4. UNKNOWN - If the request doesn't clearly fit into any of the above categories
-    
     Additional context: Topic is "{topic}"
-    
   expected_output: >
     {
       "crew_type": "NEWS|POEM|COOKING|UNKNOWN",

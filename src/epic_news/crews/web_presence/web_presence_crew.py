@@ -1,5 +1,3 @@
-import os
-
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import SerperDevTool
@@ -97,7 +95,6 @@ class WebPresenceCrew:
     def crew(self) -> Crew:
         """Creates the Web Presence Analysis crew"""
         # Ensure output directory exists for final reports
-        os.makedirs("output/web_presence", exist_ok=True)
 
         return Crew(
             agents=self.agents,

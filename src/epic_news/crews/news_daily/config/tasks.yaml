@@ -1,125 +1,144 @@
+---
 suisse_romande_news_task:
   description: >
-    Rechercher et collecter les 10 principales actualités du jour ({current_date}) pour la Suisse Romande.
-    Utiliser des requêtes en français ciblées sur les cantons francophones (Vaud, Genève, 
-    Neuchâtel, Valais, Fribourg, Jura). Rechercher les actualités des dernières 24 heures depuis {current_date}.
+    Rechercher et collecter les 10 principales actualités du jour ({current_date})
+    pour la Suisse Romande.
+    Utiliser des requêtes en français ciblées sur les cantons francophones (Vaud,
+    Genève,  Neuchâtel, Valais, Fribourg, Jura). Rechercher les actualités des dernières
+    24 heures depuis {current_date}.
     Focus sur les nouvelles du {current_date} et de la veille.
     Sauvegarder toutes les découvertes dans le système RAG avec le tag "suisse_romande".
   expected_output: >
-    Une liste de 10 actualités pertinentes pour la Suisse Romande en français du {current_date}, avec titre, 
-    source, résumé et lien. Format: titre | source | résumé | lien.
+    Une liste de 10 actualités pertinentes pour la Suisse Romande en français du {current_date},
+    avec titre,  source, résumé et lien. Format: titre | source | résumé | lien.
   agent: news_researcher
-  output_file: "output/news_daily/suisse_romande_news.md"
-
+  output_file: output/news_daily/suisse_romande_news.md
 suisse_news_task:
   description: >
-    Rechercher et collecter les 10 principales actualités du jour ({current_date}) pour la Suisse.
-    Inclure les nouvelles nationales des dernières 24 heures depuis {current_date} couvrant politique, 
-    économie, société et événements importants. Éviter les doublons avec Suisse Romande.
+    Rechercher et collecter les 10 principales actualités du jour ({current_date})
+    pour la Suisse.
+    Inclure les nouvelles nationales des dernières 24 heures depuis {current_date}
+    couvrant politique,  économie, société et événements importants. Éviter les doublons
+    avec Suisse Romande.
     Focus sur les nouvelles du {current_date} et de la veille.
     Sauvegarder toutes les découvertes dans le système RAG avec le tag "suisse".
   expected_output: >
-    Une liste de 10 actualités nationales suisses en français du {current_date}, avec titre, source, 
-    résumé et lien. Format: titre | source | résumé | lien.
+    Une liste de 10 actualités nationales suisses en français du {current_date}, avec
+    titre, source,  résumé et lien. Format: titre | source | résumé | lien.
   agent: news_researcher
-  output_file: "output/news_daily/suisse_news.md"
-
+  output_file: output/news_daily/suisse_news.md
 france_news_task:
   description: >
-    Rechercher et collecter les 10 principales actualités du jour ({current_date}) pour la France.
-    Couvrir politique, économie, société, culture et événements nationaux des dernières 
-    24 heures depuis {current_date}. Focus sur les nouvelles importantes et d'impact du {current_date}.
+    Rechercher et collecter les 10 principales actualités du jour ({current_date})
+    pour la France.
+    Couvrir politique, économie, société, culture et événements nationaux des dernières  24
+    heures depuis {current_date}. Focus sur les nouvelles importantes et d'impact
+    du {current_date}.
     Sauvegarder toutes les découvertes dans le système RAG avec le tag "france".
   expected_output: >
-    Une liste de 10 actualités françaises importantes en français du {current_date}, avec titre, source, 
-    résumé et lien. Format: titre | source | résumé | lien.
+    Une liste de 10 actualités françaises importantes en français du {current_date},
+    avec titre, source,  résumé et lien. Format: titre | source | résumé | lien.
   agent: news_researcher
-  output_file: "output/news_daily/france_news.md"
-
+  output_file: output/news_daily/france_news.md
 europe_news_task:
   description: >
-    Rechercher et collecter les 10 principales actualités du jour ({current_date}) pour l'Europe.
-    Inclure Union Européenne, politique européenne, économie, et événements majeurs 
-    des dernières 24 heures depuis {current_date}. Éviter les doublons avec France et Suisse.
+    Rechercher et collecter les 10 principales actualités du jour ({current_date})
+    pour l'Europe.
+    Inclure Union Européenne, politique européenne, économie, et événements majeurs  des
+    dernières 24 heures depuis {current_date}. Éviter les doublons avec France et
+    Suisse.
     Focus sur les nouvelles du {current_date} et de la veille.
     Sauvegarder toutes les découvertes dans le système RAG avec le tag "europe".
   expected_output: >
-    Une liste de 10 actualités européennes importantes en français du {current_date}, avec titre, source, 
-    résumé et lien. Format: titre | source | résumé | lien.
+    Une liste de 10 actualités européennes importantes en français du {current_date},
+    avec titre, source,  résumé et lien. Format: titre | source | résumé | lien.
   agent: news_researcher
-  output_file: "output/news_daily/europe_news.md"
-
+  output_file: output/news_daily/europe_news.md
 world_news_task:
   description: >
     Rechercher et collecter les 10 principales actualités mondiales du jour ({current_date}).
-    Focus sur événements internationaux majeurs, politique mondiale, catastrophes, 
-    découvertes scientifiques des dernières 24 heures depuis {current_date}. Éviter doublons régionaux.
+    Focus sur événements internationaux majeurs, politique mondiale, catastrophes,  découvertes
+    scientifiques des dernières 24 heures depuis {current_date}. Éviter doublons régionaux.
     Focus sur les nouvelles du {current_date} et de la veille.
     Sauvegarder toutes les découvertes dans le système RAG avec le tag "monde".
   expected_output: >
-    Une liste de 10 actualités mondiales importantes en français du {current_date}, avec titre, source, 
-    résumé et lien. Format: titre | source | résumé | lien.
+    Une liste de 10 actualités mondiales importantes en français du {current_date},
+    avec titre, source,  résumé et lien. Format: titre | source | résumé | lien.
   agent: news_researcher
-  output_file: "output/news_daily/world_news.md"
-
+  output_file: output/news_daily/world_news.md
 wars_news_task:
   description: >
-    Rechercher et collecter les 10 principales actualités du jour ({current_date}) sur les conflits et guerres actuels.
-    Inclure Ukraine, Moyen-Orient, autres conflits armés, développements militaires 
-    et géopolitiques des dernières 24 heures depuis {current_date}.
+    Rechercher et collecter les 10 principales actualités du jour ({current_date})
+    sur les conflits et guerres actuels.
+    Inclure Ukraine, Moyen-Orient, autres conflits armés, développements militaires  et
+    géopolitiques des dernières 24 heures depuis {current_date}.
     Focus sur les nouvelles du {current_date} et de la veille.
     Sauvegarder toutes les découvertes dans le système RAG avec le tag "guerres".
   expected_output: >
-    Une liste de 10 actualités sur les conflits et guerres en français du {current_date}, avec titre, 
-    source, résumé et lien. Format: titre | source | résumé | lien.
+    Une liste de 10 actualités sur les conflits et guerres en français du {current_date},
+    avec titre,  source, résumé et lien. Format: titre | source | résumé | lien.
   agent: news_researcher
-  output_file: "output/news_daily/wars_news.md"
-
+  output_file: output/news_daily/wars_news.md
 economy_news_task:
   description: >
     Rechercher et collecter les 10 principales actualités économiques du jour ({current_date}).
-    Inclure marchés financiers, entreprises, indicateurs économiques, crypto-monnaies, 
-    emploi et développements économiques majeurs des dernières 24 heures depuis {current_date}.
+    Inclure marchés financiers, entreprises, indicateurs économiques, crypto-monnaies,  emploi
+    et développements économiques majeurs des dernières 24 heures depuis {current_date}.
     Focus sur les nouvelles du {current_date} et de la veille.
     Sauvegarder toutes les découvertes dans le système RAG avec le tag "economie".
   expected_output: >
-    Une liste de 10 actualités économiques importantes en français du {current_date}, avec titre, source, 
-    résumé et lien. Format: titre | source | résumé | lien.
+    Une liste de 10 actualités économiques importantes en français du {current_date},
+    avec titre, source,  résumé et lien. Format: titre | source | résumé | lien.
   agent: news_researcher
-  output_file: "output/news_daily/economy_news.md"
-
+  output_file: output/news_daily/economy_news.md
 content_curation_task:
   description: >
     Analyser tous les articles collectés par les tâches de recherche d'actualités.
     Identifier et éliminer les doublons basés sur le contenu, pas seulement les titres.
-    Organiser le contenu par catégorie (Suisse Romande, Suisse, France, Europe, Monde, Guerres, Économie).
+    Organiser le contenu par catégorie (Suisse Romande, Suisse, France, Europe, Monde,
+    Guerres, Économie).
     Assurer que chaque catégorie contient exactement 10 actualités uniques et pertinentes.
     Sauvegarder l'analyse de déduplication dans le système RAG.
   expected_output: >
-    Un rapport de curation structuré en français avec 7 sections (une par région/catégorie), 
-    chacune contenant exactement 10 actualités uniques. Inclure statistiques de déduplication 
-    et méthodologie d'organisation.
+    Un rapport de curation structuré en français avec 7 sections (une par région/catégorie),  chacune
+    contenant exactement 10 actualités uniques. Inclure statistiques de déduplication  et
+    méthodologie d'organisation.
   agent: content_curator
-  output_file: "output/news_daily/content_curation.md"
-
+  output_file: output/news_daily/content_curation.md
 final_report_generation_task:
   description: >
-    Créer un rapport d'actualités quotidien complet et professionnel en français.
-    Utiliser le ReportingTool pour générer un document HTML structuré avec:
-    - En-tête avec date du jour
-    - Table des matières interactive
-    - 7 sections distinctes (Suisse Romande, Suisse, France, Europe, Monde, Guerres, Économie)
-    - Chaque actualité avec titre cliquable, source, résumé et horodatage
-    - Design moderne et responsive avec emojis appropriés
-    - Pied de page avec méthodologie et sources
-
-    IMPORTANT: When calling the Professional Report Generator tool, you MUST use the exact output file path: "output/news_daily/final_report.html"
-    DO NOT use any other filename or path. The tool requires three parameters:
-    - report_title: "News Daily Report"
-    - report_body: [your complete HTML content]
-    - output_file_path: "output/news_daily/final_report.html"  
+    Consolider toutes les actualités collectées en un rapport JSON structuré qui sera
+    utilisé par HtmlDesignerCrew pour la génération HTML finale.
+    ÉTAPES OBLIGATOIRES :
+    1. Lire TOUS les fichiers d'actualités avec FileReadTool :
+      • "output/news_daily/suisse_romande_news.md"
+      • "output/news_daily/suisse_news.md"
+      • "output/news_daily/france_news.md"
+      • "output/news_daily/europe_news.md"
+      • "output/news_daily/world_news.md"
+      • "output/news_daily/war_news.md"
+      • "output/news_daily/economy_news.md"
+      • "output/news_daily/content_curation.md"
+    2. Structurer les données en format JSON avec les sections :
+      - "summary": Résumé exécutif des actualités du jour
+      - "suisse_romande": Actualités de Suisse Romande
+      - "suisse": Actualités suisses nationales
+      - "france": Actualités françaises
+      - "europe": Actualités européennes
+      - "world": Actualités mondiales
+      - "wars": Actualités sur les conflits
+      - "economy": Actualités économiques
+      - "methodology": Sources et processus de collecte
+    3. Inclure TOUTES les actualités sans exception, ne pas résumer
+    4. Maintenir la richesse des données pour la génération HTML ultérieure
+    IMPORTANT: Ce rapport JSON sera utilisé par HtmlDesignerCrew pour générer le rapport
+    HTML final.
   expected_output: >
-    Un rapport HTML professionnel et complet en français, optimisé pour l'email et la lecture web.
-    Le rapport doit être prêt pour envoi par email avec mise en forme parfaite.
-  agent: reporting_specialist
-  output_file: "output/news_daily/final_report.html"
+    Rapport JSON structuré et complet contenant toutes les actualités organisées par
+    sections géographiques et thématiques :
+    - Résumé exécutif avec points saillants du jour
+    - Actualités détaillées par région/thème avec sources et horodatage
+    - Méthodologie de collecte et statistiques de déduplication
+    Format JSON valide prêt pour traitement par HtmlDesignerCrew.
+  agent: content_curator
+  output_file: output/news_daily/news_data.json

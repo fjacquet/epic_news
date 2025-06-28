@@ -1,3 +1,4 @@
+---
 leadership_team_assessment:
   description: >
     Assess the leadership team of {company}, including: - CEO and C-suite
@@ -5,7 +6,6 @@ leadership_team_assessment:
     tenure - Leadership style and public communication - Board of directors
     composition and expertise - Leadership diversity metrics - Public
     perception of leadership
-
     Use the RAG tools to save your findings for later use by other agents.
     Format your findings in a clear, structured, and comprehensive Markdown
     document, ensuring all relevant details are included for a precise and
@@ -17,7 +17,6 @@ leadership_team_assessment:
     database for use by other agents.
   agent: hr_intelligence_analyst
   output_file: output/osint/{company}_leadership_team_assessment.md
-
 employee_sentiment_analysis:
   description: >
     Analyze employee reviews and sentiment about {company}, including: -
@@ -25,7 +24,6 @@ employee_sentiment_analysis:
     positive and negative reviews - Changes in sentiment over time -
     Comparison to industry benchmarks - Response patterns from company
     management - Employee satisfaction indicators
-
     Use the RAG tools to retrieve any relevant information already collected
     and save your findings for later use by other agents. Format your findings
     in a clear, structured, and comprehensive Markdown document, ensuring all
@@ -37,7 +35,6 @@ employee_sentiment_analysis:
     RAG database for use by other agents.
   agent: hr_intelligence_analyst
   output_file: output/osint/{company}_employee_sentiment_analysis.md
-
 organizational_culture_assessment:
   description: >
     Assess the organizational culture of {company}, including: - Stated
@@ -45,7 +42,6 @@ organizational_culture_assessment:
     Recognition and reward systems - Communication and transparency -
     Innovation and adaptability indicators - Diversity, equity, and inclusion
     initiatives
-
     Use the RAG tools to retrieve any relevant information already collected
     and save your findings for later use by other agents. Format your findings
     in a clear, structured, and comprehensive Markdown document, ensuring all
@@ -57,14 +53,12 @@ organizational_culture_assessment:
     RAG database for use by other agents.
   agent: hr_intelligence_analyst
   output_file: output/osint/{company}_organizational_culture_assessment.md
-
 talent_acquisition_strategy:
   description: >
     Analyze {company}'s talent acquisition strategy, including: - Job posting
     patterns and hiring focus areas - Recruitment methods and channels -
     Employer branding approach - Candidate experience indicators - Retention
     strategies and turnover patterns - Career development opportunities
-
     Use the RAG tools to retrieve any relevant information already collected
     and save your findings for later use by other agents. Format your findings
     in a clear, structured, and comprehensive Markdown document, ensuring all
@@ -76,7 +70,6 @@ talent_acquisition_strategy:
     RAG database for use by other agents.
   agent: hr_intelligence_analyst
   output_file: output/osint/{company}_talent_acquisition_strategy.md
-
 format_hr_intelligence_report:
   description: >
     Consolidate all HR intelligence findings about {company} into a
@@ -84,7 +77,6 @@ format_hr_intelligence_report:
     insights - Leadership team assessment - Organizational culture analysis -
     Employee sentiment trends - Talent acquisition and retention strategies -
     Recommendations for further HR intelligence gathering
-
     Use the RAG tools to retrieve all previously collected information and
     create a consolidated, well-structured report. Format your report as a
     complete, comprehensive Markdown document, ensuring all relevant details

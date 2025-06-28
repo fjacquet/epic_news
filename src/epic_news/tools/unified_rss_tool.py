@@ -78,7 +78,13 @@ class UnifiedRssTool(BaseTool):
             logger.info(f"Found {len(feed_urls)} feeds in OPML file")
 
             # Calculate cutoff date for filtering articles
-            cutoff_date = datetime.now() - timedelta(days=days_to_look_back)
+            # Calculate an inclusive cutoff date by day. Articles published on the
+            # *same calendar day* exactly ``days_to_look_back`` days ago should be
+            # kept.  We therefore normalise the cutoff timestamp to 00:00 so that
+            # any hour within that day is accepted.
+            cutoff_date = (datetime.now() - timedelta(days=days_to_look_back)).replace(
+                hour=0, minute=0, second=0, microsecond=0
+            )
 
             # Process each feed to get articles
             all_feeds = []

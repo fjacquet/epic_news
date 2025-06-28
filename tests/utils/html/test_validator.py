@@ -1,6 +1,6 @@
 import pytest
 
-from epic_news.utils.validate_html import validate_html
+from epic_news.utils.html.validator import validate_html
 
 
 @pytest.fixture

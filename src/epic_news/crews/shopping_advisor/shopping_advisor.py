@@ -9,7 +9,7 @@ competitor analysis, and generates professional HTML reports with actionable rec
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 
-from epic_news.tools.utility_tools import get_reporting_tools
+from epic_news.models.shopping_advice_models import ShoppingAdviceOutput
 from epic_news.tools.web_tools import get_scrape_tools, get_search_tools
 from epic_news.utils.logger import get_logger
 
@@ -51,7 +51,7 @@ class ShoppingAdvisorCrew:
     def shopping_advisor(self) -> Agent:
         return Agent(
             config=self.agents_config["shopping_advisor"],
-            tools=get_reporting_tools(),
+            tools=[],
             verbose=True,
         )
 
@@ -74,9 +74,16 @@ class ShoppingAdvisorCrew:
         )
 
     @task
-    def shopping_advice_task(self) -> Task:
+    def shopping_data_task(self) -> Task:
         return Task(
-            config=self.tasks_config["shopping_advice_task"],
+            config=self.tasks_config["shopping_data_task"],
+            agent=self.shopping_advisor(),
+            context=[
+                self.product_research_task(),
+                self.price_analysis_task(),
+                self.competitor_analysis_task(),
+            ],
+            output_pydantic=ShoppingAdviceOutput,
         )
 
     @crew

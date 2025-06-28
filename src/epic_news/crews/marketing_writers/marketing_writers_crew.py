@@ -28,6 +28,7 @@ class MarketingWritersCrew:
         return Agent(
             config=self.agents_config["marketing_specialist"],
             tools=marketing_tools + get_report_tools(),
+            llm="gpt-4.1-mini",  # Use more powerful model for market analysis
             verbose=True,
             llm_timeout=300,
             respect_context_window=True,
@@ -38,6 +39,7 @@ class MarketingWritersCrew:
         return Agent(
             config=self.agents_config["copywriter"],
             tools=marketing_tools + get_report_tools(),
+            llm="gpt-4.1-mini",  # Use more powerful model for copywriting
             verbose=True,
             llm_timeout=300,
             respect_context_window=True,

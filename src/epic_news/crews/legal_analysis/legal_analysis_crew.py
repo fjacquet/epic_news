@@ -1,5 +1,3 @@
-import os
-
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import SerperDevTool
@@ -35,6 +33,7 @@ class LegalAnalysisCrew:
             config=self.agents_config["legal_analyst"],
             verbose=True,
             tools=all_tools,
+            llm="gpt-4.1-mini",  # Use more powerful model for legal analysis
             allow_delegation=False,
             respect_context_window=True,
             reasoning=True,
@@ -88,9 +87,6 @@ class LegalAnalysisCrew:
     @crew
     def crew(self) -> Crew:
         """Creates the Legal Analysis crew"""
-        # Ensure output directory exists for final reports
-        os.makedirs("output/legal_analysis", exist_ok=True)
-
         return Crew(
             agents=self.agents,
             tasks=self.tasks,

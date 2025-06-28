@@ -36,14 +36,15 @@ from epic_news.crews.fin_daily.fin_daily import FinDailyCrew
 from epic_news.crews.geospatial_analysis.geospatial_analysis_crew import GeospatialAnalysisCrew
 from epic_news.crews.holiday_planner.holiday_planner_crew import HolidayPlannerCrew
 from epic_news.crews.hr_intelligence.hr_intelligence_crew import HRIntelligenceCrew
+from epic_news.crews.html_designer.html_designer import HtmlDesignerCrew
 from epic_news.crews.information_extraction.information_extraction_crew import InformationExtractionCrew
 from epic_news.crews.legal_analysis.legal_analysis_crew import LegalAnalysisCrew
 from epic_news.crews.library.library_crew import LibraryCrew
 from epic_news.crews.marketing_writers.marketing_writers_crew import MarketingWritersCrew
 from epic_news.crews.meeting_prep.meeting_prep_crew import MeetingPrepCrew
+from epic_news.crews.menu_designer.menu_designer import MenuDesignerCrew
 from epic_news.crews.news_daily.news_daily import NewsDailyCrew
 from epic_news.crews.poem.poem_crew import PoemCrew
-from epic_news.crews.post.post_crew import PostCrew
 from epic_news.crews.rss_weekly.rss_weekly_crew import RssWeeklyCrew
 from epic_news.crews.saint_daily.saint_daily import SaintDailyCrew
 from epic_news.crews.sales_prospecting.sales_prospecting_crew import SalesProspectingCrew
@@ -51,8 +52,12 @@ from epic_news.crews.shopping_advisor.shopping_advisor import ShoppingAdvisorCre
 from epic_news.crews.tech_stack.tech_stack_crew import TechStackCrew
 from epic_news.crews.web_presence.web_presence_crew import WebPresenceCrew
 from epic_news.models.content_state import ContentState
+from epic_news.utils.debug_utils import analyze_crewai_output, dump_crewai_state, log_state_keys
 from epic_news.utils.directory_utils import ensure_output_directories
 from epic_news.utils.logger import get_logger
+from epic_news.utils.menu_generator import MenuGenerator
+from epic_news.utils.report_utils import get_final_report_content, write_output_to_file
+from epic_news.utils.string_utils import create_topic_slug
 
 # Suppress the specific Pydantic deprecation warnings globally
 warnings.filterwarnings("ignore", category=PydanticDeprecatedSince211)
@@ -157,13 +162,17 @@ class ReceptionFlow(Flow[ContentState]):
 
         # Parse the result and update the state with the selected crew category.
         # The classification_result might contain 'Thought: ...' prefixes.
-        # We need to extract the actual category name.
+        # We need to extract the actual category name that appears first in the response.
         raw_classification = str(classification_result)  # Ensure it's a string
         parsed_category = "UNKNOWN"  # Default to UNKNOWN
+
+        # Find the first occurrence of any category in the response
+        earliest_position = len(raw_classification)
         for category_key in self.state.categories:
-            if category_key in raw_classification:
+            position = raw_classification.find(category_key)
+            if position != -1 and position < earliest_position:
+                earliest_position = position
                 parsed_category = category_key
-                break
 
         self.state.selected_crew = parsed_category
         print(
@@ -189,6 +198,8 @@ class ReceptionFlow(Flow[ContentState]):
             return "go_generate_book_summary"
         if self.state.selected_crew == "COOKING":
             return "go_generate_recipe"
+        if self.state.selected_crew == "MENU":
+            return "go_generate_menu_designer"
         if self.state.selected_crew == "SHOPPING":
             return "go_generate_shopping_advice"
         if self.state.selected_crew == "POEM":
@@ -241,7 +252,7 @@ class ReceptionFlow(Flow[ContentState]):
         Sets `output_file` to `output/poem/poem.html` and stores the generated
         poem in `self.state.poem`.
         """
-        self.state.output_file = "output/poem/poem.html"
+        self.state.output_file = "output/poem/poem.json"
         print(f"Generating poem about: {self.state.to_crew_inputs().get('topic', 'N/A')}")
 
         # Generate the poem
@@ -301,7 +312,9 @@ class ReceptionFlow(Flow[ContentState]):
         # Prepare inputs for the crew
         inputs = self.state.to_crew_inputs()
         stock_csv_file = "data/stock.csv"
+        etf_csv_file = "data/etf.csv"
         inputs["stock_csv_path"] = os.path.abspath(stock_csv_file)
+        inputs["etf_csv_path"] = os.path.abspath(etf_csv_file)
         inputs["current_date"] = datetime.datetime.now().strftime("%Y-%m-%d")
 
         # Kick off the crew
@@ -352,61 +365,141 @@ class ReceptionFlow(Flow[ContentState]):
 
         # Kick off the crew
         report_content = SaintDailyCrew().crew().kickoff(inputs=inputs)
-        self.state.saint_daily_report = report_content
+
+        # Structure the data for HtmlDesignerCrew consumption
+        # HtmlDesignerCrew expects saint_daily_report.raw as a JSON string
+        import json
+
+        if hasattr(report_content, "raw") and report_content.raw:
+            # If the output has a .raw attribute with JSON string
+            saint_json_data = report_content.raw
+        else:
+            # If the output is the JSON object directly, convert to string
+            saint_json_data = json.dumps(report_content) if report_content else "{}"
+
+        # Create the expected structure for HtmlDesignerCrew
+        self.state.saint_daily_report = {"raw": saint_json_data}
 
     @listen("go_generate_recipe")
     def generate_recipe(self):
         """
         Handles requests classified for the 'CookingCrew'.
 
-        Invokes the `CookingCrew` to generate a recipe. It sets the main output
-        to `output/cooking/recipe.html` and an attachment (e.g., for Paprika app)
-        to `output/cooking/recipe.yaml`. The result is stored in
-        `self.state.recipe`.
+        Invokes the `CookingCrew` to generate a recipe. The result is stored in `self.state.recipe`.
         """
-        # Ensure output directory exists
-        os.makedirs("output/cooking", exist_ok=True)
+        # Set output paths using project-relative paths
+        # No need to create directories as ensure_output_directories() is called at init
+        self.state.output_dir = "output/cooking"
 
-        # Set output files
-        self.state.output_file = "output/cooking/recipe.html"
-        self.state.attachment_file = "output/cooking/recipe.yaml"
-
-        # Get the topic and preferences from the user's request or extracted info
-        topic = self.state.user_request or ""
-
-        if self.state.extracted_info:
-            if (
-                hasattr(self.state.extracted_info, "main_subject_or_activity")
-                and self.state.extracted_info.main_subject_or_activity
-            ):
-                topic = self.state.extracted_info.main_subject_or_activity
-            if (
-                hasattr(self.state.extracted_info, "user_preferences_and_constraints")
-                and self.state.extracted_info.user_preferences_and_constraints
-            ):
-                preferences = self.state.extracted_info.user_preferences_and_constraints
-
-        # Enhance the topic with preferences if available
-        if preferences and preferences.lower() not in topic.lower():
-            topic = f"{topic} ({preferences})"
-
-        print(f"🍳 Generating recipe for: {topic}")
-
-        # Generate the recipe with the specific topic and preferences
+        # Get crew inputs - to_crew_inputs() already handles mapping extracted_info fields
+        # main_subject_or_activity → topic and user_preferences_and_constraints → special_needs
         crew_inputs = self.state.to_crew_inputs()
 
-        # Add topic and preferences to crew inputs instead of constructor
-        crew_inputs["topic"] = topic
-        if preferences:
-            crew_inputs["preferences"] = preferences
+        # CRITICAL: Update topic_slug after crew_inputs mapping is applied
+        # This ensures topic_slug reflects the mapped topic value from main_subject_or_activity
+        if crew_inputs.get("topic") and not self.state.topic_slug:
+            from epic_news.utils.string_utils import create_topic_slug
 
-        # Create crew using context-driven approach (no constructor parameters)
-        crew = CookingCrew().crew()
+            self.state.topic_slug = create_topic_slug(crew_inputs["topic"])
+            print(f"🔧 Updated topic_slug from mapped topic: {self.state.topic_slug}")
 
-        # Kick off the crew with inputs
-        self.state.recipe = crew.kickoff(inputs=crew_inputs)
+        self.state.output_file = f"{self.state.output_dir}/{self.state.topic_slug}.html"
+        self.state.attachment_file = f"{self.state.output_dir}/{self.state.topic_slug}.yaml"
+
+        # Update crew inputs to include attachment_file for paprika_yaml_task
+        crew_inputs["attachment_file"] = self.state.attachment_file
+        crew_inputs["output_file"] = self.state.output_file
+
+        # Log what we're generating
+        print(f"🍳 Generating recipe for: {crew_inputs.get('topic', 'Unknown topic')}")
+        print(f"📁 YAML export will be saved to: {self.state.attachment_file}")
+
+        # Create crew using context-driven approach with automatic topic_slug injection
+        cooking_result = CookingCrew().crew().kickoff(inputs=crew_inputs)
         print("✅ Recipe generation complete")
-        # return "generate_recipe"
+
+        # Extract PaprikaRecipe from CookingCrew result and trigger HtmlDesignerCrew
+        if hasattr(cooking_result, "tasks_output") and cooking_result.tasks_output:
+            # Get the PaprikaRecipe from the recipe_state_task (last task)
+            recipe_state_output = cooking_result.tasks_output[-1]  # Last task is recipe_state_task
+
+            # Check if we have a PaprikaRecipe from any task output
+            paprika_recipe = None
+            for task_output in cooking_result.tasks_output:
+                if hasattr(task_output, "pydantic") and task_output.pydantic:
+                    paprika_recipe = task_output.pydantic
+                    break
+
+            if paprika_recipe:
+                print(f"🔍 PaprikaRecipe extracted: {paprika_recipe.name}")
+                print(
+                    f"📄 CookingCrew completed {len(cooking_result.tasks_output)} tasks (cook, paprika_yaml, recipe_state)"
+                )
+
+                # Store in state for HtmlDesignerCrew using CrewAI state mechanism
+                self.state.recipe = {"paprika_model": paprika_recipe}
+
+                # Trigger HtmlDesignerCrew to generate HTML report
+                from epic_news.crews.html_designer.html_designer import HtmlDesignerCrew
+
+                html_crew = HtmlDesignerCrew()
+                html_result = html_crew.render_unified_report(self.state.model_dump())
+                print(f"✅ HTML report generated: {self.state.output_file}")
+            else:
+                print("⚠️ No PaprikaRecipe found in CookingCrew output")
+
+    @listen("go_generate_menu_designer")
+    def generate_menu_designer(self):
+        """
+        Orchestrates the end-to-end weekly menu generation process using CrewAI native flows.
+        """
+        self.logger.info("🍽️ Starting Menu Designer Workflow")
+
+        # Initialize utilities and output directory
+        menu_generator = MenuGenerator()
+
+        # Extract user preferences from state using to_crew_inputs
+        crew_inputs = self.state.to_crew_inputs()
+        output_dir = "output/menu_designer"
+
+        # Prepare menu crew inputs using direct CrewAI approach
+        self.logger.info("🗓️ Step 1/2: Planning the weekly menu structure")
+
+        menu_structure_result = MenuDesignerCrew().crew().kickoff(inputs=crew_inputs)
+
+        final_report = output_dir + "/" + crew_inputs["menu_slug"] + ".html"
+
+        # Parse menu structure and generate recipes (step 2)
+        self.logger.info("👩‍🍳 Step 2/2: Generating individual recipes")
+        recipe_specs = menu_generator.parse_menu_structure(menu_structure_result)
+
+        # Process recipes using direct CrewAI calls
+
+        total_recipes = len(recipe_specs)
+
+        cooking_crew = CookingCrew().crew()
+        for i, recipe_spec in enumerate(recipe_specs):
+            recipe_name = recipe_spec["name"]
+            recipe_code = recipe_spec["code"]
+            # Generate slug directly from recipe name
+            recipe_slug = create_topic_slug(recipe_name)
+            self.logger.info(f"  - Recipe {i + 1}/{total_recipes}: {recipe_name} ({recipe_code})")
+
+            try:
+                # Direct CrewAI call with slug already included
+                recipe_request = {
+                    "topic": recipe_spec["name"],
+                    "topic_slug": recipe_slug,  # Include slug directly
+                    "preferences": f"Type: {recipe_spec['type']}, Day: {recipe_spec['day']}, Meal: {recipe_spec['meal']}",
+                }
+
+                cooking_crew.kickoff(inputs=recipe_request)
+
+            except Exception as e:
+                self.logger.error(f"  ❌ Error with {recipe_code}: {e}")
+
+        self.state.menu_designer_report = final_report
+        return final_report
 
     @listen("go_generate_book_summary")
     def generate_book_summary(self):
@@ -431,29 +524,68 @@ class ReceptionFlow(Flow[ContentState]):
         """
         Handles requests classified for the 'ShoppingAdvisorCrew'.
 
-        Invokes the `ShoppingAdvisorCrew` to generate comprehensive shopping advice
-        including product research, price comparison between Switzerland and France,
-        competitor analysis, and actionable recommendations. Sets `output_file` to
-        `output/shopping_advisor/shopping_advice.html` and stores the report in
-        `self.state.shopping_advice_report`.
+        Uses ShoppingAdvisorCrew to generate structured shopping advice data,
+        then HtmlDesignerCrew to generate the HTML report.
+        Sets `output_file` to `output/shopping_advisor/shopping_advice.html`.
         """
-        # Ensure output directory exists
-        os.makedirs("output/shopping_advisor", exist_ok=True)
-
-        # Set output file
-        self.state.output_file = "output/shopping_advisor/shopping_advice.html"
+        # No need to create directories as ensure_output_directories() is called at init
 
         print(f"🛒 Generating shopping advice for: {self.state.user_request}")
 
-        # Debug: Show what inputs are being passed to the crew
+        # Prepare inputs for ShoppingAdvisorCrew
         crew_inputs = self.state.to_crew_inputs()
-        print(f"🔍 DEBUG - Crew inputs: {crew_inputs}")
-        print(f"🔍 DEBUG - Topic: {crew_inputs.get('topic', 'NOT_FOUND')}")
-        print(f"🔍 DEBUG - Objective: {crew_inputs.get('objective', 'NOT_FOUND')}")
 
-        # Generate the shopping advice using CrewAI context-driven approach
-        self.state.shopping_advice_report = ShoppingAdvisorCrew().crew().kickoff(inputs=crew_inputs)
-        print("✅ Shopping advice generation complete")
+        # Generate structured shopping advice data
+        shopping_result = ShoppingAdvisorCrew().crew().kickoff(inputs=crew_inputs)
+        print("✅ Shopping advice data generation complete")
+
+        # Extract ShoppingAdviceOutput from the result
+        shopping_advice_obj = None
+        if hasattr(shopping_result, "pydantic") and shopping_result.pydantic:
+            shopping_advice_obj = shopping_result.pydantic
+        elif hasattr(shopping_result, "tasks_output") and shopping_result.tasks_output:
+            # Look for the shopping_data_task output
+            for task_output in shopping_result.tasks_output:
+                if hasattr(task_output, "pydantic") and task_output.pydantic:
+                    shopping_advice_obj = task_output.pydantic
+                    break
+
+        if shopping_advice_obj:
+            print(f"🔍 ShoppingAdviceOutput extracted: {shopping_advice_obj.product_info.name}")
+            # Store in CrewAI state for HtmlDesignerCrew
+            self.state.shopping_advice_model = shopping_advice_obj
+        else:
+            print("⚠️ Could not extract ShoppingAdviceOutput from crew result")
+            return
+
+        # Set output file for HTML generation
+        topic = self.state.extracted_info.topic or "product-recommendation"
+        topic_slug = topic.lower().replace(" ", "-").replace("'", "").replace('"', "")
+        self.state.output_file = f"output/shopping_advisor/shopping-advice-{topic_slug}.html"
+
+        # Generate HTML report using HtmlDesignerCrew with unified template system
+        # Use the same pattern as other crews: state_data + render_unified_report
+        html_designer_crew = HtmlDesignerCrew()
+        html_designer_crew.set_crew_context("SHOPPING", self.state.model_dump())
+
+        # Prepare state data for template rendering
+        state_data = self.state.model_dump()
+
+        print("🎨 HtmlDesignerCrew configured for SHOPPING with unified template system")
+        print(f"📄 Output path: {self.state.output_file}")
+        print("🌙 Dark mode and responsive design enabled via universal template")
+
+        # Generate HTML using unified template system (bypassing CrewAI kickoff)
+        html_content = html_designer_crew.render_unified_report(state_data)
+
+        # Write HTML content to file
+        import os
+        os.makedirs(os.path.dirname(self.state.output_file), exist_ok=True)
+        with open(self.state.output_file, "w", encoding="utf-8") as f:
+            f.write(html_content)
+
+        self.state.shopping_advice_report = html_content
+        print(f"✅ HTML report generated: {self.state.output_file}")
 
     @listen("go_generate_meeting_prep")
     def generate_meeting_prep(self):
@@ -466,6 +598,7 @@ class ReceptionFlow(Flow[ContentState]):
         `output/meeting/meeting_preparation.html` and stores the report in
         `self.state.meeting_prep_report`.
         """
+        # No need to create directories as ensure_output_directories() is called at init
         self.state.output_file = "output/meeting/meeting_preparation.html"
         # Prepare inputs and handle company fallback
         current_inputs = self.state.to_crew_inputs()
@@ -708,99 +841,86 @@ class ReceptionFlow(Flow[ContentState]):
             "generate_findaily",
             "generate_news_daily",
             "generate_saint_daily",
+            "generate_menu_designer",
         )
     )
     def join(self, *results):
         """
         Synchronizes the flow after a crew has finished its primary task.
 
-        Its primary role is to consolidate the final report into the
-        designated output file using `_write_output_to_file()` before proceeding
-        to the email sending step.
+        Now integrates HtmlDesignerCrew to generate professional HTML reports
+        from the consolidated data before proceeding to the email sending step.
         """
-        self.logger.info("Join step reached. Writing output to file before sending email.")
-        self._write_output_to_file()
 
-    def _get_final_report_content(self) -> str | None:
-        """
-        Retrieves the final report content from the application state.
+        self.logger.info("Join step reached. Generating professional HTML report with HtmlDesignerCrew.")
 
-        It iterates through a predefined list of report attributes in `self.state`
-        and returns the content of the first one that is not None. This ensures
-        that the output from whichever crew was run is correctly identified.
+        try:
+            # Initialize HtmlDesignerCrew
+            html_designer_crew = HtmlDesignerCrew()
 
-        Returns:
-            The content of the final report as a string, or None if no report
-            is found.
-        """
-        report_attributes = [
-            "shopping_advice_report",
-            "news_report",
-            "recipe",
-            "book_summary",
-            "poem",
-            "holiday_plan",
-            "marketing_report",
-            "meeting_prep_report",
-            "contact_info_report",
-            "cross_reference_report",
-            "fin_daily_report",
-            "rss_weekly_report",
-            "post_report",
-            "location_report",
-            "osint_report",
-            "company_profile",
-            "tech_stack_report",
-            "web_presence_report",
-            "hr_intelligence_report",
-            "legal_analysis_report",
-            "geospatial_analysis",
-            "lead_score_report",
-            "tech_stack",
-            "final_report",
-            "news_daily_report",
-            "saint_daily_report",
-        ]
+            # Set crew context for dynamic output file routing
+            selected_crew = getattr(self.state, "selected_crew", "UNKNOWN")
+            html_designer_crew.set_crew_context(selected_crew)
 
-        for attr in report_attributes:
-            content = getattr(self.state, attr, None)
-            if content:
-                self.logger.info(f"Found final report content in 'self.state.{attr}'")
-                return str(content)
+            # Get the dynamic output file path
+            output_file_path = html_designer_crew.output_file_path
 
-        self.logger.warning("No final report content found in any of the expected state attributes.")
-        return None
+            # Prepare state data for template rendering
+            state_data = self.state.model_dump()
 
-    def _write_output_to_file(self):
-        """
-        Writes the final report content to the specified output file.
+            # Debug: Log available state data keys and analyze structure
+            log_state_keys(state_data)
+            analyze_crewai_output(state_data, selected_crew)
 
-        This method retrieves the report content using `_get_final_report_content()`
-        and writes it to the path stored in `self.state.output_file`. It handles
-        directory creation and ensures the content is written with UTF-8 encoding.
-        """
-        final_content = self._get_final_report_content()
-        output_file = self.state.output_file
+            # Debug: Dump complete CrewAI state to JSON file for easier debugging
+            dump_crewai_state(state_data, selected_crew)
 
-        if not output_file:
-            self.logger.warning("No output file path set in state. Skipping file write.")
-            return
+            # Debug: Log specific data if available (poem, recipe, etc.)
+            filter_keywords = ["poem", "title", "recipe", "saint", "cook"]
+            log_state_keys(state_data, filter_keywords)
 
-        if final_content:
-            try:
-                output_dir = os.path.dirname(output_file)
-                if not os.path.exists(output_dir):
-                    os.makedirs(output_dir)
-                    self.logger.info(f"Created output directory: {output_dir}")
+            self.logger.info(
+                f"🎨 Using unified template system to generate {selected_crew} HTML report at {output_file_path}..."
+            )
+            self.logger.info("🌙 Dark mode and responsive design enabled automatically")
 
-                with open(output_file, "w", encoding="utf-8") as f:
-                    f.write(final_content)
-                self.logger.info(f"Successfully wrote final report to {output_file}")
+            # Generate HTML using unified template system
+            html_content = html_designer_crew.render_unified_report(state_data)
 
-            except Exception as e:
-                self.logger.error(f"Error writing final report to {output_file}: {e}")
-        else:
-            self.logger.warning(f"No final content to write to {output_file}.")
+            # Ensure output directory exists
+            import os
+
+            os.makedirs(os.path.dirname(output_file_path), exist_ok=True)
+
+            # Write HTML content to file
+            with open(output_file_path, "w", encoding="utf-8") as f:
+                f.write(html_content)
+
+            html_result = f"HTML report generated successfully at {output_file_path}"
+
+            self.logger.info(
+                "✅ Unified template system completed successfully. Professional HTML report generated."
+            )
+            self.logger.info(f"📄 Report available at: {output_file_path}")
+            self.logger.debug(f"Template system result: {html_result}")
+
+            # Update state with the generated HTML report path
+            self.state.output_file = output_file_path
+
+            self.logger.info(f"🎯 {selected_crew} report generated with unified CSS and dark mode support")
+
+        except Exception as e:
+            self.logger.error(f"Error in HtmlDesignerCrew execution: {e}")
+            # Fallback to original report generation logic
+            self.logger.info("Falling back to original report generation...")
+
+            final_content = get_final_report_content(self.state)
+            output_file = self.state.output_file
+
+            success = write_output_to_file(final_content, output_file)
+
+            if not success and final_content is None:
+                self.logger.warning(f"No final content to write to {output_file}.")
 
     @listen(or_("generate_cross_reference_report", "join"))
     def send_email(self):
@@ -811,65 +931,34 @@ class ReceptionFlow(Flow[ContentState]):
         or the general 'join' event (indicating completion of other main content-generating crews).
         It ensures an email is sent only once per flow execution by checking `self.state.email_sent`.
 
-        It constructs email parameters (recipient, subject, body, attachment) using
-        information from `self.state`. The main report from `self.state.output_file`
-        is typically attached. If `self.state.attachment_file` is set (e.g., for
-        recipes with specific formats), that file is used as the attachment instead.
-        The `PostCrew` is then invoked to handle the actual email dispatch.
+        It uses the prepare_email_params utility function to construct email parameters
+        (recipient, subject, body, attachment) from the application state. The PostCrew
+        is then invoked to handle the actual email dispatch.
         """
-        if not self.state.email_sent:
-            print("📬 Preparing to send email...")
-            # Prepare email inputs
-            subject_topic = (
-                self.state.extracted_info.main_subject_or_activity
-                if self.state.extracted_info
-                and hasattr(self.state.extracted_info, "main_subject_or_activity")
-                else "Your Report"
-            )
-            email_body_content = getattr(
-                self.state,
-                "final_report",
-                "Please find your report attached or view content above if no attachment was generated.",
-            )
+        # from epic_news.utils.report_utils import prepare_email_params
 
-            email_inputs = {
-                "recipient_email": os.environ.get("MAIL"),  # Fetched from environment variable
-                "subject": f"Your Epic News Report: {subject_topic}",
-                "body": str(email_body_content),  # Ensure body is string
-                "output_file": self.state.output_file or "",
-                "topic": subject_topic,
-            }
+        # if not self.state.email_sent:
+        #     print("📬 Preparing to send email...")
 
-            # Determine attachment: specific attachment_file takes precedence over output_file
-            attachment_to_send = None
-            if (
-                hasattr(self.state, "attachment_file")
-                and self.state.attachment_file
-                and os.path.exists(self.state.attachment_file)
-            ):
-                attachment_to_send = self.state.attachment_file
-                print(f"Using specific attachment: {attachment_to_send}")
-            elif self.state.output_file and os.path.exists(self.state.output_file):
-                attachment_to_send = self.state.output_file
-                print(f"Using main output file as attachment: {attachment_to_send}")
-            else:
-                print(
-                    "⚠️ No valid attachment file found (neither specific attachment_file nor output_file exists or is set). Email will be sent without attachment."
-                )
+        #     # Use utility function to prepare all email parameters
+        #     email_inputs = prepare_email_params(self.state)
 
-            # Always include attachment_path, even if empty, to satisfy PostCrew's task template
-            email_inputs["attachment_path"] = attachment_to_send if attachment_to_send else ""
+        #     # Log attachment status for better visibility
+        #     if email_inputs.get("attachment_path"):
+        #         print(f"Using attachment: {email_inputs['attachment_path']}")
+        #     else:
+        #         print("⚠️ No valid attachment file found. Email will be sent without attachment.")
 
-            # Instantiate and kickoff the PostCrew
-            try:
-                post_crew = PostCrew()
-                email_result = post_crew.crew().kickoff(inputs=email_inputs)
-                print(f"📧 Email sending process initiated. Result: {email_result}")
-                self.state.email_sent = True  # Mark email as sent to prevent duplicates
-            except Exception as e:
-                print(f"❌ Error during email sending: {e}")
-        else:
-            print("📧 Email already sent for this request. Skipping.")
+        #     # Instantiate and kickoff the PostCrew
+        #     try:
+        #         post_crew = PostCrew()
+        #         email_result = post_crew.crew().kickoff(inputs=email_inputs)
+        #         print(f"📧 Email sending process initiated. Result: {email_result}")
+        #         self.state.email_sent = True  # Mark email as sent to prevent duplicates
+        #     except Exception as e:
+        #         print(f"❌ Error during email sending: {e}")
+        # else:
+        #     print("📧 Email already sent for this request. Skipping.")
         # return "send_email" # Implicitly returns method name
 
 
@@ -886,7 +975,12 @@ def kickoff(user_input: str | None = None):
         The completed ReceptionFlow object.
     """
     # If user_input is not provided, use a default value.
-    request = user_input if user_input else "Qui est le saint du jour ?"
+    request = (
+        user_input
+        if user_input
+        else "Donne moi des conseils d'achat pour un mac permettant de faire de l'AI en local "
+        # else "Generate a complete weekly menu planner with 30 recipes and shopping list for a family of 3 in French"
+    )
 
     reception_flow = ReceptionFlow(user_request=request)
     reception_flow.kickoff()

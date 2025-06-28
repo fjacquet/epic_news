@@ -1,3 +1,4 @@
+---
 research_task:
   description: >
     Conduct comprehensive research on the given topic: {topic}.
@@ -8,41 +9,35 @@ research_task:
   expected_output: >
     A markdown file containing a detailed and well-structured research report
     on the specified topic, with citations and references.
-
   agent: researcher
-
 reporting_task:
-  description: >
-    CRITICAL: Use the ReportingTool to generate a comprehensive, professional HTML report 
-    about the topic: {topic}. The ReportingTool will ensure proper template usage and 
-    complete, non-truncated output that follows project standards.
-    
-    Review all research findings and create a complete, well-structured HTML report with:
-    - Full content (never truncated or incomplete)
-    - Professional formatting using proper templates
-    - Clear headings, bullet points, and structure
-    - Table of contents and emojis for section headings
-    - UTF-8 encoding for emoji support
-    - All project design standards for HTML reports
-    
-    IMPORTANT: Use ONLY the ReportingTool to generate the final HTML output. 
-    Do not write HTML directly - let the ReportingTool handle template application.
-  expected_output: >
-    A single, complete, valid HTML file containing the full professional report 
-    generated using the ReportingTool. The HTML must be complete (not truncated), 
-    well-formatted, styled according to project templates, and ready for publication 
-    or PDF conversion. No placeholder text or incomplete sections allowed.
-
+  description: |
+    CRITICAL: Generate a comprehensive, professional book report in Markdown format
+    about the topic: {topic}. The report should be well-structured and ready to be
+    rendered using the universal template system.
+    Create a complete, well-structured Markdown report with:
+    - Clear, hierarchical headings (##,  ###, etc.)
+    - Bullet points and numbered lists where appropriate
+    - Proper formatting for book titles, author names, and key concepts
+    - Emojis for section headings to enhance readability
+    - Any relevant quotes or excerpts properly formatted as blockquotes
+    IMPORTANT: Focus on generating high-quality Markdown content only.
+    Do not include HTML tags or worry about styling - that will be handled by the template.
+  expected_output: |
+    A complete Markdown document containing the full book report with:
+    - Title and author information
+    - Summary/Overview section
+    - Key themes and analysis
+    - Important quotes/excerpts (properly formatted)
+    - Personal insights or recommendations
+    - No HTML tags or styling - just clean Markdown content
   agent: reporting_analyst
-
 reporting_task_pdf:
   description: >
     Convert the HTML document to a PDF document using the HtmlToPdfTool.
-
     Look for the following lines in this task description:
     HTML_FILE_PATH=<absolute_path_to_html_file>
     PDF_OUTPUT_PATH=<absolute_path_to_pdf_file>
-
     Extract these exact file paths from the description and use them with the
     HtmlToPdfTool. Do not attempt to construct the paths yourself. Use ONLY
     the paths provided in this description.

@@ -80,6 +80,7 @@ class HolidayPlannerCrew:
         return Agent(
             config=self.agents_config["travel_researcher"],
             tools=self.travel_research_tools,  # To be populated by _init_tools
+            llm="gpt-4.1-mini",  # Use more powerful model for travel research
             verbose=False,
             reasoning=True,
             allow_delegation=True,
@@ -90,6 +91,7 @@ class HolidayPlannerCrew:
         return Agent(
             config=self.agents_config["accommodation_specialist"],
             tools=self.accommodation_search_tools,  # To be populated by _init_tools
+            llm="gpt-4.1-mini",  # Use more powerful model for accommodation research
             verbose=False,
             reasoning=True,
             allow_delegation=True,
@@ -100,6 +102,7 @@ class HolidayPlannerCrew:
         return Agent(
             config=self.agents_config["itinerary_architect"],
             tools=self.general_tools,  # To be populated by _init_tools (e.g., search + scrape)
+            llm="gpt-4.1-mini",  # Use more powerful model for complex itinerary planning
             verbose=False,
             reasoning=True,
             allow_delegation=True,
@@ -110,6 +113,7 @@ class HolidayPlannerCrew:
         return Agent(
             config=self.agents_config["budget_manager"],
             tools=self.accommodation_search_tools,  # To be populated by _init_tools (e.g., shopping search)
+            llm="gpt-4.1-mini",  # Use more powerful model for budget analysis
             verbose=False,
             allow_delegation=False,
         )
@@ -119,6 +123,7 @@ class HolidayPlannerCrew:
         return Agent(
             config=self.agents_config["content_formatter"],
             tools=self.content_creation_tools,  # To be populated by _init_tools
+            llm="gpt-4.1-mini",  # Use more powerful model for content formatting
             verbose=False,
             allow_delegation=False,
         )

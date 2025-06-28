@@ -1,21 +1,18 @@
+---
 research_task:
   description: >
     Conduct thorough research on {company}, their position in the sector, and
     recent industry trends. Focus on news from the last year, as the current
     year is 2024.
-
     Take into account any information from prior interactions:
     {prior_interactions}
-
     Participants {participants} Meeting Context {context}
-
   expected_output: >
     A comprehensive report on {company}'s background, their status in the
     sector, and relevant industry insights. Include a list of 10 bullet points
     highlighting the most crucial information for our meeting and a detailed
     report summarizing key findings about each participant
   agent: lead_researcher_agent
-
 product_alignment_task:
   description: >
     Analyze the current industry trends, challenges, and opportunities
@@ -25,16 +22,12 @@ product_alignment_task:
     Also provide a list of 10 bullet points highlighting the most crucial
     information for our meeting. We need if possible supporting documents to
     justify your analysis.
-
     Consider any insights from prior interactions - {prior_interactions}
-
     Participants {participants} Meeting Context {context}
-
   expected_output: >
     An insightful analysis that identifies major trends, potential challenges,
     and strategic opportunities
   agent: product_specialist_agent
-
 sales_strategy_task:
   description: >
     Develop a tailored sales approach for {company}. Consider their position
@@ -43,7 +36,6 @@ sales_strategy_task:
     cross-selling opportunities. Develop strategic talking points, questions,
     and discussion angles for the meeting based on the research and industry
     analysis conducted.
-
     Factor in any insights from {prior_interactions} Meeting Context:
     {context} Meeting Objective: {objective}
   agent: sales_strategist_agent
@@ -51,26 +43,21 @@ sales_strategy_task:
     A comprehensive sales strategy document including approach, objection
     handling techniques, and additional sales opportunities tailored for the
     meeting with from {company}.
-
 meeting_preparation_task:
   description: >
     Compile all the research findings, industry analysis, and strategic
     talking points into a concise, comprehensive briefing document for the
     meeting with {company}. Ensure the briefing is easy to digest and equips
     the meeting participants with all necessary information and strategies.
-
     Meeting Context {context} Meeting Objective {objective} Incorporate any
     relevant points from prior interactions {prior_interactions}
-
     IMPORTANT: Format the output as HTML to ensure it displays properly in
     email.  Use proper HTML structure with: - <h1>, <h2>, <h3> tags for
     headings - <p> tags for paragraphs - <ul> and <li> tags for bullet points
     - <table> for any tabular data - Proper spacing and formatting for
     readability - Include a title and summary at the top
-
     The document will be sent via email, so ensure it's properly formatted for
     email viewing.
-
   expected_output: >
     A professionally styled, HTML-formatted briefing document in French for
     the meeting with {company}. The output MUST be ONLY the raw HTML content,
@@ -82,4 +69,4 @@ meeting_preparation_task:
     logical, engaging, and polished for a professional audience, suitable for
     direct email delivery.
   agent: briefing_coordinator_agent
-  output_file: "output/meeting/meeting_preparation.html"
+  output_file: output/meeting/meeting_preparation.html

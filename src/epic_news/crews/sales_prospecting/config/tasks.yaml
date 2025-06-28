@@ -1,149 +1,161 @@
+---
 research_company_task:
   description: >
     Conduct thorough research on {company}. Focus on their industry, size,
     recent news, challenges they might be facing, and any information that
-    suggests they might benefit from {our_product}. 
-    Look for recent technology initiatives or digital transformation efforts.
-    You are AI agent that is responsible for taking actions based on the tools you have.
+    suggests they might benefit from {our_product}.  Look for recent technology initiatives
+    or digital transformation efforts.
+    You are AI agent that is responsible for taking actions based on the tools you
+    have.
     You can use the tools to search the web, read files, etc.
   expected_output: >
     A comprehensive overview of {company}, including key facts, recent
     developments, and potential pain points that our product could address.
   agent: company_researcher
-  output_file: "output/sales_prospecting/company_research.md"
-
+  output_file: output/sales_prospecting/company_research.md
 analyze_org_structure_task:
   description: >
     Analyze the organizational structure of {company}. Identify key
     departments and roles that are likely to be involved in decisions related
     to purchasing {our_product}. Consider both technical decision-makers and
     business stakeholders.
-    You are AI agent that is responsible for taking actions based on the tools you have.
+    You are AI agent that is responsible for taking actions based on the tools you
+    have.
     You can use the tools to search the web, read files, etc.
   expected_output: >
     A breakdown of {company}'s relevant organizational structure, highlighting
     departments and roles that are potential stakeholders for {our_product}.
   agent: org_structure_analyst
-  output_file: "output/sales_prospecting/organization_structure.md"
-
+  output_file: output/sales_prospecting/organization_structure.md
 find_key_contacts_task:
   description: >
     Based on the organizational analysis, identify specific individuals at
     {company} who are in positions to influence or make decisions about
-    purchasing {our_product}. 
-    Find their names, titles, and if possible,
+    purchasing {our_product}.  Find their names, titles, and if possible,
     professional contact information or LinkedIn profiles.
   expected_output: >
     A list of key contacts at {company}, including their names, titles,
     departments, and any available contact information, LinkedIn URLs if
     possible phones and emails.
   agent: contact_finder
-  output_file: "output/sales_prospecting/key_contacts.md"
-
+  output_file: output/sales_prospecting/key_contacts.md
 develop_approach_strategy_task:
   description: >
     Using all the gathered information about {company} and the identified
     contacts, develop a strategy for approaching these individuals about
     {our_product}. Consider the company's challenges, the contacts' roles, and
-    how our product can provide value to them. 
-    You are AI agent that is responsible for taking actions based on the tools you have. 
-    You can use the tools to search the web, read files, etc.
+    how our product can provide value to them.  You are AI agent that is responsible
+    for taking actions based on the tools you have.  You can use the tools to search
+    the web, read files, etc.
   expected_output: >
-    Un rapport HTML bien structuré et stylisé en **français**, contenant les informations suivantes.
+    Un rapport HTML bien structuré et stylisé en **français**, contenant les informations
+    suivantes.
     Utilisez des emojis pertinents pour améliorer la lisibilité et l'engagement.
     Le HTML doit inclure :
     1.  **Aperçu de l'Entreprise ({company})**: Une section concise présentant l'entreprise.
-    2.  **Contacts Clés**: Une liste des contacts clés identifiés, avec leurs noms, titres, et coordonnées (email, téléphone, LinkedIn si possible).
-    3.  **Stratégie d'Approche Personnalisée pour {our_product}**: Une description détaillée de la stratégie pour aborder ces contacts, en mettant en évidence la valeur de {our_product} pour eux.
-
+    2.  **Contacts Clés**: Une liste des contacts clés identifiés, avec leurs noms,
+    titres, et coordonnées (email, téléphone, LinkedIn si possible).
+    3.  **Stratégie d'Approche Personnalisée pour {our_product}**: Une description
+    détaillée de la stratégie pour aborder ces contacts, en mettant en évidence la
+    valeur de {our_product} pour eux.
     **Structure et Style HTML Suggérés:**
-
     <!DOCTYPE html>
     <html lang="fr">
     <head>
         <meta charset="UTF-8">
         <title>Stratégie d'Approche Commerciale</title>
         <style>
-            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f8f9fa; color: #212529; line-height: 1.6; }
-            .container { max-width: 800px; margin: 20px auto; background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-            h1 { color: #007bff; text-align: center; margin-bottom: 30px; font-size: 2em; }
-            h2 { color: #0056b3; border-bottom: 2px solid #dee2e6; padding-bottom: 10px; margin-top: 30px; margin-bottom: 20px; font-size: 1.5em; }
-            h3 { color: #343a40; margin-top: 20px; font-size: 1.2em; }
-            p, li { color: #495057; margin-bottom: 10px; }
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin:
+    0; padding: 0; background-color: # f8f9fa; color:  # 212529; line-height: 1.6;
+    }
+            .container { max-width: 800px; margin: 20px auto; background-color:  #
+    ffffff;
+    padding: 30px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+            h1 { color:  # 007bff; text-align: center; margin-bottom: 30px; font-size:
+    2em; }
+            h2 { color: # 0056b3; border-bottom: 2px solid  # dee2e6; padding-bottom:
+    10px; margin-top: 30px; margin-bottom: 20px; font-size: 1.5em; }
+            h3 { color:  # 343a40; margin-top: 20px; font-size: 1.2em; }
+            p, li { color:  # 495057; margin-bottom: 10px; }
             ul { list-style-type: none; padding-left: 0; }
-            .contact-list li { background-color: #e9f7fd; border: 1px solid #b8dff8; margin-bottom: 15px; padding: 15px; border-radius: 6px; }
-            .contact-list h3 { margin-top: 0; color: #0056b3; }
+            .contact-list li { background-color: # e9f7fd; border: 1px solid  # b8dff8;
+    margin-bottom: 15px; padding: 15px; border-radius: 6px; }
+            .contact-list h3 { margin-top: 0; color:  # 0056b3; }
             .section { margin-bottom: 30px; }
-            .emoji { margin-right: 8px; font-size: 1.2em; } /* Emojis for visual cues */
-            .footer { text-align: center; margin-top: 40px; font-size: 0.9em; color: #6c757d; }
+            .emoji { margin-right: 8px; font-size: 1.2em; } /* Emojis for visual cues
+    */
+            .footer { text-align: center; margin-top: 40px; font-size: 0.9em; color:
+    # 6c757d; }
         </style>
     </head>
     <body>
         <div class="container">
             <h1><span class="emoji">🎯</span> Stratégie d'Approche Commerciale</h1>
-            <p style="text-align:center; font-style:italic;">Pour : <strong>{company}</strong> | Produit : <strong>{our_product}</strong></p>
-
+            <p style="text-align:center; font-style:italic;">Pour : <strong>{company}</strong>
+    | Produit : <strong>{our_product}</strong></p>
             <div class="section" id="company-overview">
                 <h2><span class="emoji">🏢</span> Aperçu de l'Entreprise</h2>
-                <p><!-- L'agent doit insérer ici l'aperçu concis de l'entreprise. --></p>
+                <p><!-- L'agent doit insérer ici l'aperçu concis de l'entreprise.
+    --></p>
             </div>
-
             <div class="section" id="key-contacts">
                 <h2><span class="emoji">👥</span> Contacts Clés Identifiés</h2>
                 <ul class="contact-list">
                     <li>
-                        <h3><span class="emoji">👤</span> [Nom du Contact 1] - [Titre du Contact 1]</h3>
-                        <p><strong>Email:</strong> [Email] | <strong>Téléphone:</strong> [Téléphone] | <strong>LinkedIn:</strong> <a href="[URL LinkedIn]">[URL LinkedIn]</a></p>
+                        <h3><span class="emoji">👤</span> [Nom du Contact 1] - [Titre
+    du Contact 1]</h3>
+                        <p><strong>Email:</strong> [Email] | <strong>Téléphone:</strong>
+    [Téléphone] | <strong>LinkedIn:</strong> <a href="[URL LinkedIn]">[URL LinkedIn]</a></p>
                         <p><strong>Notes:</strong> [Brèves notes sur ce contact]</p>
                     </li>
-                    <!-- L'agent doit ajouter d'autres contacts ici, en suivant le même format -->
+                    <!-- L'agent doit ajouter d'autres contacts ici, en suivant le
+    même format -->
                 </ul>
             </div>
-
             <div class="section" id="approach-strategy">
                 <h2><span class="emoji">💡</span> Stratégie d'Approche Personnalisée</h2>
-                <p><!-- L'agent doit décrire ici la stratégie d'approche détaillée. Utiliser des emojis pertinents. --></p>
+                <p><!-- L'agent doit décrire ici la stratégie d'approche détaillée.
+    Utiliser des emojis pertinents. --></p>
             </div>
-
             <div class="footer">
                 <p>Rapport généré le <script>document.write(new Date().toLocaleDateString('fr-FR'));</script></p>
             </div>
         </div>
     </body>
     </html>
-    
-    L'agent doit remplacer les placeholders (ex: `[Nom du Contact 1]`, `<!-- ... -->`) par les informations réelles.
+    L'agent doit remplacer les placeholders (ex: `[Nom du Contact 1]`, `<!-- ... -->`)
+    par les informations réelles.
     Le contenu doit être en **français**.
   agent: sales_strategist
-  output_file: "output/sales_prospecting/approach_strategy.html"
-
+  output_file: output/sales_prospecting/approach_strategy.html
 generate_sales_metrics_task:
   description: >
-    Based on all the gathered information about {company}, create a structured data report
-    with key metrics and KPIs for the sales prospecting effort. Include metrics such as:
-    
+    Based on all the gathered information about {company}, create a structured data
+    report
+    with key metrics and KPIs for the sales prospecting effort. Include metrics such
+    as:
     1. Company size (employees, revenue)
     2. Market position and growth potential
     3. Decision-maker identification success rate
     4. Contact acquisition metrics
     5. Estimated sales opportunity value
     6. Probability of successful engagement
-    
-    Use the data-centric tools to calculate metrics, track KPIs, and visualize the data.
+    Use the data-centric tools to calculate metrics, track KPIs, and visualize the
+    data.
     Create data tables for contacts and opportunity assessment.
-    
-    You are AI agent that is responsible for taking actions based on the tools you have.
+    You are AI agent that is responsible for taking actions based on the tools you
+    have.
     You can use the tools to search the web, read files, etc.
   expected_output: >
-    A comprehensive structured data report with metrics, KPIs, and visualizations that
+    A comprehensive structured data report with metrics, KPIs, and visualizations
+    that
     provide quantitative insights into the sales prospecting effort for {company}.
     The report should include:
-    
     1. Key metrics about the company and opportunity
     2. KPIs for tracking sales prospecting progress
     3. Data tables for contacts and opportunity assessment
     4. Data visualizations where appropriate
-    
-    The output should be in the StructuredDataReport format, which can be rendered as HTML.
+    The output should be in the StructuredDataReport format, which can be rendered
+    as HTML.
   agent: sales_strategist
-  output_file: "output/sales_prospecting/sales_metrics.json"
+  output_file: output/sales_prospecting/sales_metrics.json

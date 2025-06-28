@@ -1,0 +1,2 @@
+COOKING
+The user's request is focused on finding a specific recipe for the best homemade burger in Switzerland, which falls under the category of cooking. It involves looking for a detailed recipe, ingredients, and preparation instructions for a single dish, fitting precisely within the "COOKING" classification.

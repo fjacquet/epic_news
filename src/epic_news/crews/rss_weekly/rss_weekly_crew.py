@@ -3,7 +3,6 @@ from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import FileReadTool
 
 from src.epic_news.tools.rag_tools import get_rag_tools
-from src.epic_news.tools.reporting_tool import ReportingTool
 from src.epic_news.tools.save_to_rag_tool import SaveToRagTool
 from src.epic_news.tools.unified_rss_tool import UnifiedRssTool
 
@@ -20,7 +19,7 @@ class RssWeeklyCrew:
         return Agent(
             config=self.agents_config["content_summarizer"],
             verbose=True,
-            tools=[FileReadTool(), UnifiedRssTool(), SaveToRagTool(), ReportingTool()] + get_rag_tools(),
+            tools=[FileReadTool(), UnifiedRssTool(), SaveToRagTool()] + get_rag_tools(),
             reasoning=False,
             respect_context_window=True,
         )

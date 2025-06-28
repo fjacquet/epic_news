@@ -1,125 +1,208 @@
+---
 stock_portfolio_analysis_task:
   agent: stock_analyst
   description: >
-    MANDATORY: Analyze EVERY SINGLE stock ticker in the stock portfolio CSV file located at: {stock_csv_path}
-    
+    MANDATORY: Analyze EVERY SINGLE stock ticker in the stock portfolio CSV file located
+    at: {stock_csv_path}
     STEP 1: Use FileReadTool to read the CSV file at the exact path: {stock_csv_path}
     The CSV file contains columns: Name, Ticker, Currency. Read the COMPLETE file,
     count the total number of entries, and analyze ALL of them without exception.
-    
-    STEP 2: For EACH ticker in the "Ticker" column, extract the actual ticker symbol 
-    (remove "Yahoo:" prefix if present) and use your available tools to research 
-    the latest news and market sentiment. 
-    
-    STEP 3: Based on your findings, provide a clear recommendation: BUY, SELL, or KEEP. 
-    Include a concise one-sentence justification for each recommendation. 
-    
-    The portfolio contains 60+ stocks - analyze ALL of them.
+    STEP 2: For EACH ticker in the "Ticker" column, extract the actual ticker symbol  (remove
+    "Yahoo:" prefix if present) and use your available tools to research  the latest
+    news and market sentiment.  STEP 3: Based on your findings, provide a clear recommendation:
+    BUY, SELL, or
+    KEEP.  Include a concise one-sentence justification for each recommendation.  The
+    portfolio contains 60+ stocks – analyze ALL of them.  Absolutely NO partial
+    coverage disclaimers (e.g. “En raison de la taille du portefeuille…”,  “12 tickers
+    ont été analysés…”) are allowed. If you cannot include every single analysis,  you
+    MUST raise an explicit error instead of producing an incomplete report.
     Your output MUST include every single stock from the CSV file.
-    
-    IMPORTANT: The file path is provided as {stock_csv_path} - use this EXACT path with FileReadTool.
+    IMPORTANT: The file path is provided as {stock_csv_path} - use this EXACT path
+    with FileReadTool.
   expected_output: >
     A structured report in Markdown format containing the analysis for EVERY SINGLE
     stock ticker in the CSV file (60+ entries expected). NO SAMPLING, NO SHORTCUTS.
-    Example format for EACH stock: 
-    - "**AAPL (Apple Inc.):** KEEP - Recent product announcements show strong innovation, but market is saturated." 
-    - "**TSLA (Tesla, Inc.):** SELL - Increased competition and production hurdles pose significant risks."
+    Example format for EACH stock:  - "**AAPL (Apple Inc.):** KEEP - Recent product
+    announcements show strong innovation, but market is saturated."  - "**TSLA (Tesla,
+    Inc.):** SELL - Increased competition and production hurdles pose significant
+    risks."
     Your report MUST contain 60+ individual stock analyses.
-  async_execution: true
+  async_execution: false
   output_file: output/findaily/stock_portfolio_analysis.md
-  
 crypto_portfolio_analysis_task:
   agent: crypto_analyst
   description: >
-    MANDATORY: Use KrakenAssetListTool to get the COMPLETE list of crypto assets and analyze EVERY SINGLE ONE.
-    The tool automatically reads KRAKEN_API_KEY and KRAKEN_API_SECRET from environment variables.
+    MANDATORY: Use KrakenAssetListTool to get the COMPLETE list of crypto assets and
+    analyze EVERY SINGLE ONE.
+    The tool automatically reads KRAKEN_API_KEY and KRAKEN_API_SECRET from environment
+    variables.
     Call KrakenAssetListTool with only the asset_class parameter (use "currency").
-    
-    If the environment variables are not set or the API call fails, the tool will return an error message - 
-    REPORT THE EXACT ERROR MESSAGE transparently in your output.
-    For EACH token returned by KrakenAssetListTool, use BOTH YahooFinanceNewsTool AND KrakenTickerInfoTool 
-    to fetch comprehensive market data. Based on your analysis, provide a clear recommendation: BUY, SELL, or KEEP.
+    If the environment variables are not set or the API call fails, the tool will
+    return an error message -  REPORT THE EXACT ERROR MESSAGE transparently in your
+    output.
+    For EACH token returned by KrakenAssetListTool, use BOTH YahooFinanceNewsTool
+    AND KrakenTickerInfoTool  to fetch comprehensive market data. Based on your analysis,
+    provide a clear recommendation: BUY, SELL, or KEEP.
     Include a concise one-sentence justification for each recommendation.
-    You MUST analyze ALL crypto holdings - no exceptions, no shortcuts, no silent fallbacks.
+    You MUST analyze ALL crypto holdings – no exceptions, no shortcuts, no silent
+    fallbacks. Absolutely NO partial coverage disclaimers (e.g. “en raison de la taille…”)
+    are allowed. If you cannot include every single analysis, raise an explicit error
+    instead of producing an incomplete report.
   expected_output: >
-    A structured report in Markdown format containing the analysis for EVERY SINGLE crypto asset from Kraken.
-    If KrakenAssetListTool fails, include the exact error details at the top of your report.
-    Example format for EACH crypto: 
-    - "**ADA.S (Cardano):** BUY - Strong institutional adoption and upcoming protocol upgrades are positive catalysts." 
-    - "**ETH.F (Ethereum):** KEEP - Network activity is high, but recent gas fee volatility warrants caution."
-    If Kraken fails: "**KRAKEN API ERROR:** [exact error message] - Unable to retrieve crypto portfolio."
-    Your report MUST contain analysis for ALL available crypto holdings or transparent error reporting.
-  async_execution: true
+    A structured report in Markdown format containing the analysis for EVERY SINGLE
+    crypto asset from Kraken.
+    If KrakenAssetListTool fails, include the exact error details at the top of your
+    report.
+    Example format for EACH crypto:  - "**ADA.S (Cardano):** BUY - Strong institutional
+    adoption and upcoming protocol upgrades are positive catalysts."  - "**ETH.F (Ethereum):**
+    KEEP - Network activity is high, but recent gas fee volatility warrants caution."
+    If Kraken fails: "**KRAKEN API ERROR:** [exact error message] - Unable to retrieve
+    crypto portfolio."
+    Your report MUST contain analysis for ALL available crypto holdings or transparent
+    error reporting.
+  async_execution: false
   output_file: output/findaily/crypto_portfolio_analysis.md
-
 stock_suggestion_task:
   agent: investment_strategist
+  context: [stock_portfolio_analysis_task]
   description: >
-    MANDATORY: Review the COMPLETE stock portfolio analysis from the context and identify ALL current stock holdings
-    from the CSV file (extract ticker symbols from the "Ticker" column, removing "Yahoo:" prefix).
-    Create a comprehensive list of ALL 60+ current holdings first. Then, use your financial research tools to 
-    identify 2-3 promising stock investment opportunities that are DEFINITELY NOT in the current portfolio.
-    You MUST cross-check each suggestion against the complete holdings list to avoid duplicates.
-    Focus on stocks or ETFs that would complement the existing portfolio. Provide detailed recommendations
-    including ticker symbols and compelling explanations for why they are good BUY opportunities right now.
+    MANDATORY: Review the COMPLETE stock portfolio analysis from the context and identify
+    ALL current stock holdings
+    from the CSV file (extract ticker symbols from the "Ticker" column, removing "Yahoo:"
+    prefix).
+    Create a comprehensive list of ALL 60+ current holdings first. Then, use your
+    financial research tools to  identify 2-3 promising stock investment opportunities
+    that are DEFINITELY NOT in the current portfolio.
+    You MUST cross-check each suggestion against the complete holdings list to avoid
+    duplicates.
+    Focus on stocks or ETFs that would complement the existing portfolio. Provide
+    detailed recommendations
+    including ticker symbols and compelling explanations for why they are good BUY
+    opportunities right now.
   expected_output: >
-    A structured report in Markdown format with new stock recommendations that are VERIFIED to not be
-    in the current portfolio. Must include a section listing current holdings for verification.
+    A structured report in Markdown format with new stock recommendations that are
+    VERIFIED to not be
+    in the current portfolio. Must include a section listing current holdings for
+    verification.
     Example: "**Current Holdings Verified:** [List of all 60+ current tickers]
     **New Stock Recommendations:**
-    - **VTI (Vanguard Total Stock Market Index Fund ETF):** This ETF offers broad exposure
-     to the entire U.S. stock market, making it an excellent core holding for diversification. 
+    - **VTI (Vanguard Total Stock Market Index Fund ETF):** This ETF offers broad
+    exposure
+     to the entire U.S. stock market, making it an excellent core holding for diversification.
      Given the current portfolio's concentration in specific tech stocks, 
      VTI would reduce risk and capture growth across all sectors.
-    - **JPM (JPMorgan Chase & Co.):** A defensive financial play with consistent dividends and 
-    strong fundamentals, providing stability during market volatility."
-  async_execution: true
+    - **JPM (JPMorgan Chase & Co.):** A defensive financial play with consistent dividends
+    and  strong fundamentals, providing stability during market volatility."
+  async_execution: false
   output_file: output/findaily/stock_suggestion.md
-
 crypto_suggestion_task:
   agent: investment_strategist
+  context: [crypto_portfolio_analysis_task]
   description: >
-    MANDATORY: Review the COMPLETE crypto portfolio analysis from the context and identify ALL current crypto holdings.
-    Create a comprehensive list of current crypto assets first. Then, use your financial research tools to 
-    identify 1-2 promising cryptocurrency investment opportunities that are DEFINITELY NOT in the current portfolio.
-    You MUST cross-check each suggestion against the complete crypto holdings list to avoid duplicates.
+    MANDATORY: Review the COMPLETE crypto portfolio analysis from the context and
+    identify ALL current crypto holdings.
+    Create a comprehensive list of current crypto assets first. Then, use your financial
+    research tools to  identify 1-2 promising cryptocurrency investment opportunities
+    that are DEFINITELY NOT in the current portfolio.
+    You MUST cross-check each suggestion against the complete crypto holdings list
+    to avoid duplicates.
     Focus on cryptocurrencies that would complement the existing crypto portfolio.
   expected_output: >
-    A structured report in Markdown format with new crypto recommendations that are VERIFIED to not be
+    A structured report in Markdown format with new crypto recommendations that are
+    VERIFIED to not be
     in the current portfolio. Must include current crypto holdings for verification.
     Example: "**Current Crypto Holdings Verified:** [List of all current crypto assets]
     **New Crypto Recommendations:**
-    - **AVAX (Avalanche):** High-throughput blockchain with strong DeFi ecosystem growth.
-    - **DOT (Polkadot):** Multi-chain interoperability protocol for cross-chain value transfer."
-  async_execution: true
+    - **AVAX (Avalanche):** High-throughput blockchain with strong DeFi ecosystem
+    growth.
+    - **DOT (Polkadot):** Multi-chain interoperability protocol for cross-chain value
+    transfer."
+  async_execution: false
   output_file: output/findaily/crypto_suggestion.md
-
-final_report_generation_task:
-  agent: reporting_specialist
+# NEW: ETF portfolio analysis task
+etf_portfolio_analysis_task:
+  agent: stock_analyst
   description: >
-    CRITICAL: Create a comprehensive HTML report in french using Professional Report Generator tool that includes EVERY SINGLE analysis 
-    from ALL previous tasks. The report MUST contain:
-    1. ALL 60+ individual stock analyses (not a summary, not a sample - EVERY SINGLE ONE)
-    2. ALL crypto analyses (14 if Kraken available, 5 if standard portfolio - EVERY SINGLE ONE)
-    3. Complete new investment suggestions for both stocks and crypto
-    4. Verification that suggestions don't duplicate existing holdings
-    
-    IMPORTANT: When calling the Professional Report Generator tool, you MUST use the exact output file path: "output/findaily/report.html"
-    DO NOT use any other filename or path. The tool requires three parameters:
-    - report_title: "Rapport Complet d'Investissement"
-    - report_body: [your complete HTML content]
-    - output_file_path: "output/findaily/report.html"
-    
-    DO NOT summarize, DO NOT provide samples, DO NOT skip entries. Include every single analysis
-    provided by the research teams. The report must be complete and comprehensive.
+    MANDATORY: Analyze EVERY SINGLE ETF ticker in the ETF portfolio CSV file located
+    at: {etf_csv_path}
+    STEP 1: Use FileReadTool to read the CSV file at the exact path: {etf_csv_path}
+    The CSV file contains columns: Name, Ticker, Currency. Read the COMPLETE file,
+    count the total number of entries, and analyze ALL of them without exception.
+    STEP 2: For EACH ticker in the "Ticker" column, extract the actual ticker symbol
+    (remove "Yahoo:" prefix if present) and use your available tools to research
+    the latest news and market sentiment.
+    STEP 3: Based on your findings, provide a clear recommendation: BUY, SELL, or
+    KEEP.
+    Include a concise one-sentence justification for each recommendation.
+    The portfolio may contain many ETFs – analyze ALL of them. NO partial coverage
+    disclaimers.
   expected_output: >
-    A complete, professional HTML report in french saved to output/findaily/report.html containing EVERY SINGLE stock analysis (60+ entries),
-    EVERY SINGLE crypto analysis, and complete investment suggestions. The report must be
-    comprehensive and include all data from previous tasks without omission.
+    A structured report in Markdown format containing the analysis for EVERY SINGLE
+    ETF ticker in the CSV file. Example format for EACH ETF:
+    - "**VOO (Vanguard S&P 500 ETF):** KEEP - Low expense ratio and broad market exposure."
+  async_execution: false
+  output_file: output/findaily/etf_portfolio_analysis.md
+# NEW: ETF suggestion task
+etf_suggestion_task:
+  agent: investment_strategist
+  context: [etf_portfolio_analysis_task]
+  description: >
+    MANDATORY: Review the COMPLETE ETF portfolio analysis from the context and identify
+    ALL current ETF holdings.
+    Create a comprehensive list of all current ETFs first. Then, use your financial
+    research tools to
+    identify 1-2 promising ETF investment opportunities that are DEFINITELY NOT in
+    the current portfolio.
+    You MUST cross-check each suggestion against the complete holdings list to avoid
+    duplicates.
+    Focus on ETFs that would complement the existing portfolio. Provide detailed recommendations
+    including ticker symbols and compelling explanations for why they are good BUY
+    opportunities right now.
+  expected_output: >
+    A structured report in Markdown format with new ETF recommendations that are VERIFIED
+    to not be
+    in the current portfolio. Must include current ETF holdings for verification.
+  async_execution: false
+  output_file: output/findaily/etf_suggestion.md
+final_report_generation_task:
+  agent: investment_strategist
+  description: >
+    CRITICAL: Consolider toutes les analyses financières en un rapport JSON structuré
+    qui sera utilisé par HtmlDesignerCrew pour la génération HTML finale.
+    ÉTAPES OBLIGATOIRES :
+    1. Lire TOUS les fichiers d'analyse avec FileReadTool :
+      • "output/findaily/stock_portfolio_analysis.md"
+      • "output/findaily/crypto_portfolio_analysis.md"
+      • "output/findaily/stock_suggestion.md"
+      • "output/findaily/crypto_suggestion.md"
+      • "output/findaily/etf_portfolio_analysis.md"
+      • "output/findaily/etf_suggestion.md"
+    2. Structurer les données en format JSON avec les sections :
+      - "summary": Résumé exécutif des analyses
+      - "stock_analysis": Toutes les analyses d'actions
+      - "crypto_analysis": Toutes les analyses crypto
+      - "etf_analysis": Toutes les analyses ETF
+      - "recommendations": Nouvelles suggestions d'investissement
+      - "key_metrics": Métriques importantes et indicateurs
+      - "risk_assessment": Évaluation des risques
+    3. Inclure TOUTES les analyses sans exception, ne pas résumer
+    4. Maintenir la richesse des données pour la génération HTML ultérieure
+    IMPORTANT: Ce rapport JSON sera utilisé par HtmlDesignerCrew pour générer le rapport
+    HTML final.
+  expected_output: >
+    Rapport JSON structuré et complet contenant toutes les analyses financières organisées
+    par sections :
+    - Résumé exécutif avec points clés
+    - Analyses détaillées des actions, crypto et ETF
+    - Recommandations d'investissement avec justifications
+    - Métriques importantes et évaluation des risques
+    Format JSON valide prêt pour traitement par HtmlDesignerCrew.
   context:
     - stock_portfolio_analysis_task
     - crypto_portfolio_analysis_task
+    - etf_portfolio_analysis_task
     - stock_suggestion_task
+    - etf_suggestion_task
     - crypto_suggestion_task
   async_execution: false
-  output_file: output/findaily/report.html
+  output_file: output/findaily/financial_data.json

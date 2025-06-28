@@ -1,0 +1,81 @@
+---
+menu_planning_task:
+  description: >
+    Planifier UNIQUEMENT la structure du menu hebdomadaire français complet.
+    OBJECTIF: Créer un plan de menu hebdomadaire cohérent et équilibré comprenant
+     30 recettes harmonieusement associées.
+    STRUCTURE OBLIGATOIRE:
+    - 7 jours × 2 repas = 14 repas
+    - Chaque repas: entrée + plat principal   - Weekend déjeuners: entrée + plat principal
+    + dessert
+    - TOTAL: 30 recettes spécifiées individuellement
+    RÉPARTITION EXACTE:
+    - Lundi-Vendredi: Déjeuner (entrée + plat), Dîner (entrée + plat)  - Samedi-Dimanche:
+    Déjeuner (entrée + plat + dessert), Dîner (entrée + plat)
+    Contraintes à respecter:
+    - Saison: {season} - utiliser les produits de saison correspondant à la date {current_date}
+    - Cuisine française familiale traditionnelle
+    - Adaptation aux contraintes spécifiques: {constraints}
+    - Respect des préférences culinaires: {preferences}
+    - Prise en compte du contexte familial: {user_context}
+    CRITÈRES DE COHÉRENCE GLOBALE:
+    - Harmonie gustative: les plats d'un même repas doivent se compléter (saveurs,
+    textures, intensités)
+    - Progression culinaire: entrée légère → plat principal plus consistant → dessert
+    équilibré
+    - Variété sur la semaine: alterner les types de protéines, de féculents et de
+    légumes
+    - Équilibre nutritionnel: répartition optimale des groupes alimentaires sur la
+    semaine
+    - Rythme hebdomadaire: plats plus légers en semaine, plus élaborés le weekend
+    - Chaque recette doit être UNIQUE et clairement spécifiée
+    - Noms de recettes précis et attractifs
+    IMPORTANT: Ne PAS générer les recettes détaillées - seulement la structure du
+    menu
+    avec les noms et descriptions des plats. Les recettes seront générées séparément.
+  expected_output: >
+    Un plan de menu hebdomadaire complet qui respecte SCRUPULEUSEMENT la structure
+    du modèle Pydantic `WeeklyMenuPlan`.
+    Pour CHAQUE plat (`DishInfo`), vous DEVEZ fournir TOUS les champs suivants :
+    - name: Nom complet et attractif du plat.
+    - dish_type: Type de plat ('entrée', 'plat principal', ou 'dessert').
+    - description: Description courte du plat (ingrédients principaux, saveurs).
+    - seasonal_ingredients: Liste des ingrédients de saison clés.
+    - nutritional_highlights: Points forts nutritionnels (ex: riche en vitamines,
+    source de protéines).
+    Le résultat final doit être un objet JSON unique et valide correspondant au modèle
+    `WeeklyMenuPlan`.
+    Ne retournez RIEN d'autre que cet objet JSON.
+menu_html_task:
+  description: >
+    Créer une page HTML élégante présentant le menu hebdomadaire.
+    OBJECTIF: Transformer la structure du menu hebdomadaire en une présentation HTML
+    visuellement attrayante et facile à lire.
+    INSTRUCTIONS TECHNIQUES:
+    - Utiliser le fichier template HTML disponible dans state["template_path"]
+    - Ce template est conçu pour assurer la cohérence visuelle de tous les menus
+    CONTENU REQUIS:
+    - Titre attractif présentant le menu de la semaine
+    - Organisation par jour de la semaine (Lundi à Dimanche)
+    - Présentation distincte des déjeuners et dîners
+    - Liste claire de tous les plats avec leur type (entrée, plat principal, dessert)
+    - Mise en valeur des ingrédients de saison
+    STYLE VISUEL:
+    - Design élégant et responsive
+    - Lisibilité optimale
+    - Utilisation de sections bien délimitées
+    - Palettes de couleurs harmonieuses selon les saisons
+    - Structure HTML5 sémantique
+    FONCTIONNALITÉS SUPPLÉMENTAIRES:
+    - CSS intégré dans le document HTML
+    - Structure de page responsive
+    - Respect des principes d'accessibilité web
+    Utiliser les informations de la structure du menu précédemment créée pour générer
+    cette présentation HTML complète et autonome en vous basant sur le template fourni.
+  expected_output: >
+    Document HTML complet avec CSS intégré présentant le menu hebdomadaire de façon
+    attrayante et organisée par jour.
+    - Description courte de chaque plat
+    - Justification des choix saisonniers et nutritionnels
+    Format structuré permettant l'extraction des 30 recettes individuelles.
+  agent: html_formatter

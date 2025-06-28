@@ -1,3 +1,4 @@
+---
 company_core_info:
   description: >
     Research and document core information about {company}, including:
@@ -7,16 +8,16 @@ company_core_info:
     - Size metrics (employees, revenue, market cap if public)
     - Corporate structure and ownership
     - Mission statement and core values
-    
     Use the RAG tools to save your findings for later use by other agents.
-    Format your findings in a clear, structured, and comprehensive Markdown document, ensuring all relevant details are included for a precise and extensive final report.
+    Format your findings in a clear, structured, and comprehensive Markdown document,
+    ensuring all relevant details are included for a precise and extensive final report.
   expected_output: >
     A comprehensive Markdown document containing all core information about {company},
-    with proper formatting, headings, and organization. The report should be as detailed and extensive as possible.
+    with proper formatting, headings, and organization. The report should be as detailed
+    and extensive as possible.
     Save your findings to the RAG database for use by other agents.
   agent: company_profiler
   output_file: output/osint/{company}_core_info.md
-
 company_history:
   description: >
     Research and document the history of {company}, including:
@@ -26,17 +27,17 @@ company_history:
     - Leadership changes
     - Major product launches
     - Significant challenges or controversies
-    
     Use the RAG tools to retrieve any relevant information already collected
     and save your findings for later use by other agents.
-    Format your findings in a clear, structured, and comprehensive Markdown document, ensuring all relevant details are included for a precise and extensive final report.
+    Format your findings in a clear, structured, and comprehensive Markdown document,
+    ensuring all relevant details are included for a precise and extensive final report.
   expected_output: >
     A comprehensive Markdown document detailing the history of {company},
-    with proper formatting, headings, and organization. The report should be as detailed and extensive as possible.
+    with proper formatting, headings, and organization. The report should be as detailed
+    and extensive as possible.
     Save your findings to the RAG database for use by other agents.
   agent: company_profiler
   output_file: output/osint/{company}_history.md
-
 company_financials:
   description: >
     Analyze the financial performance of {company}, including:
@@ -46,17 +47,17 @@ company_financials:
     - Major investors
     - Debt structure
     - Recent financial news
-    
     Use the RAG tools to retrieve any relevant information already collected
     and save your findings for later use by other agents.
-    Format your findings in a clear, structured, and comprehensive Markdown document, ensuring all relevant details are included for a precise and extensive final report.
+    Format your findings in a clear, structured, and comprehensive Markdown document,
+    ensuring all relevant details are included for a precise and extensive final report.
   expected_output: >
     A comprehensive Markdown document analyzing the financial performance of {company},
-    with proper formatting, headings, and organization. The report should be as detailed and extensive as possible.
+    with proper formatting, headings, and organization. The report should be as detailed
+    and extensive as possible.
     Save your findings to the RAG database for use by other agents.
   agent: company_profiler
   output_file: output/osint/{company}_financials.md
-
 company_market_position:
   description: >
     Evaluate the market position of {company}, including:
@@ -65,17 +66,17 @@ company_market_position:
     - Industry trends affecting the company
     - Growth opportunities and challenges
     - Recent market developments
-    
     Use the RAG tools to retrieve any relevant information already collected
     and save your findings for later use by other agents.
-    Format your findings in a clear, structured, and comprehensive Markdown document, ensuring all relevant details are included for a precise and extensive final report.
+    Format your findings in a clear, structured, and comprehensive Markdown document,
+    ensuring all relevant details are included for a precise and extensive final report.
   expected_output: >
     A comprehensive Markdown document evaluating the market position of {company},
-    with proper formatting, headings, and organization. The report should be as detailed and extensive as possible.
+    with proper formatting, headings, and organization. The report should be as detailed
+    and extensive as possible.
     Save your findings to the RAG database for use by other agents.
   agent: company_profiler
   output_file: output/osint/{company}_market_position.md
-
 company_products_services:
   description: >
     Document the products and services offered by {company}, including:
@@ -85,17 +86,17 @@ company_products_services:
     - Customer segments served
     - Product development pipeline
     - Reviews and customer sentiment
-    
     Use the RAG tools to retrieve any relevant information already collected
     and save your findings for later use by other agents.
-    Format your findings in a clear, structured, and comprehensive Markdown document, ensuring all relevant details are included for a precise and extensive final report.
+    Format your findings in a clear, structured, and comprehensive Markdown document,
+    ensuring all relevant details are included for a precise and extensive final report.
   expected_output: >
     A comprehensive Markdown document detailing the products and services of {company},
-    with proper formatting, headings, and organization. The report should be as detailed and extensive as possible.
+    with proper formatting, headings, and organization. The report should be as detailed
+    and extensive as possible.
     Save your findings to the RAG database for use by other agents.
   agent: company_profiler
   output_file: output/osint/{company}_products_services.md
-
 company_management:
   description: >
     Research and analyze the management team of {company}, including:
@@ -104,17 +105,17 @@ company_management:
     - Management style and corporate culture
     - Leadership changes and succession planning
     - Executive compensation if available
-    
     Use the RAG tools to retrieve any relevant information already collected
     and save your findings for later use by other agents.
-    Format your findings in a clear, structured, and comprehensive Markdown document, ensuring all relevant details are included for a precise and extensive final report.
+    Format your findings in a clear, structured, and comprehensive Markdown document,
+    ensuring all relevant details are included for a precise and extensive final report.
   expected_output: >
     A comprehensive Markdown document analyzing the management team of {company},
-    with proper formatting, headings, and organization. The report should be as detailed and extensive as possible.
+    with proper formatting, headings, and organization. The report should be as detailed
+    and extensive as possible.
     Save your findings to the RAG database for use by other agents.
   agent: company_profiler
   output_file: output/osint/{company}_management.md
-
 company_legal_compliance:
   description: >
     Research and document legal and regulatory aspects of {company}, including:
@@ -123,13 +124,15 @@ company_legal_compliance:
     - Ongoing or past litigation
     - Regulatory filings
     - Industry-specific compliance requirements
-    
     Use the RAG tools to retrieve any relevant information already collected
     and save your findings for later use by other agents.
-    Format your findings in a clear, structured, and comprehensive Markdown document, ensuring all relevant details are included for a precise and extensive final report.
+    Format your findings in a clear, structured, and comprehensive Markdown document,
+    ensuring all relevant details are included for a precise and extensive final report.
   expected_output: >
-    A comprehensive Markdown document detailing the legal and regulatory aspects of {company},
-    with proper formatting, headings, and organization. The report should be as detailed and extensive as possible.
+    A comprehensive Markdown document detailing the legal and regulatory aspects of
+    {company},
+    with proper formatting, headings, and organization. The report should be as detailed
+    and extensive as possible.
     Save your findings to the RAG database for use by other agents.
   agent: company_profiler
   output_file: output/osint/{company}_legal_compliance.md
