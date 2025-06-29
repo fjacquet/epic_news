@@ -62,13 +62,13 @@ def make_serializable(obj: Any) -> Any:
     if hasattr(obj, "__dict__"):
         # Custom objects with attributes
         return {k: make_serializable(v) for k, v in obj.__dict__.items()}
-    if isinstance(obj, (list, tuple)):
+    if isinstance(obj, list | tuple):
         # Lists and tuples
         return [make_serializable(item) for item in obj]
     if isinstance(obj, dict):
         # Dictionaries
         return {k: make_serializable(v) for k, v in obj.items()}
-    if isinstance(obj, (str, int, float, bool)):
+    if isinstance(obj, str | int | float | bool):
         # Basic types
         return obj
     # Fallback to string representation

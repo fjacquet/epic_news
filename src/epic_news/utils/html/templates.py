@@ -120,12 +120,12 @@ def render_universal_report(
     generation_date: str = None,
 ) -> str:
     """Render a universal report using the standard template.
-    
+
     Args:
         title: Report title
         content: HTML content body
         generation_date: Optional generation date (defaults to current date)
-    
+
     Returns:
         Rendered HTML string using universal template
     """

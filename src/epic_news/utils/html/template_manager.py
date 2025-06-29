@@ -9,7 +9,18 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from .templates import render_universal_report
+from pydantic import BaseModel
+
+from epic_news.models.financial_report import FinancialReport
+
+
+class TemplateState(BaseModel):
+    """Modèle de données pour l'état du template."""
+
+    raw_text: str
+    title: str = ""
+    error_message: str = ""
+    financial_report_model: FinancialReport | None = None
 
 
 class TemplateManager:
@@ -21,6 +32,7 @@ class TemplateManager:
         # Go up 5 levels: html -> utils -> epic_news -> src -> project_root -> templates
         self.templates_dir = Path(__file__).parent.parent.parent.parent.parent / "templates"
         self.universal_template_path = self.templates_dir / "universal_report_template.html"
+        self.state = TemplateState(raw_text="")
 
     def load_template(self, template_name: str = "universal_report_template.html") -> str:
         """Charge un template HTML depuis le répertoire templates."""
@@ -70,27 +82,37 @@ class TemplateManager:
 
         return base_title
 
-    def generate_contextual_body(self, selected_crew: str, content_data: dict[str, Any]) -> str:
+    def generate_contextual_body(self, content_data: dict[str, Any], selected_crew: str) -> str:
         """Génère le corps HTML contextualisé selon le type de crew."""
 
+        # First check if we have a financial report model
+        if self.state.financial_report_model or selected_crew == "FIN_DAILY":
+            # Try to parse content_data as a FinancialReport if we don't already have one
+            if not self.state.financial_report_model and isinstance(content_data, dict):
+                try:
+                    self.state.financial_report_model = FinancialReport.model_validate(content_data)
+                    self.state.title = self.state.financial_report_model.title or "Financial Report"
+                except Exception as e:
+                    print(f"Error parsing financial report: {e}")
+
+            if self.state.financial_report_model:
+                return self._generate_financial_report_body()
+
+        # Handle other crew types
         if selected_crew == "POEM":
-            return self._generate_poem_body(content_data)
+            return f"""<p>{self.state.raw_text}</p>"""
         if selected_crew == "COOKING":
             return self._generate_cooking_body(content_data)
-        if selected_crew == "NEWS":
-            return self._generate_news_body(content_data)
-        if selected_crew == "SHOPPING":
-            return self._generate_shopping_body(content_data)
         if selected_crew == "HOLIDAY_PLANNER":
             return self._generate_holiday_body(content_data)
         if selected_crew == "LIBRARY":
             return self._generate_library_body(content_data)
         if selected_crew == "MEETING_PREP":
             return self._generate_meeting_body(content_data)
-        if selected_crew == "SAINT":
-            return self._generate_saint_body(content_data)
         if selected_crew == "MENU":
             return self._generate_menu_body(content_data)
+
+        # Default to generic body
         return self._generate_generic_body(content_data, selected_crew)
 
     def _generate_poem_body(self, data: dict[str, Any]) -> str:
@@ -259,7 +281,7 @@ class TemplateManager:
                 {articles_html}
             </div>
         </div>
-        
+
         <style>
         .news-container {{
             max-width: 900px;
@@ -340,29 +362,6 @@ class TemplateManager:
         </style>
         """
 
-    def render_report(
-        self,
-        selected_crew: str,
-        content_data: dict[str, Any],
-        template_name: str = "universal_report_template.html",
-    ) -> str:
-        """Rend un rapport HTML complet en utilisant le template unifié."""
-
-        # Générer le titre contextualisé
-        report_title = self.generate_contextual_title(selected_crew, content_data)
-
-        # Générer le corps contextualisé
-        report_body = self.generate_contextual_body(selected_crew, content_data)
-
-        # Date de génération
-        generation_date = datetime.now().strftime("%d/%m/%Y à %H:%M")
-
-        # Utiliser le système de rendu Jinja2 approprié
-        return render_universal_report(
-            title=report_title, content=report_body, generation_date=generation_date
-        )
-
-    # Méthodes pour les autres types de crew (à implémenter selon les besoins)
     def _generate_shopping_body(self, data: dict[str, Any]) -> str:
         """Génère le corps HTML pour le shopping avec données structurées."""
         if "error" in data:
@@ -566,46 +565,46 @@ class TemplateManager:
                 {date_info}
                 {patron_info}
             </div>
-            
+
             <div class="saint-content">
                 <div class="saint-section">
                     <h3>📖 Biographie</h3>
                     <p>{biography}</p>
                 </div>
-                
+
                 <div class="saint-section">
                     <h3>✨ Signification</h3>
                     <p>{significance}</p>
                 </div>
-                
+
                 <div class="saint-section">
                     <h3>🌟 Miracles</h3>
                     <p>{miracles}</p>
                 </div>
-                
+
                 <div class="saint-section">
                     <h3>🇨🇭 Lien avec la Suisse</h3>
                     <p>{swiss_connection}</p>
                 </div>
-                
+
                 <div class="saint-section prayer-section">
                     <h3>🙏 Prière et Réflexion</h3>
                     <div class="prayer-text">
                         <p><em>{prayer_reflection}</em></p>
                     </div>
                 </div>
-                
+
                 {sources_html}
             </div>
         </div>
-        
+
         <style>
         .saint-container {{
             max-width: 800px;
             margin: 0 auto;
             padding: 2rem;
         }}
-        
+
         .saint-header {{
             text-align: center;
             margin-bottom: 2rem;
@@ -614,13 +613,13 @@ class TemplateManager:
             border-radius: 12px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }}
-        
+
         .saint-header h2 {{
             color: var(--heading-color);
             margin-bottom: 1rem;
             font-size: 2rem;
         }}
-        
+
         .saint-section {{
             margin-bottom: 2rem;
             padding: 1.5rem;
@@ -628,48 +627,48 @@ class TemplateManager:
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }}
-        
+
         .saint-section h3 {{
             color: var(--heading-color);
             margin-bottom: 1rem;
             border-bottom: 2px solid var(--accent-color);
             padding-bottom: 0.5rem;
         }}
-        
+
         .saint-section p {{
             line-height: 1.6;
             color: var(--text-color);
         }}
-        
+
         .prayer-section {{
             background: linear-gradient(135deg, var(--container-bg) 0%, rgba(255,215,0,0.1) 100%);
             border-left: 4px solid var(--accent-color);
         }}
-        
+
         .prayer-text {{
             font-style: italic;
             text-align: center;
             padding: 1rem;
         }}
-        
+
         .saint-sources {{
             margin-top: 1rem;
         }}
-        
+
         .saint-sources ul {{
             list-style-type: none;
             padding: 0;
         }}
-        
+
         .saint-sources li {{
             margin-bottom: 0.5rem;
         }}
-        
+
         .saint-sources a {{
             color: var(--accent-color);
             text-decoration: none;
         }}
-        
+
         .saint-sources a:hover {{
             text-decoration: underline;
         }}
@@ -679,6 +678,96 @@ class TemplateManager:
     def _generate_menu_body(self, data: dict[str, Any]) -> str:
         """Génère le corps HTML pour les menus."""
         return self._generate_generic_body(data, "MENU")
+
+    def _generate_financial_report_body(self) -> str:
+        """Generate the HTML body for the financial report."""
+        if not self.state.financial_report_model:
+            return "<p>No financial report data available.</p>"
+
+        report = self.state.financial_report_model
+
+        # Executive Summary
+        summary_html = f"""
+        <section class="executive-summary">
+            <h2>Executive Summary</h2>
+            <p>{report.executive_summary}</p>
+        </section>
+        """
+
+        # Analyses
+        analyses_html = '<section class="analyses"><h2>Asset Analyses</h2>'
+        for analysis in report.analyses:
+            details_list = "".join([f"<li>{detail}</li>" for detail in analysis.details])
+            analyses_html += f"""
+            <div class="analysis-item">
+                <h3>{analysis.asset_class}</h3>
+                <p>{analysis.summary}</p>
+                <ul>{details_list}</ul>
+            </div>
+            """
+        analyses_html += "</section>"
+
+        # Suggestions
+        suggestions_html = '<section class="suggestions"><h2>Investment Suggestions</h2>'
+        for suggestion in report.suggestions:
+            suggestions_html += f"""
+            <div class="suggestion-item">
+                <h3>{suggestion.asset_class}</h3>
+                <p><strong>Suggestion:</strong> {suggestion.suggestion}</p>
+                <p><em>Rationale:</em> {suggestion.rationale}</p>
+            </div>
+            """
+        suggestions_html += "</section>"
+
+        # Add CSS styles for financial report
+        style_html = """
+        <style>
+        .executive-summary, .analyses, .suggestions {
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: var(--container-bg);
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .executive-summary h2, .analyses h2, .suggestions h2 {
+            color: var(--heading-color);
+            margin-top: 0;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .analysis-item, .suggestion-item {
+            margin: 1.5rem 0;
+            padding: 1rem;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            border-left: 4px solid var(--accent-color);
+        }
+        
+        .analysis-item h3, .suggestion-item h3 {
+            color: var(--heading-color);
+            margin-top: 0;
+            font-size: 1.3rem;
+        }
+        
+        .analysis-item ul {
+            margin: 1rem 0;
+            padding-left: 1.5rem;
+        }
+        
+        .analysis-item li {
+            margin: 0.5rem 0;
+        }
+        
+        .suggestion-item p {
+            margin: 0.5rem 0;
+        }
+        </style>
+        """
+
+        return f"""{summary_html}{analyses_html}{suggestions_html}{style_html}"""
 
     def _generate_cooking_body(self, data: dict[str, Any]) -> str:
         """Generate rich HTML content for cooking recipes with structured formatting."""
@@ -728,7 +817,7 @@ class TemplateManager:
                     {f'<div class="meta-item"><strong>🏷️ Catégorie:</strong> {category_display}</div>' if category_display else ""}
                 </div>
             </header>
-            
+
             <main class="recipe-content">
                 <section class="ingredients-section">
                     <h2>🛒 Ingrédients</h2>
@@ -743,7 +832,7 @@ class TemplateManager:
         body_content += """
                     </ul>
                 </section>
-                
+
                 <section class="instructions-section">
                     <h2>👩‍🍳 Instructions</h2>
                     <ol class="instructions-list">
@@ -793,13 +882,13 @@ class TemplateManager:
 
         body_content += """
             </main>
-            
+
             <footer class="recipe-footer">
                 <p class="generated-by">✨ Recette générée par <strong>Epic News AI</strong></p>
                 <p class="generation-date">📅 Générée le {current_date}</p>
             </footer>
         </div>
-        
+
         <style>
         .recipe-container {
             max-width: 800px;
@@ -808,7 +897,7 @@ class TemplateManager:
             line-height: 1.6;
             color: #333;
         }
-        
+
         .recipe-header {
             text-align: center;
             margin-bottom: 2rem;
@@ -818,32 +907,32 @@ class TemplateManager:
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
-        
+
         .recipe-title {
             font-size: 2.5rem;
             margin: 0 0 1rem 0;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
-        
+
         .recipe-meta {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 0.5rem;
             margin-top: 1rem;
         }
-        
+
         .meta-item {
             background: rgba(255,255,255,0.2);
             padding: 0.5rem;
             border-radius: 6px;
             font-size: 0.9rem;
         }
-        
+
         .recipe-content {
             display: grid;
             gap: 2rem;
         }
-        
+
         .ingredients-section, .instructions-section, .notes-section, .nutrition-section, .source-section {
             background: #f8f9fa;
             padding: 1.5rem;
@@ -851,7 +940,7 @@ class TemplateManager:
             border-left: 4px solid #667eea;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
-        
+
         .ingredients-section h2, .instructions-section h2, .notes-section h2, .nutrition-section h2, .source-section h2 {
             color: #667eea;
             margin-top: 0;
@@ -859,17 +948,17 @@ class TemplateManager:
             border-bottom: 2px solid #e9ecef;
             padding-bottom: 0.5rem;
         }
-        
+
         .ingredients-list, .instructions-list {
             margin: 1rem 0;
             padding-left: 1.5rem;
         }
-        
+
         .ingredients-list li, .instructions-list li {
             margin: 0.5rem 0;
             padding: 0.3rem 0;
         }
-        
+
         .instructions-list li {
             margin: 1rem 0;
             padding: 0.8rem;
@@ -877,14 +966,14 @@ class TemplateManager:
             border-radius: 8px;
             border-left: 3px solid #28a745;
         }
-        
+
         .notes-content, .nutrition-content, .source-content {
             background: white;
             padding: 1rem;
             border-radius: 8px;
             margin-top: 1rem;
         }
-        
+
         .recipe-footer {
             text-align: center;
             margin-top: 2rem;
@@ -894,20 +983,20 @@ class TemplateManager:
             color: #6c757d;
             font-size: 0.9rem;
         }
-        
+
         .recipe-footer p {
             margin: 0.25rem 0;
         }
-        
+
         @media (max-width: 768px) {
             .recipe-container {
                 margin: 0 1rem;
             }
-            
+
             .recipe-title {
                 font-size: 2rem;
             }
-            
+
             .recipe-meta {
                 grid-template-columns: 1fr;
             }

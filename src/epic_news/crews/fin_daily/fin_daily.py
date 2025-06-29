@@ -2,9 +2,7 @@ from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import DirectoryReadTool, FileReadTool
 
-# If you want to run a snippet of code before or after the crew starts,
-# you can use the @before_kickoff and @after_kickoff decorators
-# https://docs.crewai.com/concepts/crews#example-crew-class-with-decorators
+from epic_news.models.financial_report import FinancialReport
 from epic_news.tools.finance_tools import get_crypto_research_tools, get_stock_research_tools
 from epic_news.tools.kraken_api_tool import KrakenAssetListTool, KrakenTickerInfoTool
 from epic_news.tools.scrape_ninja_tool import ScrapeNinjaTool
@@ -66,8 +64,6 @@ class FinDailyCrew:
             verbose=True,
         )
 
-
-
     @task
     def stock_portfolio_analysis_task(self) -> Task:
         return Task(
@@ -124,7 +120,7 @@ class FinDailyCrew:
                 self.etf_suggestion_task(),
                 self.crypto_suggestion_task(),
             ],
-            output_file="output/findaily/report.html",
+            output_pydantic=FinancialReport,
         )
 
     @crew

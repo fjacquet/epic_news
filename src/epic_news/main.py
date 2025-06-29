@@ -20,6 +20,7 @@ Key functionalities include:
 """
 
 import datetime
+import json
 import os
 import warnings
 
@@ -320,6 +321,30 @@ class ReceptionFlow(Flow[ContentState]):
         # Kick off the crew
         report_content = FinDailyCrew().crew().kickoff(inputs=inputs)
         self.state.fin_daily_report = report_content
+        
+        # Store the FinancialReport model for HTML rendering
+        if hasattr(report_content, 'model_dump'):
+            self.state.financial_report_model = report_content
+        
+        # Initialize HtmlDesignerCrew for rendering
+        html_designer_crew = HtmlDesignerCrew()
+        
+        # Prepare state data for template rendering
+        state_data = self.state.model_dump()
+        
+        print("🎨 HtmlDesignerCrew configured for FIN_DAILY with unified template system")
+        print(f"📄 Output path: {self.state.output_file}")
+        print("🌙 Dark mode and responsive design enabled via universal template")
+        
+        # Generate HTML using unified template system (bypassing CrewAI kickoff)
+        html_content = html_designer_crew.render_unified_report(state_data)
+        
+        # Write HTML content to file
+        os.makedirs(os.path.dirname(self.state.output_file), exist_ok=True)
+        with open(self.state.output_file, "w", encoding="utf-8") as f:
+            f.write(html_content)
+        
+        print(f"✅ HTML report generated: {self.state.output_file}")
 
     @listen("go_generate_news_daily")
     def generate_news_daily(self):
@@ -368,8 +393,6 @@ class ReceptionFlow(Flow[ContentState]):
 
         # Structure the data for HtmlDesignerCrew consumption
         # HtmlDesignerCrew expects saint_daily_report.raw as a JSON string
-        import json
-
         if hasattr(report_content, "raw") and report_content.raw:
             # If the output has a .raw attribute with JSON string
             saint_json_data = report_content.raw
@@ -421,7 +444,6 @@ class ReceptionFlow(Flow[ContentState]):
         # Extract PaprikaRecipe from CookingCrew result and trigger HtmlDesignerCrew
         if hasattr(cooking_result, "tasks_output") and cooking_result.tasks_output:
             # Get the PaprikaRecipe from the recipe_state_task (last task)
-            recipe_state_output = cooking_result.tasks_output[-1]  # Last task is recipe_state_task
 
             # Check if we have a PaprikaRecipe from any task output
             paprika_recipe = None
@@ -443,7 +465,7 @@ class ReceptionFlow(Flow[ContentState]):
                 from epic_news.crews.html_designer.html_designer import HtmlDesignerCrew
 
                 html_crew = HtmlDesignerCrew()
-                html_result = html_crew.render_unified_report(self.state.model_dump())
+                html_crew.render_unified_report(self.state.model_dump())
                 print(f"✅ HTML report generated: {self.state.output_file}")
             else:
                 print("⚠️ No PaprikaRecipe found in CookingCrew output")
@@ -579,7 +601,6 @@ class ReceptionFlow(Flow[ContentState]):
         html_content = html_designer_crew.render_unified_report(state_data)
 
         # Write HTML content to file
-        import os
         os.makedirs(os.path.dirname(self.state.output_file), exist_ok=True)
         with open(self.state.output_file, "w", encoding="utf-8") as f:
             f.write(html_content)
@@ -888,8 +909,6 @@ class ReceptionFlow(Flow[ContentState]):
             html_content = html_designer_crew.render_unified_report(state_data)
 
             # Ensure output directory exists
-            import os
-
             os.makedirs(os.path.dirname(output_file_path), exist_ok=True)
 
             # Write HTML content to file
@@ -976,9 +995,7 @@ def kickoff(user_input: str | None = None):
     """
     # If user_input is not provided, use a default value.
     request = (
-        user_input
-        if user_input
-        else "Donne moi des conseils d'achat pour un mac permettant de faire de l'AI en local "
+        user_input if user_input else "Donne moi mes conseils financiers du jour"
         # else "Generate a complete weekly menu planner with 30 recipes and shopping list for a family of 3 in French"
     )
 

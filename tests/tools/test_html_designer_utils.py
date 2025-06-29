@@ -6,6 +6,7 @@ import pytest
 from epic_news.utils.html_designer_utils import (
     analyze_state_data,
     render_professional_report,
+    select_template,
     select_template_for_report,
 )
 
@@ -118,20 +119,21 @@ class TestAnalyzeStateData:
         """Test state data analysis with invalid JSON string."""
         invalid_json = "invalid json string"
 
-        with pytest.raises(Exception):
+        with pytest.raises(json.JSONDecodeError):
             analyze_state_data(invalid_json)
 
     def test_analyze_state_data_none(self):
         """Test state data analysis with None input."""
-        with pytest.raises(Exception):
+        with pytest.raises(TypeError):
             analyze_state_data(None)
 
 
 class TestRenderProfessionalReport:
     """Test suite for render_professional_report function."""
 
-    def test_render_professional_report_success(self, mock_state_data):
+    def test_render_professional_report_success(self, mock_state_json):
         """Test successful professional report rendering."""
+        state_data = json.loads(mock_state_json)
         template_content = """
         <!DOCTYPE html>
         <html lang="fr">
@@ -152,21 +154,21 @@ class TestRenderProfessionalReport:
         </html>
         """
 
-        with patch('builtins.open', mock_open(read_data=template_content)):
-            with patch('epic_news.utils.html_designer_utils.select_template') as mock_select:
-                mock_select.return_value = "/mock/template/path.html"
+        with patch('builtins.open', mock_open(read_data=template_content)), patch('epic_news.utils.html_designer_utils.select_template') as mock_select:
+            mock_select.return_value = "/mock/template/path.html"
 
-                html_content = render_professional_report(mock_state_data, "daily")
+            html_content = render_professional_report(state_data, "daily")
 
-                assert html_content is not None
-                assert isinstance(html_content, str)
-                assert "<!DOCTYPE html>" in html_content
-                assert "lang=\"fr\"" in html_content
-                assert "UTF-8" in html_content
-                assert "Finance" in html_content
+            assert html_content is not None
+            assert isinstance(html_content, str)
+            assert "<!DOCTYPE html>" in html_content
+            assert "lang=\"fr\"" in html_content
+            assert "UTF-8" in html_content
+            assert "Finance" in html_content
 
-    def test_render_professional_report_with_analysis(self, mock_state_data):
+    def test_render_professional_report_with_analysis(self, mock_state_json):
         """Test professional report rendering with data analysis."""
+        state_data = json.loads(mock_state_json)
         template_content = """
         <!DOCTYPE html>
         <html lang="fr">
@@ -188,27 +190,27 @@ class TestRenderProfessionalReport:
         </html>
         """
 
-        with patch('builtins.open', mock_open(read_data=template_content)):
-            with patch('epic_news.utils.html_designer_utils.select_template') as mock_select:
-                mock_select.return_value = "/mock/template/path.html"
+        with patch('builtins.open', mock_open(read_data=template_content)), patch('epic_news.utils.html_designer_utils.select_template') as mock_select:
+            mock_select.return_value = "/mock/template/path.html"
 
-                html_content = render_professional_report(mock_state_data, "daily")
+            html_content = render_professional_report(state_data, "daily")
 
-                assert html_content is not None
-                assert "Analyse financière du jour" in html_content
-                assert "Actualités du jour" in html_content
+            assert html_content is not None
+            assert "Analyse financière du jour" in html_content
+            assert "Actualités du jour" in html_content
 
-    def test_render_professional_report_template_not_found(self, mock_state_data):
+    def test_render_professional_report_template_not_found(self, mock_state_json):
         """Test professional report rendering when template file is not found."""
-        with patch('builtins.open', side_effect=FileNotFoundError):
-            with patch('epic_news.utils.html_designer_utils.select_template') as mock_select:
-                mock_select.return_value = "/nonexistent/template.html"
+        state_data = json.loads(mock_state_json)
+        with patch('builtins.open', side_effect=FileNotFoundError), patch('epic_news.utils.html_designer_utils.select_template') as mock_select:
+            mock_select.return_value = "/nonexistent/template.html"
 
-                with pytest.raises(FileNotFoundError):
-                    render_professional_report(mock_state_data, "daily")
+            with pytest.raises(FileNotFoundError):
+                render_professional_report(state_data, "daily")
 
-    def test_render_professional_report_invalid_template(self, mock_state_data):
+    def test_render_professional_report_invalid_template(self, mock_state_json):
         """Test professional report rendering with invalid template syntax."""
+        state_data = json.loads(mock_state_json)
         invalid_template = """
         <!DOCTYPE html>
         <html>
@@ -218,12 +220,11 @@ class TestRenderProfessionalReport:
         </html>
         """
 
-        with patch('builtins.open', mock_open(read_data=invalid_template)):
-            with patch('epic_news.utils.html_designer_utils.select_template') as mock_select:
-                mock_select.return_value = "/mock/template/path.html"
+        with patch('builtins.open', mock_open(read_data=invalid_template)), patch('epic_news.utils.html_designer_utils.select_template') as mock_select:
+            mock_select.return_value = "/mock/template/path.html"
 
-                with pytest.raises(Exception):
-                    render_professional_report(mock_state_data, "daily")
+            with pytest.raises(TypeError):
+                render_professional_report(state_data, "daily")
 
     def test_render_professional_report_empty_data(self):
         """Test professional report rendering with empty data."""
@@ -241,19 +242,18 @@ class TestRenderProfessionalReport:
         </html>
         """
 
-        with patch('builtins.open', mock_open(read_data=template_content)):
-            with patch('epic_news.utils.html_designer_utils.select_template') as mock_select:
-                mock_select.return_value = "/mock/template/path.html"
+        with patch('builtins.open', mock_open(read_data=template_content)), patch('epic_news.utils.html_designer_utils.select_template') as mock_select:
+            mock_select.return_value = "/mock/template/path.html"
 
-                html_content = render_professional_report(empty_data, "daily")
+            html_content = render_professional_report(empty_data, "daily")
 
-                assert html_content is not None
-                assert "<!DOCTYPE html>" in html_content
-                assert "Aucune donnée disponible" in html_content
+            assert html_content is not None
+            assert "<!DOCTYPE html>" in html_content
+            assert "Aucune donnée disponible" in html_content
 
     def test_render_professional_report_none_data(self):
         """Test professional report rendering with None data."""
-        with pytest.raises(Exception):
+        with pytest.raises(TypeError):
             render_professional_report(None, "daily")
 
 
@@ -303,7 +303,7 @@ class TestHtmlDesignerUtilsIntegration:
     def test_error_handling_chain(self):
         """Test error handling across the utility chain."""
         # Test with invalid data that should fail gracefully
-        with pytest.raises(Exception):
+        with pytest.raises(TypeError):
             analyze_state_data("invalid")
 
         # Test template selection with edge cases
@@ -311,8 +311,7 @@ class TestHtmlDesignerUtilsIntegration:
         assert template_path is not None
 
         # Test rendering with missing template
-        with patch('builtins.open', side_effect=FileNotFoundError):
-            with pytest.raises(FileNotFoundError):
+        with patch('builtins.open', side_effect=FileNotFoundError), pytest.raises(FileNotFoundError):
                 render_professional_report({}, "daily")
 
 

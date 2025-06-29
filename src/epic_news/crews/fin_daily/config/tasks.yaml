@@ -167,36 +167,33 @@ etf_suggestion_task:
 final_report_generation_task:
   agent: investment_strategist
   description: >
-    CRITICAL: Consolider toutes les analyses financières en un rapport JSON structuré
-    qui sera utilisé par HtmlDesignerCrew pour la génération HTML finale.
-    ÉTAPES OBLIGATOIRES :
-    1. Lire TOUS les fichiers d'analyse avec FileReadTool :
-      • "output/findaily/stock_portfolio_analysis.md"
-      • "output/findaily/crypto_portfolio_analysis.md"
-      • "output/findaily/stock_suggestion.md"
-      • "output/findaily/crypto_suggestion.md"
-      • "output/findaily/etf_portfolio_analysis.md"
-      • "output/findaily/etf_suggestion.md"
-    2. Structurer les données en format JSON avec les sections :
-      - "summary": Résumé exécutif des analyses
-      - "stock_analysis": Toutes les analyses d'actions
-      - "crypto_analysis": Toutes les analyses crypto
-      - "etf_analysis": Toutes les analyses ETF
-      - "recommendations": Nouvelles suggestions d'investissement
-      - "key_metrics": Métriques importantes et indicateurs
-      - "risk_assessment": Évaluation des risques
-    3. Inclure TOUTES les analyses sans exception, ne pas résumer
-    4. Maintenir la richesse des données pour la génération HTML ultérieure
-    IMPORTANT: Ce rapport JSON sera utilisé par HtmlDesignerCrew pour générer le rapport
-    HTML final.
+    Compile a comprehensive financial report using the provided context from all other tasks.
+    The report must be structured as a JSON object conforming to the FinancialReport Pydantic model.
+    - Create a concise `executive_summary` of the key findings.
+    - For each asset class (Stocks, Crypto, ETFs), create an `AssetAnalysis` object summarizing the portfolio analysis.
+    - For each asset class, create an `AssetSuggestion` object with the investment suggestion and rationale.
+    - Populate the `analyses` and `suggestions` lists accordingly.
+    1. Read ALL analysis files with FileReadTool:
+      - "output/findaily/stock_portfolio_analysis.md"
+      - "output/findaily/crypto_portfolio_analysis.md"
+      - "output/findaily/stock_suggestion.md"
+      - "output/findaily/crypto_suggestion.md"
+      - "output/findaily/etf_portfolio_analysis.md"
+      - "output/findaily/etf_suggestion.md"
+    2. Structure the data in JSON format with the following sections:
+      - "summary": Executive summary of the analyses
+      - "stock_analysis": All stock analyses
+      - "crypto_analysis": All crypto analyses
+      - "etf_analysis": All ETF analyses
+      - "recommendations": New investment suggestions
+      - "key_metrics": Important metrics and indicators
+      - "risk_assessment": Risk evaluation
+    3. Include ALL analyses without exception, do not summarize
+    4. Maintain the richness of the data for later HTML generation
+    IMPORTANT: This JSON report will be used by HtmlDesignerCrew to generate the final HTML report.
   expected_output: >
-    Rapport JSON structuré et complet contenant toutes les analyses financières organisées
-    par sections :
-    - Résumé exécutif avec points clés
-    - Analyses détaillées des actions, crypto et ETF
-    - Recommandations d'investissement avec justifications
-    - Métriques importantes et évaluation des risques
-    Format JSON valide prêt pour traitement par HtmlDesignerCrew.
+    A JSON object that strictly adheres to the FinancialReport Pydantic model,
+    containing a comprehensive summary, detailed analyses, and actionable suggestions.
   context:
     - stock_portfolio_analysis_task
     - crypto_portfolio_analysis_task

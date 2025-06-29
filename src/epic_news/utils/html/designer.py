@@ -116,7 +116,7 @@ def generate_html_content(analysis: dict[str, Any]) -> str:
     html_parts.append("""
     <section class="executive-summary">
         <h2>📋 Résumé Exécutif</h2>
-        <p>Ce rapport quotidien consolide les informations essentielles de nos différentes équipes d'analyse 
+        <p>Ce rapport quotidien consolide les informations essentielles de nos différentes équipes d'analyse
         pour vous fournir une vue d'ensemble complète et actionnable.</p>
     </section>
     """)
@@ -142,9 +142,9 @@ def generate_html_content(analysis: dict[str, Any]) -> str:
     html_parts.append("""
     <section class="methodology">
         <h2>📊 Méthodologie</h2>
-        <p>Ce rapport est généré automatiquement par notre système d'intelligence artificielle Epic News, 
+        <p>Ce rapport est généré automatiquement par notre système d'intelligence artificielle Epic News,
         qui analyse et consolide les données de multiples sources pour fournir des insights pertinents et actionnables.</p>
-        <p><strong>Sources de données :</strong> Analyses financières, actualités, recommandations culinaires, 
+        <p><strong>Sources de données :</strong> Analyses financières, actualités, recommandations culinaires,
         et informations culturelles.</p>
     </section>
     """)

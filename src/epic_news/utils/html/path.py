@@ -5,6 +5,7 @@ Ce module contient des fonctions utilitaires pour extraire des informations
 des données d'état et générer des chemins de fichiers HTML appropriés.
 """
 
+import contextlib
 import json
 from typing import Any
 
@@ -26,14 +27,12 @@ def extract_recipe_title_from_state(state_data: dict[str, Any]) -> str | None:
     # Cas 1: Les données sont dans state_data["recipe"]["raw"]
     if "recipe" in state_data and "raw" in state_data["recipe"]:
         recipe_raw = state_data["recipe"]["raw"]
-        try:
+        with contextlib.suppress(Exception):
             recipe_data = json.loads(recipe_raw) if isinstance(recipe_raw, str) else recipe_raw
-        except Exception:
-            pass
 
     # Cas 2: Chercher dans d'autres clés de state_data
     if not recipe_data:
-        for key, value in state_data.items():
+        for _key, value in state_data.items():
             if isinstance(value, dict) and any(field in value for field in ["name", "title", "recipe_title"]):
                 recipe_data = value
                 break

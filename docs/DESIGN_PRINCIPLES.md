@@ -14,6 +14,27 @@ Epic News operates on the **CrewAI Flow paradigm** - a revolutionary approach to
 
 ## Core Principles
 
+### 0. Execution Method (CRITICAL)
+
+**ALWAYS** use the CrewAI Flow command to run crews:
+
+```bash
+# ✅ CORRECT - Use CrewAI Flow command
+crewai flow kickoff
+
+# ❌ WRONG - Never run Python modules directly
+# python -m src.epic_news.crews.fin_daily.run
+# python src/epic_news/main.py
+```
+
+**Why this matters:**
+
+- CrewAI Flow manages the complete execution lifecycle
+- Proper state management and context injection
+- Handles async execution and crew coordination
+- Ensures all crews follow the same execution pattern
+- Maintains consistency across the entire system
+
 ### 1. KISS, YAGNI, DRY
 
 - **Keep It Simple, Stupid**: Favor simple solutions over complex ones

@@ -43,8 +43,7 @@ class UniversalReportTool(BaseTool):
             Complete HTML document with standardized styling
         """
         try:
-            html_report = render_universal_report(title=title, content=content)
-            return html_report
+            return render_universal_report(title=title, content=content)
         except Exception as e:
             return f"Error generating report: {str(e)}"
 
