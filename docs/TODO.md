@@ -1,6 +1,24 @@
-# TODO
+# @TODO
 
 ## Ideas
+
+convert crews to new html output:
+
+- [ ] COOKING
+- [ ] FINDAILY
+- [ ] HOLIDAY_PLANNER
+- [ ] LIBRARY
+- [ ] MARKETING_WRITERS
+- [ ] MEETING_PREP
+- [ ] MENU
+- [ ] NEWSCOMPANY
+- [ ] NEWSDAILY
+- [ ] OPEN_SOURCE_INTELLIGENCE
+- [x] POEM
+- [ ] RSS
+- [x] SAINT
+- [ ] SALES_PROSPECTING
+- [ ] SHOPPING
 
 - [x] add streamlit ?
 - [x] create a test for RenderReportTool

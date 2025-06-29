@@ -11,7 +11,7 @@ comprehensive_information_extraction_task:
     extract any relevant information from the user's request and populate the
     corresponding fields. The 'main_subject_or_activity' is the most critical
     field. It is perfectly acceptable for most fields to be null if the
-    information is not present.
+    information is not present.-
     Here are some examples to guide you:
     Example 1: - Request: "I want to plan a 2-week holiday to Greece for 2
     adults. We are looking for something relaxing and on a budget." - Correct

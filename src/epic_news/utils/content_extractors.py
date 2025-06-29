@@ -98,7 +98,7 @@ class CookingExtractor(ContentExtractor):
 
 
 class NewsExtractor(ContentExtractor):
-    """Extractor for NEWS crew content."""
+    """Extractor for news-related content."""
 
     def extract(self, state_data: dict[str, Any]) -> dict[str, Any]:
         """Extract news-specific data."""
@@ -107,6 +107,53 @@ class NewsExtractor(ContentExtractor):
             "summary": state_data.get("summary", ""),
             "main_topic": state_data.get("main_topic", ""),
         }
+
+
+class NewsDailyExtractor(ContentExtractor):
+    """Extractor for daily news reports with structured content."""
+
+    def extract(self, state_data: dict[str, Any]) -> dict[str, Any]:
+        """Extract news daily report data using structured format."""
+        print("🔍 DEBUG NEWS_DAILY extraction:")
+
+        # Check for news_daily_model in state_data
+        news_daily_report = state_data.get("news_daily_model")
+        print(f"  news_daily_model type: {type(news_daily_report)}")
+
+        if news_daily_report is None:
+            # Try to find news daily report in raw data
+            news_daily_data = state_data.get("news_daily_report", {})
+            news_raw = news_daily_data.get("raw", "{}")
+            print(f"  news_raw (first 200 chars): {str(news_raw)[:200]}...")
+
+            try:
+                # Try to parse as JSON
+                if isinstance(news_raw, str):
+                    news_data = json.loads(news_raw)
+                else:
+                    news_data = news_raw
+
+                print("  ✅ News data parsed from raw data")
+                return news_data
+            except Exception as e:
+                print(f"  ❌ Failed to parse news data from raw: {e}")
+                return {"error": f"Failed to parse news report data: {e}"}
+        elif isinstance(news_daily_report, dict):
+            # Handle case where news_daily_report is already a dict
+            print("  ✅ News data extracted from dict")
+            return news_daily_report
+        else:
+            # Handle Pydantic model case
+            try:
+                if hasattr(news_daily_report, "model_dump"):
+                    result = news_daily_report.model_dump()
+                else:
+                    result = dict(news_daily_report)
+                print("  ✅ News data extracted from model")
+                return result
+            except Exception as e:
+                print(f"  ❌ Failed to extract news data: {e}")
+                return {"error": f"Failed to extract news report data: {e}"}
 
 
 class SaintExtractor(ContentExtractor):
@@ -212,24 +259,24 @@ class FinancialExtractor(ContentExtractor):
     def extract(self, state_data: dict[str, Any]) -> dict[str, Any]:
         """Extract financial report data using FinancialReport Pydantic model."""
         print("🔍 DEBUG FINANCIAL extraction:")
-        
+
         # Check for financial_report_model in state_data
         financial_report = state_data.get("financial_report_model")
         print(f"  financial_report type: {type(financial_report)}")
-        
+
         if financial_report is None:
             # Try to find financial report in raw data
             fin_daily_data = state_data.get("fin_daily_report", {})
             fin_raw = fin_daily_data.get("raw", "{}")
             print(f"  fin_raw (first 200 chars): {str(fin_raw)[:200]}...")
-            
+
             try:
                 # Try to parse as JSON
                 if isinstance(fin_raw, str):
                     fin_data = json.loads(fin_raw)
                 else:
                     fin_data = fin_raw
-                    
+
                 # Try to create FinancialReport from the data
                 financial_report = FinancialReport.model_validate(fin_data)
                 print(f"  ✅ FinancialReport parsed from raw data: {financial_report.title}")
@@ -243,10 +290,21 @@ class FinancialExtractor(ContentExtractor):
                 print(f"  ✅ FinancialReport reconstructed from dict: {financial_report.title}")
             except Exception as e:
                 print(f"  ❌ Failed to reconstruct FinancialReport: {e}")
-                return {"error": f"Failed to parse financial report data: {e}"}
-        
-        # Return the financial report directly - TemplateManager will handle it
-        return financial_report.model_dump()
+                print(f"  🔧 Creating fallback FinancialReport with available data...")
+                
+                # Create a fallback FinancialReport with available data
+                financial_report = FinancialReport(
+                    title=financial_report.get('title', 'Daily Financial Report'),
+                    executive_summary=financial_report.get('executive_summary', 
+                                                         financial_report.get('summary', 'Financial analysis summary not available')),
+                    analyses=[],  # Empty list for now - can be enhanced later
+                    suggestions=[]  # Empty list for now - can be enhanced later
+                )
+                print(f"  ✅ Fallback FinancialReport created: {financial_report.title}")
+
+        # Return the financial report model object directly for TemplateManager
+        # TemplateManager expects the actual model object, not a dictionary
+        return {"financial_report_model": financial_report}
 
 
 class GenericExtractor(ContentExtractor):
@@ -268,9 +326,10 @@ class ContentExtractorFactory:
         "POEM": PoemExtractor,
         "COOKING": CookingExtractor,
         "NEWS": NewsExtractor,
+        "NEWSDAILY": NewsDailyExtractor,
         "SAINT": SaintExtractor,
         "SHOPPING": ShoppingExtractor,
-        "FIN_DAILY": FinancialExtractor,
+        "FINDAILY": FinancialExtractor,
     }
 
     @classmethod

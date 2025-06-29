@@ -52,7 +52,7 @@ class TemplateManager:
             "NEWS": "📰 Actualités du Jour",
             "SHOPPING": "🛒 Conseil d'Achat",
             "HOLIDAY_PLANNER": "🏖️ Planificateur de Vacances",
-            "LIBRARY": "📚 Analyse Littéraire",
+            "BOOK_SUMMARY": "📚 Analyse Littéraire",
             "MEETING_PREP": "📋 Préparation de Réunion",
             "SAINT": "⛪ Saint du Jour",
             "MENU": "🍽️ Menu de la Semaine",
@@ -82,35 +82,94 @@ class TemplateManager:
 
         return base_title
 
+    def render_report(self, selected_crew: str, content_data: dict[str, Any]) -> str:
+        """Main method to render a complete HTML report using the universal template."""
+        try:
+            # Load the universal template
+            template_html = self.load_template("universal_report_template.html")
+
+            # Generate contextual title and body
+            title = self.generate_contextual_title(selected_crew, content_data)
+            body_content = self.generate_contextual_body(content_data, selected_crew)
+
+            # Replace placeholders in the template
+            html_content = template_html.replace("{{ report_title }}", title)
+            html_content = html_content.replace("{{ report_body|safe }}", body_content)
+            html_content = html_content.replace(
+                "{{ generation_date }}", datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            )
+
+            # Clean up any remaining Jinja2 template syntax
+            html_content = html_content.replace("{% if generation_date %}", "")
+            html_content = html_content.replace("{% endif %}", "")
+
+            return html_content
+
+        except Exception as e:
+            print(f"❌ Error rendering report: {e}")
+            # Return a basic HTML structure with error information
+            return f"""
+            <!DOCTYPE html>
+            <html lang="fr">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Erreur de Génération</title>
+            </head>
+            <body>
+                <h1>Erreur lors de la génération du rapport</h1>
+                <p>Une erreur s'est produite: {e}</p>
+                <pre>{str(content_data)[:1000]}...</pre>
+            </body>
+            </html>
+            """
+
     def generate_contextual_body(self, content_data: dict[str, Any], selected_crew: str) -> str:
         """Génère le corps HTML contextualisé selon le type de crew."""
 
-        # First check if we have a financial report model
-        if self.state.financial_report_model or selected_crew == "FIN_DAILY":
-            # Try to parse content_data as a FinancialReport if we don't already have one
+        # Handle FINDAILY (Financial Reports)
+        if selected_crew == "FINDAILY" or self.state.financial_report_model:
+            # Check if we have a financial_report_model in content_data
             if not self.state.financial_report_model and isinstance(content_data, dict):
-                try:
-                    self.state.financial_report_model = FinancialReport.model_validate(content_data)
-                    self.state.title = self.state.financial_report_model.title or "Financial Report"
-                except Exception as e:
-                    print(f"Error parsing financial report: {e}")
+                # First try to get the model directly from content_data
+                financial_model = content_data.get("financial_report_model")
+                if financial_model and isinstance(financial_model, FinancialReport):
+                    self.state.financial_report_model = financial_model
+                    self.state.title = financial_model.title or "Financial Report"
+                    print(f"✅ Using FinancialReport model: {financial_model.title}")
+                else:
+                    # Try to parse content_data as a FinancialReport
+                    try:
+                        self.state.financial_report_model = FinancialReport.model_validate(content_data)
+                        self.state.title = self.state.financial_report_model.title or "Financial Report"
+                        print(
+                            f"✅ Parsed FinancialReport from content_data: {self.state.financial_report_model.title}"
+                        )
+                    except Exception as e:
+                        print(f"❌ Error parsing financial report: {e}")
 
             if self.state.financial_report_model:
                 return self._generate_financial_report_body()
 
+        # Handle NEWSDAILY (News Reports)
+        if selected_crew == "NEWSDAILY":
+            return self._generate_news_body(content_data)
+
         # Handle other crew types
         if selected_crew == "POEM":
-            return f"""<p>{self.state.raw_text}</p>"""
+            return self._generate_poem_body(content_data)
         if selected_crew == "COOKING":
             return self._generate_cooking_body(content_data)
         if selected_crew == "HOLIDAY_PLANNER":
             return self._generate_holiday_body(content_data)
-        if selected_crew == "LIBRARY":
+        if selected_crew == "BOOK_SUMMARY":
             return self._generate_library_body(content_data)
         if selected_crew == "MEETING_PREP":
             return self._generate_meeting_body(content_data)
         if selected_crew == "MENU":
             return self._generate_menu_body(content_data)
+        if selected_crew == "SAINT":
+            return self._generate_saint_body(content_data)
 
         # Default to generic body
         return self._generate_generic_body(content_data, selected_crew)
@@ -252,34 +311,91 @@ class TemplateManager:
         """
 
     def _generate_news_body(self, data: dict[str, Any]) -> str:
-        """Génère le corps HTML pour les actualités."""
-        articles = data.get("articles", [])
+        """Génère le corps HTML pour les actualités avec support des catégories structurées."""
+        print(f"🔍 DEBUG: Generating news body with data keys: {list(data.keys())}")
+
+        # Handle structured news format from NewsDailyCrew
         summary = data.get("summary", "")
 
-        articles_html = ""
-        for article in articles:
-            title = article.get("title", "")
-            content = article.get("content", "")
-            source = article.get("source", "")
-            date = article.get("date", "")
+        # Define category mappings with emojis
+        category_info = {
+            "suisse_romande": {"title": "🏔️ Suisse Romande", "emoji": "🇨🇭"},
+            "suisse": {"title": "🇨🇭 Suisse", "emoji": "🏛️"},
+            "france": {"title": "🇫🇷 France", "emoji": "🥖"},
+            "europe": {"title": "🇪🇺 Europe", "emoji": "🌍"},
+            "world": {"title": "🌍 Monde", "emoji": "🌐"},
+            "wars": {"title": "⚔️ Conflits", "emoji": "🛡️"},
+            "economy": {"title": "💰 Économie", "emoji": "📈"},
+        }
 
-            articles_html += f"""
-            <article class="news-article">
-                <h3>{title}</h3>
-                <div class="article-meta">
-                    {f'<span class="source">📰 {source}</span>' if source else ""}
-                    {f'<span class="date">📅 {date}</span>' if date else ""}
-                </div>
-                <div class="article-content">{content}</div>
-            </article>
-            """
+        # Generate HTML for each category
+        categories_html = ""
+        for category_key, category_data in data.items():
+            if category_key == "summary" or category_key == "methodology":
+                continue
+
+            if isinstance(category_data, list) and category_data:
+                category_title = category_info.get(
+                    category_key, {"title": category_key.title(), "emoji": "📰"}
+                )["title"]
+
+                articles_html = ""
+                for article in category_data:
+                    if isinstance(article, dict):
+                        title = article.get("titre", article.get("title", ""))
+                        content = article.get(
+                            "description", article.get("contenu", article.get("content", ""))
+                        )
+                        source = article.get("source", "")
+                        date = article.get("date", "")
+
+                        articles_html += f"""
+                        <article class="news-article">
+                            <h4>{title}</h4>
+                            <div class="article-meta">
+                                {f'<span class="source">📰 {source}</span>' if source else ""}
+                                {f'<span class="date">📅 {date}</span>' if date else ""}
+                            </div>
+                            <div class="article-content">{content}</div>
+                        </article>
+                        """
+
+                if articles_html:
+                    categories_html += f"""
+                    <section class="news-category">
+                        <h3 class="category-title">{category_title}</h3>
+                        <div class="category-articles">
+                            {articles_html}
+                        </div>
+                    </section>
+                    """
+
+        # Fallback to simple articles format if no structured categories found
+        if not categories_html:
+            articles = data.get("articles", [])
+            articles_html = ""
+            for article in articles:
+                title = article.get("title", article.get("titre", ""))
+                content = article.get("description", article.get("content", ""))
+                source = article.get("source", "")
+                date = article.get("date", "")
+
+                articles_html += f"""
+                <article class="news-article">
+                    <h3>{title}</h3>
+                    <div class="article-meta">
+                        {f'<span class="source">📰 {source}</span>' if source else ""}
+                        {f'<span class="date">📅 {date}</span>' if date else ""}
+                    </div>
+                    <div class="article-content">{content}</div>
+                </article>
+                """
+            categories_html = f'<div class="news-articles">{articles_html}</div>'
 
         return f"""
         <div class="news-container">
-            {f'<div class="news-summary"><h3>📋 Résumé</h3><p>{summary}</p></div>' if summary else ""}
-            <div class="news-articles">
-                {articles_html}
-            </div>
+            {f'<div class="news-summary"><h2>📋 Résumé Exécutif</h2><p>{summary}</p></div>' if summary else ""}
+            {categories_html}
         </div>
 
         <style>
@@ -511,7 +627,217 @@ class TemplateManager:
 
     def _generate_library_body(self, data: dict[str, Any]) -> str:
         """Génère le corps HTML pour la bibliothèque."""
-        return self._generate_generic_body(data, "LIBRARY")
+        return self._generate_book_summary_body(data)
+
+    def _generate_book_summary_body(self, data: dict[str, Any]) -> str:
+        """Génère le corps HTML pour un résumé de livre avec formatage riche."""
+        title = data.get("title", "Livre")
+        author = data.get("author", "Auteur inconnu")
+        summary = data.get("summary", "")
+        publication_date = data.get("publication_date", "")
+        sections = data.get("sections", [])
+        table_of_contents = data.get("table_of_contents", [])
+        chapters = data.get("chapters", [])
+        references = data.get("references", [])
+
+        # Build table of contents HTML
+        toc_html = ""
+        if table_of_contents:
+            toc_items = []
+            for item in table_of_contents:
+                chapter_title = item.get("title", "")
+                chapter_id = item.get("id", "")
+                if chapter_title:
+                    toc_items.append(f"<li><a href='#{chapter_id}'>{chapter_title}</a></li>")
+            if toc_items:
+                toc_html = f"""
+                <div class="table-of-contents">
+                    <h3>📖 Table des matières</h3>
+                    <ul class="toc-list">
+                        {"".join(toc_items)}
+                    </ul>
+                </div>
+                """
+
+        # Build chapters HTML
+        chapters_html = ""
+        if chapters:
+            chapter_items = []
+            for chapter in chapters:
+                ch_num = chapter.get("chapter", "")
+                ch_title = chapter.get("title", "")
+                ch_focus = chapter.get("focus", "")
+                if ch_title:
+                    chapter_items.append(f"""
+                    <div class="chapter-item">
+                        <h4>📚 Chapitre {ch_num}: {ch_title}</h4>
+                        <p>{ch_focus}</p>
+                    </div>
+                    """)
+            if chapter_items:
+                chapters_html = f"""
+                <div class="chapters-section">
+                    <h3>📑 Chapitres</h3>
+                    {"".join(chapter_items)}
+                </div>
+                """
+
+        # Build sections HTML
+        sections_html = ""
+        if sections:
+            section_items = []
+            for section in sections:
+                sec_title = section.get("title", "")
+                sec_content = section.get("content", "")
+                sec_id = section.get("id", "")
+                if sec_title and sec_content:
+                    section_items.append(f"""
+                    <div class="analysis-section" id="{sec_id}">
+                        <h4>🔍 {sec_title}</h4>
+                        <p>{sec_content}</p>
+                    </div>
+                    """)
+            if section_items:
+                sections_html = f"""
+                <div class="book-analysis">
+                    <h3>📝 Analyse détaillée</h3>
+                    {"".join(section_items)}
+                </div>
+                """
+
+        # Build references HTML
+        references_html = ""
+        if references:
+            ref_items = []
+            for ref in references:
+                if ref.strip():
+                    ref_items.append(f"<li><a href='{ref}' target='_blank' rel='noopener'>🔗 {ref}</a></li>")
+            if ref_items:
+                references_html = f"""
+                <div class="references-section">
+                    <h3>📚 Références</h3>
+                    <ul class="references-list">
+                        {"".join(ref_items)}
+                    </ul>
+                </div>
+                """
+
+        return f"""
+        <div class="book-summary-report">
+            <div class="book-header">
+                <h2>📖 {title}</h2>
+                <div class="book-meta">
+                    <p><strong>✍️ Auteur:</strong> {author}</p>
+                    {f"<p><strong>📅 Publication:</strong> {publication_date}</p>" if publication_date else ""}
+                </div>
+            </div>
+            
+            <div class="book-summary">
+                <h3>📋 Résumé</h3>
+                <p class="summary-text">{summary}</p>
+            </div>
+            
+            {toc_html}
+            {chapters_html}
+            {sections_html}
+            {references_html}
+        </div>
+        
+        <style>
+        .book-summary-report {{
+            max-width: 900px;
+            margin: 0 auto;
+        }}
+        .book-header {{
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 2rem;
+            background: var(--container-bg);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }}
+        .book-header h2 {{
+            color: var(--heading-color);
+            margin-bottom: 1rem;
+            font-size: 2rem;
+        }}
+        .book-meta {{
+            color: var(--text-color);
+            font-size: 1.1rem;
+        }}
+        .book-meta p {{
+            margin: 0.5rem 0;
+        }}
+        .book-summary, .table-of-contents, .chapters-section, .book-analysis, .references-section {{
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: var(--container-bg);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }}
+        .book-summary h3, .table-of-contents h3, .chapters-section h3, .book-analysis h3, .references-section h3 {{
+            color: var(--heading-color);
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }}
+        .summary-text {{
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: var(--text-color);
+        }}
+        .toc-list {{
+            list-style: none;
+            padding: 0;
+        }}
+        .toc-list li {{
+            margin: 0.5rem 0;
+            padding: 0.5rem;
+            background: rgba(0, 123, 179, 0.1);
+            border-radius: 4px;
+        }}
+        .toc-list a {{
+            color: var(--heading-color);
+            text-decoration: none;
+            font-weight: 500;
+        }}
+        .toc-list a:hover {{
+            text-decoration: underline;
+        }}
+        .chapter-item, .analysis-section {{
+            margin: 1.5rem 0;
+            padding: 1rem;
+            background: rgba(108, 117, 125, 0.1);
+            border-radius: 6px;
+            border-left: 4px solid var(--heading-color);
+        }}
+        .chapter-item h4, .analysis-section h4 {{
+            color: var(--heading-color);
+            margin-bottom: 0.5rem;
+        }}
+        .chapter-item p, .analysis-section p {{
+            color: var(--text-color);
+            line-height: 1.5;
+            margin: 0;
+        }}
+        .references-list {{
+            list-style: none;
+            padding: 0;
+        }}
+        .references-list li {{
+            margin: 0.5rem 0;
+            padding: 0.5rem;
+            background: rgba(40, 167, 69, 0.1);
+            border-radius: 4px;
+        }}
+        .references-list a {{
+            color: var(--heading-color);
+            text-decoration: none;
+        }}
+        .references-list a:hover {{
+            text-decoration: underline;
+        }}
+        </style>
+        """
 
     def _generate_meeting_body(self, data: dict[str, Any]) -> str:
         """Génère le corps HTML pour les réunions."""

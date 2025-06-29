@@ -114,7 +114,7 @@ def determine_output_path(selected_crew: str, state_data: dict[str, Any] = None)
         "NEWSDAILY": "output/news_daily/report.html",
         "SAINT": "output/saint_daily/report.html",
         "SHOPPING": "output/shopping/advice.html",
-        "LIBRARY": "output/library/summary.html",
+        "BOOK_SUMMARY": "output/library/summary.html",
         "MEETING_PREP": "output/meeting_prep/prep.html",
         "HOLIDAY_PLANNER": "output/holiday_planner/plan.html",
         "MENU": "output/menu_designer/menu.html",

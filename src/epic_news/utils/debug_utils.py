@@ -4,7 +4,9 @@ import json
 import logging
 import os
 import time
-from typing import Any
+from typing import Any, TypeVar
+
+from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 
@@ -134,3 +136,57 @@ def analyze_crewai_output(state_data: dict[str, Any], crew_name: str) -> dict[st
 
     logger.info(f"📊 CrewAI Analysis for {crew_name}: {analysis}")
     return analysis
+
+
+T = TypeVar("T", bound=BaseModel)
+
+
+def parse_crewai_output(report_content: Any, model_class: type[T], inputs: dict = None) -> T:
+    """
+    Parse CrewAI output to a Pydantic model with robust JSON cleaning.
+
+    Handles common CrewAI output patterns:
+    - Direct pydantic output in report_content.output
+    - JSON wrapped in triple backticks in report_content.raw
+    - Empty or malformed output with clear error messages
+
+    Args:
+        report_content: CrewAI output object
+        model_class: Pydantic model class to validate against
+        inputs: Optional inputs dict for error reporting
+
+    Returns:
+        Validated Pydantic model instance
+
+    Raises:
+        ValueError: If output is empty or invalid
+    """
+    # Check if we have direct pydantic output
+    if hasattr(report_content, "output") and isinstance(report_content.output, model_class):
+        return report_content.output
+
+    # Extract and clean raw JSON output
+    raw_json = getattr(report_content, "raw", "")
+    if not raw_json or not raw_json.strip():
+        inputs_info = f" Inputs were: {inputs}" if inputs else ""
+        raise ValueError(
+            f"{model_class.__name__} crew produced no output. "
+            f"Check input variables and crew configuration.{inputs_info}"
+        )
+
+    # Remove triple backticks if present
+    cleaned_json = raw_json.strip()
+    if cleaned_json.startswith("```") and cleaned_json.endswith("```"):
+        lines = cleaned_json.split("\n")
+        if len(lines) > 2:
+            cleaned_json = "\n".join(lines[1:-1])
+
+    # Parse and validate JSON
+    try:
+        return model_class.model_validate(json.loads(cleaned_json))
+    except json.JSONDecodeError as e:
+        logger.error(f"Failed to parse JSON. Raw output was: {raw_json[:500]}...")
+        raise ValueError(f"Invalid JSON output from {model_class.__name__} crew: {e}")
+    except Exception as e:
+        logger.error(f"Failed to validate {model_class.__name__} model: {e}")
+        raise ValueError(f"Invalid {model_class.__name__} data structure: {e}")

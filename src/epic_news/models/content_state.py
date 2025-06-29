@@ -23,7 +23,7 @@ class CrewCategories:
     COOKING = "COOKING"
     HOLIDAY_PLANNER = "HOLIDAY_PLANNER"
     LEAD_SCORING = "LEAD_SCORING"
-    LIBRARY = "LIBRARY"
+    BOOK_SUMMARY = "BOOK_SUMMARY"
     LOCATION = "LOCATION"
     MARKETING_WRITERS = "MARKETING_WRITERS"
     MEETING_PREP = "MEETING_PREP"
@@ -130,6 +130,11 @@ class ContentState(BaseModel):
     shopping_advice_model: Union[ShoppingAdviceOutput, None] = None
     poem: Union[Any, None] = None
     meeting_prep_report: Union[Any, None] = None
+
+    # NEW: Model-based state fields for refactored architecture
+    financial_report_model: Union[Any, None] = None
+    news_daily_model: Union[Any, None] = None
+    saint_daily_model: Union[Any, None] = None
 
     # ============================================================================
     # COMMUNICATION SETTINGS

@@ -2,10 +2,10 @@
 saint_research_task:
   agent: saint_researcher
   description: >
-    Research comprehensive information about today's saint (June 23rd) using Wikipedia
+    Research comprehensive information about today's saint ({current_date}) using Wikipedia
     and web search tools.
     Find detailed information about:
-    - The name of the saint(s) celebrated on June 23rd
+    - The name of the saint(s) celebrated on {current_date}
     - Complete biographical information (birth, death, life events)
     - Significance and feast day details
     - Any miracles or notable events associated with the saint
@@ -20,6 +20,7 @@ saint_research_task:
     including biographical details, significance, miracles, Swiss connections,
     and reliable sources. Format as structured text with clear sections.
   async_execution: false
+
 saint_data_task:
   agent: saint_reporter
   description: >
@@ -50,6 +51,6 @@ saint_data_task:
     - Signification, miracles, lien avec la Suisse
     - Prière/réflexion et sources fiables
     - Format JSON pur, prêt pour le rendu HTML unifié
-  output_file: output/saint_daily/saint_data.json
   context: [saint_research_task]
+  output_file: "{output_file}"
   async_execution: false

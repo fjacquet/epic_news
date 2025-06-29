@@ -37,7 +37,6 @@ from epic_news.crews.fin_daily.fin_daily import FinDailyCrew
 from epic_news.crews.geospatial_analysis.geospatial_analysis_crew import GeospatialAnalysisCrew
 from epic_news.crews.holiday_planner.holiday_planner_crew import HolidayPlannerCrew
 from epic_news.crews.hr_intelligence.hr_intelligence_crew import HRIntelligenceCrew
-from epic_news.crews.html_designer.html_designer import HtmlDesignerCrew
 from epic_news.crews.information_extraction.information_extraction_crew import InformationExtractionCrew
 from epic_news.crews.legal_analysis.legal_analysis_crew import LegalAnalysisCrew
 from epic_news.crews.library.library_crew import LibraryCrew
@@ -52,12 +51,19 @@ from epic_news.crews.sales_prospecting.sales_prospecting_crew import SalesProspe
 from epic_news.crews.shopping_advisor.shopping_advisor import ShoppingAdvisorCrew
 from epic_news.crews.tech_stack.tech_stack_crew import TechStackCrew
 from epic_news.crews.web_presence.web_presence_crew import WebPresenceCrew
+from epic_news.models.book_summary_report import BookSummaryReport
 from epic_news.models.content_state import ContentState
-from epic_news.utils.debug_utils import analyze_crewai_output, dump_crewai_state, log_state_keys
+from epic_news.models.poem_models import PoemJSONOutput
+from epic_news.models.saint_data import SaintData
+from epic_news.utils.debug_utils import dump_crewai_state, parse_crewai_output
 from epic_news.utils.directory_utils import ensure_output_directories
+from epic_news.utils.html.book_summary_html_factory import (
+    book_summary_to_html,
+)
+from epic_news.utils.html.poem_html_factory import poem_to_html
+from epic_news.utils.html.saint_html_factory import saint_to_html
 from epic_news.utils.logger import get_logger
 from epic_news.utils.menu_generator import MenuGenerator
-from epic_news.utils.report_utils import get_final_report_content, write_output_to_file
 from epic_news.utils.string_utils import create_topic_slug
 
 # Suppress the specific Pydantic deprecation warnings globally
@@ -195,7 +201,7 @@ class ReceptionFlow(Flow[ContentState]):
             return "go_generate_holiday_plan"
         if self.state.selected_crew == "MEETING_PREP":
             return "go_generate_meeting_prep"
-        if self.state.selected_crew == "LIBRARY":
+        if self.state.selected_crew == "BOOK_SUMMARY":
             return "go_generate_book_summary"
         if self.state.selected_crew == "COOKING":
             return "go_generate_recipe"
@@ -257,7 +263,17 @@ class ReceptionFlow(Flow[ContentState]):
         print(f"Generating poem about: {self.state.to_crew_inputs().get('topic', 'N/A')}")
 
         # Generate the poem
-        self.state.poem = PoemCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
+        output = PoemCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
+        dump_crewai_state(output, "POEM")
+
+        html_file = "output/poem/poem.html"
+        # Parse CrewOutput to PoemJSONOutput
+        if hasattr(output, "output") and isinstance(output.output, PoemJSONOutput):
+            poem_model = output.output
+        else:
+            poem_model = PoemJSONOutput.model_validate(json.loads(output.raw))
+        poem_to_html(poem_model, html_file=html_file)
+
         # return "generate_poem"
 
     @listen("go_generate_news_company")
@@ -321,30 +337,18 @@ class ReceptionFlow(Flow[ContentState]):
         # Kick off the crew
         report_content = FinDailyCrew().crew().kickoff(inputs=inputs)
         self.state.fin_daily_report = report_content
-        
-        # Store the FinancialReport model for HTML rendering
-        if hasattr(report_content, 'model_dump'):
-            self.state.financial_report_model = report_content
-        
-        # Initialize HtmlDesignerCrew for rendering
-        html_designer_crew = HtmlDesignerCrew()
-        
-        # Prepare state data for template rendering
-        state_data = self.state.model_dump()
-        
-        print("🎨 HtmlDesignerCrew configured for FIN_DAILY with unified template system")
-        print(f"📄 Output path: {self.state.output_file}")
-        print("🌙 Dark mode and responsive design enabled via universal template")
-        
-        # Generate HTML using unified template system (bypassing CrewAI kickoff)
-        html_content = html_designer_crew.render_unified_report(state_data)
-        
-        # Write HTML content to file
-        os.makedirs(os.path.dirname(self.state.output_file), exist_ok=True)
-        with open(self.state.output_file, "w", encoding="utf-8") as f:
-            f.write(html_content)
-        
-        print(f"✅ HTML report generated: {self.state.output_file}")
+
+        # Store the FinancialReport model data for HTML rendering
+        # Note: We can't add arbitrary fields to CrewAI Flow state, so we'll pass it via state_data
+        financial_report_data = None
+        if hasattr(report_content, "model_dump"):
+            financial_report_data = report_content
+
+        # Store financial report data in state for HTML rendering by generate_html_report
+        if financial_report_data is not None:
+            self.state.financial_report_model = financial_report_data
+
+        print("✅ Financial content generated - HTML rendering will be handled by generate_html_report")
 
     @listen("go_generate_news_daily")
     def generate_news_daily(self):
@@ -368,6 +372,12 @@ class ReceptionFlow(Flow[ContentState]):
         report_content = NewsDailyCrew().crew().kickoff(inputs=inputs)
         self.state.news_daily_report = report_content
 
+        # Store the news report model data for HTML rendering by generate_html_report
+        if hasattr(report_content, "model_dump"):
+            self.state.news_daily_model = report_content
+
+        print("✅ News content generated - HTML rendering will be handled by generate_html_report")
+
     @listen("go_generate_saint_daily")
     def generate_saint_daily(self):
         """
@@ -379,29 +389,30 @@ class ReceptionFlow(Flow[ContentState]):
         Sets `output_file` to `output/saint_daily/report.html`
         and stores the report in `self.state.saint_daily_report`.
         """
-        self.state.output_file = "output/saint_daily/report.html"
+        self.state.output_file = "output/saint_daily/report.json"
         print("⛪ Generating daily saint report in French...")
 
         # Prepare inputs for the crew
         inputs = self.state.to_crew_inputs()
-        inputs["current_date"] = datetime.datetime.now().strftime("%Y-%m-%d")
-        inputs["report_language"] = "French"
-        inputs["target_country"] = "Switzerland"
 
         # Kick off the crew
         report_content = SaintDailyCrew().crew().kickoff(inputs=inputs)
+        dump_crewai_state(report_content, "SAINT_DAILY")
+        # Store the saint report data for HTML rendering by generate_html_report
+        self.state.saint_daily_report = report_content
 
-        # Structure the data for HtmlDesignerCrew consumption
-        # HtmlDesignerCrew expects saint_daily_report.raw as a JSON string
-        if hasattr(report_content, "raw") and report_content.raw:
-            # If the output has a .raw attribute with JSON string
-            saint_json_data = report_content.raw
+        html_file = "output/saint_daily/report.html"
+        # Store the saint report model data for HTML rendering (consistent with other crews)
+
+        # Minimal, robust CrewAI pattern (like generate_poem)
+        if hasattr(report_content, "output") and isinstance(report_content.output, SaintData):
+            saint_model = report_content.output
         else:
-            # If the output is the JSON object directly, convert to string
-            saint_json_data = json.dumps(report_content) if report_content else "{}"
+            saint_model = SaintData.model_validate(json.loads(report_content.raw))
+        self.state.saint_daily_model = saint_model
+        saint_to_html(saint_model, html_file=html_file)
 
-        # Create the expected structure for HtmlDesignerCrew
-        self.state.saint_daily_report = {"raw": saint_json_data}
+        print("✅ Saint content generated - HTML rendering will be handled by generate_html_report")
 
     @listen("go_generate_recipe")
     def generate_recipe(self):
@@ -458,15 +469,10 @@ class ReceptionFlow(Flow[ContentState]):
                     f"📄 CookingCrew completed {len(cooking_result.tasks_output)} tasks (cook, paprika_yaml, recipe_state)"
                 )
 
-                # Store in state for HtmlDesignerCrew using CrewAI state mechanism
+                # Store in state for centralized HTML rendering by generate_html_report
                 self.state.recipe = {"paprika_model": paprika_recipe}
 
-                # Trigger HtmlDesignerCrew to generate HTML report
-                from epic_news.crews.html_designer.html_designer import HtmlDesignerCrew
-
-                html_crew = HtmlDesignerCrew()
-                html_crew.render_unified_report(self.state.model_dump())
-                print(f"✅ HTML report generated: {self.state.output_file}")
+                print("✅ Recipe content generated - HTML rendering will be handled by generate_html_report")
             else:
                 print("⚠️ No PaprikaRecipe found in CookingCrew output")
 
@@ -529,26 +535,36 @@ class ReceptionFlow(Flow[ContentState]):
         Handles requests classified for the 'LibraryCrew'.
 
         Invokes the `LibraryCrew` to generate a book summary. Sets the main output
-        to `output/library/book_summary.html` and an attachment for research results
-        to `output/library/research_results.md`. The summary is stored in
+        to `output/library/book_summary.json`. The summary is stored in
         `self.state.book_summary`.
         """
-        self.state.output_file = "output/library/book_summary.html"
-        self.state.attachment_file = "output/library/research_results.md"
+
         print(f"Generating book summary for: {self.state.to_crew_inputs().get('topic', 'N/A')}")
+        inputs = self.state.to_crew_inputs()
+        inputs["output_file"] = "output/library/book_summary.json"
 
         # Generate the book summary
-        self.state.book_summary = LibraryCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
-        # return "generate_book_summary"
+        report_content = LibraryCrew().crew().kickoff(inputs=inputs)
+        dump_crewai_state(report_content, "BOOK_SUMMARY")
+        html_file = "output/library/book_summary.html"
+
+        # Store the book summary data for HTML rendering by generate_html_report
+        self.state.book_summary = report_content
+
+        # Parse CrewAI output using utility function
+        book_summary_model = parse_crewai_output(report_content, BookSummaryReport, inputs)
+        
+        # Generate HTML directly (don't store model in state - CrewAI Flow state has predefined schema)
+        book_summary_to_html(book_summary_model, html_file=html_file)
 
     @listen("go_generate_shopping_advice")
     def generate_shopping_advice(self):
         """
-        Handles requests classified for the 'ShoppingAdvisorCrew'.
-
-        Uses ShoppingAdvisorCrew to generate structured shopping advice data,
-        then HtmlDesignerCrew to generate the HTML report.
-        Sets `output_file` to `output/shopping_advisor/shopping_advice.html`.
+                Handles requests classified for the 'ShoppingAdvisorCrew'.
+        l
+                Uses ShoppingAdvisorCrew to generate structured shopping advice data,
+                then HtmlDesignerCrew to generate the HTML report.
+                Sets `output_file` to `output/shopping_advisor/shopping_advice.html`.
         """
         # No need to create directories as ensure_output_directories() is called at init
 
@@ -580,33 +596,12 @@ class ReceptionFlow(Flow[ContentState]):
             print("⚠️ Could not extract ShoppingAdviceOutput from crew result")
             return
 
-        # Set output file for HTML generation
+        # Set output file for HTML generation (will be used by generate_html_report)
         topic = self.state.extracted_info.topic or "product-recommendation"
         topic_slug = topic.lower().replace(" ", "-").replace("'", "").replace('"', "")
         self.state.output_file = f"output/shopping_advisor/shopping-advice-{topic_slug}.html"
 
-        # Generate HTML report using HtmlDesignerCrew with unified template system
-        # Use the same pattern as other crews: state_data + render_unified_report
-        html_designer_crew = HtmlDesignerCrew()
-        html_designer_crew.set_crew_context("SHOPPING", self.state.model_dump())
-
-        # Prepare state data for template rendering
-        state_data = self.state.model_dump()
-
-        print("🎨 HtmlDesignerCrew configured for SHOPPING with unified template system")
-        print(f"📄 Output path: {self.state.output_file}")
-        print("🌙 Dark mode and responsive design enabled via universal template")
-
-        # Generate HTML using unified template system (bypassing CrewAI kickoff)
-        html_content = html_designer_crew.render_unified_report(state_data)
-
-        # Write HTML content to file
-        os.makedirs(os.path.dirname(self.state.output_file), exist_ok=True)
-        with open(self.state.output_file, "w", encoding="utf-8") as f:
-            f.write(html_content)
-
-        self.state.shopping_advice_report = html_content
-        print(f"✅ HTML report generated: {self.state.output_file}")
+        print("✅ Shopping advice content generated - HTML rendering will be handled by generate_html_report")
 
     @listen("go_generate_meeting_prep")
     def generate_meeting_prep(self):
@@ -865,83 +860,80 @@ class ReceptionFlow(Flow[ContentState]):
             "generate_menu_designer",
         )
     )
-    def join(self, *results):
+    def generate_html_report(self, *results):
         """
         Synchronizes the flow after a crew has finished its primary task.
 
         Now integrates HtmlDesignerCrew to generate professional HTML reports
         from the consolidated data before proceeding to the email sending step.
         """
+        pass  # noqa: PIE790
+        # self.logger.info("Join step reached. Generating professional HTML report with HtmlDesignerCrew.")
 
-        self.logger.info("Join step reached. Generating professional HTML report with HtmlDesignerCrew.")
+        # try:
+        #     # Initialize HtmlDesignerCrew
+        #     html_designer_crew = HtmlDesignerCrew()
 
-        try:
-            # Initialize HtmlDesignerCrew
-            html_designer_crew = HtmlDesignerCrew()
+        #     # Prepare state data for proper CrewAI Flow
+        #     selected_crew = getattr(self.state, "selected_crew", "UNKNOWN")
+        #     state_data = self.state.model_dump()
+        #     state_data["selected_crew"] = selected_crew
 
-            # Set crew context for dynamic output file routing
-            selected_crew = getattr(self.state, "selected_crew", "UNKNOWN")
-            html_designer_crew.set_crew_context(selected_crew)
+        #     # Debug: Log available state data keys and analyze structure
+        #     log_state_keys(state_data)
+        #     analyze_crewai_output(state_data, selected_crew)
 
-            # Get the dynamic output file path
-            output_file_path = html_designer_crew.output_file_path
+        #     # Debug: Dump complete CrewAI state to JSON file for easier debugging
+        #     dump_crewai_state(state_data, selected_crew)
 
-            # Prepare state data for template rendering
-            state_data = self.state.model_dump()
+        #     # Debug: Log specific data if available (poem, recipe, etc.)
+        #     filter_keywords = ["poem", "title", "recipe", "saint", "cook"]
+        #     log_state_keys(state_data, filter_keywords)
 
-            # Debug: Log available state data keys and analyze structure
-            log_state_keys(state_data)
-            analyze_crewai_output(state_data, selected_crew)
+        #     self.logger.info(f"🎨 Using proper CrewAI Flow to generate {selected_crew} HTML report...")
+        #     self.logger.info("🌙 Dark mode and responsive design enabled automatically")
 
-            # Debug: Dump complete CrewAI state to JSON file for easier debugging
-            dump_crewai_state(state_data, selected_crew)
+        #     # Ensure output directories exist using proper utility
+        #     ensure_output_directories()
 
-            # Debug: Log specific data if available (poem, recipe, etc.)
-            filter_keywords = ["poem", "title", "recipe", "saint", "cook"]
-            log_state_keys(state_data, filter_keywords)
+        #     # Use proper CrewAI Flow - prepare inputs and kickoff the crew
+        #     # Ensure output file has .html extension for HTML reports
+        #     html_output_file = self.state.output_file
+        #     if html_output_file and not html_output_file.endswith(".html"):
+        #         html_output_file = html_output_file.rsplit(".", 1)[0] + ".html"
 
-            self.logger.info(
-                f"🎨 Using unified template system to generate {selected_crew} HTML report at {output_file_path}..."
-            )
-            self.logger.info("🌙 Dark mode and responsive design enabled automatically")
+        #     inputs = self.state.to_crew_inputs()
+        #     inputs["state_data"] = state_data
+        #     inputs["selected_crew"] = selected_crew
+        #     inputs["output_file"] = html_output_file  # Required by task config
 
-            # Generate HTML using unified template system
-            html_content = html_designer_crew.render_unified_report(state_data)
+        #     # Proper CrewAI Flow execution
+        #     result = html_designer_crew.crew().kickoff(inputs=inputs)
 
-            # Ensure output directory exists
-            os.makedirs(os.path.dirname(output_file_path), exist_ok=True)
+        #     html_result = f"HTML report generated successfully via CrewAI Flow for {selected_crew}"
 
-            # Write HTML content to file
-            with open(output_file_path, "w", encoding="utf-8") as f:
-                f.write(html_content)
+        #     self.logger.info(
+        #         "✅ Unified template system completed successfully. Professional HTML report generated."
+        #     )
+        #     self.logger.info(f"📄 Report available at: {html_output_file}")
+        #     self.logger.debug(f"Template system result: {html_result}")
 
-            html_result = f"HTML report generated successfully at {output_file_path}"
+        #     # Update state with the generated HTML report path
+        #     self.state.output_file = html_output_file
 
-            self.logger.info(
-                "✅ Unified template system completed successfully. Professional HTML report generated."
-            )
-            self.logger.info(f"📄 Report available at: {output_file_path}")
-            self.logger.debug(f"Template system result: {html_result}")
+        #     self.logger.info(f"🎯 {selected_crew} report generated with unified CSS and dark mode support")
 
-            # Update state with the generated HTML report path
-            self.state.output_file = output_file_path
+        # except Exception as e:
+        #     # NO FALLBACK - Expose the real error for proper debugging
+        #     error_msg = f"❌ HtmlDesignerCrew execution failed: {e}"
+        #     self.logger.error(error_msg)
+        #     self.logger.error(f"Selected crew: {selected_crew}")
+        #     self.logger.error(f"State data keys: {list(state_data.keys())}")
 
-            self.logger.info(f"🎯 {selected_crew} report generated with unified CSS and dark mode support")
+        #     # Re-raise the exception to prevent silent failures
+        #     raise RuntimeError(f"HTML generation failed for {selected_crew}: {e}") from e
 
-        except Exception as e:
-            self.logger.error(f"Error in HtmlDesignerCrew execution: {e}")
-            # Fallback to original report generation logic
-            self.logger.info("Falling back to original report generation...")
-
-            final_content = get_final_report_content(self.state)
-            output_file = self.state.output_file
-
-            success = write_output_to_file(final_content, output_file)
-
-            if not success and final_content is None:
-                self.logger.warning(f"No final content to write to {output_file}.")
-
-    @listen(or_("generate_cross_reference_report", "join"))
+    @listen(or_("generate_cross_reference_report", "generate_html_report"))
     def send_email(self):
         """
         Sends the generated report via email after specific crew completions or general join.
@@ -995,7 +987,10 @@ def kickoff(user_input: str | None = None):
     """
     # If user_input is not provided, use a default value.
     request = (
-        user_input if user_input else "Donne moi mes conseils financiers du jour"
+        user_input if user_input else "tell me all about the book : Clamser à Tataouine de Raphaël Quenard"
+        # else "Donne moi le saint du jour en français"
+        # else "Get me a poem on the mouse of the desert Muad dib"
+        # else "tell me all about the book : Clamser à Tataouine de Raphaël Quenard"
         # else "Generate a complete weekly menu planner with 30 recipes and shopping list for a family of 3 in French"
     )
 

@@ -48,11 +48,15 @@ data_analysis_task:
   agent: data_analyzer
 html_generation_task:
   description: >
-    Générer un rapport HTML spécialisé et contextualisé selon le type de crew identifié
-    dans l'analyse précédente, en utilisant des templates et styles adaptés.
+    Générer un rapport HTML spécialisé et contextualisé selon le type de crew identifié.
+    
+    DONNÉES D'ENTRÉE DISPONIBLES :
+    - state_data: {state_data} (données complètes de l'état du crew)
+    - selected_crew: {selected_crew} (type de crew à traiter)
+    
     PROCESSUS DE GÉNÉRATION CONTEXTUELLE :
     1. ADAPTATION AU TYPE DE CREW :
-    Selon le selected_crew identifié, appliquer le style approprié :
+    Selon le selected_crew ({selected_crew}), appliquer le style approprié :
     - POEM : Template poétique avec typographie élégante, espacement rythmé, citations
     en italique
     - COOKING : Template culinaire avec sections ingrédients/étapes, temps de cuisson,
@@ -83,22 +87,29 @@ html_generation_task:
     - Ajouter la date de génération et les sources si pertinentes
     - Optimiser pour l'impression et le partage par email
     UTILISATION DU SYSTÈME DE TEMPLATES UNIFIÉ :
-    - Utiliser EXCLUSIVEMENT le système de templates unifié via TemplateManager
-    - Le template universal_report_template.html fournit CSS unifié et dark mode
-    - Extraire les données contextuelles selon le type de crew
-    - Laisser le TemplateManager gérer la génération HTML finale
+    - Utiliser EXCLUSIVEMENT l'outil html_generator_tool pour générer le HTML
+    - Passer les données d'état (state_data) et le type de crew (selected_crew) à l'outil
+    - L'outil utilise automatiquement le TemplateManager et le template universal_report_template.html
+    - Le template fournit CSS unifié, dark mode et responsive design automatiquement
+    - L'outil gère l'extraction des données contextuelles et la génération HTML finale
     EXIGENCES TECHNIQUES CRITIQUES :
     - Le TemplateManager génère automatiquement du HTML5 valide
     - Support automatique du dark mode et responsive design
     - CSS unifié pour expérience utilisateur cohérente
     - Encodage UTF-8 et accessibilité intégrés dans le template
+    INSTRUCTIONS D'EXÉCUTION CRITIQUES :
+    - TOUJOURS utiliser l'outil html_generator_tool avec ces paramètres EXACTS :
+      * state_data: {state_data} (utiliser la valeur complète, pas une description)
+      * selected_crew: {selected_crew} (utiliser la valeur exacte)
+      * output_file: {output_file} (chemin du fichier de sortie)
+    - RETOURNER le résultat de l'outil (le contenu HTML généré), PAS les paramètres d'entrée
+    - L'outil génère automatiquement un document HTML5 complet et valide
+    - Le HTML inclut automatiquement dark mode, CSS unifié et responsive design
     INTERDICTIONS ABSOLUES :
-    - JAMAIS générer du HTML manuellement - utiliser TemplateManager
+    - JAMAIS générer du HTML manuellement - utiliser EXCLUSIVEMENT html_generator_tool
+    - JAMAIS retourner les paramètres d'entrée de l'outil - retourner son résultat d'exécution
     - JAMAIS ignorer le système de templates unifié
-    - JAMAIS de CSS personnalisé - utiliser le template universel
-    - JAMAIS de contenu générique - adapter au type de crew
-    Le TemplateManager produit automatiquement un document HTML complet avec
-    dark mode, CSS unifié et expérience utilisateur cohérente.
+    - JAMAIS de CSS personnalisé - l'outil utilise le template universel
   expected_output: >
     Un document HTML5 en français généré par le système de templates unifié comprenant
     :
@@ -127,5 +138,4 @@ html_generation_task:
     le partage par email, et l'affichage sur tous les appareils.
   agent: html_designer
   async_execution: false
-  output_file: '{output_file}'
   context: [data_analysis_task]
