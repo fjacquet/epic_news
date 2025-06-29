@@ -183,7 +183,15 @@ def parse_crewai_output(report_content: Any, model_class: type[T], inputs: dict 
 
     # Parse and validate JSON
     try:
-        return model_class.model_validate(json.loads(cleaned_json))
+        parsed_data = json.loads(cleaned_json)
+
+        # $$$Special handling for BookSummaryReport: coerce table_of_contents IDs to strings
+        if model_class.__name__ == "BookSummaryReport" and "table_of_contents" in parsed_data:
+            for entry in parsed_data["table_of_contents"]:
+                if "id" in entry and not isinstance(entry["id"], str):
+                    entry["id"] = str(entry["id"])
+
+        return model_class.model_validate(parsed_data)
     except json.JSONDecodeError as e:
         logger.error(f"Failed to parse JSON. Raw output was: {raw_json[:500]}...")
         raise ValueError(f"Invalid JSON output from {model_class.__name__} crew: {e}")

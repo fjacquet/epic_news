@@ -13,6 +13,8 @@ from pydantic import BaseModel
 
 from epic_news.models.financial_report import FinancialReport
 
+from .template_renderers.renderer_factory import RendererFactory
+
 
 class TemplateState(BaseModel):
     """Modèle de données pour l'état du template."""
@@ -127,7 +129,18 @@ class TemplateManager:
     def generate_contextual_body(self, content_data: dict[str, Any], selected_crew: str) -> str:
         """Génère le corps HTML contextualisé selon le type de crew."""
 
-        # Handle FINDAILY (Financial Reports)
+        # Try to use modular renderer first
+        if RendererFactory.has_specialized_renderer(selected_crew):
+            try:
+                renderer = RendererFactory.create_renderer(selected_crew)
+                return renderer.render(content_data)
+            except Exception as e:
+                print(f"❌ Error using modular renderer for {selected_crew}: {e}")
+                # Fall back to legacy methods
+
+        # Legacy handling for crews not yet migrated to modular renderers
+
+        # Handle FINDAILY (Financial Reports) - Legacy fallback
         if selected_crew == "FINDAILY" or self.state.financial_report_model:
             # Check if we have a financial_report_model in content_data
             if not self.state.financial_report_model and isinstance(content_data, dict):
@@ -155,24 +168,23 @@ class TemplateManager:
         if selected_crew == "NEWSDAILY":
             return self._generate_news_body(content_data)
 
-        # Handle other crew types
-        if selected_crew == "POEM":
-            return self._generate_poem_body(content_data)
+        # Handle other crew types with legacy methods
         if selected_crew == "COOKING":
             return self._generate_cooking_body(content_data)
         if selected_crew == "HOLIDAY_PLANNER":
             return self._generate_holiday_body(content_data)
-        if selected_crew == "BOOK_SUMMARY":
-            return self._generate_library_body(content_data)
         if selected_crew == "MEETING_PREP":
             return self._generate_meeting_body(content_data)
         if selected_crew == "MENU":
             return self._generate_menu_body(content_data)
-        if selected_crew == "SAINT":
-            return self._generate_saint_body(content_data)
 
-        # Default to generic body
-        return self._generate_generic_body(content_data, selected_crew)
+        # Default to generic renderer
+        try:
+            renderer = RendererFactory.create_renderer(selected_crew)
+            return renderer.render(content_data, selected_crew)
+        except Exception as e:
+            print(f"❌ Error using generic renderer: {e}")
+            return self._generate_generic_body(content_data, selected_crew)
 
     def _generate_poem_body(self, data: dict[str, Any]) -> str:
         """Génère le corps HTML pour un poème."""
