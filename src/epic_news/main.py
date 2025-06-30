@@ -53,6 +53,7 @@ from epic_news.crews.tech_stack.tech_stack_crew import TechStackCrew
 from epic_news.crews.web_presence.web_presence_crew import WebPresenceCrew
 from epic_news.models.book_summary_report import BookSummaryReport
 from epic_news.models.content_state import ContentState
+from epic_news.models.financial_report import FinancialReport
 from epic_news.models.poem_models import PoemJSONOutput
 from epic_news.models.saint_data import SaintData
 from epic_news.utils.debug_utils import dump_crewai_state, parse_crewai_output
@@ -60,6 +61,8 @@ from epic_news.utils.directory_utils import ensure_output_directories
 from epic_news.utils.html.book_summary_html_factory import (
     book_summary_to_html,
 )
+from epic_news.utils.html.daily_news_html_factory import daily_news_to_html
+from epic_news.utils.html.fin_daily_html_factory import findaily_to_html
 from epic_news.utils.html.poem_html_factory import poem_to_html
 from epic_news.utils.html.saint_html_factory import saint_to_html
 from epic_news.utils.logger import get_logger
@@ -323,7 +326,7 @@ class ReceptionFlow(Flow[ContentState]):
         investment suggestions. Sets `output_file` to `output/findaily/report.html`
         and stores the report in `self.state.fin_daily_report`.
         """
-        self.state.output_file = "output/findaily/report.html"
+
         print("💰 Generating daily financial analysis report...")
 
         # Prepare inputs for the crew
@@ -333,22 +336,16 @@ class ReceptionFlow(Flow[ContentState]):
         inputs["stock_csv_path"] = os.path.abspath(stock_csv_file)
         inputs["etf_csv_path"] = os.path.abspath(etf_csv_file)
         inputs["current_date"] = datetime.datetime.now().strftime("%Y-%m-%d")
+        inputs["output_file"] = "output/findaily/report.json"
 
         # Kick off the crew
         report_content = FinDailyCrew().crew().kickoff(inputs=inputs)
-        self.state.fin_daily_report = report_content
+        dump_crewai_state(report_content, "FIN_DAILY")
+        html_file = "output/findaily/report.html"
 
-        # Store the FinancialReport model data for HTML rendering
-        # Note: We can't add arbitrary fields to CrewAI Flow state, so we'll pass it via state_data
-        financial_report_data = None
-        if hasattr(report_content, "model_dump"):
-            financial_report_data = report_content
-
-        # Store financial report data in state for HTML rendering by generate_html_report
-        if financial_report_data is not None:
-            self.state.financial_report_model = financial_report_data
-
-        print("✅ Financial content generated - HTML rendering will be handled by generate_html_report")
+        financial_report_model = parse_crewai_output(report_content, FinancialReport, inputs)
+        findaily_to_html(financial_report_model, html_file=html_file)
+        print(f"✅ Financial content generated and HTML written to {html_file}")
 
     @listen("go_generate_news_daily")
     def generate_news_daily(self):
@@ -367,16 +364,21 @@ class ReceptionFlow(Flow[ContentState]):
         inputs = self.state.to_crew_inputs()
         inputs["current_date"] = datetime.datetime.now().strftime("%Y-%m-%d")
         inputs["report_language"] = "French"
+        inputs["output_file"] = "output/news_daily/news_data.json"
 
         # Kick off the crew
         report_content = NewsDailyCrew().crew().kickoff(inputs=inputs)
         self.state.news_daily_report = report_content
+        dump_crewai_state(report_content, "NEWSDAILY")
+        html_file = "output/news_daily/final_report.html"
+
+        daily_news_to_html(report_content, html_file=html_file)
 
         # Store the news report model data for HTML rendering by generate_html_report
         if hasattr(report_content, "model_dump"):
             self.state.news_daily_model = report_content
 
-        print("✅ News content generated - HTML rendering will be handled by generate_html_report")
+        print(f"✅ News content generated and HTML written to {html_file}")
 
     @listen("go_generate_saint_daily")
     def generate_saint_daily(self):
@@ -553,7 +555,7 @@ class ReceptionFlow(Flow[ContentState]):
 
         # Parse CrewAI output using utility function
         book_summary_model = parse_crewai_output(report_content, BookSummaryReport, inputs)
-        
+
         # Generate HTML directly (don't store model in state - CrewAI Flow state has predefined schema)
         book_summary_to_html(book_summary_model, html_file=html_file)
 
@@ -987,7 +989,8 @@ def kickoff(user_input: str | None = None):
     """
     # If user_input is not provided, use a default value.
     request = (
-        user_input if user_input else "tell me all about the book : Clamser à Tataouine de Raphaël Quenard"
+        user_input if user_input else "get the daily  news report"
+        # else "get the findaily report"
         # else "Donne moi le saint du jour en français"
         # else "Get me a poem on the mouse of the desert Muad dib"
         # else "tell me all about the book : Clamser à Tataouine de Raphaël Quenard"

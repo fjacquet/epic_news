@@ -2,12 +2,12 @@
 
 ## Ideas
 
-convert crews to new html output:
+// TODO: Convert the crews to new html output
 
-- [ ] COOKING
+- [ ] COOKING 
 - [ ] FINDAILY
 - [ ] HOLIDAY_PLANNER
-- [ ] LIBRARY
+- [x] LIBRARY
 - [ ] MARKETING_WRITERS
 - [ ] MEETING_PREP
 - [ ] MENU

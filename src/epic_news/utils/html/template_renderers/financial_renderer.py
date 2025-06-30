@@ -117,9 +117,11 @@ class FinancialRenderer(BaseRenderer):
             container.append(metrics_div)
 
     def _add_analysis_sections(self, soup: BeautifulSoup, container, data: dict[str, Any]) -> None:
-        """Add analysis sections."""
+        """Add analysis sections, supporting both 'analysis' and 'analyses' fields."""
+        # Support both singular and plural fields
         analysis = data.get("analysis") or data.get("detailed_analysis")
-        if not analysis:
+        analyses = data.get("analyses")
+        if not analysis and not analyses:
             return
 
         analysis_div = soup.new_tag("div", class_="financial-analysis")
@@ -128,36 +130,60 @@ class FinancialRenderer(BaseRenderer):
         title_tag.string = "🔍 Analyse Détaillée"
         analysis_div.append(title_tag)
 
-        if isinstance(analysis, str):
-            analysis_p = soup.new_tag("p")
-            analysis_p.string = analysis
-            analysis_div.append(analysis_p)
-        elif isinstance(analysis, list):
-            for item in analysis:
+        # Old format: string or list of dicts
+        if analysis:
+            if isinstance(analysis, str):
+                analysis_p = soup.new_tag("p")
+                analysis_p.string = analysis
+                analysis_div.append(analysis_p)
+            elif isinstance(analysis, list):
+                for item in analysis:
+                    if isinstance(item, dict):
+                        section_div = soup.new_tag("div", class_="analysis-section")
+                        section_title = item.get("title") or item.get("category")
+                        if section_title:
+                            section_h4 = soup.new_tag("h4")
+                            section_h4.string = section_title
+                            section_div.append(section_h4)
+                        section_content = item.get("content") or item.get("description")
+                        if section_content:
+                            section_p = soup.new_tag("p")
+                            section_p.string = section_content
+                            section_div.append(section_p)
+                        analysis_div.append(section_div)
+        # New format: list of analyses (each with asset_class, summary, details)
+        if analyses:
+            for item in analyses:
                 if isinstance(item, dict):
                     section_div = soup.new_tag("div", class_="analysis-section")
-
-                    section_title = item.get("title") or item.get("category")
-                    if section_title:
+                    asset_class = item.get("asset_class")
+                    summary = item.get("summary")
+                    details = item.get("details")
+                    if asset_class:
                         section_h4 = soup.new_tag("h4")
-                        section_h4.string = section_title
+                        section_h4.string = f"{asset_class}"
                         section_div.append(section_h4)
-
-                    section_content = item.get("content") or item.get("description")
-                    if section_content:
-                        section_p = soup.new_tag("p")
-                        section_p.string = section_content
-                        section_div.append(section_p)
-
+                    if summary:
+                        summary_p = soup.new_tag("p")
+                        summary_p.string = summary
+                        section_div.append(summary_p)
+                    if details and isinstance(details, list):
+                        details_ul = soup.new_tag("ul")
+                        for detail in details:
+                            li = soup.new_tag("li")
+                            li.string = str(detail)
+                            details_ul.append(li)
+                        section_div.append(details_ul)
                     analysis_div.append(section_div)
 
         if analysis_div.find_all("p") or analysis_div.find_all("div"):
             container.append(analysis_div)
 
     def _add_recommendations(self, soup: BeautifulSoup, container, data: dict[str, Any]) -> None:
-        """Add recommendations section."""
+        """Add recommendations section, supporting both 'recommendations' and 'suggestions'."""
         recommendations = data.get("recommendations") or data.get("advice")
-        if not recommendations:
+        suggestions = data.get("suggestions")
+        if not recommendations and not suggestions:
             return
 
         rec_div = soup.new_tag("div", class_="recommendations")
@@ -166,23 +192,42 @@ class FinancialRenderer(BaseRenderer):
         title_tag.string = "💡 Recommandations"
         rec_div.append(title_tag)
 
-        if isinstance(recommendations, list):
-            rec_ul = soup.new_tag("ul", class_="recommendations-list")
-
-            for rec in recommendations:
-                li = soup.new_tag("li")
-                if isinstance(rec, dict):
-                    rec_text = rec.get("text") or rec.get("recommendation") or str(rec)
-                else:
-                    rec_text = str(rec)
-                li.string = rec_text
-                rec_ul.append(li)
-
-            rec_div.append(rec_ul)
-        elif isinstance(recommendations, str):
-            rec_p = soup.new_tag("p")
-            rec_p.string = recommendations
-            rec_div.append(rec_p)
+        # Old format: list or string
+        if recommendations:
+            if isinstance(recommendations, list):
+                rec_ul = soup.new_tag("ul", class_="recommendations-list")
+                for rec in recommendations:
+                    li = soup.new_tag("li")
+                    if isinstance(rec, dict):
+                        rec_text = rec.get("text") or rec.get("recommendation") or str(rec)
+                    else:
+                        rec_text = str(rec)
+                    li.string = rec_text
+                    rec_ul.append(li)
+                rec_div.append(rec_ul)
+            elif isinstance(recommendations, str):
+                rec_p = soup.new_tag("p")
+                rec_p.string = recommendations
+                rec_div.append(rec_p)
+        # New format: suggestions (each with asset_class, suggestion, rationale)
+        if suggestions:
+            sugg_ul = soup.new_tag("ul", class_="recommendations-list")
+            for sugg in suggestions:
+                if isinstance(sugg, dict):
+                    li = soup.new_tag("li")
+                    asset_class = sugg.get("asset_class")
+                    suggestion = sugg.get("suggestion")
+                    rationale = sugg.get("rationale")
+                    li_content = ""
+                    if asset_class:
+                        li_content += f"[{asset_class}] "
+                    if suggestion:
+                        li_content += suggestion
+                    if rationale:
+                        li_content += f"\n→ {rationale}"
+                    li.string = li_content
+                    sugg_ul.append(li)
+            rec_div.append(sugg_ul)
 
         if rec_div.find_all():
             container.append(rec_div)

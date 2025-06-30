@@ -9,6 +9,7 @@ from .base_renderer import BaseRenderer
 from .book_summary_renderer import BookSummaryRenderer
 from .financial_renderer import FinancialRenderer
 from .generic_renderer import GenericRenderer
+from .news_daily_renderer import NewsDailyRenderer
 from .poem_renderer import PoemRenderer
 from .saint_renderer import SaintRenderer
 
@@ -20,6 +21,7 @@ class RendererFactory:
     _RENDERER_MAP: dict[str, type[BaseRenderer]] = {
         "BOOK_SUMMARY": BookSummaryRenderer,
         "FINDAILY": FinancialRenderer,
+        "NEWSDAILY": NewsDailyRenderer,
         "POEM": PoemRenderer,
         "SAINT": SaintRenderer,
         # Add more mappings as needed

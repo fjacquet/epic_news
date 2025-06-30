@@ -9,6 +9,7 @@ from .base_renderer import BaseRenderer
 from .book_summary_renderer import BookSummaryRenderer
 from .financial_renderer import FinancialRenderer
 from .generic_renderer import GenericRenderer
+from .news_daily_renderer import NewsDailyRenderer
 from .poem_renderer import PoemRenderer
 from .renderer_factory import RendererFactory
 from .saint_renderer import SaintRenderer
@@ -18,6 +19,7 @@ __all__ = [
     "BookSummaryRenderer",
     "FinancialRenderer",
     "GenericRenderer",
+    "NewsDailyRenderer",
     "PoemRenderer",
     "SaintRenderer",
     "RendererFactory",

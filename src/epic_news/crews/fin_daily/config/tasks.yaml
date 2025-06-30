@@ -167,7 +167,7 @@ etf_suggestion_task:
 final_report_generation_task:
   agent: investment_strategist
   description: >
-    Compile a comprehensive financial report using the provided context from all other tasks.
+    Compile a comprehensive financial report in french using the provided context from all other tasks.
     The report must be structured as a JSON object conforming to the FinancialReport Pydantic model.
     - Create a concise `executive_summary` of the key findings.
     - For each asset class (Stocks, Crypto, ETFs), create an `AssetAnalysis` object summarizing the portfolio analysis.
@@ -202,4 +202,4 @@ final_report_generation_task:
     - etf_suggestion_task
     - crypto_suggestion_task
   async_execution: false
-  output_file: output/findaily/financial_data.json
+  output_file: "{output_file}"

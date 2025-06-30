@@ -133,7 +133,14 @@ class TemplateManager:
         if RendererFactory.has_specialized_renderer(selected_crew):
             try:
                 renderer = RendererFactory.create_renderer(selected_crew)
-                return renderer.render(content_data)
+                # Convert Pydantic models to dictionaries for renderer compatibility
+                if hasattr(content_data, 'model_dump'):
+                    renderer_data = content_data.model_dump()
+                elif hasattr(content_data, 'dict'):
+                    renderer_data = content_data.dict()
+                else:
+                    renderer_data = content_data
+                return renderer.render(renderer_data)
             except Exception as e:
                 print(f"❌ Error using modular renderer for {selected_crew}: {e}")
                 # Fall back to legacy methods

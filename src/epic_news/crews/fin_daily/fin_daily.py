@@ -41,7 +41,7 @@ class FinDailyCrew:
     def stock_analyst(self) -> Agent:
         return Agent(
             config=self.agents_config["stock_analyst"],
-            tools=self.stock_tools,
+            # tools=self.stock_tools,
             llm="gpt-4.1-mini",
             verbose=True,
         )
@@ -50,7 +50,7 @@ class FinDailyCrew:
     def crypto_analyst(self) -> Agent:
         return Agent(
             config=self.agents_config["crypto_analyst"],
-            tools=self.crypto_tools,
+            # tools=self.crypto_tools,
             llm="gpt-4.1-mini",
             verbose=True,
         )
@@ -59,7 +59,7 @@ class FinDailyCrew:
     def investment_strategist(self) -> Agent:
         return Agent(
             config=self.agents_config["investment_strategist"],
-            tools=self.stock_tools + self.crypto_tools,
+            # tools=self.stock_tools + self.crypto_tools,
             llm="gpt-4.1-mini",
             verbose=True,
         )

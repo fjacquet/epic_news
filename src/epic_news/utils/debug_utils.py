@@ -11,6 +11,43 @@ from pydantic import BaseModel
 logger = logging.getLogger(__name__)
 
 
+def _attempt_json_repair(json_str: str) -> str:
+    """
+    Attempt to repair truncated or malformed JSON by adding missing closing braces.
+
+    Args:
+        json_str: The potentially malformed JSON string
+
+    Returns:
+        str: Repaired JSON string
+    """
+    # Count opening and closing braces/brackets
+    open_braces = json_str.count("{")
+    close_braces = json_str.count("}")
+    open_brackets = json_str.count("[")
+    close_brackets = json_str.count("]")
+
+    # Add missing closing braces and brackets
+    repaired = json_str
+
+    # If we have unmatched opening braces, add closing braces
+    if open_braces > close_braces:
+        missing_braces = open_braces - close_braces
+        repaired += "}" * missing_braces
+
+    # If we have unmatched opening brackets, add closing brackets
+    if open_brackets > close_brackets:
+        missing_brackets = open_brackets - close_brackets
+        repaired += "]" * missing_brackets
+
+    # Handle case where JSON ends with a comma (common in truncated JSON)
+    repaired = repaired.rstrip()
+    if repaired.endswith(","):
+        repaired = repaired[:-1]
+
+    return repaired
+
+
 def dump_crewai_state(state_data: dict[str, Any], crew_name: str, debug_dir: str = "debug") -> str:
     """
     Dump CrewAI state to a JSON file for debugging purposes.
@@ -194,7 +231,24 @@ def parse_crewai_output(report_content: Any, model_class: type[T], inputs: dict 
         return model_class.model_validate(parsed_data)
     except json.JSONDecodeError as e:
         logger.error(f"Failed to parse JSON. Raw output was: {raw_json[:500]}...")
-        raise ValueError(f"Invalid JSON output from {model_class.__name__} crew: {e}")
+
+        # Try to repair truncated JSON by adding missing closing braces
+        try:
+            logger.info("Attempting to repair truncated JSON...")
+            repaired_json = _attempt_json_repair(cleaned_json)
+            parsed_data = json.loads(repaired_json)
+
+            # Apply same special handling as above
+            if model_class.__name__ == "BookSummaryReport" and "table_of_contents" in parsed_data:
+                for entry in parsed_data["table_of_contents"]:
+                    if "id" in entry and not isinstance(entry["id"], str):
+                        entry["id"] = str(entry["id"])
+
+            logger.info("Successfully repaired and parsed JSON")
+            return model_class.model_validate(parsed_data)
+        except Exception as repair_error:
+            logger.error(f"JSON repair attempt failed: {repair_error}")
+            raise ValueError(f"Invalid JSON output from {model_class.__name__} crew: {e}")
     except Exception as e:
         logger.error(f"Failed to validate {model_class.__name__} model: {e}")
         raise ValueError(f"Invalid {model_class.__name__} data structure: {e}")
