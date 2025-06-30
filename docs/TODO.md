@@ -5,20 +5,20 @@
 // TODO: Convert the crews to new html output
 
 - [ ] COOKING 
-- [ ] FINDAILY
+- [x] FINDAILY
 - [ ] HOLIDAY_PLANNER
 - [x] LIBRARY
 - [ ] MARKETING_WRITERS
 - [ ] MEETING_PREP
 - [ ] MENU
 - [ ] NEWSCOMPANY
-- [ ] NEWSDAILY
+- [x] NEWSDAILY
 - [ ] OPEN_SOURCE_INTELLIGENCE
 - [x] POEM
 - [ ] RSS
 - [x] SAINT
 - [ ] SALES_PROSPECTING
-- [ ] SHOPPING
+- [x] SHOPPING_ADVISOR
 
 - [x] add streamlit ?
 - [x] create a test for RenderReportTool

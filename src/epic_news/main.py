@@ -65,6 +65,7 @@ from epic_news.utils.html.daily_news_html_factory import daily_news_to_html
 from epic_news.utils.html.fin_daily_html_factory import findaily_to_html
 from epic_news.utils.html.poem_html_factory import poem_to_html
 from epic_news.utils.html.saint_html_factory import saint_to_html
+from epic_news.utils.html.shopping_advice_html_factory import shopping_advice_to_html
 from epic_news.utils.logger import get_logger
 from epic_news.utils.menu_generator import MenuGenerator
 from epic_news.utils.string_utils import create_topic_slug
@@ -574,10 +575,11 @@ class ReceptionFlow(Flow[ContentState]):
 
         # Prepare inputs for ShoppingAdvisorCrew
         crew_inputs = self.state.to_crew_inputs()
+        crew_inputs["output_file"] = "output/shopping_advisor/shopping_advice.json"
 
         # Generate structured shopping advice data
         shopping_result = ShoppingAdvisorCrew().crew().kickoff(inputs=crew_inputs)
-        print("✅ Shopping advice data generation complete")
+        dump_crewai_state(shopping_result, "SHOPPING_ADVISOR")
 
         # Extract ShoppingAdviceOutput from the result
         shopping_advice_obj = None
@@ -590,18 +592,22 @@ class ReceptionFlow(Flow[ContentState]):
                     shopping_advice_obj = task_output.pydantic
                     break
 
-        if shopping_advice_obj:
-            print(f"🔍 ShoppingAdviceOutput extracted: {shopping_advice_obj.product_info.name}")
-            # Store in CrewAI state for HtmlDesignerCrew
-            self.state.shopping_advice_model = shopping_advice_obj
-        else:
+        if not shopping_advice_obj:
             print("⚠️ Could not extract ShoppingAdviceOutput from crew result")
             return
 
-        # Set output file for HTML generation (will be used by generate_html_report)
+        print(f"🔍 ShoppingAdviceOutput extracted: {shopping_advice_obj.product_info.name}")
+        # Store in CrewAI state
+        self.state.shopping_advice_model = shopping_advice_obj
+
+        # Set output file path
         topic = self.state.extracted_info.topic or "product-recommendation"
         topic_slug = topic.lower().replace(" ", "-").replace("'", "").replace('"', "")
-        self.state.output_file = f"output/shopping_advisor/shopping-advice-{topic_slug}.html"
+        html_file = f"output/shopping_advisor/shopping-advice-{topic_slug}.html"
+        self.state.output_file = html_file
+
+        # Generate HTML using the factory function
+        shopping_advice_to_html(shopping_advice_obj, topic=topic, html_file=html_file)
 
         print("✅ Shopping advice content generated - HTML rendering will be handled by generate_html_report")
 
@@ -989,7 +995,10 @@ def kickoff(user_input: str | None = None):
     """
     # If user_input is not provided, use a default value.
     request = (
-        user_input if user_input else "get the daily  news report"
+        user_input
+        if user_input
+        else "Donne moi un conseil d'achat pour remplacer mon sodastream par une marque plus ethique et non israélienne"
+        # else "get the daily  news report"
         # else "get the findaily report"
         # else "Donne moi le saint du jour en français"
         # else "Get me a poem on the mouse of the desert Muad dib"
