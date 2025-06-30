@@ -104,16 +104,35 @@ class UnifiedRssTool(BaseTool):
                 for article in feed.articles:
                     try:
                         logger.info(f"Scraping content for: {article.link}")
-                        article.content = self._scrape_article_content(article.link)
+                        scraped_content = self._scrape_article_content(article.link)
+                        if scraped_content:
+                            article.content = scraped_content
+                        else:
+                            # Fallback to summary if scraping fails or returns empty
+                            if article.summary:
+                                logger.warning(
+                                    f"Scraping failed for {article.link}. Falling back to RSS summary."
+                                )
+                                article.content = article.summary
+                            else:
+                                logger.warning(
+                                    f"Scraping failed for {article.link} and no RSS summary available."
+                                )
                     except Exception as e:
-                        logger.error(f"Error scraping content for {article.link}: {str(e)}")
+                        logger.error(f"Error during scraping for {article.link}: {str(e)}")
+                        # Also fallback to summary on exception
+                        if article.summary:
+                            logger.warning("Falling back to RSS summary due to exception.")
+                            article.content = article.summary
 
             # Save results to a JSON file
-            rss_feeds = RssFeeds(feeds=all_feeds)
+            rss_feeds = RssFeeds(rss_feeds=all_feeds)
 
             if output_file_path:
                 # Ensure the directory exists
-                os.makedirs(os.path.dirname(output_file_path), exist_ok=True)
+                output_dir = os.path.dirname(output_file_path)
+                if output_dir:
+                    os.makedirs(output_dir, exist_ok=True)
 
                 # Write results to JSON file
                 with open(output_file_path, "w", encoding="utf-8") as f:
@@ -122,12 +141,17 @@ class UnifiedRssTool(BaseTool):
                 logger.info(f"Results saved to {output_file_path}")
 
             # Write invalid sources to a separate file
-            if invalid_sources:
+            if invalid_sources and invalid_sources_file_path:
                 invalid_sources_data = {
                     "invalid_sources": list(invalid_sources),
                     "timestamp": datetime.now().isoformat(),
                     "total_invalid": len(invalid_sources),
                 }
+                # Ensure the directory exists
+                invalid_sources_dir = os.path.dirname(invalid_sources_file_path)
+                if invalid_sources_dir:
+                    os.makedirs(invalid_sources_dir, exist_ok=True)
+
                 with open(invalid_sources_file_path, "w", encoding="utf-8") as f:
                     json.dump(invalid_sources_data, f, ensure_ascii=False, indent=2)
                 logger.info(
@@ -266,6 +290,7 @@ class UnifiedRssTool(BaseTool):
                     title=entry.title,
                     link=entry.link,
                     published=pub_date.isoformat(),
+                    summary=entry.summary if hasattr(entry, "summary") else None,
                     content=None,  # Will be populated later
                 )
                 articles.append(article)
@@ -300,27 +325,37 @@ class UnifiedRssTool(BaseTool):
         """
         # First try with Newspaper3k (faster and doesn't require API key)
         try:
+            logger.info(f"Attempting to scrape with Newspaper3k: {url}")
             article = NewspaperArticle(url)
             article.download()
             article.parse()
 
             if article.text and len(article.text.strip()) > 100:  # Ensure we got meaningful content
+                logger.info(f"Successfully scraped with Newspaper3k: {url}")
                 return article.text
+            logger.warning(f"Newspaper3k extracted no/short content from: {url}")
         except Exception as e:
-            logger = logging.getLogger(__name__)
             logger.warning(f"Newspaper3k failed for {url}: {str(e)}")
 
-        # Fall back to ScrapeNinjaTool if Newspaper3k fails
+        # Fall back to ScrapeNinjaTool if Newspaper3k fails or returns insufficient content
         try:
-            content = self.scrape_ninja_tool._run(url)
-            if isinstance(content, dict) and "content" in content:
-                return content["content"]
-            return content
-        except Exception as e:
-            logger = logging.getLogger(__name__)
-            logger.error(f"ScrapeNinjaTool failed for {url}: {str(e)}")
+            logger.info(f"Falling back to ScrapeNinja for: {url}")
+            content = self.scrape_ninja_tool._run(url=url)
+
+            # If ScrapeNinja returns its raw JSON response, it means it failed to extract clean text.
+            if content and isinstance(content, str) and content.strip().startswith('{"info":'):
+                logger.warning(f"ScrapeNinja returned raw JSON for {url}. Discarding.")
+                return None  # Treat as failure to trigger summary fallback
+
+            if content:
+                logger.info(f"Successfully scraped with ScrapeNinja: {url}")
+                return content
+            logger.warning(f"ScrapeNinja returned no content for: {url}")
             return None
 
+        except Exception as e:
+            logger.error(f"ScrapeNinjaTool failed for {url}: {str(e)}")
+            return None
 
 def get_default_paths():
     """Get default paths for OPML input and JSON output."""

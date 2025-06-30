@@ -15,23 +15,27 @@ classification_task:
     recommendations, buying guides, or consumer advice requests
     - FINDAILY: For financial advice, investment recommendations, portfolio analysis,
     stock market insights, crypto analysis, financial planning, daily financial reports
-    - NEWSDAILY: For daily news summaries, current events, news analysis, breaking news
+    - NEWSDAILY: For daily news summaries, current events, news analysis, breaking
+    news
     - HOLIDAY_PLANNER: For vacation planning, travel itineraries, destination research
-    - BOOK_SUMMARY: For book summaries, reading recommendations, literary analysis, book reviews, author information, literature queries, book analysis, tell me about book, livre, roman, auteur
+    - BOOK_SUMMARY: For book summaries, reading recommendations, literary analysis,
+    book reviews, author information, literature queries, book analysis, tell me about
+    book, livre, roman, auteur
     - MEETING_PREP: For meeting preparation, agenda creation, research for meetings
     - And so on for other categories...
     Pay special attention to keywords like:
     - "menu", "weekly", "planner", "planning", "multiple recipes", "shopping list"
     → MENU
-    - "recipe", "dish", "cooking technique", "ingredient", "single meal", "risotto" → COOKING
+    - "recipe", "dish", "cooking technique", "ingredient", "single meal", "risotto"
+    → COOKING
     - "achat", "acheter", "conseil", "prix", "comparaison", "recommandation", "produit"
     → SHOPPING_ADVISOR
-    - "financier", "finance", "investissement", "bourse", "crypto", "portefeuille", "conseil financier"
+    - "financier", "finance", "investissement", "bourse", "crypto", "portefeuille",
+    "conseil financier"
     → FINDAILY
     - "actualités", "nouvelles", "news", "événements", "journal", "information"
     → NEWSDAILY
-    - "book", "livre", "roman", "auteur", "author", "tell me about", 
-    → BOOK_SUMMARY
+    - "book", "livre", "roman", "auteur", "author", "tell me about",  → BOOK_SUMMARY
     - "saint", "saint du jour", "daily saint", "saint daily"
     → SAINT
     - "poem", "poème", "poetry", "poésie"

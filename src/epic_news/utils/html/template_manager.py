@@ -134,9 +134,9 @@ class TemplateManager:
             try:
                 renderer = RendererFactory.create_renderer(selected_crew)
                 # Convert Pydantic models to dictionaries for renderer compatibility
-                if hasattr(content_data, 'model_dump'):
+                if hasattr(content_data, "model_dump"):
                     renderer_data = content_data.model_dump()
-                elif hasattr(content_data, 'dict'):
+                elif hasattr(content_data, "dict"):
                     renderer_data = content_data.dict()
                 else:
                     renderer_data = content_data
@@ -178,6 +178,10 @@ class TemplateManager:
         # Handle SHOPPING_ADVICE (Shopping Advice Reports)
         if selected_crew == "SHOPPING_ADVICE":
             return self._generate_shopping_body(content_data)
+
+        # Handle RSS_WEEKLY (RSS Weekly Digest Reports)
+        if selected_crew == "RSS_WEEKLY":
+            return self._generate_rss_weekly_body(content_data)
 
         # Handle other crew types with legacy methods
         if selected_crew == "COOKING":
@@ -651,6 +655,83 @@ class TemplateManager:
     def _generate_library_body(self, data: dict[str, Any]) -> str:
         """Génère le corps HTML pour la bibliothèque."""
         return self._generate_book_summary_body(data)
+
+    def _generate_rss_weekly_body(self, data: dict[str, Any]) -> str:
+        """Génère le corps HTML pour le digest RSS hebdomadaire."""
+        if "error" in data:
+            return f"<div class='error'>⚠️ {data['error']}</div>"
+
+        sections = []
+
+        # Executive Summary
+        if data.get("executive_summary"):
+            sections.append(f"""
+            <section class="executive-summary">
+                <h2>📊 Résumé Exécutif</h2>
+                <div class="summary-content">
+                    <p>{data["executive_summary"]}</p>
+                </div>
+            </section>
+            """)
+
+        # Statistics Overview
+        total_feeds = data.get("total_feeds", 0)
+        total_articles = data.get("total_articles", 0)
+        if total_feeds > 0 or total_articles > 0:
+            sections.append(f"""
+            <section class="statistics">
+                <h2>📈 Statistiques</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>📡 Flux RSS</h3>
+                        <p class="stat-number">{total_feeds}</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>📰 Articles</h3>
+                        <p class="stat-number">{total_articles}</p>
+                    </div>
+                </div>
+            </section>
+            """)
+
+        # Feed Digests
+        if data.get("feeds"):
+            sections.append("<section class='feed-digests'><h2>📡 Digest par Source</h2>")
+
+            for feed in data["feeds"]:
+                feed_name = feed.get("feed_name", "Source inconnue")
+                feed_url = feed.get("feed_url", "")
+                articles = feed.get("articles", [])
+
+                sections.append(f"""
+                <div class="feed-digest">
+                    <h3>🌐 {feed_name}</h3>
+                    {f'<p class="feed-url"><a href="{feed_url}" target="_blank">{feed_url}</a></p>' if feed_url else ""}
+                    <div class="articles-count">📊 {len(articles)} article(s)</div>
+                """)
+
+                if articles:
+                    sections.append("<div class='articles-list'>")
+                    for article in articles:
+                        title = article.get("title", "Titre non disponible")
+                        link = article.get("link", "")
+                        published = article.get("published", "")
+                        summary = article.get("summary", "")
+
+                        sections.append(f"""
+                        <article class="article-summary">
+                            <h4>{'<a href="' + link + '" target="_blank">' + title + "</a>" if link else title}</h4>
+                            {f'<p class="published-date">📅 {published}</p>' if published else ""}
+                            {f'<div class="summary"><p>{summary}</p></div>' if summary else ""}
+                        </article>
+                        """)
+                    sections.append("</div>")
+
+                sections.append("</div>")
+
+            sections.append("</section>")
+
+        return "\n".join(sections)
 
     def _generate_book_summary_body(self, data: dict[str, Any]) -> str:
         """Génère le corps HTML pour un résumé de livre avec formatage riche."""

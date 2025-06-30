@@ -11,7 +11,6 @@ from crewai.tools import BaseTool
 from pydantic import BaseModel, Field
 
 from epic_news.utils.directory_utils import ensure_output_directories
-from epic_news.utils.html.path import determine_output_path
 from epic_news.utils.html.template_manager import TemplateManager
 
 

@@ -17,6 +17,7 @@ class Article(BaseModel):
     title: str
     link: str
     published: str
+    summary: Union[str, None] = None
     content: Union[str, None] = None
 
 
@@ -30,4 +31,4 @@ class FeedWithArticles(BaseModel):
 class RssFeeds(BaseModel):
     """A list of RSS feeds, each with its recent articles."""
 
-    feeds: list[FeedWithArticles]
+    rss_feeds: list[FeedWithArticles]

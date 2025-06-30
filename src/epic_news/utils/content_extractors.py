@@ -11,6 +11,7 @@ from typing import Any
 
 from epic_news.models.financial_report import FinancialReport
 from epic_news.models.paprika_recipe import PaprikaRecipe
+from epic_news.models.rss_weekly_models import RssWeeklyReport
 from epic_news.models.saint_data import SaintData
 from epic_news.models.shopping_advice_models import ShoppingAdviceOutput
 
@@ -128,10 +129,7 @@ class NewsDailyExtractor(ContentExtractor):
 
             try:
                 # Try to parse as JSON
-                if isinstance(news_raw, str):
-                    news_data = json.loads(news_raw)
-                else:
-                    news_data = news_raw
+                news_data = json.loads(news_raw) if isinstance(news_raw, str) else news_raw
 
                 print("  ✅ News data parsed from raw data")
                 return news_data
@@ -272,10 +270,7 @@ class FinancialExtractor(ContentExtractor):
 
             try:
                 # Try to parse as JSON
-                if isinstance(fin_raw, str):
-                    fin_data = json.loads(fin_raw)
-                else:
-                    fin_data = fin_raw
+                fin_data = json.loads(fin_raw) if isinstance(fin_raw, str) else fin_raw
 
                 # Try to create FinancialReport from the data
                 financial_report = FinancialReport.model_validate(fin_data)
@@ -290,21 +285,69 @@ class FinancialExtractor(ContentExtractor):
                 print(f"  ✅ FinancialReport reconstructed from dict: {financial_report.title}")
             except Exception as e:
                 print(f"  ❌ Failed to reconstruct FinancialReport: {e}")
-                print(f"  🔧 Creating fallback FinancialReport with available data...")
-                
+                print("  🔧 Creating fallback FinancialReport with available data...")
+
                 # Create a fallback FinancialReport with available data
                 financial_report = FinancialReport(
-                    title=financial_report.get('title', 'Daily Financial Report'),
-                    executive_summary=financial_report.get('executive_summary', 
-                                                         financial_report.get('summary', 'Financial analysis summary not available')),
+                    title=financial_report.get("title", "Daily Financial Report"),
+                    executive_summary=financial_report.get(
+                        "executive_summary",
+                        financial_report.get("summary", "Financial analysis summary not available"),
+                    ),
                     analyses=[],  # Empty list for now - can be enhanced later
-                    suggestions=[]  # Empty list for now - can be enhanced later
+                    suggestions=[],  # Empty list for now - can be enhanced later
                 )
                 print(f"  ✅ Fallback FinancialReport created: {financial_report.title}")
 
         # Return the financial report model object directly for TemplateManager
         # TemplateManager expects the actual model object, not a dictionary
         return {"financial_report_model": financial_report}
+
+
+class RssWeeklyExtractor(ContentExtractor):
+    """Extractor for RSS_WEEKLY crew content."""
+
+    def extract(self, state_data: dict[str, Any]) -> dict[str, Any]:
+        """Extract RSS weekly report data using RssWeeklyReport Pydantic model."""
+        try:
+            # Get the RSS weekly crew output
+            rss_weekly_output = state_data.get("rss_weekly_report", {})
+
+            if hasattr(rss_weekly_output, "raw"):
+                # Parse raw JSON output from crew
+                try:
+                    raw_data = json.loads(rss_weekly_output.raw)
+                    rss_model = RssWeeklyReport.model_validate(raw_data)
+                except (json.JSONDecodeError, ValueError) as e:
+                    print(f"❌ Error parsing RSS weekly raw output: {e}")
+                    # Create minimal model with error info
+                    rss_model = RssWeeklyReport(
+                        title="Erreur de Parsing RSS Weekly",
+                        summary=f"Erreur lors du parsing des données: {str(e)}",
+                    )
+            elif isinstance(rss_weekly_output, dict):
+                # Direct dictionary data
+                rss_model = RssWeeklyReport.model_validate(rss_weekly_output)
+            else:
+                # Fallback: create empty model
+                rss_model = RssWeeklyReport(
+                    title="Résumé Hebdomadaire des Flux RSS", summary="Aucune donnée RSS disponible"
+                )
+
+            # Return the model as a dictionary for TemplateManager compatibility
+            return rss_model.model_dump()
+
+        except Exception as e:
+            print(f"❌ Error in RssWeeklyExtractor: {e}")
+            # Return minimal error data
+            return {
+                "title": "Erreur RSS Weekly",
+                "summary": f"Erreur lors de l'extraction: {str(e)}",
+                "feeds": [],
+                "total_feeds": 0,
+                "total_articles": 0,
+                "error": str(e),
+            }
 
 
 class GenericExtractor(ContentExtractor):
@@ -330,6 +373,7 @@ class ContentExtractorFactory:
         "SAINT": SaintExtractor,
         "SHOPPING": ShoppingExtractor,
         "FINDAILY": FinancialExtractor,
+        "RSS_WEEKLY": RssWeeklyExtractor,
     }
 
     @classmethod

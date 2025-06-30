@@ -9,13 +9,11 @@ research_task:
     on the specified topic, with citations and references.
   agent: researcher
   output_file: output/library/research.md
-
 reporting_task:
   description: |
     CRITICAL: Generate a comprehensive, professional book report in pure JSON format
     about the topic: {topic}.
     The report must be in french and must match the BookSummaryReport Pydantic schema exactly.
-
     Required fields:
       - topic (string)
       - publication_date (string, ISO format preferred)
@@ -30,9 +28,7 @@ reporting_task:
     Do not include any explanations or formatting outside of the JSON object.
   expected_output: |
     A valid and pure JSON object matching the BookSummaryReport Pydantic model. 
-
     Output must be directly parseable as JSON and include all required fields.
   agent: reporting_analyst
-  context: 
-    - research_task  
-  output_file: "{output_file}"
+  context: [research_task]
+  output_file: '{output_file}'

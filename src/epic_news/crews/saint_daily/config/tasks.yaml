@@ -2,7 +2,8 @@
 saint_research_task:
   agent: saint_researcher
   description: >
-    Research comprehensive information about today's saint ({current_date}) using Wikipedia
+    Research comprehensive information about today's saint ({current_date}) using
+    Wikipedia
     and web search tools.
     Find detailed information about:
     - The name of the saint(s) celebrated on {current_date}
@@ -20,7 +21,6 @@ saint_research_task:
     including biographical details, significance, miracles, Swiss connections,
     and reliable sources. Format as structured text with clear sections.
   async_execution: false
-
 saint_data_task:
   agent: saint_reporter
   description: >
@@ -52,5 +52,5 @@ saint_data_task:
     - Prière/réflexion et sources fiables
     - Format JSON pur, prêt pour le rendu HTML unifié
   context: [saint_research_task]
-  output_file: "{output_file}"
+  output_file: '{output_file}'
   async_execution: false

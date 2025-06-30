@@ -22,12 +22,15 @@ Key functionalities include:
 import datetime
 import json
 import os
+import re
 import warnings
+from pathlib import Path
 
 from crewai.flow import Flow, listen, or_, router, start
 from dotenv import load_dotenv
 from pydantic import PydanticDeprecatedSince20, PydanticDeprecatedSince211
 
+from epic_news.bin.fetch_rss_articles import fetch_articles_from_opml
 from epic_news.crews.classify.classify_crew import ClassifyCrew
 from epic_news.crews.company_news.news_crew import CompanyNewsCrew
 from epic_news.crews.company_profiler.company_profiler_crew import CompanyProfilerCrew
@@ -68,6 +71,9 @@ from epic_news.utils.html.saint_html_factory import saint_to_html
 from epic_news.utils.html.shopping_advice_html_factory import shopping_advice_to_html
 from epic_news.utils.logger import get_logger
 from epic_news.utils.menu_generator import MenuGenerator
+from epic_news.utils.report_utils import (
+    generate_rss_weekly_html_report,
+)
 from epic_news.utils.string_utils import create_topic_slug
 
 # Suppress the specific Pydantic deprecation warnings globally
@@ -297,25 +303,108 @@ class ReceptionFlow(Flow[ContentState]):
         # return "generate_news_company"
 
     @listen("go_generate_rss_weekly")
-    def generate_rss_weekly(self):
+    async def generate_rss_weekly(self):
         """
         Handles requests classified for the 'RssWeeklyCrew'.
 
-        Invokes the `RssWeeklyCrew` to generate a weekly news summary from RSS feeds.
-        Sets `output_file` to `output/rss_weekly/report.html` and stores the report
-        in `self.state.rss_weekly_report`.
+        This method orchestrates a three-step pipeline:
+        1. Fetch articles from an OPML file.
+        2. Translate the articles into French.
+        3. Generate a final HTML report.
         """
-        self.state.output_file = "output/rss_weekly/report.html"
-        print("📰 Generating RSS weekly report...")
+        print("📰 Generating RSS weekly report (new pipeline)...")
+        base_path = Path("output/rss_weekly")
+        base_path.mkdir(parents=True, exist_ok=True)
 
-        # Prepare inputs for the crew, including the OPML file path
-        inputs = self.state.to_crew_inputs()
-        opml_file = "src/epic_news/crews/rss_weekly/data/feedly.opml"
-        inputs["opml_file_path"] = os.path.abspath(opml_file)
+        opml_path = "data/feedly.opml"
+        raw_report_path = base_path / "report.json"
+        translated_report_path = base_path / "final-report.json"
+        html_report_path = base_path / "report.html"
 
-        # Kick off the crew
-        report_content = RssWeeklyCrew().crew().kickoff(inputs=inputs)
-        self.state.rss_weekly_report = report_content
+        # Step 1: Fetch articles from OPML
+        print("Step 1: Fetching articles...")
+        await fetch_articles_from_opml(opml_file_path=opml_path, output_file_path=str(raw_report_path))
+
+        # Step 2: Translate articles using the refactored crew
+        print("Step 2: Translating articles...")
+        translation_inputs = {
+            "input_file": str(raw_report_path),
+            "output_file": str(translated_report_path),
+        }
+        report_output = RssWeeklyCrew().crew().kickoff(inputs=translation_inputs)
+        dump_crewai_state(report_output, "RSS_WEEKLY_TRANSLATION")
+
+        # Step 2.5: Save the translated report
+        print(f"Step 2.5: Saving translated report to {translated_report_path}...")
+        try:
+            # Handle the case where the agent returns action traces instead of just JSON
+            raw_output = report_output.raw
+
+            # Check if the output contains action traces (starts with "Action:")
+            if raw_output.strip().startswith("Action:"):
+                print("Detected action trace format in crew output, attempting to extract JSON...")
+                # Try to find JSON in the output - look for the last JSON-like structure
+                # This is a common pattern when agents output their thought process and then the final result
+                json_matches = re.findall(r"\{[\s\S]*\}", raw_output)
+                if json_matches:
+                    # Use the last match which is likely the final result
+                    potential_json = json_matches[-1]
+                    try:
+                        translated_data = json.loads(potential_json)
+                        print("Successfully extracted JSON from action trace output")
+                    except json.JSONDecodeError:
+                        raise ValueError("Found JSON-like structure but couldn't parse it")
+                else:
+                    raise ValueError("No JSON structure found in the crew output")
+            else:
+                # Normal case - the output is already JSON
+                translated_data = json.loads(raw_output)
+
+            # Post-process the data to match the expected RssFeeds model structure
+            # If the data only has 'articles' but no 'rss_feeds', transform it
+            if "articles" in translated_data and "rss_feeds" not in translated_data:
+                # Create a wrapper with the expected structure
+                processed_data = {
+                    "rss_feeds": [
+                        {
+                            "feed_url": "translated_feed",  # Placeholder feed URL
+                            "articles": [],
+                        }
+                    ]
+                }
+
+                # Add link and published fields if they don't exist
+                for article in translated_data["articles"]:
+                    if "link" not in article:
+                        article["link"] = ""  # Add empty link if missing
+                    if "published" not in article:
+                        article["published"] = ""  # Add empty published date if missing
+
+                # Add the articles to the feed
+                processed_data["rss_feeds"][0]["articles"] = translated_data["articles"]
+
+                # Replace the translated data with the processed data
+                translated_data = processed_data
+
+            with open(translated_report_path, "w", encoding="utf-8") as f:
+                json.dump(translated_data, f, ensure_ascii=False, indent=2)
+            print("✅ Successfully saved translated report.")
+        except (json.JSONDecodeError, TypeError) as e:
+            print(f"❌ Failed to decode or save translated JSON from crew result: {e}")
+            # If we can't save the file, there's no point in continuing.
+            return
+
+        # Step 3: Generate the final HTML report
+        print("Step 3: Generating HTML report...")
+        generate_rss_weekly_html_report(
+            json_file_path=str(translated_report_path),
+            output_html_path=str(html_report_path),
+        )
+
+        # Store the final report path in the state
+        self.state.rss_weekly_report = f"Report generated at {html_report_path}"
+        self.state.output_file = str(html_report_path)
+        print(f"✅ New RSS weekly pipeline complete. Report at: {html_report_path}")
 
     @listen("go_generate_findaily")
     def generate_findaily(self):
@@ -954,15 +1043,18 @@ class ReceptionFlow(Flow[ContentState]):
         (recipient, subject, body, attachment) from the application state. The PostCrew
         is then invoked to handle the actual email dispatch.
         """
-        # from epic_news.utils.report_utils import prepare_email_params
 
-        # if not self.state.email_sent:
-        #     print("📬 Preparing to send email...")
+        if not self.state.email_sent:
+            print("📬 Preparing to send email...")
 
-        #     # Use utility function to prepare all email parameters
-        #     email_inputs = prepare_email_params(self.state)
+            # Use utility function to prepare all email parameters
+            # email_inputs = prepare_email_params(self.state)
 
-        #     # Log attachment status for better visibility
+            # # Log attachment status for better visibility
+            # if email_inputs.get("attachment_path"):
+            #     print(f"Using attachment: {email_inputs['attachment_path']}")
+            # else:
+            #     print("⚠️ No valid attachment file found. Email will be sent without attachment.")
         #     if email_inputs.get("attachment_path"):
         #         print(f"Using attachment: {email_inputs['attachment_path']}")
         #     else:
@@ -995,9 +1087,8 @@ def kickoff(user_input: str | None = None):
     """
     # If user_input is not provided, use a default value.
     request = (
-        user_input
-        if user_input
-        else "Donne moi un conseil d'achat pour remplacer mon sodastream par une marque plus ethique et non israélienne"
+        user_input if user_input else "get the rss weekly report"
+        # else "Donne moi un conseil d'achat pour remplacer mon sodastream par une marque plus ethique et non israélienne"
         # else "get the daily  news report"
         # else "get the findaily report"
         # else "Donne moi le saint du jour en français"
@@ -1036,7 +1127,7 @@ if __name__ == "__main__":
     # 📋 For a complete list of supported use cases and example prompts,
     # see USE_CASES.md in the project root directory.
     # Examples: "Analyze my portfolio", "Recipe for cookies", "News about AI"
-    kickoff()
+    kickoff(user_input="Generate the weekly RSS report")
 
     # To generate a plot of the flow, uncomment the following line:
     # plot()

@@ -141,4 +141,4 @@ final_report_generation_task:
     - Méthodologie de collecte et statistiques de déduplication
     Format JSON valide prêt pour traitement par HtmlDesignerCrew.
   agent: content_curator
-  output_file: "{output_file}"
+  output_file: '{output_file}'

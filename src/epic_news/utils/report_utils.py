@@ -1,8 +1,17 @@
 """Utilities for report generation, content extraction, and file operations."""
 
+import json
 import logging
 import os
 from typing import Any
+
+from epic_news.models.rss_models import RssFeeds
+from epic_news.models.rss_weekly_models import (
+    ArticleSummary,
+    FeedDigest,
+    RssWeeklyReport,
+)
+from epic_news.utils.html.rss_weekly_html_factory import rss_weekly_to_html
 
 logger = logging.getLogger(__name__)
 
@@ -151,6 +160,68 @@ def prepare_email_params(state: Any) -> dict[str, Any]:
     params["attachment_path"] = attachment_to_send if attachment_to_send else ""
 
     return params
+
+
+def generate_rss_weekly_html_report(
+    json_file_path: str,
+    output_html_path: str,
+    report_title: str = "Veille Technologique Hebdomadaire",
+) -> None:
+    """
+    Reads translated RSS data from a JSON file, converts it to an HTML report,
+    and saves the report.
+
+    Args:
+        json_file_path: Path to the input JSON file (e.g., 'final-report.json').
+        output_html_path: Path to save the output HTML file.
+        report_title: The title for the HTML report.
+    """
+    logger.info(f"🚀 Generating HTML report from {json_file_path}...")
+
+    try:
+        with open(json_file_path, encoding="utf-8") as f:
+            data = json.load(f)
+
+        rss_feeds_model = RssFeeds.model_validate(data)
+
+        # Transform RssFeeds to RssWeeklyReport
+        report_feeds = []
+        total_articles = 0
+        for feed_data in rss_feeds_model.rss_feeds:
+            articles = [
+                ArticleSummary(
+                    title=a.title,
+                    link=a.link,
+                    published=a.published if a.published else "",
+                    summary=a.content or a.summary or "",
+                    source_feed=feed_data.feed_url,
+                )
+                for a in feed_data.articles
+            ]
+            report_feeds.append(
+                FeedDigest(
+                    feed_url=feed_data.feed_url,
+                    feed_name="",  # Factory will generate one from the URL
+                    articles=articles,
+                    total_articles=len(articles),
+                )
+            )
+            total_articles += len(articles)
+
+        report_model = RssWeeklyReport(
+            title=report_title,
+            summary="Un résumé hebdomadaire des dernières nouvelles et articles de vos flux RSS.",
+            feeds=report_feeds,
+            total_feeds=len(report_feeds),
+            total_articles=total_articles,
+        )
+
+        # Generate the HTML report
+        rss_weekly_to_html(report_model, html_file=output_html_path)
+        logger.info(f"✅ HTML report successfully generated at: {output_html_path}")
+
+    except Exception as e:
+        logger.error(f"❌ Error during HTML generation: {e}")
 
 
 def setup_crew_output_directory(crew_name: str, base_dir: str = "output") -> str:

@@ -167,11 +167,15 @@ etf_suggestion_task:
 final_report_generation_task:
   agent: investment_strategist
   description: >
-    Compile a comprehensive financial report in french using the provided context from all other tasks.
-    The report must be structured as a JSON object conforming to the FinancialReport Pydantic model.
+    Compile a comprehensive financial report in french using the provided context
+    from all other tasks.
+    The report must be structured as a JSON object conforming to the FinancialReport
+    Pydantic model.
     - Create a concise `executive_summary` of the key findings.
-    - For each asset class (Stocks, Crypto, ETFs), create an `AssetAnalysis` object summarizing the portfolio analysis.
-    - For each asset class, create an `AssetSuggestion` object with the investment suggestion and rationale.
+    - For each asset class (Stocks, Crypto, ETFs), create an `AssetAnalysis` object
+    summarizing the portfolio analysis.
+    - For each asset class, create an `AssetSuggestion` object with the investment
+    suggestion and rationale.
     - Populate the `analyses` and `suggestions` lists accordingly.
     1. Read ALL analysis files with FileReadTool:
       - "output/findaily/stock_portfolio_analysis.md"
@@ -190,7 +194,8 @@ final_report_generation_task:
       - "risk_assessment": Risk evaluation
     3. Include ALL analyses without exception, do not summarize
     4. Maintain the richness of the data for later HTML generation
-    IMPORTANT: This JSON report will be used by HtmlDesignerCrew to generate the final HTML report.
+    IMPORTANT: This JSON report will be used by HtmlDesignerCrew to generate the final
+    HTML report.
   expected_output: >
     A JSON object that strictly adheres to the FinancialReport Pydantic model,
     containing a comprehensive summary, detailed analyses, and actionable suggestions.
@@ -202,4 +207,4 @@ final_report_generation_task:
     - etf_suggestion_task
     - crypto_suggestion_task
   async_execution: false
-  output_file: "{output_file}"
+  output_file: '{output_file}'

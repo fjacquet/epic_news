@@ -5,8 +5,8 @@ Follows the deterministic pattern documented in docs/html_rendering_pattern.md.
 
 import os
 
-from epic_news.utils.debug_utils import parse_crewai_output
 from epic_news.models.news_daily_report import NewsDailyReport
+from epic_news.utils.debug_utils import parse_crewai_output
 from epic_news.utils.html.template_manager import TemplateManager
 
 

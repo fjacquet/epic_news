@@ -2,7 +2,9 @@
 Utility functions for handling file operations.
 """
 
+import json
 import os
+from pathlib import Path
 
 
 def read_file_content(file_path):
@@ -29,3 +31,18 @@ def read_file_content(file_path):
     except Exception as e:
         print(f"Error reading file: {str(e)}")
         return ""
+
+
+def save_json_file(file_path: str, data: dict):
+    """
+    Save a dictionary to a JSON file.
+
+    Args:
+        file_path (str): The path to the JSON file.
+        data (dict): The dictionary to save.
+    """
+    path = Path(file_path)
+    # Create parent directories if they don't exist
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=4)
