@@ -175,6 +175,10 @@ class TemplateManager:
         if selected_crew == "NEWSDAILY":
             return self._generate_news_body(content_data)
 
+        # Handle SHOPPING_ADVICE (Shopping Advice Reports)
+        if selected_crew == "SHOPPING_ADVICE":
+            return self._generate_shopping_body(content_data)
+
         # Handle other crew types with legacy methods
         if selected_crew == "COOKING":
             return self._generate_cooking_body(content_data)
