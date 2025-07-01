@@ -38,6 +38,13 @@ class MeetingPrepRenderer(BaseRenderer):
         soup = BeautifulSoup('<div class="meeting-prep-container"></div>', "html.parser")
         container = soup.find("div")
 
+        # Add title if available
+        if "title" in data:
+            title_h2 = soup.new_tag("h2")
+            title_h2.attrs["class"] = ["meeting-title"]
+            title_h2.string = data["title"]
+            container.append(title_h2)
+
         # Add summary
         self._add_summary(soup, container, data)
 
@@ -116,6 +123,20 @@ class MeetingPrepRenderer(BaseRenderer):
             industry_p.append(strong)
             industry_p.append(f" {industry}")
             profile_div.append(industry_p)
+
+        # Key products
+        key_products = company_profile.get("key_products", [])
+        if key_products:
+            products_p = soup.new_tag("p")
+            strong = soup.new_tag("strong")
+            strong.string = "Produits clés:"
+            products_p.append(strong)
+            products_p.append(" ")
+
+            products_list = soup.new_tag("span")
+            products_list.string = ", ".join(key_products)
+            products_p.append(products_list)
+            profile_div.append(products_p)
 
         # Market position
         market_position = company_profile.get("market_position")
@@ -228,15 +249,43 @@ class MeetingPrepRenderer(BaseRenderer):
             point_div = soup.new_tag("div")
             point_div.attrs["class"] = ["talking-point"]
 
-            # Key point
-            key_point = point.get("key_point", "")
+            # Topic as heading
+            topic = point.get("topic", "")
             point_h4 = soup.new_tag("h4")
-            point_h4.string = f"Point {i + 1}: {key_point}"
+            point_h4.string = f"{topic}"
             point_div.append(point_h4)
+
+            # Key points as bullet list
+            key_points = point.get("key_points", [])
+            if key_points:
+                key_points_div = soup.new_tag("div")
+                key_points_div.attrs["class"] = ["key-points"]
+
+                key_points_h5 = soup.new_tag("h5")
+                key_points_h5.string = "Points clés:"
+                key_points_div.append(key_points_h5)
+
+                key_points_ul = soup.new_tag("ul")
+                key_points_ul.attrs["class"] = ["key-points-list"]
+
+                for key_point in key_points:
+                    key_point_li = soup.new_tag("li")
+                    key_point_li.string = key_point
+                    key_points_ul.append(key_point_li)
+
+                key_points_div.append(key_points_ul)
+                point_div.append(key_points_div)
 
             # Questions
             questions = point.get("questions", [])
             if questions:
+                questions_div = soup.new_tag("div")
+                questions_div.attrs["class"] = ["questions"]
+
+                questions_h5 = soup.new_tag("h5")
+                questions_h5.string = "Questions à poser:"
+                questions_div.append(questions_h5)
+
                 questions_ul = soup.new_tag("ul")
                 questions_ul.attrs["class"] = ["questions-list"]
 
@@ -245,7 +294,8 @@ class MeetingPrepRenderer(BaseRenderer):
                     question_li.string = question
                     questions_ul.append(question_li)
 
-                point_div.append(questions_ul)
+                questions_div.append(questions_ul)
+                point_div.append(questions_div)
 
             points_div.append(point_div)
 
@@ -273,18 +323,41 @@ class MeetingPrepRenderer(BaseRenderer):
             reco_div = soup.new_tag("div")
             reco_div.attrs["class"] = ["recommendation-item"]
 
-            # Title
-            title = reco.get("title", "")
+            # Area as heading
+            area = reco.get("area", "")
             reco_h4 = soup.new_tag("h4")
-            reco_h4.string = f"{i + 1}. {title}"
+            reco_h4.string = f"{i + 1}. {area}"
             reco_div.append(reco_h4)
 
-            # Description
-            description = reco.get("description", "")
-            if description:
-                desc_p = soup.new_tag("p")
-                desc_p.string = description
-                reco_div.append(desc_p)
+            # Suggestion
+            suggestion = reco.get("suggestion", "")
+            if suggestion:
+                suggestion_div = soup.new_tag("div")
+                suggestion_div.attrs["class"] = ["recommendation-suggestion"]
+
+                suggestion_p = soup.new_tag("p")
+                strong = soup.new_tag("strong")
+                strong.string = "Suggestion:"
+                suggestion_p.append(strong)
+                suggestion_p.append(f" {suggestion}")
+                suggestion_div.append(suggestion_p)
+
+                reco_div.append(suggestion_div)
+
+            # Expected outcome
+            expected_outcome = reco.get("expected_outcome", "")
+            if expected_outcome:
+                outcome_div = soup.new_tag("div")
+                outcome_div.attrs["class"] = ["recommendation-outcome"]
+
+                outcome_p = soup.new_tag("p")
+                strong = soup.new_tag("strong")
+                strong.string = "Résultat attendu:"
+                outcome_p.append(strong)
+                outcome_p.append(f" {expected_outcome}")
+                outcome_div.append(outcome_p)
+
+                reco_div.append(outcome_div)
 
             recommendations_div.append(reco_div)
 
@@ -312,20 +385,19 @@ class MeetingPrepRenderer(BaseRenderer):
             resource_div = soup.new_tag("div")
             resource_div.attrs["class"] = ["resource-item"]
 
-            # Title
+            # Title with link if URL is available
             title = resource.get("title", "")
-            resource_h4 = soup.new_tag("h4")
-            resource_h4.string = title
-            resource_div.append(resource_h4)
+            url = resource.get("link", "")  # Note: JSON uses 'link' not 'url'
 
-            # URL
-            url = resource.get("url", "")
+            resource_h4 = soup.new_tag("h4")
             if url:
-                url_p = soup.new_tag("p")
-                url_a = soup.new_tag("a", href=url, target="_blank")
-                url_a.string = url
-                url_p.append(url_a)
-                resource_div.append(url_p)
+                # Create clickable title
+                title_a = soup.new_tag("a", href=url, target="_blank")
+                title_a.string = title
+                resource_h4.append(title_a)
+            else:
+                resource_h4.string = title
+            resource_div.append(resource_h4)
 
             # Description
             description = resource.get("description", "")
@@ -333,6 +405,15 @@ class MeetingPrepRenderer(BaseRenderer):
                 desc_p = soup.new_tag("p")
                 desc_p.string = description
                 resource_div.append(desc_p)
+
+            # Display URL separately if available
+            if url:
+                url_p = soup.new_tag("p")
+                url_p.attrs["class"] = ["resource-link"]
+                url_a = soup.new_tag("a", href=url, target="_blank")
+                url_a.string = url
+                url_p.append(url_a)
+                resource_div.append(url_p)
 
             resources_div.append(resource_div)
 

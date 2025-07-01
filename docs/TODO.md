@@ -49,7 +49,7 @@
 
 - [ ] add <https://free-apis.github.io/#/browse>
 
-- [ ] validate rag usage
+- [x] validate rag usage
 
 ## MCP tools
 

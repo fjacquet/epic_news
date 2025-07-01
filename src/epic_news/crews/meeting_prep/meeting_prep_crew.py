@@ -5,7 +5,6 @@ from crewai.project import CrewBase, agent, crew, task
 from dotenv import load_dotenv
 
 from epic_news.tools.finance_tools import get_yahoo_finance_tools
-from epic_news.tools.rag_tools import get_rag_tools
 from epic_news.tools.report_tools import get_report_tools
 from epic_news.tools.web_tools import get_scrape_tools, get_search_tools
 
@@ -73,14 +72,11 @@ class MeetingPrepCrew:
             # Get tools from centralized tool providers
             self.search_tools = get_search_tools()
             self.scrape_tools = get_scrape_tools()
-            self.rag_tools = get_rag_tools()
             self.finance_tools = get_yahoo_finance_tools()
             self.report_tools = get_report_tools()
 
             # Combine tools for agents that need all capabilities
-            self.all_research_tools = (
-                self.search_tools + self.scrape_tools + self.rag_tools + self.finance_tools
-            )
+            self.all_research_tools = self.search_tools + self.scrape_tools + self.finance_tools
 
             logger.info("Successfully initialized all tools for MeetingPrepCrew")
         except Exception as e:
@@ -88,7 +84,6 @@ class MeetingPrepCrew:
             # Provide fallback empty lists to prevent crew from failing completely
             self.search_tools = []
             self.scrape_tools = []
-            self.rag_tools = []
             self.finance_tools = []
             self.all_research_tools = []
             raise
