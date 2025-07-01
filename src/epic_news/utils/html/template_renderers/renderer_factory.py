@@ -7,13 +7,17 @@ Centralizes renderer instantiation and provides fallback to generic renderer.
 
 from .base_renderer import BaseRenderer
 from .book_summary_renderer import BookSummaryRenderer
+from .cooking_renderer import CookingRenderer
 from .financial_renderer import FinancialRenderer
 from .generic_renderer import GenericRenderer
 from .holiday_plan_renderer import HolidayPlanRenderer
 from .meeting_prep_renderer import MeetingPrepRenderer
+from .menu_renderer import MenuRenderer
 from .news_daily_renderer import NewsDailyRenderer
 from .poem_renderer import PoemRenderer
+from .rss_weekly_renderer import RssWeeklyRenderer
 from .saint_renderer import SaintRenderer
+from .shopping_renderer import ShoppingRenderer
 
 
 class RendererFactory:
@@ -22,13 +26,17 @@ class RendererFactory:
     # Mapping of crew types to their specific renderers
     _RENDERER_MAP: dict[str, type[BaseRenderer]] = {
         "BOOK_SUMMARY": BookSummaryRenderer,
+        "COOKING": CookingRenderer,
         "FINDAILY": FinancialRenderer,
+        "GENERIC": GenericRenderer,
         "HOLIDAY_PLANNER": HolidayPlanRenderer,
         "MEETING_PREP": MeetingPrepRenderer,
+        "MENU": MenuRenderer,
         "NEWSDAILY": NewsDailyRenderer,
         "POEM": PoemRenderer,
+        "RSS_WEEKLY": RssWeeklyRenderer,
         "SAINT": SaintRenderer,
-        # Add more mappings as needed
+        "SHOPPING": ShoppingRenderer,
     }
 
     @classmethod
