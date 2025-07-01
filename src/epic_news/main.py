@@ -57,9 +57,13 @@ from epic_news.crews.web_presence.web_presence_crew import WebPresenceCrew
 from epic_news.models.book_summary_report import BookSummaryReport
 from epic_news.models.content_state import ContentState
 from epic_news.models.financial_report import FinancialReport
+from epic_news.models.paprika_recipe import PaprikaRecipe
 from epic_news.models.poem_models import PoemJSONOutput
 from epic_news.models.saint_data import SaintData
-from epic_news.utils.debug_utils import dump_crewai_state, parse_crewai_output
+from epic_news.utils.debug_utils import (
+    dump_crewai_state,
+    parse_crewai_output,
+)
 from epic_news.utils.directory_utils import ensure_output_directories
 from epic_news.utils.html.book_summary_html_factory import (
     book_summary_to_html,
@@ -68,6 +72,7 @@ from epic_news.utils.html.daily_news_html_factory import daily_news_to_html
 from epic_news.utils.html.fin_daily_html_factory import findaily_to_html
 from epic_news.utils.html.holiday_plan_html_factory import holiday_plan_to_html
 from epic_news.utils.html.poem_html_factory import poem_to_html
+from epic_news.utils.html.recipe_html_factory import recipe_to_html
 from epic_news.utils.html.saint_html_factory import saint_to_html
 from epic_news.utils.html.shopping_advice_html_factory import shopping_advice_to_html
 from epic_news.utils.logger import get_logger
@@ -531,6 +536,7 @@ class ReceptionFlow(Flow[ContentState]):
         self.state.output_file = f"{self.state.output_dir}/{self.state.topic_slug}.json"
         crew_inputs["output_file"] = f"{self.state.output_dir}/{self.state.topic_slug}.json"
         crew_inputs["patrika_file"] = f"{self.state.output_dir}/{self.state.topic_slug}.yaml"
+        crew_inputs["html_file"] = f"{self.state.output_dir}/{self.state.topic_slug}.html"
 
         # Log what we're generating
         print(f"🍳 Generating recipe for: {crew_inputs.get('topic', 'Unknown topic')}")
@@ -541,6 +547,16 @@ class ReceptionFlow(Flow[ContentState]):
         # Create crew using context-driven approach with automatic topic_slug injection
         cooking_result = CookingCrew().crew().kickoff(inputs=crew_inputs)
         dump_crewai_state(cooking_result, "COOKING")
+
+        # Generate HTML using recipe_to_html factory function
+        html_file = f"{self.state.output_dir}/{self.state.topic_slug}.html"
+
+        # Parse CrewAI output using utility function
+        recipe_model = parse_crewai_output(cooking_result, PaprikaRecipe, crew_inputs)
+
+        # Generate HTML directly
+        recipe_to_html(recipe_model, html_file=html_file)
+
         print("✅ Recipe generation complete")
 
     @listen("go_generate_menu_designer")
