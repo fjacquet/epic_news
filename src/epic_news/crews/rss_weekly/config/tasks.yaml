@@ -10,21 +10,26 @@ content_reading_task:
   agent: content_reader_agent
   expected_output: >
     The complete JSON data from the file as a string, ready for translation.
-
 translation_task:
   description: >
-    Your task is to translate the JSON data provided by the content reader agent into French.
+    Your task is to translate the JSON data provided by the content reader agent into
+    French.
     Follow these steps:
     1. Parse the JSON data provided to you.
-    2. For every article in the data, translate the 'title', 'summary', and 'content' fields into French.
+    2. For every article in the data, translate the 'title', 'summary', and 'content'
+    fields into French.
     3. Ensure all other fields remain unchanged.
-    4. CRITICAL INSTRUCTION: Your final answer MUST BE ONLY the complete, modified JSON data, as a single, well-formed JSON string.
-    5. DO NOT include ANY explanations, action descriptions, thoughts, or other text - ONLY output the final JSON string.
-    6. NEVER start your output with phrases like "Here is the translated JSON:" or "Action:" - ONLY output the raw JSON.
-    7. Your entire response should be valid JSON that can be parsed by json.loads() without any modifications.
+    4. CRITICAL INSTRUCTION: Your final answer MUST BE ONLY the complete, modified
+    JSON data, as a single, well-formed JSON string.
+    5. DO NOT include ANY explanations, action descriptions, thoughts, or other text
+    - ONLY output the final JSON string.
+    6. NEVER start your output with phrases like "Here is the translated JSON:" or
+    "Action:" - ONLY output the raw JSON.
+    7. Your entire response should be valid JSON that can be parsed by json.loads()
+    without any modifications.
   agent: translator_agent
   expected_output: >
-    A single, valid JSON string containing all articles with their 'title', 'summary', 
-    and 'content' translated into French. The structure of the JSON must be perfectly 
-    preserved. The output must ONLY be the raw JSON string.
-  output_file: "{output_file}"
+    A single, valid JSON string containing all articles with their 'title', 'summary',  and
+    'content' translated into French. The structure of the JSON must be perfectly  preserved.
+    The output must ONLY be the raw JSON string.
+  output_file: '{output_file}'

@@ -138,6 +138,7 @@ class CookingCrew:
         return Task(
             config=task_config,
             verbose=True,
+            output_pydantic=PaprikaRecipe,
         )
 
     @crew

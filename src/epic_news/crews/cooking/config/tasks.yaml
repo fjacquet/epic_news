@@ -37,7 +37,7 @@ paprika_yaml_task:
     complète en français, prêt pour l'import dans Paprika 3.
     Le fichier sera automatiquement sauvé avec le nom basé sur topic_slug.
   agent: paprika_renderer
-  output_file: '{attachment_file}'
+  output_file: '{patrika_file}'
   context: [cook_task]
 recipe_state_task:
   description: >
@@ -57,3 +57,4 @@ recipe_state_task:
     La recette complète en français sera accessible via l'état partagé.
   agent: json_exporter
   context: [cook_task]
+  output_file: "{output_file}"

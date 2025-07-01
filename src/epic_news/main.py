@@ -66,6 +66,7 @@ from epic_news.utils.html.book_summary_html_factory import (
 )
 from epic_news.utils.html.daily_news_html_factory import daily_news_to_html
 from epic_news.utils.html.fin_daily_html_factory import findaily_to_html
+from epic_news.utils.html.holiday_plan_html_factory import holiday_plan_to_html
 from epic_news.utils.html.poem_html_factory import poem_to_html
 from epic_news.utils.html.saint_html_factory import saint_to_html
 from epic_news.utils.html.shopping_advice_html_factory import shopping_advice_to_html
@@ -524,49 +525,23 @@ class ReceptionFlow(Flow[ContentState]):
         # CRITICAL: Update topic_slug after crew_inputs mapping is applied
         # This ensures topic_slug reflects the mapped topic value from main_subject_or_activity
         if crew_inputs.get("topic") and not self.state.topic_slug:
-            from epic_news.utils.string_utils import create_topic_slug
-
             self.state.topic_slug = create_topic_slug(crew_inputs["topic"])
             print(f"🔧 Updated topic_slug from mapped topic: {self.state.topic_slug}")
 
-        self.state.output_file = f"{self.state.output_dir}/{self.state.topic_slug}.html"
-        self.state.attachment_file = f"{self.state.output_dir}/{self.state.topic_slug}.yaml"
-
-        # Update crew inputs to include attachment_file for paprika_yaml_task
-        crew_inputs["attachment_file"] = self.state.attachment_file
-        crew_inputs["output_file"] = self.state.output_file
+        self.state.output_file = f"{self.state.output_dir}/{self.state.topic_slug}.json"
+        crew_inputs["output_file"] = f"{self.state.output_dir}/{self.state.topic_slug}.json"
+        crew_inputs["patrika_file"] = f"{self.state.output_dir}/{self.state.topic_slug}.yaml"
 
         # Log what we're generating
         print(f"🍳 Generating recipe for: {crew_inputs.get('topic', 'Unknown topic')}")
-        print(f"📁 YAML export will be saved to: {self.state.attachment_file}")
+        print(f"📁 YAML export will be saved to: {self.state.output_dir}/{self.state.topic_slug}.yaml")
+        print(f"📁 JSON export will be saved to: {self.state.output_dir}/{self.state.topic_slug}.json")
+        print(f"📁 Recipte will be saved to: {self.state.output_dir}/{self.state.topic_slug}.html")
 
         # Create crew using context-driven approach with automatic topic_slug injection
         cooking_result = CookingCrew().crew().kickoff(inputs=crew_inputs)
+        dump_crewai_state(cooking_result, "COOKING")
         print("✅ Recipe generation complete")
-
-        # Extract PaprikaRecipe from CookingCrew result and trigger HtmlDesignerCrew
-        if hasattr(cooking_result, "tasks_output") and cooking_result.tasks_output:
-            # Get the PaprikaRecipe from the recipe_state_task (last task)
-
-            # Check if we have a PaprikaRecipe from any task output
-            paprika_recipe = None
-            for task_output in cooking_result.tasks_output:
-                if hasattr(task_output, "pydantic") and task_output.pydantic:
-                    paprika_recipe = task_output.pydantic
-                    break
-
-            if paprika_recipe:
-                print(f"🔍 PaprikaRecipe extracted: {paprika_recipe.name}")
-                print(
-                    f"📄 CookingCrew completed {len(cooking_result.tasks_output)} tasks (cook, paprika_yaml, recipe_state)"
-                )
-
-                # Store in state for centralized HTML rendering by generate_html_report
-                self.state.recipe = {"paprika_model": paprika_recipe}
-
-                print("✅ Recipe content generated - HTML rendering will be handled by generate_html_report")
-            else:
-                print("⚠️ No PaprikaRecipe found in CookingCrew output")
 
     @listen("go_generate_menu_designer")
     def generate_menu_designer(self):
@@ -652,10 +627,10 @@ class ReceptionFlow(Flow[ContentState]):
     @listen("go_generate_shopping_advice")
     def generate_shopping_advice(self):
         """
-                Handles requests classified for the 'ShoppingAdvisorCrew'.
-        l
-                Uses ShoppingAdvisorCrew to generate structured shopping advice data,
-                then HtmlDesignerCrew to generate the HTML report.
+        Handles requests classified for the 'ShoppingAdvisorCrew'.
+
+        Uses ShoppingAdvisorCrew to generate structured shopping advice data,
+        then HtmlDesignerCrew to generate the HTML report.
                 Sets `output_file` to `output/shopping_advisor/shopping_advice.html`.
         """
         # No need to create directories as ensure_output_directories() is called at init
@@ -904,8 +879,8 @@ class ReceptionFlow(Flow[ContentState]):
         `output/travel_guides/itinerary.html` and stores the plan in
         `self.state.holiday_plan`. Returns 'error' if no destination is found.
         """
-        self.state.output_file = "output/travel_guides/itinerary.html"
         current_inputs = self.state.to_crew_inputs()
+        current_inputs["output_file"] = "output/travel_guides/itinerary.json"
 
         if not current_inputs.get("destination"):
             print("⚠️ No destination found for holiday plan. Aborting and routing to error.")
@@ -915,7 +890,11 @@ class ReceptionFlow(Flow[ContentState]):
         print(f"Starting HolidayPlannerCrew with inputs: {current_inputs}")
 
         # Run the crew
-        self.state.holiday_plan = HolidayPlannerCrew().crew().kickoff(inputs=current_inputs)
+        holiday_plan = HolidayPlannerCrew().crew().kickoff(inputs=current_inputs)
+        dump_crewai_state(holiday_plan, "HOLIDAY_PLANNER")
+        html_file = "output/travel_guides/itinerary.html"
+        holiday_plan_to_html(holiday_plan, html_file=html_file)
+        self.state.holiday_plan = holiday_plan
         return "generate_holiday_plan"
 
     @listen("go_generate_marketing_content")
@@ -1087,7 +1066,9 @@ def kickoff(user_input: str | None = None):
     """
     # If user_input is not provided, use a default value.
     request = (
-        user_input if user_input else "get the rss weekly report"
+        user_input if user_input else "Get me the recipe for Salade Cesar"
+        # else "let's plan a weekend in cinque terre for 1 person in end of july, I start from finale ligure, give the best hotel and restaurant options"
+        # else "get the rss weekly report"
         # else "Donne moi un conseil d'achat pour remplacer mon sodastream par une marque plus ethique et non israélienne"
         # else "get the daily  news report"
         # else "get the findaily report"
