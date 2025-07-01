@@ -31,12 +31,12 @@ def main():
     """Main debug function."""
 
     # Configuration
-    INPUT_JSON_FILE = "output/travel_guides/complete_holiday_plan.json"
-    OUTPUT_HTML_FILE = "output/travel_guides/complete_holiday_plan_debug.html"
+    input_json_file = "output/travel_guides/complete_holiday_plan.json"
+    output_html_file = "output/travel_guides/complete_holiday_plan_debug.html"
 
     # File paths
-    json_file = Path(INPUT_JSON_FILE)
-    html_file = Path(OUTPUT_HTML_FILE)
+    json_file = Path(input_json_file)
+    html_file = Path(output_html_file)
 
     print("🔍 Debug Holiday Plan HTML Conversion")
     print(f"📄 Input JSON: {json_file}")

@@ -4,12 +4,12 @@
 
 // TODO: Convert the crews to new html output
 
-- [ ] COOKING 
+- [x] COOKING 
 - [x] FINDAILY
 - [x] HOLIDAY_PLANNER
 - [x] LIBRARY
 - [ ] MARKETING_WRITERS
-- [ ] MEETING_PREP
+- [x] MEETING_PREP
 - [ ] MENU
 - [ ] NEWSCOMPANY
 - [x] NEWSDAILY

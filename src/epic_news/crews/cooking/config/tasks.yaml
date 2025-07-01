@@ -57,4 +57,4 @@ recipe_state_task:
     La recette complète en français sera accessible via l'état partagé.
   agent: json_exporter
   context: [cook_task]
-  output_file: "{output_file}"
+  output_file: '{output_file}'

@@ -10,6 +10,7 @@ from .book_summary_renderer import BookSummaryRenderer
 from .financial_renderer import FinancialRenderer
 from .generic_renderer import GenericRenderer
 from .holiday_plan_renderer import HolidayPlanRenderer
+from .meeting_prep_renderer import MeetingPrepRenderer
 from .news_daily_renderer import NewsDailyRenderer
 from .poem_renderer import PoemRenderer
 from .saint_renderer import SaintRenderer
@@ -23,6 +24,7 @@ class RendererFactory:
         "BOOK_SUMMARY": BookSummaryRenderer,
         "FINDAILY": FinancialRenderer,
         "HOLIDAY_PLANNER": HolidayPlanRenderer,
+        "MEETING_PREP": MeetingPrepRenderer,
         "NEWSDAILY": NewsDailyRenderer,
         "POEM": PoemRenderer,
         "SAINT": SaintRenderer,

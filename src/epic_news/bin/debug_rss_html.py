@@ -3,13 +3,13 @@ import os
 import sys
 from pathlib import Path
 
-# Add the project root to the Python path to allow for absolute imports
-project_root = Path(__file__).resolve().parents[3]
-sys.path.append(str(project_root))
-
 from epic_news.models.rss_models import RssFeeds
 from epic_news.models.rss_weekly_models import ArticleSummary, FeedDigest, RssWeeklyReport
 from epic_news.utils.html.rss_weekly_html_factory import rss_weekly_to_html
+
+# Add the project root to the Python path to allow for absolute imports
+project_root = Path(__file__).resolve().parents[3]
+sys.path.append(str(project_root))
 
 
 def main():

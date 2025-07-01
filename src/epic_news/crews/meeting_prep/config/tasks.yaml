@@ -51,22 +51,56 @@ meeting_preparation_task:
     the meeting participants with all necessary information and strategies.
     Meeting Context {context} Meeting Objective {objective} Incorporate any
     relevant points from prior interactions {prior_interactions}
-    IMPORTANT: Format the output as HTML to ensure it displays properly in
-    email.  Use proper HTML structure with: - <h1>, <h2>, <h3> tags for
-    headings - <p> tags for paragraphs - <ul> and <li> tags for bullet points
-    - <table> for any tabular data - Proper spacing and formatting for
-    readability - Include a title and summary at the top
-    The document will be sent via email, so ensure it's properly formatted for
-    email viewing.
+    IMPORTANT: Format the output as a structured JSON document to ensure it can be
+    processed programmatically. The JSON should have the following key sections:
+    - "title": The title of the meeting briefing
+    - "summary": Brief overview of the meeting purpose
+    - "company_profile": Key information about the company
+    - "participants": List of participant bios
+    - "industry_overview": Industry analysis and context
+    - "talking_points": Key topics for discussion
+    - "strategic_recommendations": Action items and strategic suggestions
+    - "additional_resources": Any reference materials or links
   expected_output: >
-    A professionally styled, HTML-formatted briefing document in French for
-    the meeting with {company}. The output MUST be ONLY the raw HTML content,
-    starting with '<html>' and ending with '</html>'. Do NOT include any
-    markdown, introductory text, or explanations outside of the HTML tags. The
-    document should include sections for: meeting participant bios, industry
-    overview, talking points, and strategic recommendations. Use relevant
-    emojis where appropriate to enhance readability. The structure should be
-    logical, engaging, and polished for a professional audience, suitable for
-    direct email delivery.
+    A comprehensive, well-structured JSON document in French for the meeting with
+    {company}.
+    The output MUST be valid, properly formatted JSON only. Do NOT include any markdown,
+    introductory text, explanations, or backticks outside of the actual JSON content.
+    Example structure:
+    {
+      "title": "Réunion Stratégique avec {company}",
+      "summary": "Aperçu de la réunion et objectifs principaux",
+      "company_profile": {
+        "name": "Nom de l'entreprise",
+        "industry": "Secteur d'activité",
+        "key_products": ["Produit 1", "Produit 2"],
+        "market_position": "Description de la position sur le marché"
+      },
+      "participants": [
+        {
+          "name": "Nom du participant",
+          "role": "Fonction",
+          "background": "Informations pertinentes"
+        }
+      ],
+      "industry_overview": "Analyse détaillée du secteur",
+      "talking_points": [
+        {
+          "topic": "Sujet 1",
+          "key_points": ["Point 1", "Point 2"],
+          "questions": ["Question 1?", "Question 2?"]
+        }
+      ],
+      "strategic_recommendations": [
+        {
+          "area": "Domaine d'action",
+          "suggestion": "Suggestion détaillée",
+          "expected_outcome": "Résultat attendu"
+        }
+      ],
+      "additional_resources": [
+        {"title": "Titre de la ressource", "description": "Description", "link": "URL"}
+      ]
+    }
   agent: briefing_coordinator_agent
-  output_file: output/meeting/meeting_preparation.html
+  output_file: '{output_file}'

@@ -14,36 +14,30 @@ research_destination:
     cultural tips.
 recommend_accommodation_and_dining:
   description: >
-    Using the Research aon {destination} for a {duration}  recommend:   
-    - 3-5 accommodations with details (amenities, photos, exact locations, cancellation policies)   
-    - Dining options for each day (including dietary accommodations)   
-    - Nearby grocery stores and markets   
-    - Kid-friendly options where applicable   
-    - Accessibility information for all recommendations
+    Using the Research aon {destination} for a {duration}  recommend:    - 3-5 accommodations
+    with details (amenities, photos, exact locations, cancellation policies)    -
+    Dining options for each day (including dietary accommodations)    - Nearby grocery
+    stores and markets    - Kid-friendly options where applicable    - Accessibility
+    information for all recommendations
   agent: accommodation_specialist
   expected_output: >
     Detailed accommodation and dining plan with booking links, maps, and
     comprehensive details.
 plan_itinerary:
   description: >
-    Create a detailed day-by-day itinerary including:  
-    - Morning, afternoon, evening activities with time allocations   
-    - Travel times between locations   
-    - Restaurant reservations needed   
-    - Downtime and relaxation periods   
-    - Alternative options for bad weather   
-    - Estimated costs for each day
+    Create a detailed day-by-day itinerary including:   - Morning, afternoon, evening
+    activities with time allocations    - Travel times between locations    - Restaurant
+    reservations needed    - Downtime and relaxation periods    - Alternative options
+    for bad weather    - Estimated costs for each day
   agent: itinerary_architect
   expected_output: >
     Hour-by-hour itinerary with maps, transportation details, and backup
     options.
 analyze_and_optimize_budget:
   description: >
-    Analyze the proposed itinerary and accommodations to:  
-    - Provide total cost breakdown   
-    - Suggest cost-saving alternatives   
-    - Highlight splurge-worthy experiences   
-    - Calculate potential savings from packages/deals
+    Analyze the proposed itinerary and accommodations to:   - Provide total cost breakdown    -
+    Suggest cost-saving alternatives    - Highlight splurge-worthy experiences    -
+    Calculate potential savings from packages/deals
     - ensure all amount are in the same currency (swiss franc ideally)
   agent: budget_manager
   expected_output: >
@@ -51,15 +45,10 @@ analyze_and_optimize_budget:
     suggestions.
 format_and_translate_guide:
   description: >
-    Compile all information into a beautifully formatted guide including:   
-    - Table of contents   
-    - Key information summary   
-    - Day-by-day itinerary with maps   
-    - Accommodation and dining details   
-    - Budget summary   
-    - Emergency contacts and local phrases   
-    - Packing checklist   
-    - Translated sections if needed
+    Compile all information into a beautifully formatted guide including:    - Table
+    of contents    - Key information summary    - Day-by-day itinerary with maps    -
+    Accommodation and dining details    - Budget summary    - Emergency contacts and
+    local phrases    - Packing checklist    - Translated sections if needed
     - ensure all amount are in the same currency (swiss franc ideally)
     - ensure all prices are up to date
   agent: content_formatter

@@ -12,8 +12,7 @@ from typing import Any
 from pydantic import BaseModel
 
 from epic_news.models.financial_report import FinancialReport
-
-from .template_renderers.renderer_factory import RendererFactory
+from epic_news.utils.html.renderer_factory import RendererFactory
 
 
 class TemplateState(BaseModel):
@@ -169,11 +168,13 @@ class TemplateManager:
                         print(f"❌ Error parsing financial report: {e}")
 
             if self.state.financial_report_model:
-                return self._generate_financial_report_body()
+                # Use FinancialRenderer instead of legacy _generate_financial_report_body
 
-        # Handle NEWSDAILY (News Reports)
-        if selected_crew == "NEWSDAILY":
-            return self._generate_news_body(content_data)
+                renderer = RendererFactory.create_renderer("FINANCIAL")
+                data = self.state.financial_report_model.dict()
+                return renderer.render(data)
+
+        # NEWSDAILY now uses NewsDailyRenderer via RendererFactory
 
         # Handle SHOPPING_ADVICE (Shopping Advice Reports)
         if selected_crew == "SHOPPING_ADVICE":
@@ -186,10 +187,7 @@ class TemplateManager:
         # Handle other crew types with legacy methods
         if selected_crew == "COOKING":
             return self._generate_cooking_body(content_data)
-        if selected_crew == "HOLIDAY_PLANNER":
-            return self._generate_holiday_body(content_data)
-        if selected_crew == "MEETING_PREP":
-            return self._generate_meeting_body(content_data)
+        # HOLIDAY_PLANNER now uses HolidayPlanRenderer via RendererFactory
         if selected_crew == "MENU":
             return self._generate_menu_body(content_data)
 
@@ -199,59 +197,12 @@ class TemplateManager:
             return renderer.render(content_data, selected_crew)
         except Exception as e:
             print(f"❌ Error using generic renderer: {e}")
-            return self._generate_generic_body(content_data, selected_crew)
+            # Use GenericRenderer instead of legacy _generate_generic_body
+            renderer = RendererFactory.create_renderer("GENERIC")
+            return renderer.render(content_data, selected_crew)
 
-    def _generate_poem_body(self, data: dict[str, Any]) -> str:
-        """Génère le corps HTML pour un poème."""
-        poem_content = data.get("poem_content", "")
-        theme = data.get("theme", "")
-        author = data.get("author", "Epic News AI")
-
-        # Convert newlines to HTML breaks outside f-string
-        formatted_poem = poem_content.replace("\n", "<br>")
-        theme_html = f'<div class="poem-theme"><strong>Thème :</strong> {theme}</div>' if theme else ""
-
-        return f"""
-        <div class="poem-container">
-            {theme_html}
-            <div class="poem-content">
-                {formatted_poem}
-            </div>
-            <div class="poem-author">
-                <em>— {author}</em>
-            </div>
-        </div>
-
-        <style>
-        .poem-container {{
-            max-width: 600px;
-            margin: 2rem auto;
-            padding: 2rem;
-            background: var(--container-bg);
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }}
-        .poem-theme {{
-            margin-bottom: 1.5rem;
-            color: var(--heading-color);
-            font-size: 1.1rem;
-        }}
-        .poem-content {{
-            font-family: 'Georgia', serif;
-            font-size: 1.2rem;
-            line-height: 1.8;
-            text-align: center;
-            margin: 2rem 0;
-            color: var(--text-color);
-        }}
-        .poem-author {{
-            text-align: right;
-            margin-top: 2rem;
-            font-style: italic;
-            color: var(--text-color);
-        }}
-        </style>
-        """
+    # The _generate_poem_body method has been removed and replaced by the PoemRenderer class
+    # See src/epic_news/utils/html/template_renderers/poem_renderer.py
 
     def _generate_cooking_body(self, data: dict[str, Any]) -> str:
         """Génère le corps HTML pour une recette."""
@@ -337,173 +288,8 @@ class TemplateManager:
         </style>
         """
 
-    def _generate_news_body(self, data: dict[str, Any]) -> str:
-        """Génère le corps HTML pour les actualités avec support des catégories structurées."""
-        print(f"🔍 DEBUG: Generating news body with data keys: {list(data.keys())}")
-
-        # Handle structured news format from NewsDailyCrew
-        summary = data.get("summary", "")
-
-        # Define category mappings with emojis
-        category_info = {
-            "suisse_romande": {"title": "🏔️ Suisse Romande", "emoji": "🇨🇭"},
-            "suisse": {"title": "🇨🇭 Suisse", "emoji": "🏛️"},
-            "france": {"title": "🇫🇷 France", "emoji": "🥖"},
-            "europe": {"title": "🇪🇺 Europe", "emoji": "🌍"},
-            "world": {"title": "🌍 Monde", "emoji": "🌐"},
-            "wars": {"title": "⚔️ Conflits", "emoji": "🛡️"},
-            "economy": {"title": "💰 Économie", "emoji": "📈"},
-        }
-
-        # Generate HTML for each category
-        categories_html = ""
-        for category_key, category_data in data.items():
-            if category_key == "summary" or category_key == "methodology":
-                continue
-
-            if isinstance(category_data, list) and category_data:
-                category_title = category_info.get(
-                    category_key, {"title": category_key.title(), "emoji": "📰"}
-                )["title"]
-
-                articles_html = ""
-                for article in category_data:
-                    if isinstance(article, dict):
-                        title = article.get("titre", article.get("title", ""))
-                        content = article.get(
-                            "description", article.get("contenu", article.get("content", ""))
-                        )
-                        source = article.get("source", "")
-                        date = article.get("date", "")
-
-                        articles_html += f"""
-                        <article class="news-article">
-                            <h4>{title}</h4>
-                            <div class="article-meta">
-                                {f'<span class="source">📰 {source}</span>' if source else ""}
-                                {f'<span class="date">📅 {date}</span>' if date else ""}
-                            </div>
-                            <div class="article-content">{content}</div>
-                        </article>
-                        """
-
-                if articles_html:
-                    categories_html += f"""
-                    <section class="news-category">
-                        <h3 class="category-title">{category_title}</h3>
-                        <div class="category-articles">
-                            {articles_html}
-                        </div>
-                    </section>
-                    """
-
-        # Fallback to simple articles format if no structured categories found
-        if not categories_html:
-            articles = data.get("articles", [])
-            articles_html = ""
-            for article in articles:
-                title = article.get("title", article.get("titre", ""))
-                content = article.get("description", article.get("content", ""))
-                source = article.get("source", "")
-                date = article.get("date", "")
-
-                articles_html += f"""
-                <article class="news-article">
-                    <h3>{title}</h3>
-                    <div class="article-meta">
-                        {f'<span class="source">📰 {source}</span>' if source else ""}
-                        {f'<span class="date">📅 {date}</span>' if date else ""}
-                    </div>
-                    <div class="article-content">{content}</div>
-                </article>
-                """
-            categories_html = f'<div class="news-articles">{articles_html}</div>'
-
-        return f"""
-        <div class="news-container">
-            {f'<div class="news-summary"><h2>📋 Résumé Exécutif</h2><p>{summary}</p></div>' if summary else ""}
-            {categories_html}
-        </div>
-
-        <style>
-        .news-container {{
-            max-width: 900px;
-            margin: 0 auto;
-        }}
-        .news-summary {{
-            margin-bottom: 2rem;
-            padding: 1.5rem;
-            background: var(--container-bg);
-            border-radius: 8px;
-            border-left: 4px solid var(--heading-color);
-        }}
-        .news-article {{
-            margin: 2rem 0;
-            padding: 1.5rem;
-            background: var(--container-bg);
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-        }}
-        .news-article h3 {{
-            color: var(--heading-color);
-            margin-bottom: 1rem;
-        }}
-        .article-meta {{
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1rem;
-            font-size: 0.9rem;
-            color: var(--text-color);
-            opacity: 0.8;
-        }}
-        .article-content {{
-            line-height: 1.6;
-        }}
-        </style>
-        """
-
-    def _generate_generic_body(self, data: dict[str, Any], crew_type: str) -> str:
-        """Génère un corps HTML générique pour les types de crew non spécialisés."""
-        content = data.get("content", "")
-        summary = data.get("summary", "")
-
-        return f"""
-        <div class="generic-report">
-            <div class="report-type">
-                <h2>📄 Rapport {crew_type}</h2>
-            </div>
-
-            {f'<div class="report-summary"><h3>📋 Résumé</h3><p>{summary}</p></div>' if summary else ""}
-
-            <div class="report-content">
-                <h3>📝 Contenu</h3>
-                <div>{content}</div>
-            </div>
-        </div>
-
-        <style>
-        .generic-report {{
-            max-width: 800px;
-            margin: 0 auto;
-        }}
-        .report-type h2 {{
-            color: var(--heading-color);
-            text-align: center;
-            margin-bottom: 2rem;
-        }}
-        .report-summary, .report-content {{
-            margin: 2rem 0;
-            padding: 1.5rem;
-            background: var(--container-bg);
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-        }}
-        .report-summary h3, .report-content h3 {{
-            color: var(--heading-color);
-            margin-bottom: 1rem;
-        }}
-        </style>
-        """
+    # The _generate_generic_body method has been removed and replaced by the GenericRenderer class
+    # See src/epic_news/utils/html/template_renderers/generic_renderer.py
 
     def _generate_shopping_body(self, data: dict[str, Any]) -> str:
         """Génère le corps HTML pour le shopping avec données structurées."""
@@ -648,13 +434,11 @@ class TemplateManager:
 
         return "\n".join(sections)
 
-    def _generate_holiday_body(self, data: dict[str, Any]) -> str:
-        """Génère le corps HTML pour les vacances."""
-        return self._generate_generic_body(data, "HOLIDAY_PLANNER")
+    # The _generate_holiday_body method has been removed and replaced by the HolidayPlanRenderer class
+    # See src/epic_news/utils/html/template_renderers/holiday_plan_renderer.py
 
-    def _generate_library_body(self, data: dict[str, Any]) -> str:
-        """Génère le corps HTML pour la bibliothèque."""
-        return self._generate_book_summary_body(data)
+    # The _generate_library_body method has been removed and replaced by the BookSummaryRenderer class
+    # See src/epic_news/utils/html/template_renderers/book_summary_renderer.py
 
     def _generate_rss_weekly_body(self, data: dict[str, Any]) -> str:
         """Génère le corps HTML pour le digest RSS hebdomadaire."""
@@ -733,471 +517,20 @@ class TemplateManager:
 
         return "\n".join(sections)
 
-    def _generate_book_summary_body(self, data: dict[str, Any]) -> str:
-        """Génère le corps HTML pour un résumé de livre avec formatage riche."""
-        title = data.get("title", "Livre")
-        author = data.get("author", "Auteur inconnu")
-        summary = data.get("summary", "")
-        publication_date = data.get("publication_date", "")
-        sections = data.get("sections", [])
-        table_of_contents = data.get("table_of_contents", [])
-        chapters = data.get("chapters", [])
-        references = data.get("references", [])
+    # The _generate_meeting_body method has been removed and replaced by the MeetingPrepRenderer class
+    # See src/epic_news/utils/html/template_renderers/meeting_prep_renderer.py
 
-        # Build table of contents HTML
-        toc_html = ""
-        if table_of_contents:
-            toc_items = []
-            for item in table_of_contents:
-                chapter_title = item.get("title", "")
-                chapter_id = item.get("id", "")
-                if chapter_title:
-                    toc_items.append(f"<li><a href='#{chapter_id}'>{chapter_title}</a></li>")
-            if toc_items:
-                toc_html = f"""
-                <div class="table-of-contents">
-                    <h3>📖 Table des matières</h3>
-                    <ul class="toc-list">
-                        {"".join(toc_items)}
-                    </ul>
-                </div>
-                """
-
-        # Build chapters HTML
-        chapters_html = ""
-        if chapters:
-            chapter_items = []
-            for chapter in chapters:
-                ch_num = chapter.get("chapter", "")
-                ch_title = chapter.get("title", "")
-                ch_focus = chapter.get("focus", "")
-                if ch_title:
-                    chapter_items.append(f"""
-                    <div class="chapter-item">
-                        <h4>📚 Chapitre {ch_num}: {ch_title}</h4>
-                        <p>{ch_focus}</p>
-                    </div>
-                    """)
-            if chapter_items:
-                chapters_html = f"""
-                <div class="chapters-section">
-                    <h3>📑 Chapitres</h3>
-                    {"".join(chapter_items)}
-                </div>
-                """
-
-        # Build sections HTML
-        sections_html = ""
-        if sections:
-            section_items = []
-            for section in sections:
-                sec_title = section.get("title", "")
-                sec_content = section.get("content", "")
-                sec_id = section.get("id", "")
-                if sec_title and sec_content:
-                    section_items.append(f"""
-                    <div class="analysis-section" id="{sec_id}">
-                        <h4>🔍 {sec_title}</h4>
-                        <p>{sec_content}</p>
-                    </div>
-                    """)
-            if section_items:
-                sections_html = f"""
-                <div class="book-analysis">
-                    <h3>📝 Analyse détaillée</h3>
-                    {"".join(section_items)}
-                </div>
-                """
-
-        # Build references HTML
-        references_html = ""
-        if references:
-            ref_items = []
-            for ref in references:
-                if ref.strip():
-                    ref_items.append(f"<li><a href='{ref}' target='_blank' rel='noopener'>🔗 {ref}</a></li>")
-            if ref_items:
-                references_html = f"""
-                <div class="references-section">
-                    <h3>📚 Références</h3>
-                    <ul class="references-list">
-                        {"".join(ref_items)}
-                    </ul>
-                </div>
-                """
-
-        return f"""
-        <div class="book-summary-report">
-            <div class="book-header">
-                <h2>📖 {title}</h2>
-                <div class="book-meta">
-                    <p><strong>✍️ Auteur:</strong> {author}</p>
-                    {f"<p><strong>📅 Publication:</strong> {publication_date}</p>" if publication_date else ""}
-                </div>
-            </div>
-            
-            <div class="book-summary">
-                <h3>📋 Résumé</h3>
-                <p class="summary-text">{summary}</p>
-            </div>
-            
-            {toc_html}
-            {chapters_html}
-            {sections_html}
-            {references_html}
-        </div>
-        
-        <style>
-        .book-summary-report {{
-            max-width: 900px;
-            margin: 0 auto;
-        }}
-        .book-header {{
-            text-align: center;
-            margin-bottom: 2rem;
-            padding: 2rem;
-            background: var(--container-bg);
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-        }}
-        .book-header h2 {{
-            color: var(--heading-color);
-            margin-bottom: 1rem;
-            font-size: 2rem;
-        }}
-        .book-meta {{
-            color: var(--text-color);
-            font-size: 1.1rem;
-        }}
-        .book-meta p {{
-            margin: 0.5rem 0;
-        }}
-        .book-summary, .table-of-contents, .chapters-section, .book-analysis, .references-section {{
-            margin: 2rem 0;
-            padding: 1.5rem;
-            background: var(--container-bg);
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-        }}
-        .book-summary h3, .table-of-contents h3, .chapters-section h3, .book-analysis h3, .references-section h3 {{
-            color: var(--heading-color);
-            margin-bottom: 1rem;
-            font-size: 1.3rem;
-        }}
-        .summary-text {{
-            font-size: 1.1rem;
-            line-height: 1.6;
-            color: var(--text-color);
-        }}
-        .toc-list {{
-            list-style: none;
-            padding: 0;
-        }}
-        .toc-list li {{
-            margin: 0.5rem 0;
-            padding: 0.5rem;
-            background: rgba(0, 123, 179, 0.1);
-            border-radius: 4px;
-        }}
-        .toc-list a {{
-            color: var(--heading-color);
-            text-decoration: none;
-            font-weight: 500;
-        }}
-        .toc-list a:hover {{
-            text-decoration: underline;
-        }}
-        .chapter-item, .analysis-section {{
-            margin: 1.5rem 0;
-            padding: 1rem;
-            background: rgba(108, 117, 125, 0.1);
-            border-radius: 6px;
-            border-left: 4px solid var(--heading-color);
-        }}
-        .chapter-item h4, .analysis-section h4 {{
-            color: var(--heading-color);
-            margin-bottom: 0.5rem;
-        }}
-        .chapter-item p, .analysis-section p {{
-            color: var(--text-color);
-            line-height: 1.5;
-            margin: 0;
-        }}
-        .references-list {{
-            list-style: none;
-            padding: 0;
-        }}
-        .references-list li {{
-            margin: 0.5rem 0;
-            padding: 0.5rem;
-            background: rgba(40, 167, 69, 0.1);
-            border-radius: 4px;
-        }}
-        .references-list a {{
-            color: var(--heading-color);
-            text-decoration: none;
-        }}
-        .references-list a:hover {{
-            text-decoration: underline;
-        }}
-        </style>
-        """
-
-    def _generate_meeting_body(self, data: dict[str, Any]) -> str:
-        """Génère le corps HTML pour les réunions."""
-        return self._generate_generic_body(data, "MEETING_PREP")
-
-    def _generate_saint_body(self, data: dict[str, Any]) -> str:
-        """Génère le corps HTML pour le saint du jour."""
-        saint_name = data.get("saint_name", "Saint du Jour")
-        feast_date = data.get("feast_date", "")
-        biography = data.get("biography", "")
-        significance = data.get("significance", "")
-        miracles = data.get("miracles", "")
-        swiss_connection = data.get("swiss_connection", "")
-        prayer_reflection = data.get("prayer_reflection", "")
-        sources = data.get("sources", [])
-        birth_year = data.get("birth_year", "")
-        death_year = data.get("death_year", "")
-        patron_of = data.get("patron_of", "")
-
-        # Format dates for display
-        date_info = ""
-        if birth_year or death_year:
-            date_info = f"<p><strong>📅 Dates :</strong> {birth_year} - {death_year}</p>"
-
-        # Format feast date
-        feast_info = f"<p><strong>🎉 Fête :</strong> {feast_date}</p>" if feast_date else ""
-
-        # Format patron information
-        patron_info = f"<p><strong>🙏 Patron de :</strong> {patron_of}</p>" if patron_of else ""
-
-        # Format sources
-        sources_html = ""
-        if sources:
-            sources_list = "\n".join(
-                [f"<li><a href='{source}' target='_blank'>{source}</a></li>" for source in sources]
-            )
-            sources_html = f"""
-            <div class="saint-sources">
-                <h4>📚 Sources</h4>
-                <ul>
-                    {sources_list}
-                </ul>
-            </div>
-            """
-
-        return f"""
-        <div class="saint-container">
-            <div class="saint-header">
-                <h2>⛪ {saint_name}</h2>
-                {feast_info}
-                {date_info}
-                {patron_info}
-            </div>
-
-            <div class="saint-content">
-                <div class="saint-section">
-                    <h3>📖 Biographie</h3>
-                    <p>{biography}</p>
-                </div>
-
-                <div class="saint-section">
-                    <h3>✨ Signification</h3>
-                    <p>{significance}</p>
-                </div>
-
-                <div class="saint-section">
-                    <h3>🌟 Miracles</h3>
-                    <p>{miracles}</p>
-                </div>
-
-                <div class="saint-section">
-                    <h3>🇨🇭 Lien avec la Suisse</h3>
-                    <p>{swiss_connection}</p>
-                </div>
-
-                <div class="saint-section prayer-section">
-                    <h3>🙏 Prière et Réflexion</h3>
-                    <div class="prayer-text">
-                        <p><em>{prayer_reflection}</em></p>
-                    </div>
-                </div>
-
-                {sources_html}
-            </div>
-        </div>
-
-        <style>
-        .saint-container {{
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 2rem;
-        }}
-
-        .saint-header {{
-            text-align: center;
-            margin-bottom: 2rem;
-            padding: 1.5rem;
-            background: var(--container-bg);
-            border-radius: 12px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }}
-
-        .saint-header h2 {{
-            color: var(--heading-color);
-            margin-bottom: 1rem;
-            font-size: 2rem;
-        }}
-
-        .saint-section {{
-            margin-bottom: 2rem;
-            padding: 1.5rem;
-            background: var(--container-bg);
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }}
-
-        .saint-section h3 {{
-            color: var(--heading-color);
-            margin-bottom: 1rem;
-            border-bottom: 2px solid var(--accent-color);
-            padding-bottom: 0.5rem;
-        }}
-
-        .saint-section p {{
-            line-height: 1.6;
-            color: var(--text-color);
-        }}
-
-        .prayer-section {{
-            background: linear-gradient(135deg, var(--container-bg) 0%, rgba(255,215,0,0.1) 100%);
-            border-left: 4px solid var(--accent-color);
-        }}
-
-        .prayer-text {{
-            font-style: italic;
-            text-align: center;
-            padding: 1rem;
-        }}
-
-        .saint-sources {{
-            margin-top: 1rem;
-        }}
-
-        .saint-sources ul {{
-            list-style-type: none;
-            padding: 0;
-        }}
-
-        .saint-sources li {{
-            margin-bottom: 0.5rem;
-        }}
-
-        .saint-sources a {{
-            color: var(--accent-color);
-            text-decoration: none;
-        }}
-
-        .saint-sources a:hover {{
-            text-decoration: underline;
-        }}
-        </style>
-        """
+    # The _generate_saint_body method has been removed and replaced by the SaintRenderer class
+    # See src/epic_news/utils/html/template_renderers/saint_renderer.py
 
     def _generate_menu_body(self, data: dict[str, Any]) -> str:
         """Génère le corps HTML pour les menus."""
-        return self._generate_generic_body(data, "MENU")
+        # Use GenericRenderer instead of legacy _generate_generic_body
+        renderer = RendererFactory.create_renderer("GENERIC")
+        return renderer.render(data, "MENU")
 
-    def _generate_financial_report_body(self) -> str:
-        """Generate the HTML body for the financial report."""
-        if not self.state.financial_report_model:
-            return "<p>No financial report data available.</p>"
-
-        report = self.state.financial_report_model
-
-        # Executive Summary
-        summary_html = f"""
-        <section class="executive-summary">
-            <h2>Executive Summary</h2>
-            <p>{report.executive_summary}</p>
-        </section>
-        """
-
-        # Analyses
-        analyses_html = '<section class="analyses"><h2>Asset Analyses</h2>'
-        for analysis in report.analyses:
-            details_list = "".join([f"<li>{detail}</li>" for detail in analysis.details])
-            analyses_html += f"""
-            <div class="analysis-item">
-                <h3>{analysis.asset_class}</h3>
-                <p>{analysis.summary}</p>
-                <ul>{details_list}</ul>
-            </div>
-            """
-        analyses_html += "</section>"
-
-        # Suggestions
-        suggestions_html = '<section class="suggestions"><h2>Investment Suggestions</h2>'
-        for suggestion in report.suggestions:
-            suggestions_html += f"""
-            <div class="suggestion-item">
-                <h3>{suggestion.asset_class}</h3>
-                <p><strong>Suggestion:</strong> {suggestion.suggestion}</p>
-                <p><em>Rationale:</em> {suggestion.rationale}</p>
-            </div>
-            """
-        suggestions_html += "</section>"
-
-        # Add CSS styles for financial report
-        style_html = """
-        <style>
-        .executive-summary, .analyses, .suggestions {
-            margin: 2rem 0;
-            padding: 1.5rem;
-            background: var(--container-bg);
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-        
-        .executive-summary h2, .analyses h2, .suggestions h2 {
-            color: var(--heading-color);
-            margin-top: 0;
-            border-bottom: 2px solid var(--border-color);
-            padding-bottom: 0.5rem;
-            margin-bottom: 1.5rem;
-        }
-        
-        .analysis-item, .suggestion-item {
-            margin: 1.5rem 0;
-            padding: 1rem;
-            background: rgba(255,255,255,0.05);
-            border-radius: 8px;
-            border-left: 4px solid var(--accent-color);
-        }
-        
-        .analysis-item h3, .suggestion-item h3 {
-            color: var(--heading-color);
-            margin-top: 0;
-            font-size: 1.3rem;
-        }
-        
-        .analysis-item ul {
-            margin: 1rem 0;
-            padding-left: 1.5rem;
-        }
-        
-        .analysis-item li {
-            margin: 0.5rem 0;
-        }
-        
-        .suggestion-item p {
-            margin: 0.5rem 0;
-        }
-        </style>
-        """
-
-        return f"""{summary_html}{analyses_html}{suggestions_html}{style_html}"""
+    # The _generate_financial_report_body method has been removed and replaced by the FinancialRenderer class
+    # See src/epic_news/utils/html/template_renderers/financial_renderer.py
 
     def _generate_cooking_body(self, data: dict[str, Any]) -> str:
         """Generate rich HTML content for cooking recipes with structured formatting."""

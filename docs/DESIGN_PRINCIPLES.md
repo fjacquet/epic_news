@@ -57,6 +57,11 @@ crewai flow kickoff
 
 - **Imports**: ALL imports must be placed at the top of Python files, never inside functions or methods. This ensures clarity, prevents circular imports, and follows PEP 8 standards.
 - **Whitespace**: Avoid trailing whitespace (`W291`) and whitespace on blank lines (`W293`). These are enforced by `ruff` and help maintain a clean, readable codebase.
+- **BeautifulSoup HTML Generation**: When using BeautifulSoup to generate HTML elements with class attributes, be aware that using `class_=` parameter can result in invalid HTML with `class_=` instead of `class=`. Use one of these approaches instead:
+  - Create HTML elements directly with string literals: `soup = BeautifulSoup('<div class="container"></div>', "html.parser")`
+  - Post-process the HTML: `html_str = str(soup).replace('class_=', 'class=')`
+  - Use the attrs dictionary: `tag.attrs["class"] = ["container"]`
+  - For detailed examples, see [html_rendering_pattern.md](./html_rendering_pattern.md#beautifulsoup-best-practices)
 
 ## CrewAI Best Practices
 

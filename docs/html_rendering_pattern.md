@@ -60,8 +60,45 @@ saint_to_html(saint_model, html_file="output/saint_daily/report.html")
 - This pattern breaks some legacy CrewAI rules ("no more Python than needed", "don't bypass crews"), but is justified for deterministic report rendering.
 - The universal template system ensures all reports maintain a professional look and feel, with dark mode and responsive design.
 
+## BeautifulSoup Best Practices
+
+### Class Attribute Handling
+
+**Problem:** When using BeautifulSoup to generate HTML, the Python keyword `class` conflicts with HTML's `class` attribute. BeautifulSoup uses `class_` as a workaround, but sometimes outputs HTML with `class_=` instead of `class=`, breaking CSS styling.
+
+```python
+# ❌ PROBLEMATIC - May generate <div class_="container"> in output HTML
+soup = BeautifulSoup("<div></div>", "html.parser")
+tag = soup.new_tag("div", class_="container")
+soup.div.append(tag)
+```
+
+**Solution 1:** Create HTML elements directly as strings:
+
+```python
+# ✅ CORRECT - Creates proper class attributes
+soup = BeautifulSoup('<div class="container"></div>', "html.parser")
+```
+
+**Solution 2:** Post-process the HTML output:
+
+```python
+# ✅ CORRECT - Fix class attributes by replacing class_ with class
+html_str = str(soup)
+html_str = html_str.replace('class_=', 'class=')
+return html_str
+```
+
+**Solution 3:** Use the attrs dictionary in BeautifulSoup 4.12.0+ (recommended):
+
+```python
+# ✅ CORRECT - Use attrs dictionary directly
+tag = soup.new_tag("div")
+tag.attrs["class"] = ["container", "my-class"]  # List for multiple classes
+```
+
 ---
 
 **This is now the recommended approach for deterministic report HTML rendering in Epic News.**
 
-For questions or further examples, see `src/epic_news/utils/html/saint_html_factory.py` or `src/epic_news/utils/html/poem_html_factory.py`.
+For questions or further examples, see `src/epic_news/utils/html/saint_html_factory.py`, `src/epic_news/utils/html/poem_html_factory.py`, or `src/epic_news/utils/html/template_renderers/meeting_prep_renderer.py`.

@@ -57,6 +57,7 @@ from epic_news.crews.web_presence.web_presence_crew import WebPresenceCrew
 from epic_news.models.book_summary_report import BookSummaryReport
 from epic_news.models.content_state import ContentState
 from epic_news.models.financial_report import FinancialReport
+from epic_news.models.meeting_prep_report import MeetingPrepReport
 from epic_news.models.paprika_recipe import PaprikaRecipe
 from epic_news.models.poem_models import PoemJSONOutput
 from epic_news.models.saint_data import SaintData
@@ -71,6 +72,7 @@ from epic_news.utils.html.book_summary_html_factory import (
 from epic_news.utils.html.daily_news_html_factory import daily_news_to_html
 from epic_news.utils.html.fin_daily_html_factory import findaily_to_html
 from epic_news.utils.html.holiday_plan_html_factory import holiday_plan_to_html
+from epic_news.utils.html.meeting_prep_html_factory import meeting_prep_to_html
 from epic_news.utils.html.poem_html_factory import poem_to_html
 from epic_news.utils.html.recipe_html_factory import recipe_to_html
 from epic_news.utils.html.saint_html_factory import saint_to_html
@@ -698,12 +700,10 @@ class ReceptionFlow(Flow[ContentState]):
 
         Invokes `MeetingPrepCrew` to generate meeting preparation materials.
         It expects a 'company' name in the inputs, falling back to 'topic' if
-        'company' is not available. Sets `output_file` to
-        `output/meeting/meeting_preparation.html` and stores the report in
-        `self.state.meeting_prep_report`.
+        'company' is not available.
         """
         # No need to create directories as ensure_output_directories() is called at init
-        self.state.output_file = "output/meeting/meeting_preparation.html"
+
         # Prepare inputs and handle company fallback
         current_inputs = self.state.to_crew_inputs()
         company = current_inputs.get("company")
@@ -714,8 +714,26 @@ class ReceptionFlow(Flow[ContentState]):
 
         print(f"Generating meeting prep for company: {company or 'N/A'}")
 
+        current_inputs["output_file"] = "output/meeting/meeting_preparation.json"
         # Generate the meeting prep
-        self.state.meeting_prep_report = MeetingPrepCrew().crew().kickoff(inputs=current_inputs)
+        meeting_result = MeetingPrepCrew().crew().kickoff(inputs=current_inputs)
+        self.state.meeting_prep_report = meeting_result
+
+        # Parse CrewAI output using utility function
+        try:
+            self.state.meeting_prep_report = parse_crewai_output(
+                meeting_result, MeetingPrepReport, current_inputs
+            )
+            print("Successfully parsed meeting prep result to MeetingPrepReport model")
+        except Exception as e:
+            print(f"Error parsing meeting prep result: {e}")
+
+        # Set the final report to the JSON output
+        self.state.final_report = self.state.meeting_prep_report
+        dump_crewai_state(self.state.meeting_prep_report, "MEETING_PREP")
+        html_file = "output/meeting/meeting_preparation.html"
+        meeting_prep_to_html(self.state.meeting_prep_report, html_file=html_file)
+
         # return "generate_meeting_prep"
 
     @listen("go_generate_sales_prospecting_report")
@@ -1082,7 +1100,10 @@ def kickoff(user_input: str | None = None):
     """
     # If user_input is not provided, use a default value.
     request = (
-        user_input if user_input else "Get me the recipe for Salade Cesar"
+        user_input
+        if user_input
+        else "Meeting preparation for JT International SA with the  CTO to discuss PowerFlex deployment in switzerland for their new 9 OpenShift clusters "
+        # else "Get me the recipe for Salade Cesar"
         # else "let's plan a weekend in cinque terre for 1 person in end of july, I start from finale ligure, give the best hotel and restaurant options"
         # else "get the rss weekly report"
         # else "Donne moi un conseil d'achat pour remplacer mon sodastream par une marque plus ethique et non israélienne"
