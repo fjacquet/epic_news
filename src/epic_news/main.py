@@ -150,6 +150,7 @@ class ReceptionFlow(Flow[ContentState]):
         extraction_crew = InformationExtractionCrew()
         extracted_data = extraction_crew.crew().kickoff(inputs={"user_request": self.state.user_request})
 
+        dump_crewai_state(extracted_data, "EXTRACTED_INFO")
         # Update the state with the extracted information
         if extracted_data:
             # Assuming extracted_data has a .pydantic attribute for the model instance
@@ -184,6 +185,7 @@ class ReceptionFlow(Flow[ContentState]):
         # Instantiate and run the classification crew
         classify_crew = ClassifyCrew()
         classification_result = classify_crew.crew().kickoff(inputs=inputs)
+        dump_crewai_state(classification_result, "CLASSIFICATION")
 
         # Parse the result and update the state with the selected crew category.
         # The classification_result might contain 'Thought: ...' prefixes.
@@ -298,16 +300,17 @@ class ReceptionFlow(Flow[ContentState]):
     def generate_news_company(self):
         """
         Handles requests classified for the 'CompanyNewsCrew'.
-
         Invokes the `CompanyNewsCrew` to generate news content related to the given topic.
-        Sets `output_file` to `output/news/report.html` and stores the news report
-        in `self.state.news_report`.
         """
-        self.state.output_file = "output/news/report.html"
+        self.state.output_file = "output/news/report.json"
         print(f"Generating news about: {self.state.to_crew_inputs().get('topic', 'N/A')}")
 
         # Generate the news
         self.state.news_report = CompanyNewsCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
+        dump_crewai_state(self.state.news_report, "NEWS_COMPANY")
+        html_file = "output/news/report.html"
+        news_to_html(self.state.news_report, html_file=html_file)
+
         # return "generate_news_company"
 
     @listen("go_generate_rss_weekly")

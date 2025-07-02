@@ -3,11 +3,11 @@ Test script for the MeetingPrepRenderer integration.
 This script creates a sample MeetingPrepReport and renders it to HTML.
 """
 
-import os
 import json
+import os
 from pathlib import Path
 
-from epic_news.models.meeting_prep_report import MeetingPrepReport, CompanyProfile, Participant
+from epic_news.models.meeting_prep_report import MeetingPrepReport
 from epic_news.utils.html.meeting_prep_html_factory import meeting_prep_to_html
 
 
@@ -72,7 +72,7 @@ def generate_sample_meeting_prep_data():
             }
         ]
     }
-    
+
     # Create a Pydantic model from the data
     return MeetingPrepReport.model_validate(sample_data)
 
@@ -82,22 +82,22 @@ def test_meeting_prep_renderer():
     # Create output directory if it doesn't exist
     output_dir = Path("output/meeting")
     os.makedirs(output_dir, exist_ok=True)
-    
+
     # Generate sample data
     meeting_prep_report = generate_sample_meeting_prep_data()
     print(f"✅ Created sample MeetingPrepReport: {meeting_prep_report.company_profile.name}")
-    
+
     # Save JSON for reference
     with open(output_dir / "sample_meeting_prep.json", "w", encoding="utf-8") as f:
         f.write(json.dumps(meeting_prep_report.model_dump(), indent=2, ensure_ascii=False))
     print(f"✅ Saved sample JSON to {output_dir / 'sample_meeting_prep.json'}")
-    
+
     # Generate HTML using our new renderer
     html_output_path = output_dir / "meeting_preparation_test.html"
     html = meeting_prep_to_html(meeting_prep_report, html_file=str(html_output_path))
-    print(f"✅ Generated HTML using MeetingPrepRenderer")
+    print("✅ Generated HTML using MeetingPrepRenderer")
     print(f"✅ Saved HTML to {html_output_path}")
-    
+
     print(f"\nTest completed. Please check the HTML output at: file://{html_output_path.resolve()}")
 
 

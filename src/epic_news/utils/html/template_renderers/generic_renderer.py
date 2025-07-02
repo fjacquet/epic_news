@@ -125,7 +125,7 @@ class GenericRenderer(BaseRenderer):
         # Format data nicely
         formatted_data = []
         for key, value in data.items():
-            if isinstance(value, (str, int, float, bool)):
+            if isinstance(value, str | int | float | bool):
                 formatted_data.append(f"{key}: {value}")
             elif isinstance(value, list):
                 formatted_data.append(f"{key}: [{len(value)} items]")

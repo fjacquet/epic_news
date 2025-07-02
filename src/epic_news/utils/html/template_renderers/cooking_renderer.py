@@ -56,18 +56,25 @@ class CookingRenderer(BaseRenderer):
         """Add recipe header with title and description."""
         header = soup.new_tag("header", class_="recipe-header")
 
-        # Recipe title
-        title = data.get("recipe_title", "Recette")
+        # Title
+        title = data.get("recipe_title", data.get("name", "Recette"))
         title_tag = soup.new_tag("h1", class_="recipe-title")
         title_tag.string = f"🍽️ {title}"
         header.append(title_tag)
 
-        # Recipe description if available
+        # Description
         description = data.get("description", "")
         if description:
             desc_tag = soup.new_tag("p", class_="recipe-description")
             desc_tag.string = description
             header.append(desc_tag)
+
+        # Add recipe type badge if available
+        recipe_type = data.get("type", data.get("category", ""))
+        if recipe_type:
+            badge = soup.new_tag("span", class_="recipe-badge")
+            badge.string = recipe_type
+            header.append(badge)
 
         container.append(header)
 
@@ -185,7 +192,7 @@ class CookingRenderer(BaseRenderer):
         container.append(instructions_section)
 
     def _add_chef_notes(self, soup: BeautifulSoup, container, data: dict[str, Any]) -> None:
-        """Add chef's notes if available."""
+        """Add chef notes if available."""
         chef_notes = data.get("chef_notes", "")
         if not chef_notes:
             return
@@ -196,9 +203,18 @@ class CookingRenderer(BaseRenderer):
         notes_title.string = "👨‍🍳 Notes du Chef"
         notes_section.append(notes_title)
 
-        notes_content = soup.new_tag("p")
-        notes_content.string = chef_notes
-        notes_section.append(notes_content)
+        # Handle both string and list inputs
+        if isinstance(chef_notes, list):
+            notes_list = soup.new_tag("ul", class_="notes-list")
+            for note in chef_notes:
+                note_item = soup.new_tag("li")
+                note_item.string = str(note)
+                notes_list.append(note_item)
+            notes_section.append(notes_list)
+        else:
+            notes_content = soup.new_tag("p")
+            notes_content.string = str(chef_notes)
+            notes_section.append(notes_content)
 
         container.append(notes_section)
 
@@ -214,9 +230,18 @@ class CookingRenderer(BaseRenderer):
         nutrition_title.string = "🥗 Information Nutritionnelle"
         nutrition_section.append(nutrition_title)
 
-        nutrition_content = soup.new_tag("p")
-        nutrition_content.string = nutritional_info
-        nutrition_section.append(nutrition_content)
+        # Handle both string and dictionary inputs
+        if isinstance(nutritional_info, dict):
+            nutrition_list = soup.new_tag("ul", class_="nutrition-list")
+            for key, value in nutritional_info.items():
+                nutrition_item = soup.new_tag("li")
+                nutrition_item.string = f"{key.replace('_', ' ').title()}: {value}"
+                nutrition_list.append(nutrition_item)
+            nutrition_section.append(nutrition_list)
+        else:
+            nutrition_content = soup.new_tag("p")
+            nutrition_content.string = str(nutritional_info)
+            nutrition_section.append(nutrition_content)
 
         container.append(nutrition_section)
 
@@ -233,29 +258,59 @@ class CookingRenderer(BaseRenderer):
         .recipe-header {
             text-align: center;
             margin-bottom: 2rem;
-            padding-bottom: 1rem;
-            border-bottom: 2px solid var(--accent-color);
+            padding: 1.5rem;
+            background: var(--highlight-bg);
+            border-radius: 8px;
+            border-left: 4px solid var(--heading-color);
+            box-shadow: 0 2px 4px var(--shadow-color);
+            transition: all 0.3s;
         }
         .recipe-title {
             color: var(--heading-color);
             margin-bottom: 0.5rem;
+            font-size: 2.2em;
+            font-weight: 600;
         }
         .recipe-description {
             font-style: italic;
-            color: var(--text-muted);
+            color: var(--text-color);
+            font-size: 1.1em;
+            opacity: 0.9;
+            margin-bottom: 1rem;
+        }
+        .recipe-badge {
+            display: inline-block;
+            background: var(--heading-color);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 500;
+            margin-top: 1rem;
         }
         .recipe-meta {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-around;
-            margin: 1.5rem 0;
-            padding: 1rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+            padding: 1.5rem;
             background: var(--container-bg);
             border-radius: 8px;
             border: 1px solid var(--border-color);
+            box-shadow: 0 2px 4px var(--shadow-color);
+            transition: all 0.3s;
         }
         .meta-item {
-            margin: 0.5rem 1rem;
+            background: var(--highlight-bg);
+            padding: 1rem;
+            border-radius: 6px;
+            text-align: center;
+            border-left: 3px solid var(--heading-color);
+            transition: all 0.3s;
+        }
+        .meta-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
         .recipe-ingredients, .recipe-instructions, .chef-notes, .nutritional-info {
             margin: 2rem 0;
@@ -263,30 +318,132 @@ class CookingRenderer(BaseRenderer):
             background: var(--container-bg);
             border-radius: 8px;
             border: 1px solid var(--border-color);
+            box-shadow: 0 2px 4px var(--shadow-color);
+            transition: all 0.3s;
+        }
+        .recipe-ingredients:hover, .recipe-instructions:hover, .chef-notes:hover, .nutritional-info:hover {
+            box-shadow: 0 4px 8px var(--shadow-color);
         }
         .recipe-ingredients h2, .recipe-instructions h2, .chef-notes h3, .nutritional-info h3 {
             color: var(--heading-color);
             margin-top: 0;
-            border-bottom: 2px solid var(--accent-color);
+            margin-bottom: 1rem;
             padding-bottom: 0.5rem;
-            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
         }
         .ingredients-list {
             list-style-type: none;
-            padding-left: 0.5rem;
+            padding-left: 0;
         }
         .ingredients-list li {
-            margin: 0.5rem 0;
-            padding: 0.5rem;
-            background: rgba(0,0,0,0.05);
-            border-radius: 4px;
+            margin: 0.8rem 0;
+            padding: 1rem;
+            background: var(--highlight-bg);
+            border-radius: 6px;
+            border-left: 4px solid #28a745;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+        }
+        .ingredients-list li:hover {
+            background: var(--border-color);
+            transform: translateX(4px);
         }
         .instructions-list {
-            padding-left: 1.5rem;
+            padding-left: 0;
+            counter-reset: step-counter;
         }
         .instructions-list li {
-            margin: 1rem 0;
-            padding: 0.5rem;
+            margin: 1.2rem 0;
+            padding: 1.2rem;
+            background: var(--highlight-bg);
+            border-radius: 6px;
+            border-left: 4px solid #007bff;
+            position: relative;
+            counter-increment: step-counter;
+            transition: all 0.3s;
+        }
+        .instructions-list li:hover {
+            background: var(--border-color);
+            transform: translateX(4px);
+        }
+        .instructions-list li::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: -15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #007bff;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        .chef-notes, .nutritional-info {
+            border-left: 4px solid #ffc107;
+        }
+        .chef-notes h3, .nutritional-info h3 {
+            color: var(--h3-color);
+        }
+        .notes-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .notes-list li {
+            margin: 0.8rem 0;
+            padding: 1rem;
+            background: var(--highlight-bg);
+            border-radius: 6px;
+            border-left: 4px solid #ffc107;
+            transition: all 0.3s;
+            position: relative;
+        }
+        .notes-list li:hover {
+            background: var(--border-color);
+            transform: translateX(4px);
+        }
+        .notes-list li::before {
+            content: "💡";
+            position: absolute;
+            left: -15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #ffc107;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8em;
+        }
+        .nutrition-list {
+            list-style-type: none;
+            padding-left: 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.8rem;
+        }
+        .nutrition-list li {
+            margin: 0;
+            padding: 1rem;
+            background: var(--highlight-bg);
+            border-radius: 6px;
+            border-left: 4px solid #28a745;
+            transition: all 0.3s;
+            text-align: center;
+            font-weight: 500;
+        }
+        .nutrition-list li:hover {
+            background: var(--border-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
         """
         soup.append(style)

@@ -34,9 +34,9 @@ class MeetingPrepRenderer(BaseRenderer):
         elif hasattr(data, "dict") and callable(data.dict):
             data = data.dict()
 
-        # Create main container
-        soup = BeautifulSoup('<div class="meeting-prep-container"></div>', "html.parser")
-        container = soup.find("div")
+        # Create proper HTML structure
+        soup = BeautifulSoup('<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body><div class="meeting-prep-container"></div></body></html>', "html.parser")
+        container = soup.select_one(".meeting-prep-container")
 
         # Add title if available
         if "title" in data:
@@ -455,9 +455,14 @@ class MeetingPrepRenderer(BaseRenderer):
             padding: 1rem;
             background: var(--highlight-bg);
             border-radius: 4px;
+            border-left: 3px solid var(--heading-color);
         }
         .participant h4 {
             margin: 0 0 0.5rem 0;
+            color: var(--h3-color);
+        }
+        .participant-role {
+            font-weight: bold;
             color: var(--h3-color);
         }
         .talking-point {
@@ -474,21 +479,24 @@ class MeetingPrepRenderer(BaseRenderer):
         .questions-list li {
             margin-bottom: 0.5rem;
         }
-        .recommendation-section {
-            background: linear-gradient(to right, var(--container-bg), rgba(40, 167, 69, 0.1));
-            border-left: 4px solid #28a745;
-        }
-        .recommendation-item {
+        .strategic-recommendation {
             margin-bottom: 1.5rem;
             padding: 1rem;
-            background: var(--container-bg);
+            background: #f0f9f0;
+            border-left: 4px solid #28a745;
             border-radius: 4px;
         }
         .resource-item {
             margin-bottom: 1.5rem;
             padding: 1rem;
             background: var(--highlight-bg);
+            border-left: 3px solid #27ae60;
             border-radius: 4px;
         }
+        .resource-link {
+            margin-top: 0.5rem;
+            font-size: 0.9em;
+            word-break: break-all;
+        }
         """
-        soup.append(style)
+        soup.head.append(style)

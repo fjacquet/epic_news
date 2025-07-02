@@ -102,6 +102,14 @@ Simply use natural language - no special commands needed.
 - "Poem about the ocean at sunset"
 - "Creative verse about entrepreneurship"
 
+### ⛪ SAINT OF THE DAY (SaintDailyCrew)
+
+**What it does:** Get the saint of the day for Switzerland.
+
+- "Who is the saint of the day"
+- "Saint of the day"
+- "Get the saint of the day"
+
 ## 💡 HOW TO USE
 
 1. **Simply type your request in natural language**

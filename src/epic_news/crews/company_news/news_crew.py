@@ -7,8 +7,6 @@ from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from dotenv import load_dotenv
 
-from epic_news.models.report import ReportHTMLOutput
-from epic_news.tools.rag_tools import get_rag_tools
 from epic_news.tools.report_tools import get_report_tools
 
 # fact_checking_tools module doesn't exist, using alternative approach
@@ -127,7 +125,6 @@ class CompanyNewsCrew:
             self.search_tools = []
             self.fact_checking_tools = []
             self.scrape_tools = []
-            self.rag_tools = []
             self.report_tools = []
             self.all_tools = []
             raise RuntimeError(f"Error initializing tools: {str(e)}") from e
@@ -159,7 +156,7 @@ class CompanyNewsCrew:
         """
         return Agent(
             config=self.agents_config["analyst"],
-            tools=self.search_tools + self.rag_tools,
+            tools=self.search_tools,
             verbose=True,
             llm_timeout=300,
             reasoning=True,
@@ -175,7 +172,7 @@ class CompanyNewsCrew:
         """
         return Agent(
             config=self.agents_config["fact_checker"],
-            tools=self.fact_checking_tools + self.search_tools,
+            tools=self.fact_checking_tools,
             verbose=True,
             llm_timeout=300,
             reasoning=True,
@@ -194,7 +191,7 @@ class CompanyNewsCrew:
         """
         return Agent(
             config=self.agents_config["editor"],
-            tools=self.search_tools + self.report_tools,
+            tools=self.report_tools,
             verbose=True,
             llm_timeout=300,
             reasoning=True,
@@ -294,7 +291,6 @@ class CompanyNewsCrew:
 
         return Task(
             config=task_config,
-            output_pydantic=ReportHTMLOutput,  # Use standardized HTML output format
             context=[
                 self.research_task(),
                 self.analysis_task(),

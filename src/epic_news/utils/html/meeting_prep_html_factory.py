@@ -8,7 +8,7 @@ import os
 
 from epic_news.models.meeting_prep_report import MeetingPrepReport
 from epic_news.utils.debug_utils import parse_crewai_output
-from epic_news.utils.html.template_renderers.renderer_factory import RendererFactory
+from epic_news.utils.html.template_manager import TemplateManager
 
 
 def meeting_prep_to_html(meeting_prep_report, html_file=None):
@@ -36,9 +36,9 @@ def meeting_prep_to_html(meeting_prep_report, html_file=None):
     else:
         raise ValueError("Unsupported meeting_prep_report type for HTML rendering")
 
-    # Use MeetingPrepRenderer for rendering
-    renderer = RendererFactory.create_renderer("MEETING_PREP")
-    html = renderer.render(content_data)
+    # Use TemplateManager for rendering with the universal template
+    template_manager = TemplateManager()
+    html = template_manager.render_report("MEETING_PREP", content_data)
 
     # Write to file if requested
     if html_file:

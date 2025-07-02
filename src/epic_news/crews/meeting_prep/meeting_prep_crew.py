@@ -236,28 +236,6 @@ class MeetingPrepCrew:
             ],  # Add all previous tasks as context
         )
 
-    # def _get_task_context(self) -> list[dict[str, Any]]:
-    #     """Prepare context data for tasks.
-
-    #     This helper method centralizes the creation of context data for tasks,
-    #     following the DRY principle and ensuring consistent data across all tasks.
-
-    #     Returns:
-    #         List[Dict[str, Any]]: List of context dictionaries for task execution
-    #     """
-    #     # Create context items with all necessary information for the tasks
-    #     context = [
-    #         {"topic": self.topic},
-    #         {"company": self.company},
-    #         {"participants": ", ".join(self.participants) if self.participants else ""},
-    #         {"objective": self.objective},
-    #         {"prior_interactions": self.prior_interactions},
-    #         {"context": self.context},
-    #     ]
-
-    #     # Filter out empty context items
-    #     return [item for item in context if list(item.values())[0]]
-
     @crew
     def crew(self) -> Crew:
         """Creates the MeetingPrep crew with configured agents and tasks.

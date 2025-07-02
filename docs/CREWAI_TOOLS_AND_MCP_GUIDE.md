@@ -173,7 +173,7 @@ COMPOSIO_API_KEY=your_composio_key      # ComposioTool
 
 ## Multi-Crew Protocol (MCP)
 
-> **Note**: This section requires further research of the official MCP documentation.
+> **Note**: This section requires further research of the official MCP documentation. The integration of MCP is currently experimental and not fully implemented.
 
 ### Overview
 

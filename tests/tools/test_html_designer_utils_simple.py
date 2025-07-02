@@ -17,19 +17,18 @@ from epic_news.utils.html_designer_utils import (
 @pytest.fixture
 def mock_state_json():
     """Fixture fournissant un JSON d'état simulé."""
-    return json.dumps({
-        "report_type": "daily",
-        "finance": {
-            "summary": "Analyse financière complète",
-            "stocks": ["AAPL", "GOOGL", "MSFT"],
-            "trends": ["Hausse des tech", "Volatilité crypto"]
-        },
-        "news": {
-            "headlines": ["Actualité 1", "Actualité 2"],
-            "sources": ["Reuters", "Bloomberg"]
-        },
-        "timestamp": "2024-01-15T10:00:00Z"
-    })
+    return json.dumps(
+        {
+            "report_type": "daily",
+            "finance": {
+                "summary": "Analyse financière complète",
+                "stocks": ["AAPL", "GOOGL", "MSFT"],
+                "trends": ["Hausse des tech", "Volatilité crypto"],
+            },
+            "news": {"headlines": ["Actualité 1", "Actualité 2"], "sources": ["Reuters", "Bloomberg"]},
+            "timestamp": "2024-01-15T10:00:00Z",
+        }
+    )
 
 
 class TestAnalyzeStateData:
@@ -101,11 +100,10 @@ class TestRenderProfessionalReport:
         </html>
         """
 
-        with patch('builtins.open', mock_open(read_data=template_content)):
-            with patch('epic_news.utils.html_designer_utils.select_template_for_report') as mock_select:
-                mock_select.return_value = "/fake/template/path.html"
+        with patch("builtins.open", mock_open(read_data=template_content)), patch("epic_news.utils.html_designer_utils.select_template_for_report") as mock_select:
+            mock_select.return_value = "/fake/template/path.html"
 
-                result = render_professional_report(mock_state_json, "daily")
+            result = render_professional_report(mock_state_json, "daily")
 
                 assert isinstance(result, str)
                 assert "<!DOCTYPE html>" in result
@@ -116,14 +114,16 @@ class TestRenderProfessionalReport:
         empty_json = "{}"
         template_content = "<html><body><h1>Rapport Vide</h1></body></html>"
 
-        with patch('builtins.open', mock_open(read_data=template_content)):
-            with patch('epic_news.utils.html_designer_utils.select_template_for_report') as mock_select:
-                mock_select.return_value = "/fake/template/path.html"
+        with (
+            patch("builtins.open", mock_open(read_data=template_content)),
+            patch("epic_news.utils.html_designer_utils.select_template_for_report") as mock_select,
+        ):
+            mock_select.return_value = "/fake/template/path.html"
 
-                result = render_professional_report(empty_json, "daily")
+            result = render_professional_report(empty_json, "daily")
 
-                assert isinstance(result, str)
-                assert "<html>" in result
+            assert isinstance(result, str)
+            assert "<html>" in result
 
 
 class TestIntegration:
@@ -142,8 +142,8 @@ class TestIntegration:
 
         # 3. Rendre le rapport (avec mock du template)
         template_content = "<html><body><h1>Test Report</h1></body></html>"
-        with patch('builtins.open', mock_open(read_data=template_content)):
-            with patch('epic_news.utils.html_designer_utils.select_template_for_report') as mock_select:
+        with patch("builtins.open", mock_open(read_data=template_content)):  # noqa: SIM117
+            with patch("epic_news.utils.html_designer_utils.select_template_for_report") as mock_select:
                 mock_select.return_value = template_path
 
                 report = render_professional_report(mock_state_json, "daily")
