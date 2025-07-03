@@ -244,19 +244,15 @@ class UnifiedRssTool(BaseTool):
                 # Try multiple date fields that might be available
                 if hasattr(entry, "published_parsed") and entry.published_parsed:
                     try:
-                        # Handle both real tuples and mock objects
-                        if hasattr(entry.published_parsed, "__getitem__"):
-                            pub_date = datetime(*entry.published_parsed[:6])
-                            date_source = "published_parsed"
+                        pub_date = datetime(*entry.published_parsed[:6])
+                        date_source = "published_parsed"
                     except (TypeError, ValueError):
                         pass
 
                 if not pub_date and hasattr(entry, "updated_parsed") and entry.updated_parsed:
                     try:
-                        # Handle both real tuples and mock objects
-                        if hasattr(entry.updated_parsed, "__getitem__"):
-                            pub_date = datetime(*entry.updated_parsed[:6])
-                            date_source = "updated_parsed"
+                        pub_date = datetime(*entry.updated_parsed[:6])
+                        date_source = "updated_parsed"
                     except (TypeError, ValueError):
                         pass
 
@@ -347,6 +343,9 @@ class UnifiedRssTool(BaseTool):
                 logger.warning(f"ScrapeNinja returned raw JSON for {url}. Discarding.")
                 return None  # Treat as failure to trigger summary fallback
 
+            if content and isinstance(content, dict) and "content" in content:
+                logger.info(f"Successfully scraped with ScrapeNinja: {url}")
+                return content["content"]
             if content:
                 logger.info(f"Successfully scraped with ScrapeNinja: {url}")
                 return content

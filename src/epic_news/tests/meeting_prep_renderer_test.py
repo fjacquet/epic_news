@@ -14,6 +14,7 @@ from epic_news.utils.html.meeting_prep_html_factory import meeting_prep_to_html
 def generate_sample_meeting_prep_data():
     """Generate a sample MeetingPrepReport for testing."""
     sample_data = {
+        "title": "Test Meeting",
         "summary": "Préparation pour la réunion stratégique avec Acme Corp pour discuter des possibilités de partenariat technologique.",
         "company_profile": {
             "name": "Acme Corporation",
@@ -35,39 +36,43 @@ def generate_sample_meeting_prep_data():
         "industry_overview": "Le secteur des technologies cloud est en pleine expansion avec une croissance annuelle de 25%. Les tendances actuelles incluent l'adoption de l'IA, le edge computing et les solutions multi-cloud.",
         "talking_points": [
             {
-                "key_point": "Possibilités d'intégration API",
-                "questions": [
+                "topic": "Possibilités d'intégration API",
+                "key_points": [
                     "Quelles sont vos API actuelles?",
                     "Comment envisagez-vous l'interopérabilité?"
-                ]
+                ],
+                "questions": [],
             },
             {
-                "key_point": "Roadmap technologique",
-                "questions": [
+                "topic": "Roadmap technologique",
+                "key_points": [
                     "Quelles sont vos priorités pour les 12 prochains mois?",
                     "Comment voyez-vous l'évolution du marché?"
-                ]
+                ],
+                "questions": [],
             }
         ],
         "strategic_recommendations": [
             {
-                "title": "Partenariat stratégique",
-                "description": "Établir un partenariat technologique pour l'intégration de nos solutions respectives."
+                "area": "Partenariat stratégique",
+                "suggestion": "Établir un partenariat technologique pour l'intégration de nos solutions respectives.",
+                "expected_outcome": "Increased market share"
             },
             {
-                "title": "Développement conjoint",
-                "description": "Envisager un développement conjoint d'une solution cloud-IA pour le secteur financier."
+                "area": "Développement conjoint",
+                "suggestion": "Envisager un développement conjoint d'une solution cloud-IA pour le secteur financier.",
+                "expected_outcome": "New revenue stream"
             }
         ],
         "additional_resources": [
             {
                 "title": "Rapport d'analyse Acme Corp",
-                "url": "https://example.com/reports/acme",
+                "link": "https://example.com/reports/acme",
                 "description": "Analyse détaillée des produits et de la position d'Acme Corp sur le marché."
             },
             {
                 "title": "Étude de marché Cloud 2023",
-                "url": "https://example.com/market/cloud2023",
+                "link": "https://example.com/market/cloud2023",
                 "description": "Tendances et prévisions pour le marché du cloud computing."
             }
         ]

@@ -314,8 +314,8 @@ def test_feed_with_articles_valid():
 def test_rss_feeds_valid():
     article = Article(title="T", link="l", published="p")
     feed = FeedWithArticles(feed_url="f", articles=[article])
-    model = RssFeeds(feeds=[feed])
-    assert len(model.feeds) == 1
+    model = RssFeeds(rss_feeds=[feed])
+    assert len(model.rss_feeds) == 1
 
 
 def test_tavily_tool_input_valid():

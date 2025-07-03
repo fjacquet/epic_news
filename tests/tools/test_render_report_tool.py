@@ -28,7 +28,7 @@ class TestRenderReportTool:
             return True
 
         # Apply the mock to all tests
-        monkeypatch.setattr("epic_news.utils.validate_html.validate_html", mock_validate_html)
+        monkeypatch.setattr("epic_news.utils.html.validator.validate_html", mock_validate_html)
 
     def test_render_report_tool_init(self, tmp_path):
         """Test RenderReportTool initialization with default and custom template paths."""
@@ -157,7 +157,7 @@ class TestRenderReportTool:
             return True
 
         # Use monkeypatch to replace the real validator with our mock
-        monkeypatch.setattr("epic_news.utils.validate_html.validate_html", mock_validate_html)
+        monkeypatch.setattr("epic_news.utils.html.validator.validate_html", mock_validate_html)
 
         # Render a report - this should call our mock validator
         tool.run(title="Validation Test", sections=[{"heading": "Test", "content": "<p>Content</p>"}])

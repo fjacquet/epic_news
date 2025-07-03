@@ -7,6 +7,7 @@ Centralizes renderer instantiation and provides fallback to generic renderer.
 
 from .base_renderer import BaseRenderer
 from .book_summary_renderer import BookSummaryRenderer
+from .company_news_renderer import CompanyNewsRenderer
 from .cooking_renderer import CookingRenderer
 from .financial_renderer import FinancialRenderer
 from .generic_renderer import GenericRenderer
@@ -37,6 +38,7 @@ class RendererFactory:
         "RSS_WEEKLY": RssWeeklyRenderer,
         "SAINT": SaintRenderer,
         "SHOPPING": ShoppingRenderer,
+        "COMPANY_NEWS": CompanyNewsRenderer,
     }
 
     @classmethod

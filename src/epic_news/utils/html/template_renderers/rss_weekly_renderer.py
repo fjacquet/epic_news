@@ -26,8 +26,9 @@ class RssWeeklyRenderer(BaseRenderer):
             HTML string for RSS weekly content
         """
         # Create main container
-        soup = self.create_soup("div", class_="rss-weekly-container")
+        soup = self.create_soup("div")
         container = soup.find("div")
+        container.attrs["class"] = ["rss-weekly-container"]
 
         # Add header
         self._add_header(soup, container, data)
@@ -52,18 +53,21 @@ class RssWeeklyRenderer(BaseRenderer):
 
     def _add_header(self, soup: BeautifulSoup, container, data: dict[str, Any]) -> None:
         """Add RSS weekly header with title."""
-        header = soup.new_tag("header", class_="rss-header")
+        header = soup.new_tag("header")
+        header.attrs["class"] = ["rss-header"]
 
         # Title
         title = data.get("title", "RSS Weekly")
-        title_tag = soup.new_tag("h1", class_="rss-title")
+        title_tag = soup.new_tag("h1")
+        title_tag.attrs["class"] = ["rss-title"]
         title_tag.string = f"📰 {title}"
         header.append(title_tag)
 
         # Date if available
         date = data.get("date")
         if date:
-            date_tag = soup.new_tag("p", class_="rss-date")
+            date_tag = soup.new_tag("p")
+            date_tag.attrs["class"] = ["rss-date"]
             date_tag.string = date
             header.append(date_tag)
 
@@ -75,7 +79,8 @@ class RssWeeklyRenderer(BaseRenderer):
         if not summary:
             return
 
-        summary_div = soup.new_tag("div", class_="rss-summary")
+        summary_div = soup.new_tag("div")
+        summary_div.attrs["class"] = ["rss-summary"]
 
         summary_title = soup.new_tag("h2")
         summary_title.string = "📋 Résumé de la semaine"
@@ -94,15 +99,18 @@ class RssWeeklyRenderer(BaseRenderer):
             return
 
         for category_name, articles in categories.items():
-            category_section = soup.new_tag("section", class_="rss-category")
+            category_section = soup.new_tag("section")
+            category_section.attrs["class"] = ["rss-category"]
 
             # Category title
-            category_title = soup.new_tag("h2", class_="category-title")
+            category_title = soup.new_tag("h2")
+            category_title.attrs["class"] = ["category-title"]
             category_title.string = category_name
             category_section.append(category_title)
 
             # Articles list
-            articles_div = soup.new_tag("div", class_="category-articles")
+            articles_div = soup.new_tag("div")
+            articles_div.attrs["class"] = ["category-articles"]
 
             for article in articles:
                 article_card = self._create_article_card(soup, article)
@@ -117,13 +125,15 @@ class RssWeeklyRenderer(BaseRenderer):
         if not articles:
             return
 
-        articles_section = soup.new_tag("section", class_="rss-articles")
+        articles_section = soup.new_tag("section")
+        articles_section.attrs["class"] = ["rss-articles"]
 
         articles_title = soup.new_tag("h2")
         articles_title.string = "📑 Articles"
         articles_section.append(articles_title)
 
-        articles_grid = soup.new_tag("div", class_="articles-grid")
+        articles_grid = soup.new_tag("div")
+        articles_grid.attrs["class"] = ["articles-grid"]
 
         for article in articles:
             article_card = self._create_article_card(soup, article)
@@ -134,13 +144,15 @@ class RssWeeklyRenderer(BaseRenderer):
 
     def _create_article_card(self, soup: BeautifulSoup, article: dict[str, Any]) -> BeautifulSoup:
         """Create an article card."""
-        article_div = soup.new_tag("div", class_="article-card")
+        article_div = soup.new_tag("div")
+        article_div.attrs["class"] = ["article-card"]
 
         # Article title with link if URL is available
         title = article.get("title", "")
         url = article.get("url", "")
 
-        title_tag = soup.new_tag("h3", class_="article-title")
+        title_tag = soup.new_tag("h3")
+        title_tag.attrs["class"] = ["article-title"]
         if url:
             link_tag = soup.new_tag("a", href=url)
             link_tag["target"] = "_blank"
@@ -153,11 +165,13 @@ class RssWeeklyRenderer(BaseRenderer):
         article_div.append(title_tag)
 
         # Source and date
-        meta_div = soup.new_tag("div", class_="article-meta")
+        meta_div = soup.new_tag("div")
+        meta_div.attrs["class"] = ["article-meta"]
 
         source = article.get("source", "")
         if source:
-            source_span = soup.new_tag("span", class_="article-source")
+            source_span = soup.new_tag("span")
+            source_span.attrs["class"] = ["article-source"]
             source_span.string = f"Source: {source}"
             meta_div.append(source_span)
 
@@ -166,7 +180,8 @@ class RssWeeklyRenderer(BaseRenderer):
             if source:
                 meta_div.append(soup.new_string(" | "))
 
-            date_span = soup.new_tag("span", class_="article-date")
+            date_span = soup.new_tag("span")
+            date_span.attrs["class"] = ["article-date"]
             date_span.string = date
             meta_div.append(date_span)
 
@@ -176,14 +191,16 @@ class RssWeeklyRenderer(BaseRenderer):
         # Description
         description = article.get("description", "")
         if description:
-            desc_p = soup.new_tag("p", class_="article-description")
+            desc_p = soup.new_tag("p")
+            desc_p.attrs["class"] = ["article-description"]
             desc_p.string = description
             article_div.append(desc_p)
 
         # Article summary or content
         summary = article.get("summary", "")
         if summary:
-            summary_div = soup.new_tag("div", class_="article-summary")
+            summary_div = soup.new_tag("div")
+            summary_div.attrs["class"] = ["article-summary"]
             summary_p = soup.new_tag("p")
             summary_p.string = summary
             summary_div.append(summary_p)
@@ -197,13 +214,15 @@ class RssWeeklyRenderer(BaseRenderer):
         if not sources:
             return
 
-        sources_section = soup.new_tag("section", class_="rss-sources")
+        sources_section = soup.new_tag("section")
+        sources_section.attrs["class"] = ["rss-sources"]
 
         sources_title = soup.new_tag("h2")
         sources_title.string = "📚 Sources"
         sources_section.append(sources_title)
 
-        sources_list = soup.new_tag("ul", class_="sources-list")
+        sources_list = soup.new_tag("ul")
+        sources_list.attrs["class"] = ["sources-list"]
 
         for source in sources:
             source_name = source.get("name", "")
@@ -272,8 +291,8 @@ class RssWeeklyRenderer(BaseRenderer):
             margin-bottom: 1.5rem;
         }
         .category-articles, .articles-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            display: flex;
+            flex-direction: column;
             gap: 1.5rem;
             margin-top: 1.5rem;
         }

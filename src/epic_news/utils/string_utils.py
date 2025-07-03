@@ -1,5 +1,7 @@
 import re
 
+from unidecode import unidecode
+
 
 def create_topic_slug(topic: str) -> str:
     """Create a URL-safe slug from a topic string.
@@ -13,8 +15,10 @@ def create_topic_slug(topic: str) -> str:
     Returns:
         A URL-safe slug version of the topic
     """
+    # Convert to ASCII
+    slug = unidecode(topic)
     # Convert to lowercase
-    slug = topic.lower()
+    slug = slug.lower()
     # Replace spaces and special characters with hyphens
     slug = re.sub(r"[^\w\s-]", "", slug)
     slug = re.sub(r"[-\s]+", "-", slug)

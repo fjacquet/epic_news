@@ -35,8 +35,8 @@ price_analysis_task:
     - Total cost comparison including taxes and shipping
     Focus on these major retailers:
     - Switzerland: Digitec, Galaxus, Manor, Microspot, Interdiscount
-    - France: Amazon.fr, Fnac, Cdiscount, Darty, Boulanger     Note any significant
-    price differences, promotions, or bundle deals.
+    - France: Amazon.fr, Fnac, Cdiscount, Darty, Boulanger
+    Note any significant price differences, promotions, or bundle deals.
     Your objective is to provide a clear price comparison.
   expected_output: >
     A detailed price analysis report containing:

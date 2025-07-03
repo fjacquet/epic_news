@@ -63,6 +63,19 @@ class NewsDailyReport(BaseModel):
         if isinstance(v, str):
             # If it's a string (like "Aucune actualité..."), return empty list
             return []
+        
+        # Convert list of strings to NewsItem objects
+        if isinstance(v, list) and v and isinstance(v[0], str):
+            news_items = []
+            for item in v:
+                if isinstance(item, str):
+                    news_items.append(NewsItem(
+                        titre=item[:100] + "..." if len(item) > 100 else item,
+                        source="Actualité"
+                    ))
+                else:
+                    news_items.append(item)
+            return news_items
         return v
 
     @field_validator('economy')

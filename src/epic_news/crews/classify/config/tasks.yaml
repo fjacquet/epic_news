@@ -17,6 +17,8 @@ classification_task:
     stock market insights, crypto analysis, financial planning, daily financial reports
     - NEWSDAILY: For daily news summaries, current events, news analysis, breaking
     news
+    - COMPANY_NEWS: For company-specific news, corporate updates, business intelligence
+    about specific companies or organizations
     - HOLIDAY_PLANNER: For vacation planning, travel itineraries, destination research
     - BOOK_SUMMARY: For book summaries, reading recommendations, literary analysis,
     book reviews, author information, literature queries, book analysis, tell me about
@@ -33,8 +35,10 @@ classification_task:
     - "financier", "finance", "investissement", "bourse", "crypto", "portefeuille",
     "conseil financier"
     → FINDAILY
-    - "actualités", "nouvelles", "news", "événements", "journal", "information"
+    - "actualités générales", "nouvelles générales", "general news", "événements", "journal", "information"
     → NEWSDAILY
+    - "company news", "corporate news", "news for company", "enterprise news", "business updates", "company updates"
+    → COMPANY_NEWS
     - "book", "livre", "roman", "auteur", "author", "tell me about",  → BOOK_SUMMARY
     - "saint", "saint du jour", "daily saint", "saint daily"
     → SAINT

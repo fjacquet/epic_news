@@ -3,10 +3,9 @@ from unittest.mock import mock_open, patch
 
 import pytest
 
-from epic_news.utils.html_designer_utils import (
+from epic_news.utils.html.designer import (
     analyze_state_data,
     render_professional_report,
-    select_template,
     select_template_for_report,
 )
 
@@ -41,6 +40,38 @@ def mock_state_json():
         },
         "report_type": "daily"
     })
+
+
+@pytest.fixture
+def mock_state_data():
+    """Create mock state data for testing."""
+    return {
+        "crew_results": {
+            "findaily": {
+                "summary": "Analyse financière du jour",
+                "stock_analysis": [
+                    {"symbol": "AAPL", "price": 150.0, "change": 2.5}
+                ],
+                "crypto_analysis": [
+                    {"symbol": "BTC", "price": 45000.0, "change": -1.2}
+                ]
+            },
+            "news_daily": {
+                "summary": "Actualités du jour",
+                "articles": [
+                    {"title": "Actualité locale", "source": "RTS", "content": "Contenu..."}
+                ]
+            },
+            "cooking": {
+                "recipe": {
+                    "title": "Recette du jour",
+                    "ingredients": ["Ingrédient 1", "Ingrédient 2"],
+                    "instructions": ["Étape 1", "Étape 2"]
+                }
+            }
+        },
+        "report_type": "daily"
+    }
 
 
 class TestSelectTemplateForReport:
@@ -90,7 +121,7 @@ class TestAnalyzeStateData:
 
     def test_analyze_state_data_empty(self):
         """Test state data analysis with empty data."""
-        empty_data = {}
+        empty_data = "{}"
         analysis = analyze_state_data(empty_data)
 
         assert analysis is not None
@@ -107,7 +138,7 @@ class TestAnalyzeStateData:
                 "summary": "Analyse partielle"
             }
         }
-        analysis = analyze_state_data(partial_data)
+        analysis = analyze_state_data(json.dumps(partial_data))
 
         assert analysis is not None
         assert isinstance(analysis, dict)
@@ -120,6 +151,7 @@ class TestAnalyzeStateData:
         invalid_json = "invalid json string"
 
         with pytest.raises(json.JSONDecodeError):
+            analyze_state_data(invalid_json)
             analyze_state_data(invalid_json)
 
     def test_analyze_state_data_none(self):
@@ -154,7 +186,7 @@ class TestRenderProfessionalReport:
         </html>
         """
 
-        with patch('builtins.open', mock_open(read_data=template_content)), patch('epic_news.utils.html_designer_utils.select_template') as mock_select:
+        with patch('builtins.open', mock_open(read_data=template_content)), patch('epic_news.utils.html.designer.select_template_for_report') as mock_select:
             mock_select.return_value = "/mock/template/path.html"
 
             html_content = render_professional_report(state_data, "daily")
@@ -190,7 +222,7 @@ class TestRenderProfessionalReport:
         </html>
         """
 
-        with patch('builtins.open', mock_open(read_data=template_content)), patch('epic_news.utils.html_designer_utils.select_template') as mock_select:
+        with patch('builtins.open', mock_open(read_data=template_content)), patch('epic_news.utils.html.designer.select_template_for_report') as mock_select:
             mock_select.return_value = "/mock/template/path.html"
 
             html_content = render_professional_report(state_data, "daily")
@@ -202,7 +234,7 @@ class TestRenderProfessionalReport:
     def test_render_professional_report_template_not_found(self, mock_state_json):
         """Test professional report rendering when template file is not found."""
         state_data = json.loads(mock_state_json)
-        with patch('builtins.open', side_effect=FileNotFoundError), patch('epic_news.utils.html_designer_utils.select_template') as mock_select:
+        with patch('builtins.open', side_effect=FileNotFoundError), patch('epic_news.utils.html.designer.select_template_for_report') as mock_select:
             mock_select.return_value = "/nonexistent/template.html"
 
             with pytest.raises(FileNotFoundError):
@@ -220,7 +252,7 @@ class TestRenderProfessionalReport:
         </html>
         """
 
-        with patch('builtins.open', mock_open(read_data=invalid_template)), patch('epic_news.utils.html_designer_utils.select_template') as mock_select:
+        with patch('builtins.open', mock_open(read_data=invalid_template)), patch('epic_news.utils.html.designer.select_template_for_report') as mock_select:
             mock_select.return_value = "/mock/template/path.html"
 
             with pytest.raises(TypeError):
@@ -242,7 +274,7 @@ class TestRenderProfessionalReport:
         </html>
         """
 
-        with patch('builtins.open', mock_open(read_data=template_content)), patch('epic_news.utils.html_designer_utils.select_template') as mock_select:
+        with patch('builtins.open', mock_open(read_data=template_content)), patch('epic_news.utils.html.designer.select_template_for_report') as mock_select:
             mock_select.return_value = "/mock/template/path.html"
 
             html_content = render_professional_report(empty_data, "daily")
@@ -290,7 +322,7 @@ class TestHtmlDesignerUtilsIntegration:
         """
 
         with patch('builtins.open', mock_open(read_data=template_content)):
-            with patch('epic_news.utils.html_designer_utils.select_template') as mock_select:
+            with patch('epic_news.utils.html.designer.select_template_for_report') as mock_select:
                 mock_select.return_value = template_path
 
                 html_content = render_professional_report(mock_state_data, "daily")
@@ -303,7 +335,7 @@ class TestHtmlDesignerUtilsIntegration:
     def test_error_handling_chain(self):
         """Test error handling across the utility chain."""
         # Test with invalid data that should fail gracefully
-        with pytest.raises(TypeError):
+        with pytest.raises(json.JSONDecodeError):
             analyze_state_data("invalid")
 
         # Test template selection with edge cases

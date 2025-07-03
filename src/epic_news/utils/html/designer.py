@@ -6,7 +6,7 @@ import json
 from datetime import datetime
 from typing import Any
 
-from .template_utils import render_universal_report
+from .templates import render_universal_report
 
 
 def select_template_for_report(state_data: dict[str, Any]) -> str:

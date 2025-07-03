@@ -11,7 +11,9 @@ research_task:
     2. Sources for each news item
     3. Date of publication for each item
     4. Brief summary of each news item
+    Formatted as a JSON file with relevant fields
   agent: researcher
+  output_file: output/company_news/research.json
 analysis_task:
   description: >
     Analyze the research findings to identify patterns, trends, and insights related
@@ -24,54 +26,57 @@ analysis_task:
     2. Potential implications of the news developments for {company}
     3. Data-backed insights
     4. Visual representation suggestions (charts, graphs) if applicable
+    Formatted as a JSON file with relevant fields
   agent: analyst
-verification_task:
-  description: >
-    Verify the accuracy and reliability of the news information gathered about {company}.
-    Check facts against multiple sources.
-    Identify any potential misinformation or biased reporting.
-    Rate the credibility of each news item.
-    IMPORTANT: For each news item that includes a source or claim:
-    1. Use all available search tools (COMPOSIO_SEARCH_TAVILY_SEARCH, COMPOSIO_SEARCH_DUCK_DUCK_GO_SEARCH,
-       COMPOSIO_SEARCH_NEWS_SEARCH, COMPOSIO_SEARCH_SEARCH) to verify the claim by
-    searching for 
-       corroborating evidence and checking the credibility of sources
-    2. For each source, verify that the information is current and up-to-date (from
-    2024-2025)
-    3. Confirm that the source actually discusses {topic} and {company} specifically
-    4. Try to find the actual title, publication date, and source name  5. Search
-    for direct quotes or excerpts that support the specific claim
-    6. If a claim cannot be verified from credible sources, either:
-       a. Find an alternative, verifiable source using search tools
-       b. Clearly mark the information as "Source Needed"
-    7. Do not accept generic website homepages (e.g., www.example.com) as sources
-    8. Always try to find the exact publication date (day, month, year) whenever possible
-    9. For solutions or products, verify company names and product features from official
-    sources or reputable reviews
-    You must be extremely thorough and meticulous in your verification. For each claim:
-    1. Use multiple search tools to find corroborating evidence
-    2. Verify that the sources explicitly discuss {topic} and {company} and support
-    the specific claim
-    3. Try to find direct quotes that substantiate the claims being made
-    4. Rate the credibility of each source on a scale of 1-5
-  expected_output: >
-    A verification report in french containing:
-    1. Fact-check results for each news item concerning {company}
-    2. Credibility rating (1-5 scale) for each source
-    3. Identification of any contradictory information
-    4. List of fully verified facts vs. claims requiring further verification
-    5. For each verified source:
-       a. The actual title of the article/report
-       b. Direct quotes or excerpts from the source that relate to {topic} and {company}
-       c. Publication date (as specific as possible)
-       d. Full citation in format: "Title" - Publisher/Source, Publication Date
-  agent: fact_checker
+  output_file: output/company_news/analysis.json
+# verification_task:
+#   description: >
+#     Verify the accuracy and reliability of the news information gathered about {company}.
+#     Check facts against multiple sources.
+#     Identify any potential misinformation or biased reporting.
+#     Rate the credibility of each news item.
+#     IMPORTANT: For each news item that includes a source or claim:
+#     1. Use all available search tools (COMPOSIO_SEARCH_TAVILY_SEARCH, COMPOSIO_SEARCH_DUCK_DUCK_GO_SEARCH,
+#        COMPOSIO_SEARCH_NEWS_SEARCH, COMPOSIO_SEARCH_SEARCH) to verify the claim by
+#     searching for 
+#        corroborating evidence and checking the credibility of sources
+#     2. For each source, verify that the information is current and up-to-date (from
+#     2024-2025)
+#     3. Confirm that the source actually discusses {topic} and {company} specifically
+#     4. Try to find the actual title, publication date, and source name  5. Search
+#     for direct quotes or excerpts that support the specific claim
+#     6. If a claim cannot be verified from credible sources, either:
+#        a. Find an alternative, verifiable source using search tools
+#        b. Clearly mark the information as "Source Needed"
+#     7. Do not accept generic website homepages (e.g., www.example.com) as sources
+#     8. Always try to find the exact publication date (day, month, year) whenever possible
+#     9. For solutions or products, verify company names and product features from official
+#     sources or reputable reviews
+#     You must be extremely thorough and meticulous in your verification. For each claim:
+#     1. Use multiple search tools to find corroborating evidence
+#     2. Verify that the sources explicitly discuss {topic} and {company} and support
+#     the specific claim
+#     3. Try to find direct quotes that substantiate the claims being made
+#     4. Rate the credibility of each source on a scale of 1-5
+#   expected_output: >
+#     A verification report in french containing:
+#     1. Fact-check results for each news item concerning {company}
+#     2. Credibility rating (1-5 scale) for each source
+#     3. Identification of any contradictory information
+#     4. List of fully verified facts vs. claims requiring further verification
+#     5. For each verified source:
+#        a. The actual title of the article/report
+#        b. Direct quotes or excerpts from the source that relate to {topic} and {company}
+#        c. Publication date (as specific as possible)
+#        d. Full citation in format: "Title" - Publisher/Source, Publication Date
+#     Formatted as a JSON file with relevant fields
+#   agent: fact_checker
+#   output_file: output/company_news/verification.json
 editing_task:
   description: >
     Compile and organize the verified news information in french about {company} into
     a comprehensive, actionable report.
     Prioritize the most important stories based on relevance and impact.
-    Ensure the report is clear, concise, and follows journalistic standards.
     IMPORTANT: When including links in the final report:
     1. ONLY include URLs that have been fully verified by the fact checker
     2. For each link, use the actual article title as verified by the fact checker
@@ -108,5 +113,6 @@ editing_task:
        - A direct quote from the source should be included
        - No sources marked as "Source Needed" by the verification team should appear
     as verified
-    Formatted as html properly laid out with relevant emojis
+    Formatted as a JSON file with relevant fields
   agent: editor
+  output_file: '{output_file}'

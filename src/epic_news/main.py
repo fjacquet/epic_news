@@ -32,7 +32,7 @@ from pydantic import PydanticDeprecatedSince20, PydanticDeprecatedSince211
 
 from epic_news.bin.fetch_rss_articles import fetch_articles_from_opml
 from epic_news.crews.classify.classify_crew import ClassifyCrew
-from epic_news.crews.company_news.news_crew import CompanyNewsCrew
+from epic_news.crews.company_news.company_news_crew import CompanyNewsCrew
 from epic_news.crews.company_profiler.company_profiler_crew import CompanyProfilerCrew
 from epic_news.crews.cooking.cooking_crew import CookingCrew
 from epic_news.crews.cross_reference_report_crew.cross_reference_report_crew import CrossReferenceReportCrew
@@ -69,6 +69,7 @@ from epic_news.utils.directory_utils import ensure_output_directories
 from epic_news.utils.html.book_summary_html_factory import (
     book_summary_to_html,
 )
+from epic_news.utils.html.company_news_html_factory import company_news_to_html
 from epic_news.utils.html.daily_news_html_factory import daily_news_to_html
 from epic_news.utils.html.fin_daily_html_factory import findaily_to_html
 from epic_news.utils.html.holiday_plan_html_factory import holiday_plan_to_html
@@ -83,6 +84,8 @@ from epic_news.utils.report_utils import (
     generate_rss_weekly_html_report,
 )
 from epic_news.utils.string_utils import create_topic_slug
+
+# Import function explicitly to ensure availability during runtime
 
 # Suppress the specific Pydantic deprecation warnings globally
 warnings.filterwarnings("ignore", category=PydanticDeprecatedSince211)
@@ -231,7 +234,7 @@ class ReceptionFlow(Flow[ContentState]):
             return "go_generate_shopping_advice"
         if self.state.selected_crew == "POEM":
             return "go_generate_poem"
-        if self.state.selected_crew == "NEWSCOMPANY":
+        if self.state.selected_crew == "COMPANY_NEWS":
             return "go_generate_news_company"
         if self.state.selected_crew == "OPEN_SOURCE_INTELLIGENCE":
             return "go_generate_osint"
@@ -302,14 +305,16 @@ class ReceptionFlow(Flow[ContentState]):
         Handles requests classified for the 'CompanyNewsCrew'.
         Invokes the `CompanyNewsCrew` to generate news content related to the given topic.
         """
-        self.state.output_file = "output/news/report.json"
+        # Import function explicitly to ensure availability during runtime
+
+        self.state.output_file = "output/company_news/report.json"
         print(f"Generating news about: {self.state.to_crew_inputs().get('topic', 'N/A')}")
 
         # Generate the news
-        self.state.news_report = CompanyNewsCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
-        dump_crewai_state(self.state.news_report, "NEWS_COMPANY")
-        html_file = "output/news/report.html"
-        news_to_html(self.state.news_report, html_file=html_file)
+        self.state.company_news_report = CompanyNewsCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
+        dump_crewai_state(self.state.company_news_report, "NEWS_COMPANY")
+        html_file = "output/company_news/report.html"
+        company_news_to_html(self.state.company_news_report, html_file=html_file)
 
         # return "generate_news_company"
 
@@ -458,6 +463,7 @@ class ReceptionFlow(Flow[ContentState]):
         World, Wars, and Economy. Sets `output_file` to `output/news_daily/final_report.html`
         and stores the report in `self.state.news_daily_report`.
         """
+
         self.state.output_file = "output/news_daily/final_report.html"
         print("📰 Generating daily news report in French...")
 
@@ -1103,9 +1109,10 @@ def kickoff(user_input: str | None = None):
     """
     # If user_input is not provided, use a default value.
     request = (
-        user_input
-        if user_input
-        else "Meeting preparation for JT International SA with the  CTO to discuss PowerFlex deployment in switzerland for their new 9 OpenShift clusters "
+        user_input if user_input else "Get me the recipe for Salade Cesar"
+        # else "get me all news for company JT International SA"
+        # else "get the daily news report"
+        # else "Meeting preparation for JT International SA with the  CTO to discuss PowerFlex deployment in switzerland for their new 9 OpenShift clusters "
         # else "Get me the recipe for Salade Cesar"
         # else "let's plan a weekend in cinque terre for 1 person in end of july, I start from finale ligure, give the best hotel and restaurant options"
         # else "get the rss weekly report"

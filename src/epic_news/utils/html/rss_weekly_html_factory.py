@@ -53,31 +53,54 @@ def rss_weekly_to_html(crew_output, topic: str | None = None, html_file: str | N
                 rss_model = RssWeeklyReport.model_validate(crew_output)
 
         # Prepare structured data for TemplateManager
+        # The RssWeeklyRenderer expects a different structure than what we have in the model
+        # Map the data to match what the renderer expects
+        
+        # First, convert articles by feed to a flat list for the renderer
+        all_articles = []
+        sources = []
+        
+        # Process all feeds and their articles
+        for feed in rss_model.feeds:
+            feed_name = feed.feed_name or _extract_domain_name(feed.feed_url)
+            sources.append(feed.feed_url)  # Add feed URL to sources list
+            
+            # Process all articles in this feed
+            for article in feed.articles:
+                # Create a concise version with only summary, not full content
+                # Ensure summary is not too long (limit to ~150 words if needed)
+                summary = article.summary
+                if summary and len(summary.split()) > 150:
+                    # Truncate to approximately 150 words and add ellipsis
+                    summary = " ".join(summary.split()[:150]) + "..."
+                
+                all_articles.append({
+                    "title": article.title,
+                    "url": article.link,  # Renderer expects 'url' not 'link'
+                    "date": article.published,  # Renderer expects 'date' not 'published'
+                    "description": "",  # Optional field - keep empty
+                    "summary": summary,  # Use potentially truncated summary
+                    "source": feed_name,  # Use feed name as source
+                    # Explicitly exclude full content
+                })
+        
+        # Create categories if needed (optional in the renderer)
+        categories = {}
+        
+        # Prepare the content data structure that matches what RssWeeklyRenderer expects
         content_data = {
             "title": rss_model.title,
-            "topic": topic or "rss-weekly-digest",
-            "generation_date": rss_model.generation_date.strftime("%Y-%m-%d %H:%M:%S"),
-            "executive_summary": rss_model.summary,
-            # RSS-specific data
-            "feeds": [
+            "date": rss_model.generation_date.strftime("%Y-%m-%d"),
+            "summary": rss_model.summary,
+            "articles": all_articles,
+            "categories": categories,  # Optional categorization
+            "sources": [  # List of source information
                 {
-                    "feed_url": feed.feed_url,
-                    "feed_name": feed.feed_name or _extract_domain_name(feed.feed_url),
-                    "articles": [
-                        {
-                            "title": article.title,
-                            "link": article.link,
-                            "published": article.published,
-                            "summary": article.summary,
-                            "source_feed": article.source_feed,
-                        }
-                        for article in feed.articles
-                    ],
-                    "total_articles": feed.total_articles,
-                }
-                for feed in rss_model.feeds
+                    "name": feed.feed_name or _extract_domain_name(feed.feed_url),
+                    "url": feed.feed_url
+                } for feed in rss_model.feeds
             ],
-            # Metadata
+            # Additional metadata for debugging
             "total_feeds": rss_model.total_feeds,
             "total_articles": rss_model.total_articles,
             "report_type": "RSS_WEEKLY",
@@ -85,6 +108,7 @@ def rss_weekly_to_html(crew_output, topic: str | None = None, html_file: str | N
 
         # Generate HTML using TemplateManager
         template_manager = TemplateManager()
+        # Make sure we use the exact crew type that matches the renderer factory mapping
         html_content = template_manager.render_report("RSS_WEEKLY", content_data)
 
         # Optionally save to file

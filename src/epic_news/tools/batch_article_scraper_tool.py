@@ -40,7 +40,7 @@ class BatchArticleScraperTool(BaseTool):
         feeds_obj = self._ensure_rss_feeds_object(rss_feeds)
 
         # Process each feed and article
-        for feed in feeds_obj.feeds:
+        for feed in feeds_obj.rss_feeds:
             logger.info(f"Processing feed: {feed.feed_url}")
             for article in feed.articles:
                 url = article.link

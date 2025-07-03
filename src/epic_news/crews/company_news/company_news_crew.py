@@ -1,5 +1,4 @@
 import logging
-import os
 import pathlib
 
 from composio_crewai import ComposioToolSet
@@ -7,10 +6,9 @@ from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from dotenv import load_dotenv
 
-from epic_news.tools.report_tools import get_report_tools
+from epic_news.models.company_news_report import CompanyNewsReport
 
 # fact_checking_tools module doesn't exist, using alternative approach
-from epic_news.tools.web_tools import get_scrape_tools
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -18,27 +16,6 @@ logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
-
-# Initialize the toolset
-toolset = ComposioToolSet()
-
-# Use only available tools for search
-search_tools = toolset.get_tools(
-    actions=[
-        "FIRECRAWL_SEARCH",
-        "COMPOSIO_SEARCH_SEARCH",
-        "COMPOSIO_SEARCH_DUCK_DUCK_GO_SEARCH",
-        "COMPOSIO_SEARCH_NEWS_SEARCH",
-        "COMPOSIO_SEARCH_TRENDS_SEARCH",
-        "COMPOSIO_SEARCH_EVENT_SEARCH",
-    ],
-)
-
-
-# Use only available tools for fact checking
-fact_checking_tools = toolset.get_tools(
-    actions=["COMPOSIO_SEARCH_DUCK_DUCK_GO_SEARCH"],
-)
 
 
 @CrewBase
@@ -70,66 +47,32 @@ class CompanyNewsCrew:
 
     def __init__(self):
         """
-        Initialize the CompanyNewsCrew and ensure output directory exists.
+        Initialize the CompanyNewsCrew.
 
-        Creates the output directory for news reports if it doesn't exist and
-        initializes all necessary tools for the crew's agents.
-
-        Raises:
-            Exception: If there's an error during initialization.
+        GOLD STANDARD: This class does not manage output directories or tools. All tool assignment is handled by CrewAI config/factories.
+        Output file is passed via context parameter `output_file`.
         """
-        # Ensure output directory exists
-        os.makedirs(self.output_dir, exist_ok=True)
 
-        # Initialize tools
-        self._initialize_tools()
+        # Initialize the toolset
+        toolset = ComposioToolSet()
 
-    def _initialize_tools(self):
-        """
-        Initialize all tools needed by the crew's agents.
+        # Use only available tools for search
+        self.search_tools = toolset.get_tools(
+            actions=[
+                "FIRECRAWL_SEARCH",
+                "COMPOSIO_SEARCH_SEARCH",
+                "COMPOSIO_SEARCH_DUCK_DUCK_GO_SEARCH",
+                "COMPOSIO_SEARCH_NEWS_SEARCH",
+                "COMPOSIO_SEARCH_TRENDS_SEARCH",
+                "COMPOSIO_SEARCH_EVENT_SEARCH",
+            ],
+        )
 
-        This centralizes tool initialization to follow the DRY principle and
-        makes it easier to modify tool configurations in one place.
-        """
-        try:
-            # Initialize Composio toolset
-            toolset = ComposioToolSet()
+        # Use only available tools for fact checking
+        self.fact_checking_tools = toolset.get_tools(
+            actions=["COMPOSIO_SEARCH_DUCK_DUCK_GO_SEARCH"],
+        )
 
-            # Initialize standard tool sets
-            self.search_tools = toolset.get_tools(
-                actions=[
-                    "FIRECRAWL_SEARCH",
-                    "COMPOSIO_SEARCH_SEARCH",
-                    "COMPOSIO_SEARCH_DUCK_DUCK_GO_SEARCH",
-                    "COMPOSIO_SEARCH_NEWS_SEARCH",
-                    "COMPOSIO_SEARCH_TRENDS_SEARCH",
-                    "COMPOSIO_SEARCH_EVENT_SEARCH",
-                ]
-            )
-
-            # Use specific search tools for fact checking
-            self.fact_checking_tools = toolset.get_tools(actions=["COMPOSIO_SEARCH_DUCK_DUCK_GO_SEARCH"])
-
-            self.scrape_tools = get_scrape_tools()
-            self.rag_tools = get_rag_tools()
-            self.report_tools = get_report_tools()
-
-            # Create combined toolsets for different agent needs
-            self.all_tools = self.search_tools + self.scrape_tools + self.rag_tools + self.report_tools
-
-            logger.info("Successfully initialized all tools for CompanyNewsCrew")
-
-        except Exception as e:
-            logger.error(f"Error initializing tools: {str(e)}")
-            # Provide fallback empty lists to prevent crew from failing completely
-            self.search_tools = []
-            self.fact_checking_tools = []
-            self.scrape_tools = []
-            self.report_tools = []
-            self.all_tools = []
-            raise RuntimeError(f"Error initializing tools: {str(e)}") from e
-
-    # Agent definitions follow - each agent is specialized for a specific role
     # in the news analysis and reporting process
     @agent
     def researcher(self) -> Agent:
@@ -163,35 +106,31 @@ class CompanyNewsCrew:
             respect_context_window=True,
         )
 
-    @agent
-    def fact_checker(self) -> Agent:
-        """Create a fact checker agent responsible for verifying claims and sources.
+    # @agent
+    # def fact_checker(self) -> Agent:
+    #     """Create a fact checker agent responsible for verifying claims and sources.
 
-        Returns:
-            Agent: Configured fact checker agent from YAML configuration
-        """
-        return Agent(
-            config=self.agents_config["fact_checker"],
-            tools=self.fact_checking_tools,
-            verbose=True,
-            llm_timeout=300,
-            reasoning=True,
-            respect_context_window=True,
-        )
+    #     Returns:
+    #         Agent: Configured fact checker agent from YAML configuration
+    #     """
+    #     return Agent(
+    #         config=self.agents_config["fact_checker"],
+    #         tools=self.fact_checking_tools,
+    #         verbose=True,
+    #         llm_timeout=300,
+    #         reasoning=True,
+    #         respect_context_window=True,
 
     @agent
     def editor(self) -> Agent:
         """Create an editor agent responsible for creating the final HTML report.
 
-        This agent uses report tools to create standardized, professional HTML reports
-        using the appropriate templates.
-
-        Returns:
-            Agent: Configured editor agent from YAML configuration
+        GOLD STANDARD: This agent has NO tools. It receives its output file path from the CrewAI context parameter `output_file`.
+        All output file handling must be done via CrewAI config/context, NOT in Python.
         """
         return Agent(
             config=self.agents_config["editor"],
-            tools=self.report_tools,
+            tools=[],  # Gold standard: no tools for reporting agent
             verbose=True,
             llm_timeout=300,
             reasoning=True,
@@ -213,15 +152,10 @@ class CompanyNewsCrew:
         """
         # Create task config with dynamic topic
         task_config = dict(self.tasks_config["research_task"])
-
-        # Define output file with absolute path
-        output_file = os.path.join(self.output_dir, "research_results.md")
-
         return Task(
             config=task_config,
-            output_file=output_file,
             verbose=True,
-            async_execution=True,  # Parallel execution for better performance
+            async_execution=False,  # Parallel execution for better performance
             llm_timeout=300,
         )
 
@@ -237,41 +171,31 @@ class CompanyNewsCrew:
         """
         # Create task config with dynamic topic
         task_config = dict(self.tasks_config["analysis_task"])
-
-        # Define output file with absolute path
-        output_file = os.path.join(self.output_dir, "analysis_results.md")
-
         return Task(
             config=task_config,
             context=[self.research_task()],  # This task depends on research
-            output_file=output_file,
             verbose=True,
             llm_timeout=300,
         )
 
-    @task
-    def verification_task(self) -> Task:
-        """Define the verification task for fact checking the research and analysis.
+    # @task
+    # def verification_task(self) -> Task:
+    #     """Define the verification task for fact checking the research and analysis.
 
-        This task is assigned to the fact checker agent and produces a markdown file
-        with verification of claims and sources.
+    #     This task is assigned to the fact checker agent and produces a markdown file
+    #     with verification of claims and sources.
 
-        Returns:
-            Task: Configured verification task from YAML configuration
-        """
-        # Create task config with dynamic topic
-        task_config = dict(self.tasks_config["verification_task"])
-
-        # Define output file with absolute path
-        output_file = os.path.join(self.output_dir, "verification_results.md")
-
-        return Task(
-            config=task_config,
-            context=[self.research_task(), self.analysis_task()],  # This task depends on both previous tasks
-            output_file=output_file,
-            verbose=True,
-            llm_timeout=300,
-        )
+    #     Returns:
+    #         Task: Configured verification task from YAML configuration
+    #     """
+    #     # Create task config with dynamic topic
+    #     task_config = dict(self.tasks_config["verification_task"])
+    #     return Task(
+    #         config=task_config,
+    #         context=[self.research_task(), self.analysis_task()],  # This task depends on both previous tasks
+    #         verbose=True,
+    #         llm_timeout=300,
+    #     )
 
     @task
     def editing_task(self) -> Task:
@@ -286,19 +210,16 @@ class CompanyNewsCrew:
         # Create task config with dynamic topic
         task_config = dict(self.tasks_config["editing_task"])
 
-        # Define output file with absolute path
-        output_file = os.path.join(self.output_dir, "news_report.html")
-
         return Task(
             config=task_config,
             context=[
                 self.research_task(),
                 self.analysis_task(),
-                self.verification_task(),
+                # self.verification_task(),
             ],  # This task depends on all previous tasks
-            output_file=output_file,
             verbose=True,
             llm_timeout=300,
+            output_pydantic=CompanyNewsReport,
         )
 
     @crew
@@ -317,14 +238,10 @@ class CompanyNewsCrew:
             return Crew(
                 agents=self.agents,  # Automatically created by the @agent decorator
                 tasks=self.tasks,  # Automatically created by the @task decorator
-                process=Process.hierarchical,  # Hierarchical process for parallel execution
+                process=Process.sequential,  # Hierarchical process for parallel execution
                 verbose=True,  # Enable verbose output for better debugging
-                max_rpm=10,  # Rate limit to prevent API throttling
-                memory=True,  # Enable memory to retain context between tasks
-                cache=True,  # Enable caching for better performance
                 llm_timeout=300,  # 5 minute timeout for LLM calls
                 max_retries=2,  # Retry up to 2 times on failure
-                manager_llm="gpt-4.1-nano",
             )
         except Exception as e:
             # Fail fast with explicit error message

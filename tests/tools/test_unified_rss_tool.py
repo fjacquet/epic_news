@@ -62,6 +62,7 @@ class TestUnifiedRssTool:
         mock_entry.title = "Test Article"
         mock_entry.link = "https://example.com/article"
         mock_entry.published_parsed = (2025, 6, 20, 12, 0, 0, 0, 0, 0)  # Recent date
+        mock_entry.summary = "Test summary"
 
         mock_feed = MagicMock()
         mock_feed.entries = [mock_entry]
@@ -173,7 +174,7 @@ class TestUnifiedRssTool:
 
         # Should fall back to ScrapeNinjaTool
         assert content == "Mocked article content"
-        tool.scrape_ninja_tool._run.assert_called_once_with("https://example.com/article")
+        tool.scrape_ninja_tool._run.assert_called_once_with(url="https://example.com/article")
 
     @patch("newspaper.Article")
     @patch("feedparser.parse")
@@ -184,6 +185,7 @@ class TestUnifiedRssTool:
         mock_entry.title = "Test Article"
         mock_entry.link = "https://example.com/article"
         mock_entry.published_parsed = (2025, 6, 20, 12, 0, 0, 0, 0, 0)  # Recent date
+        mock_entry.summary = "Test summary"
 
         mock_feed = MagicMock()
         mock_feed.entries = [mock_entry]
@@ -210,9 +212,8 @@ class TestUnifiedRssTool:
         )
 
         # Check result message
-        assert "Successfully processed" in result
-        assert "1 feeds" in result
-        assert "1 articles" in result
+        assert "Successfully processed 1 feeds with 1 articles." in result
+        assert output_path in result
 
         # Check output file
         assert os.path.exists(output_path)

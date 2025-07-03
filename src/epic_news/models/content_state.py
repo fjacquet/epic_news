@@ -28,7 +28,7 @@ class CrewCategories:
     MARKETING_WRITERS = "MARKETING_WRITERS"
     MEETING_PREP = "MEETING_PREP"
     MENU = "MENU"
-    NEWSCOMPANY = "NEWSCOMPANY"
+    COMPANY_NEWS = "COMPANY_NEWS"
     OPEN_SOURCE_INTELLIGENCE = "OPEN_SOURCE_INTELLIGENCE"
     POEM = "POEM"
     POST_ONLY = "POST_ONLY"
@@ -113,6 +113,7 @@ class ContentState(BaseModel):
 
     # Content Reports
     news_report: Union[Any, None] = None
+    company_news_report: Union[Any, None] = None
     rss_weekly_report: Union[Any, None] = None
     fin_daily_report: Union[Any, None] = None
     news_daily_report: Union[Any, None] = None

@@ -18,7 +18,7 @@ def test_successful_parsing(tool):
 
     assert isinstance(urls, list)
     assert len(urls) > 0
-    assert "http://xkcd.com/rss.xml" in urls
+    assert "http://www.fujixpassion.com/feed/" in urls
 
 
 def test_file_not_found(tool):

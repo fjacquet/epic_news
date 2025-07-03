@@ -25,8 +25,8 @@ def poem_to_html(
     """
     # Prepare content_data as expected by TemplateManager
     content_data = {
-        "poem_title": poem_output.title,
-        "poem_content": poem_output.poem,
+        "title": poem_output.title,
+        "poem": poem_output.poem,
         "theme": theme,
         "author": author,
     }
