@@ -20,7 +20,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(level
 logger = logging.getLogger("observability")
 
 # Constants
-TRACE_DIR = os.path.join("output", "traces")
+TRACE_DIR = "traces"
 DASHBOARD_DATA_DIR = os.path.join("output", "dashboard_data")
 
 # Ensure directories exist

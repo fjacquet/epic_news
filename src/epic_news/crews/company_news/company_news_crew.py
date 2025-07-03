@@ -7,6 +7,7 @@ from crewai.project import CrewBase, agent, crew, task
 from dotenv import load_dotenv
 
 from epic_news.models.company_news_report import CompanyNewsReport
+from epic_news.utils.observability import get_observability_tools, trace_task
 
 # fact_checking_tools module doesn't exist, using alternative approach
 
@@ -16,6 +17,12 @@ logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
+
+# Initialize observability tools at the module level
+observability_tools = get_observability_tools(crew_name="company_news_crew")
+tracer = observability_tools["tracer"]
+dashboard = observability_tools["dashboard"]
+hallucination_guard = observability_tools["hallucination_guard"]
 
 
 @CrewBase
@@ -72,6 +79,11 @@ class CompanyNewsCrew:
         self.fact_checking_tools = toolset.get_tools(
             actions=["COMPOSIO_SEARCH_DUCK_DUCK_GO_SEARCH"],
         )
+
+        # Pass observability tools to instance
+        self.tracer = tracer
+        self.dashboard = dashboard
+        self.hallucination_guard = hallucination_guard
 
     # in the news analysis and reporting process
     @agent
@@ -141,6 +153,7 @@ class CompanyNewsCrew:
     # task dependencies, and task callbacks, check out the documentation:
     # https://docs.crewai.com/concepts/tasks#overview-of-a-task
     @task
+    @trace_task(tracer)
     def research_task(self) -> Task:
         """Define the research task for gathering news information about the topic.
 
@@ -160,6 +173,7 @@ class CompanyNewsCrew:
         )
 
     @task
+    @trace_task(tracer)
     def analysis_task(self) -> Task:
         """Define the analysis task for analyzing gathered news information.
 
@@ -198,6 +212,7 @@ class CompanyNewsCrew:
     #     )
 
     @task
+    @trace_task(tracer)
     def editing_task(self) -> Task:
         """Define the editing task for creating the final HTML news report.
 

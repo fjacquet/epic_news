@@ -80,6 +80,7 @@ from epic_news.utils.html.saint_html_factory import saint_to_html
 from epic_news.utils.html.shopping_advice_html_factory import shopping_advice_to_html
 from epic_news.utils.logger import get_logger
 from epic_news.utils.menu_generator import MenuGenerator
+from epic_news.utils.observability import get_observability_tools, trace_task
 from epic_news.utils.report_utils import (
     generate_rss_weekly_html_report,
 )
@@ -97,6 +98,12 @@ warnings.filterwarnings("ignore", message=".*`min_items` is deprecated.*", categ
 warnings.filterwarnings("ignore", category=DeprecationWarning, module="pydantic")
 
 load_dotenv()
+
+# Initialize observability tools at the module level
+observability_tools = get_observability_tools(crew_name="reception_flow")
+tracer = observability_tools["tracer"]
+dashboard = observability_tools["dashboard"]
+hallucination_guard = observability_tools["hallucination_guard"]
 
 """                                                                                      """
 """                     All the magic is here                                            """
@@ -121,8 +128,12 @@ class ReceptionFlow(Flow[ContentState]):
         super().__init__()
         self._user_request = user_request
         self.logger = get_logger(__name__)
+        self.tracer = tracer
+        self.dashboard = dashboard
+        self.hallucination_guard = hallucination_guard
 
     @start()
+    @trace_task(tracer)
     def feed_user_request(self):
         """
         Initializes the flow with the user's request.
@@ -139,6 +150,7 @@ class ReceptionFlow(Flow[ContentState]):
         # return "feed_user_request" # Implicitly returns the method name as the next step
 
     @listen("feed_user_request")
+    @trace_task(tracer)
     def extract_info(self):
         """
         Extracts structured information from the raw user request.
@@ -164,6 +176,7 @@ class ReceptionFlow(Flow[ContentState]):
         # return "extract_info" # Implicitly returns the method name as the next step
 
     @listen("extract_info")
+    @trace_task(tracer)
     def classify(self):
         """
         Classifies the user request into a predefined category.
@@ -211,6 +224,7 @@ class ReceptionFlow(Flow[ContentState]):
         # return "classify" # Implicitly returns the method name as the next step
 
     @router("classify")
+    @trace_task(tracer)
     def determine_crew(self):
         """
         Routes the flow to the appropriate crew handler based on classification.
@@ -256,6 +270,7 @@ class ReceptionFlow(Flow[ContentState]):
         return "go_unknown"
 
     @listen("go_unknown")
+    @trace_task(tracer)
     def end_unknown(self):
         """
         Handles cases where the request classification is 'unknown' or routing fails.
@@ -265,7 +280,7 @@ class ReceptionFlow(Flow[ContentState]):
         `output_file` (which might be `output/classify/decision.md` if classification failed early,
         or a default if not set by a prior step).
         """
-        print("⚠️ Unknown crew type selected or error in routing.")
+        print("⚠�� Unknown crew type selected or error in routing.")
         self.state.final_report = "Error: Unknown crew type or routing issue. Unable to process the request."
         # Ensure output_file is set, even if to a default, before writing.
         if not self.state.output_file:
@@ -274,6 +289,7 @@ class ReceptionFlow(Flow[ContentState]):
         # return "go_unknown" # Implicitly returns method name
 
     @listen("go_generate_poem")
+    @trace_task(tracer)
     def generate_poem(self):
         """
         Handles requests classified for the 'PoemCrew'.
@@ -300,6 +316,7 @@ class ReceptionFlow(Flow[ContentState]):
         # return "generate_poem"
 
     @listen("go_generate_news_company")
+    @trace_task(tracer)
     def generate_news_company(self):
         """
         Handles requests classified for the 'CompanyNewsCrew'.
@@ -319,6 +336,7 @@ class ReceptionFlow(Flow[ContentState]):
         # return "generate_news_company"
 
     @listen("go_generate_rss_weekly")
+    @trace_task(tracer)
     async def generate_rss_weekly(self):
         """
         Handles requests classified for the 'RssWeeklyCrew'.
@@ -423,6 +441,7 @@ class ReceptionFlow(Flow[ContentState]):
         print(f"✅ New RSS weekly pipeline complete. Report at: {html_report_path}")
 
     @listen("go_generate_findaily")
+    @trace_task(tracer)
     def generate_findaily(self):
         """
         Handles requests classified for the 'FinDailyCrew'.
@@ -454,6 +473,7 @@ class ReceptionFlow(Flow[ContentState]):
         print(f"✅ Financial content generated and HTML written to {html_file}")
 
     @listen("go_generate_news_daily")
+    @trace_task(tracer)
     def generate_news_daily(self):
         """
         Handles requests classified for the 'NewsDailyCrew'.
@@ -488,6 +508,7 @@ class ReceptionFlow(Flow[ContentState]):
         print(f"✅ News content generated and HTML written to {html_file}")
 
     @listen("go_generate_saint_daily")
+    @trace_task(tracer)
     def generate_saint_daily(self):
         """
         Handles requests classified for the 'SaintDailyCrew'.
@@ -524,6 +545,7 @@ class ReceptionFlow(Flow[ContentState]):
         print("✅ Saint content generated - HTML rendering will be handled by generate_html_report")
 
     @listen("go_generate_recipe")
+    @trace_task(tracer)
     def generate_recipe(self):
         """
         Handles requests classified for the 'CookingCrew'.
@@ -571,6 +593,7 @@ class ReceptionFlow(Flow[ContentState]):
         print("✅ Recipe generation complete")
 
     @listen("go_generate_menu_designer")
+    @trace_task(tracer)
     def generate_menu_designer(self):
         """
         Orchestrates the end-to-end weekly menu generation process using CrewAI native flows.
@@ -624,6 +647,7 @@ class ReceptionFlow(Flow[ContentState]):
         return final_report
 
     @listen("go_generate_book_summary")
+    @trace_task(tracer)
     def generate_book_summary(self):
         """
         Handles requests classified for the 'LibraryCrew'.
@@ -652,6 +676,7 @@ class ReceptionFlow(Flow[ContentState]):
         book_summary_to_html(book_summary_model, html_file=html_file)
 
     @listen("go_generate_shopping_advice")
+    @trace_task(tracer)
     def generate_shopping_advice(self):
         """
         Handles requests classified for the 'ShoppingAdvisorCrew'.
@@ -703,6 +728,7 @@ class ReceptionFlow(Flow[ContentState]):
         print("✅ Shopping advice content generated - HTML rendering will be handled by generate_html_report")
 
     @listen("go_generate_meeting_prep")
+    @trace_task(tracer)
     def generate_meeting_prep(self):
         """
         Handles requests classified for the 'MeetingPrepCrew'.
@@ -746,6 +772,7 @@ class ReceptionFlow(Flow[ContentState]):
         # return "generate_meeting_prep"
 
     @listen("go_generate_sales_prospecting_report")
+    @trace_task(tracer)
     def generate_sales_prospecting_report(self):
         """
         Handles requests classified for the 'SalesProspectingCrew'.
@@ -768,6 +795,7 @@ class ReceptionFlow(Flow[ContentState]):
         # return "generate_contact_info" # Original comment, implies this was a rename/refactor
 
     @listen("go_generate_osint")
+    @trace_task(tracer)
     def generate_osint(self):
         """
         Handles requests classified for the 'OPEN_SOURCE_INTELLIGENCE' (OSINT) crew.
@@ -782,6 +810,7 @@ class ReceptionFlow(Flow[ContentState]):
         # return "generate_osint"
 
     @listen("generate_osint")
+    @trace_task(tracer)
     def generate_company_profile(self):
         """
         Generates a company profile based on the company name.
@@ -801,6 +830,7 @@ class ReceptionFlow(Flow[ContentState]):
         # return "generate_company_profile"
 
     @listen("generate_osint")
+    @trace_task(tracer)
     def generate_tech_stack(self):
         """
         Generates a tech stack report for the company.
@@ -819,6 +849,7 @@ class ReceptionFlow(Flow[ContentState]):
         # return "generate_company_profile"
 
     @listen("generate_osint")
+    @trace_task(tracer)
     def generate_web_presence(self):
         """
         Generates a web presence report for the company.
@@ -836,6 +867,7 @@ class ReceptionFlow(Flow[ContentState]):
         # return "generate_company_profile"
 
     @listen("generate_osint")
+    @trace_task(tracer)
     def generate_hr_intelligence(self):
         """
         Generates an HR intelligence report for the company.
@@ -855,6 +887,7 @@ class ReceptionFlow(Flow[ContentState]):
         # return "generate_company_profile"
 
     @listen("generate_osint")
+    @trace_task(tracer)
     def generate_legal_analysis(self):
         """
         Generates a legal analysis report for the company.
@@ -874,6 +907,7 @@ class ReceptionFlow(Flow[ContentState]):
         # return "generate_company_profile"
 
     @listen("generate_osint")
+    @trace_task(tracer)
     def generate_geospatial_analysis(self):
         """
         Generates a geospatial analysis report for the company.
@@ -893,6 +927,7 @@ class ReceptionFlow(Flow[ContentState]):
         # return "generate_company_profile"
 
     @listen("generate_osint")
+    @trace_task(tracer)
     def generate_cross_reference_report(self):
         """
         Generates a cross-reference report based on the company name.
@@ -913,6 +948,7 @@ class ReceptionFlow(Flow[ContentState]):
         # return "generate_company_profile"
 
     @listen("go_generate_holiday_plan")
+    @trace_task(tracer)
     def generate_holiday_plan(self):
         """
         Handles requests classified for the 'HolidayPlannerCrew'.
@@ -941,6 +977,7 @@ class ReceptionFlow(Flow[ContentState]):
         return "generate_holiday_plan"
 
     @listen("go_generate_marketing_content")
+    @trace_task(tracer)
     def generate_marketing_content(self):
         """
         Handles requests classified for the 'MarketingWritersCrew'.
@@ -979,6 +1016,7 @@ class ReceptionFlow(Flow[ContentState]):
             "generate_menu_designer",
         )
     )
+    @trace_task(tracer)
     def generate_html_report(self, *results):
         """
         Synchronizes the flow after a crew has finished its primary task.
@@ -1053,6 +1091,7 @@ class ReceptionFlow(Flow[ContentState]):
         #     raise RuntimeError(f"HTML generation failed for {selected_crew}: {e}") from e
 
     @listen(or_("generate_cross_reference_report", "generate_html_report"))
+    @trace_task(tracer)
     def send_email(self):
         """
         Sends the generated report via email after specific crew completions or general join.
