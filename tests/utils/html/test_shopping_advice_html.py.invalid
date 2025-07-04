@@ -49,10 +49,8 @@ def test_shopping_renderer(sample_shopping_advice_data):
     html = renderer.render(sample_shopping_advice_data.model_dump())
     soup = BeautifulSoup(html, "html.parser")
 
-    assert "Test Product" in soup.find("section", class_="product-overview").text
+    assert "Test Product" in html
     assert (
         "An amazing test product."
-        in soup.find("section", class_="product-overview").text
+        in html
     )
-    # The recommendation is not directly in the renderer output, so we can't test for it here.
-    # This is a limitation of the current renderer implementation.

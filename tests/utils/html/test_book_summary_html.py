@@ -3,7 +3,11 @@
 import pytest
 from bs4 import BeautifulSoup
 
-from epic_news.models.book_summary_report import BookSummaryReport, ChapterSummary
+from epic_news.models.book_summary_report import (
+    BookSummaryReport,
+    ChapterSummary,
+    TableOfContentsEntry,
+)
 from epic_news.utils.html.book_summary_html_factory import book_summary_to_html
 from epic_news.utils.html.template_renderers.book_summary_renderer import (
     BookSummaryRenderer,
@@ -19,15 +23,19 @@ def sample_book_summary_data():
         author="Test Author",
         publication_date="2025-01-01",
         summary="This is a test book summary.",
-        chapters=[
-            ChapterSummary(
-                chapter=1, title="The First Chapter", focus="The beginning."
-            )
+        table_of_contents=[
+            TableOfContentsEntry(id="chapter-1", title="The First Chapter")
         ],
-        table_of_contents=[],
         sections=[],
         references=[],
-        chapter_summaries=[],
+        chapter_summaries=[
+            ChapterSummary(
+                chapter=1,
+                title="The First Chapter",
+                summary="This is the first chapter.",
+                focus="The beginning.",
+            )
+        ],
     )
 
 

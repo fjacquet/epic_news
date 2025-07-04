@@ -46,6 +46,7 @@ dependencies = [
     "wikipedia>=1.4.0",
     "yamllint>=1.37.1",
     "pytest-asyncio>=1.0.0",
+    "vulture>=2.14",
 ]
 
 [project.scripts]
@@ -108,6 +109,9 @@ force-single-line = false
 split-on-trailing-comma = true
 
 [tool.pytest.ini_options]
+env = [
+    "POSTHOG_DISABLED=1",
+]
 filterwarnings = [
     'ignore:PydanticDeprecatedSince20:',
     # Or more specific:

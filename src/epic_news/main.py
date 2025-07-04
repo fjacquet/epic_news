@@ -1148,7 +1148,7 @@ def kickoff(user_input: str | None = None):
     """
     # If user_input is not provided, use a default value.
     request = (
-        user_input if user_input else "Get me the recipe for Salade Cesar"
+        user_input if user_input else "get me the news for the company Gunvor"
         # else "get me all news for company JT International SA"
         # else "get the daily news report"
         # else "Meeting preparation for JT International SA with the  CTO to discuss PowerFlex deployment in switzerland for their new 9 OpenShift clusters "

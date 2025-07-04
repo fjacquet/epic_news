@@ -41,6 +41,7 @@ crewai flow kickoff
 ```
 
 **Why this matters:**
+
 - CrewAI Flow manages the complete execution lifecycle.
 - It ensures proper state management and context injection.
 - It handles async execution and crew coordination.
@@ -88,17 +89,20 @@ This section establishes the core principles, ethical standards, and research me
 ### 3.1. Agent Code of Conduct
 
 #### Core Principles
-1.  **Accuracy and Thoroughness**: Always provide complete, accurate information. Cite authoritative sources and acknowledge limitations.
-2.  **Output Quality**: Structure information logically. Use formatting to enhance readability and follow specified output formats exactly.
-3.  **Ethical Guidelines**: Present balanced perspectives. Avoid biased language and respect intellectual property.
-4.  **Collaboration**: Pass complete context to other agents. Document reasoning and maintain a consistent tone.
-5.  **Technical Best Practices**: Follow project design principles (KISS, DRY). Write clean, documented, and tested code.
+
+1. **Accuracy and Thoroughness**: Always provide complete, accurate information. Cite authoritative sources and acknowledge limitations.
+2. **Output Quality**: Structure information logically. Use formatting to enhance readability and follow specified output formats exactly.
+3. **Ethical Guidelines**: Present balanced perspectives. Avoid biased language and respect intellectual property.
+4. **Collaboration**: Pass complete context to other agents. Document reasoning and maintain a consistent tone.
+5. **Technical Best Practices**: Follow project design principles (KISS, DRY). Write clean, documented, and tested code.
 
 #### Agent Responsibilities
+
 - **Research Agents**: Provide exhaustive, factual information (20+ data points). Use tools freely, as they do not write to the final output file.
 - **Reporting Agents**: Transform research into well-structured, professional reports. **DO NOT USE TOOLS** to prevent action traces from contaminating the final HTML output.
 
 ### 3.2. Shared Research Guidelines
+
 - **Objectivity**: Analysis must be impartial and backed by verifiable evidence.
 - **Clarity**: Use clear, concise language.
 - **Rigor**: Triangulate information from multiple sources.
@@ -110,21 +114,24 @@ This section establishes the core principles, ethical standards, and research me
 The primary output of each crew is a comprehensive HTML report.
 
 ### 4.1. Critical Reminders
+
 - **DO NOT** return raw API responses.
 - **DO NOT** include placeholder text like 'TODO'.
 - **ALWAYS** ensure your final output is a single, complete, and well-formed HTML document.
 
 ### 4.2. HTML Report Standards
+
 - **Structure**: Use proper HTML5 (`<!DOCTYPE html>`) with UTF-8 encoding (`<meta charset="UTF-8">`).
 - **Content**: Present information in logical sections with clear headings, data sources, and actionable conclusions.
 - **Prohibited**: No raw JSON, API responses, or malformed HTML.
 - **Emoji Usage**: Use emojis strategically to highlight key points (e.g., 📈 for growth, ⚠️ for risks).
 
 ### 4.3. HTML Output Architecture (CRITICAL)
+
 CrewAI has a known issue where agents with tools write action traces to output files instead of the final result. To prevent this, use a **Two-Agent Pattern**.
 
-1.  **Research Agent(s)**: Equipped with tools to gather information. They do not have an `output_file` and pass data to the next agent via context.
-2.  **Reporting Agent**: Has **NO TOOLS**. This agent's sole purpose is to take the data from the context and generate a clean HTML report.
+1. **Research Agent(s)**: Equipped with tools to gather information. They do not have an `output_file` and pass data to the next agent via context.
+2. **Reporting Agent**: Has **NO TOOLS**. This agent's sole purpose is to take the data from the context and generate a clean HTML report.
 
 ```python
 # ✅ CORRECT - Separate research and reporting agents
@@ -145,6 +152,7 @@ def reporter(self) -> Agent:
 ## 5. Configuration & Project Structure
 
 ### 5.1. YAML-First Approach
+
 Define agents, tasks, and crews in YAML files to separate configuration from code.
 
 ```yaml
@@ -156,6 +164,7 @@ product_researcher:
 ```
 
 ### 5.2. Tool Assignment (CRITICAL)
+
 **NEVER** specify tools in `agents.yaml`. Tools must be assigned programmatically in code using centralized factories.
 
 ```python
@@ -168,13 +177,16 @@ def researcher(self) -> Agent:
         verbose=True,
     )
 ```
+
 **Why**: Hybrid YAML/code tool configuration causes `KeyError` when CrewAI tries to map YAML tool names to non-existent functions.
 
 ### 5.3. Path and Directory Management
+
 - **Paths**: All file paths must be project-relative and managed programmatically to avoid nested path issues.
 - **Directories**: Directory creation should be centralized using `ensure_output_directories()` at application startup. Do not use `os.makedirs` within individual crew or task logic.
 
 ### 5.4. Project Structure
+
 ```
 epic_news/
 ├── src/epic_news/
@@ -188,9 +200,10 @@ epic_news/
 ```
 
 ## 6. Development Workflow
+
 - **Package Management**: Use `uv` for all Python operations.
 - **Testing**:
-    - Focus on testing deterministic components (tools).
-    - Use `crewai flow kickoff` for end-to-end validation.
-    - Do not write unit tests for non-deterministic agents.
+  - Focus on testing deterministic components (tools).
+  - Use `crewai flow kickoff` for end-to-end validation.
+  - Do not write unit tests for non-deterministic agents.
 - **Documentation**: Update the relevant handbooks when adding new tools or patterns.

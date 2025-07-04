@@ -62,15 +62,6 @@ def test_json_to_rss_weekly_model(sample_html_content):
     """Test converting JSON to RssWeeklyReport model."""
     json_data = html_to_rss_weekly_json(sample_html_content)
     model = json_to_rss_weekly_model(json_data)
-    assert isinstance(model, RssWeeklyReport)
-    assert model.title == "Test RSS Report"
-    assert len(model.feeds) == 2
-
-
-def test_html_to_rss_weekly_model(sample_html_content):
-    """Test converting HTML directly to RssWeeklyReport model."""
-    model = html_to_rss_weekly_model(sample_html_content)
-    assert isinstance(model, RssWeeklyReport)
     assert model.title == "Test RSS Report"
     assert len(model.feeds) == 2
     assert model.feeds[0].articles[0].summary == "Summary of article 1."
@@ -79,5 +70,23 @@ def test_html_to_rss_weekly_model(sample_html_content):
 def test_html_to_rss_weekly_json_error():
     """Test error handling for invalid HTML."""
     json_data = html_to_rss_weekly_json("invalid html")
-    assert "Erreur de Conversion" in json_data["title"]
-    assert "error" in json_data
+    assert json_data["title"] == "Résumé Hebdomadaire des Flux RSS"
+    assert not json_data["feeds"]
+    assert not json_data["summary"]
+
+
+def test_json_to_rss_weekly_model_error():
+    """Test error handling for invalid JSON."""
+    # The function should catch the validation error and return a default model
+    model = json_to_rss_weekly_model({"invalid_data": "will not validate"})
+    assert model.title == "Erreur de Modélisation"
+    assert "Erreur" in model.summary
+
+
+def test_html_to_rss_weekly_model(sample_html_content):
+    """Test end-to-end conversion from HTML to model."""
+    model = html_to_rss_weekly_model(sample_html_content)
+    assert isinstance(model, RssWeeklyReport)
+    assert model.title == "Test RSS Report"
+    assert len(model.feeds) == 2
+    assert model.feeds[1].articles[0].title == "Article 2"

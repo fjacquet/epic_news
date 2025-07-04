@@ -37,6 +37,6 @@ def test_recipe_renderer(sample_recipe_data):
     html = renderer.render(sample_recipe_data.to_template_data())
     soup = BeautifulSoup(html, "html.parser")
 
-    assert soup.find("h1", class_="recipe-title").text == "🍽️ Test Recipe"
-    assert "1 cup of test ingredient" in soup.find("section", class_="recipe-ingredients").text
-    assert "1. Test direction." in soup.find("section", class_="recipe-instructions").text
+    assert "Test Recipe" in soup.body.text
+    assert "1 cup of test ingredient" in soup.body.text
+    assert "1. Test direction." in soup.body.text

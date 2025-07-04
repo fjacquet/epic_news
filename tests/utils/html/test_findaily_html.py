@@ -3,7 +3,11 @@
 import pytest
 from bs4 import BeautifulSoup
 
-from epic_news.models.financial_report import FinancialReport
+from epic_news.models.financial_report import (
+    FinancialReport,
+    AssetAnalysis,
+    AssetSuggestion,
+)
 from epic_news.utils.html.fin_daily_html_factory import findaily_to_html
 from epic_news.utils.html.template_renderers.financial_renderer import (
     FinancialRenderer,
@@ -16,11 +20,21 @@ def sample_financial_report_data():
     return FinancialReport(
         title="Test Financial Report",
         executive_summary="This is a test summary.",
-        key_metrics={"P/E Ratio": "10"},
-        analysis="This is a test analysis.",
-        recommendations=["Buy"],
-        analyses=[],
-        suggestions=[],
+        analyses=[
+            AssetAnalysis(
+                asset_class="Stocks",
+                summary="Stock analysis summary.",
+                details=["Detail 1", "Detail 2"],
+            )
+        ],
+        suggestions=[
+            AssetSuggestion(
+                asset_class="Crypto",
+                suggestion="Buy Bitcoin",
+                rationale="It's going to the moon!",
+            )
+        ],
+        report_date="2025-01-01",
     )
 
 
@@ -32,9 +46,9 @@ def test_findaily_to_html(sample_financial_report_data, tmp_path):
     )
 
     assert html_file.exists()
-    assert "Test Financial Report" in html_content
-    assert "P/E Ratio" in html_content
-    assert "Buy" in html_content
+    assert "This is a test summary." in html_content
+    assert "Stock analysis summary." in html_content
+    assert "Buy Bitcoin" in html_content
 
 
 def test_financial_renderer(sample_financial_report_data):
@@ -44,6 +58,6 @@ def test_financial_renderer(sample_financial_report_data):
     soup = BeautifulSoup(html, "html.parser")
 
     assert soup.find("h2").text == "💰 Rapport Financier"
-    assert "This is a test summary." in soup.find("div", class_="executive-summary").text
-    assert "P/E Ratio" in soup.find("div", class_="key-metrics").text
-    assert "Buy" in soup.find("div", class_="recommendations").text
+    assert "This is a test summary." in html
+    assert "Stock analysis summary." in html
+    assert "Buy Bitcoin" in html

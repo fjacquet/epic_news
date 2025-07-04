@@ -184,7 +184,7 @@ class TestUnifiedRssTool:
         mock_entry = MagicMock()
         mock_entry.title = "Test Article"
         mock_entry.link = "https://example.com/article"
-        mock_entry.published_parsed = (2025, 6, 20, 12, 0, 0, 0, 0, 0)  # Recent date
+        mock_entry.published_parsed = datetime.now().timetuple()  # Use current date
         mock_entry.summary = "Test summary"
 
         mock_feed = MagicMock()
@@ -221,12 +221,12 @@ class TestUnifiedRssTool:
             data = json.load(f)
 
         # Validate structure
-        assert "feeds" in data
-        assert len(data["feeds"]) == 1
-        assert data["feeds"][0]["feed_url"] == "https://example.com/feed"
-        assert len(data["feeds"][0]["articles"]) == 1
-        assert data["feeds"][0]["articles"][0]["title"] == "Test Article"
-        assert data["feeds"][0]["articles"][0]["content"] == "Mocked article content"
+        assert "rss_feeds" in data
+        assert len(data["rss_feeds"]) == 1
+        assert data["rss_feeds"][0]["feed_url"] == "https://example.com/feed"
+        assert len(data["rss_feeds"][0]["articles"]) == 1
+        assert data["rss_feeds"][0]["articles"][0]["title"] == "Test Article"
+        assert data["rss_feeds"][0]["articles"][0]["content"] == "Mocked article content"
 
     def test_input_validation(self):
         """Test input validation for UnifiedRssTool."""

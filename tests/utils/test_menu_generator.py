@@ -52,7 +52,7 @@ def test_calculate_season():
 def test_parse_menu_structure_from_dict(sample_menu_structure):
     """Test parsing a menu structure from a dictionary."""
     recipes = MenuGenerator.parse_menu_structure(sample_menu_structure)
-    assert len(recipes) == 4
+    assert len(recipes) == 5
     assert recipes[0]["name"] == "Salade de tomates"
     assert recipes[0]["type"] == "entrée"
     assert recipes[0]["code"] == "LUN-L-S01"
@@ -65,13 +65,16 @@ def test_parse_menu_structure_from_dict(sample_menu_structure):
     assert recipes[3]["name"] == "Poisson grillé"
     assert recipes[3]["type"] == "plat principal"
     assert recipes[3]["code"] == "MAR-L-M03"
+    assert recipes[4]["name"] == "Mousse au chocolat"
+    assert recipes[4]["type"] == "dessert"
+    assert recipes[4]["code"] == "MAR-L-D01"
 
 
 def test_parse_menu_structure_from_json_string(sample_menu_structure):
     """Test parsing a menu structure from a JSON string."""
     json_string = json.dumps(sample_menu_structure)
     recipes = MenuGenerator.parse_menu_structure(json_string)
-    assert len(recipes) == 4
+    assert len(recipes) == 5
     assert recipes[0]["name"] == "Salade de tomates"
 
 
@@ -86,7 +89,7 @@ def test_parse_menu_structure_malformed(sample_menu_structure):
     # Remove 'name' from one of the dishes
     del sample_menu_structure["daily_menus"][0]["lunch"]["starter"]["name"]
     recipes = MenuGenerator.parse_menu_structure(sample_menu_structure)
-    assert len(recipes) == 3  # The malformed entry should be skipped
+    assert len(recipes) == 4  # The malformed entry should be skipped
 
 
 def test_parse_menu_structure_invalid_input():

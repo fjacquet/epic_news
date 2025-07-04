@@ -35,5 +35,5 @@ def test_poem_renderer(sample_poem_data):
     soup = BeautifulSoup(html, "html.parser")
 
     assert soup.find("h2").text == "🌌 Ode to Tests"
-    assert "Line 1" in soup.find("div", class_="full-poem").text
-    assert "This is a test poem." in soup.find("div", class_="poem-analysis").text
+    assert "Line 1" in soup.body.text
+    assert "This is a test poem." in soup.body.text

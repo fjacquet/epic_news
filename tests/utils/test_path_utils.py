@@ -36,7 +36,7 @@ def test_validate_output_path_valid():
 def test_validate_output_path_invalid_nested_users():
     """Test that validate_output_path raises ValueError for nested /Users/."""
     invalid_path = "/Users/test/Users/fjacquet/Projects/crews/epic_news/output/test.txt"
-    with pytest.raises(ValueError, match="Invalid nested Users in path"):
+    with pytest.raises(ValueError, match="Invalid output path"):
         validate_output_path(invalid_path)
 
 

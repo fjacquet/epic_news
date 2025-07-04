@@ -8,7 +8,7 @@ research_task:
   expected_output: >
     A detailed research report in french  containing:
     1. At least 10 key news items related to {topic} and {company}
-    2. Sources for each news item
+    2. Sources for each news item (the complete and precise URL of the article, not just the name of the source)
     3. Date of publication for each item
     4. Brief summary of each news item
     Formatted as a JSON file with relevant fields
@@ -74,45 +74,36 @@ analysis_task:
 #   output_file: output/company_news/verification.json
 editing_task:
   description: >
-    Compile and organize the verified news information in french about {company} into
+    Compile and organize the news information in french about {company} into
     a comprehensive, actionable report.
     Prioritize the most important stories based on relevance and impact.
     IMPORTANT: When including links in the final report:
-    1. ONLY include URLs that have been fully verified by the fact checker
-    2. For each link, use the actual article title as verified by the fact checker
-    3. Include the direct quote from the source that was verified
+    1. Use the complete and precise URL of the article for each source
+    2. For each link, use the actual article title
+    3. Include a direct quote from the source when available
     4. Format each source citation consistently with:
        - Article title (as a link)
        - Publication date (exact date whenever possible)
        - Source name/publication
        - A brief quote from the source (in quotation marks)
-    5. Do not include any links that were marked as "Source Needed" by the fact checker
-    6. For any information without a verified link, clearly indicate it as "Source
-    Needed" or "Based on multiple sources"
-       rather than fabricating a source
-    7. Do not use generic phrases like "justification:" in source citations - use
-    the actual verified quote instead
-    You must carefully review the verification report for each source. If a source
-    has:
-    1. A credibility rating below 3 out of 5: Find a better source or mark as "Source
-    Needed"
-    2. No direct quote from the content: Mark as "Source Needed"  3. No specific publication
-    date: Try to find the exact date or, if not possible, include the most precise
-    date available
-    4. A "Source Needed" designation: Maintain this designation in your final report
+    
+    When reviewing sources, ensure that:
+    1. The source is credible and relevant to {topic} and {company}
+    2. The source includes specific information about the topic
+    3. The publication date is recent and relevant
+    4. The source provides enough context for the information
   expected_output: >
     A professionally edited news report in french about {company} containing:
     1. Executive summary of key findings
     2. Organized sections by topic or importance
-    3. Clear presentation of verified facts with proper source attribution
+    3. Clear presentation of facts with proper source attribution
     4. Contextual information to help understand the significance
     5. For each included link:
        - The link must point to a real, accessible page about {topic} concerning {company}
        - The linked text should be the actual article title
        - A publication date should be included (day, month, year whenever possible)
        - A direct quote from the source should be included
-       - No sources marked as "Source Needed" by the verification team should appear
-    as verified
+       - Sources without reliable information should be clearly marked
     Formatted as a JSON file with relevant fields
   agent: editor
   output_file: '{output_file}'

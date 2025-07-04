@@ -32,7 +32,16 @@ class CompanyNewsRenderer(BaseRenderer):
 
         # Add sections (with empty state handling)
         sections = data.get("sections", [])
-        if sections and any(section.get("contenu") for section in sections):
+        has_content = False
+        
+        # More robust content detection
+        if sections:
+            for section in sections:
+                if section.get("contenu") and len(section.get("contenu", [])) > 0:
+                    has_content = True
+                    break
+        
+        if has_content:
             self._add_sections(soup, container, data)
         else:
             # Friendly message if no news
@@ -83,24 +92,35 @@ class CompanyNewsRenderer(BaseRenderer):
                 # Article title as link if possible
                 article_title = article.get("article")
                 if article_title and "[" in article_title and "](" in article_title:
-                    # Extract Markdown link
+                    # Extract Markdown link using a more robust pattern
                     import re
-
-                    m = re.match(r"\\[(.*?)\\]\\((.*?)\\)", article_title)
+                    
+                    # Use search instead of match to find the pattern anywhere in the string
+                    m = re.search(r"\[(.*?)\]\((.*?)\)", article_title)
                     if m:
+                        title_text = m.group(1)
+                        url = m.group(2)
+                        
+                        # Create the link element
                         a = soup.new_tag(
                             "a",
-                            href=m.group(2),
+                            href=url,
                             target="_blank",
                             rel="noopener",
                             **{"class": "company-article-link"},
                         )
-                        a.string = m.group(1)
+                        a.string = title_text
                         article_div.append(a)
                     else:
-                        article_div.append(soup.new_tag("span", string=article_title))
+                        # Fallback if regex doesn't match
+                        span = soup.new_tag("span")
+                        span.string = article_title
+                        article_div.append(span)
                 else:
-                    article_div.append(soup.new_tag("span", string=article_title or "Article"))
+                    # No markdown link format detected
+                    span = soup.new_tag("span")
+                    span.string = article_title or "Article"
+                    article_div.append(span)
                 # Meta info
                 meta_div = soup.new_tag("div", **{"class": "company-news-meta"})
                 if article.get("date"):
@@ -146,6 +166,7 @@ class CompanyNewsRenderer(BaseRenderer):
             border: 1px solid var(--border-color, #ddd);
             box-shadow: 0 2px 8px rgba(0,0,0,0.04);
             padding: 2rem 2.5rem;
+            color: var(--text-color, #343a40);
         }
         .company-news-header {
             text-align: center;
@@ -153,28 +174,32 @@ class CompanyNewsRenderer(BaseRenderer):
         }
         .company-news-header h2 {
             font-size: 2rem;
-            color: var(--heading-color, #2a2a2a);
+            color: var(--heading-color, #0056b3);
             margin-bottom: 0.5rem;
+        }
+        .company-news-header p {
+            color: var(--text-color, #343a40);
         }
         .company-news-section {
             margin-bottom: 2.2rem;
         }
         .company-news-section h3 {
-            color: #1e88e5;
+            color: var(--h2-color, #2980b9);
             font-size: 1.3rem;
             margin-bottom: 0.9rem;
         }
         .company-news-article {
-            background: var(--section-bg, #f9f9fd);
+            background: var(--highlight-bg, #f8f9fa);
             border-radius: 8px;
-            border: 1px solid var(--border-color, #eee);
+            border: 1px solid var(--border-color, #dee2e6);
             margin-bottom: 1.1rem;
             padding: 1.1rem 1.3rem;
+            color: var(--text-color, #343a40);
         }
         .company-article-link {
             font-weight: bold;
             font-size: 1.08rem;
-            color: #1565c0;
+            color: var(--heading-color, #0056b3);
             text-decoration: underline;
         }
         .company-news-meta {
@@ -183,28 +208,34 @@ class CompanyNewsRenderer(BaseRenderer):
         }
         .company-article-date, .company-article-source {
             margin-right: 1.2rem;
-            color: #757575;
+            color: var(--text-color, #6c757d);
             font-size: 0.97rem;
         }
         .company-article-citation {
             margin-top: 0.7rem;
             margin-bottom: 0.7rem;
             font-style: italic;
-            color: #333;
-            border-left: 3px solid #90caf9;
+            color: var(--text-color, #343a40);
+            border-left: 3px solid var(--heading-color, #64b5f6);
             padding-left: 1rem;
-            background: #f1f8ff;
+            background: var(--highlight-bg, #f8f9fa);
         }
         .company-news-notes {
-            border-top: 1px solid #bdbdbd;
+            border-top: 1px solid var(--border-color, #dee2e6);
             margin-top: 2.5rem;
             padding-top: 1.2rem;
-            color: #444;
+            color: var(--text-color, #343a40);
         }
         .company-news-notes h4 {
             font-size: 1.1rem;
-            color: #388e3c;
+            color: var(--h3-color, #2c3e50);
             margin-bottom: 0.4rem;
+        }
+        .company-news-empty {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-color, #343a40);
+            font-style: italic;
         }
         """
         # Find the container and prepend the style tag

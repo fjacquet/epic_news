@@ -5,6 +5,7 @@ This handbook provides a comprehensive overview of all tools available to agents
 ## 1. Tool Integration & Best Practices
 
 ### 1.1. Modular Architecture & Factories
+
 - **Factory Pattern**: Use factory functions to organize and provide tools. This allows for centralized management and easy modification.
 - **Domain Separation**: Group tools by functionality into separate files (e.g., `web_tools.py`, `document_tools.py`).
 - **Graceful Degradation**: If a tool fails to initialize (e.g., missing API key), the factory should handle it gracefully (e.g., return an empty list) so the application can proceed without it.
@@ -24,6 +25,7 @@ def get_github_tools():
 ```
 
 ### 1.2. API Key Management
+
 - **Security**: All API keys and sensitive credentials must be stored in environment variables (e.g., in a `.env` file) and never hardcoded in source code.
 - **Validation**: Factory functions should validate the presence of required environment variables.
 - **Naming Convention**: Use a consistent naming convention, such as `TOOL_NAME_API_KEY`.
@@ -36,6 +38,7 @@ FIRECRAWL_API_KEY=fc-xxxxxx
 ```
 
 ### 1.3. Performance & Testing
+
 - **Asynchronous Execution**: Enable async for independent, I/O-bound tasks.
 - **Caching**: Implement caching for expensive or frequently repeated API calls.
 - **Testing**: Write unit tests for tool factories and integration tests for tool combinations. Mock external APIs to avoid costs and dependencies during testing.
@@ -119,18 +122,23 @@ FIRECRAWL_API_KEY=fc-xxxxxx
 > **Note**: The integration of MCP is currently experimental and not fully implemented. This section is for future reference.
 
 ### 3.1. Overview
+
 The Multi-Crew Protocol (MCP) is designed to enable:
+
 - Cross-crew communication and data sharing.
 - Distributed workflow orchestration.
 - Scalable multi-agent system architecture.
 
 ### 3.2. Key Features
+
 - **Crew Interconnectivity**: Seamless communication between different crews.
 - **State Synchronization**: Shared state management across crew boundaries.
 - **Event Propagation**: Real-time event broadcasting and handling.
 
 ### 3.3. Integration with epic_news
+
 MCP could enhance our project by:
+
 - Enabling deeper crew specialization (e.g., separate research and analysis crews).
 - Improving scalability for larger workloads.
 - Facilitating real-time collaboration between different analysis domains.
