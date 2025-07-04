@@ -63,7 +63,7 @@ class NewsDailyReport(BaseModel):
         if isinstance(v, str):
             # If it's a string (like "Aucune actualité..."), return empty list
             return []
-        
+
         # Convert list of strings to NewsItem objects
         if isinstance(v, list) and v and isinstance(v[0], str):
             news_items = []

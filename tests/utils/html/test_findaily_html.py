@@ -4,9 +4,9 @@ import pytest
 from bs4 import BeautifulSoup
 
 from epic_news.models.financial_report import (
-    FinancialReport,
     AssetAnalysis,
     AssetSuggestion,
+    FinancialReport,
 )
 from epic_news.utils.html.fin_daily_html_factory import findaily_to_html
 from epic_news.utils.html.template_renderers.financial_renderer import (

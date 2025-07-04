@@ -33,14 +33,14 @@ class CompanyNewsRenderer(BaseRenderer):
         # Add sections (with empty state handling)
         sections = data.get("sections", [])
         has_content = False
-        
+
         # More robust content detection
         if sections:
             for section in sections:
                 if section.get("contenu") and len(section.get("contenu", [])) > 0:
                     has_content = True
                     break
-        
+
         if has_content:
             self._add_sections(soup, container, data)
         else:
@@ -94,13 +94,13 @@ class CompanyNewsRenderer(BaseRenderer):
                 if article_title and "[" in article_title and "](" in article_title:
                     # Extract Markdown link using a more robust pattern
                     import re
-                    
+
                     # Use search instead of match to find the pattern anywhere in the string
                     m = re.search(r"\[(.*?)\]\((.*?)\)", article_title)
                     if m:
                         title_text = m.group(1)
                         url = m.group(2)
-                        
+
                         # Create the link element
                         a = soup.new_tag(
                             "a",
