@@ -55,6 +55,47 @@ uv sync
 - **Type Checking**: Leverage Pydantic models and type hints
 - **Coverage**: Maintain comprehensive test coverage for all utilities
 
+#### Advanced Testing Libraries
+To enhance our testing capabilities, Epic News integrates the following libraries for more robust and realistic tests:
+
+- **`Faker`**: For generating realistic mock data (e.g., names, addresses, dates). This helps create tests that more closely resemble real-world scenarios.
+- **`pytest-mock`**: A wrapper around the standard `unittest.mock` library, providing a more convenient and pytest-friendly interface for mocking objects and functions.
+- **`pendulum`**: For precise control over date and time in tests. This is crucial for testing time-sensitive logic, allowing you to "freeze" time or travel to specific points in time.
+
+**Example Usage:**
+```python
+import pendulum
+from faker import Faker
+
+def test_faker_and_pendulum():
+    """
+    This test demonstrates the use of Faker and Pendulum.
+    """
+    fake = Faker()
+    name = fake.name()
+    now = pendulum.now()
+
+    assert isinstance(name, str)
+    assert isinstance(now, pendulum.DateTime)
+
+def test_mocking_with_pytest_mock(mocker):
+    """
+    This test demonstrates the use of pytest-mock.
+    """
+    # Create a mock object
+    mock_object = mocker.Mock()
+
+    # Configure the mock to return a specific value when a method is called
+    mock_object.get_name.return_value = "Test Name"
+
+    # Call the method on the mock object
+    result = mock_object.get_name()
+
+    # Assert that the method was called and returned the expected value
+    mock_object.get_name.assert_called_once()
+    assert result == "Test Name"
+```
+
 #### Development Workflow
 1. **Environment Setup**: Run `uv sync` to install dependencies
 2. **Make Changes**: Edit code, add features, fix bugs
