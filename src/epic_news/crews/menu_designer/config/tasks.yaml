@@ -46,36 +46,32 @@ menu_planning_task:
     Le résultat final doit être un objet JSON unique et valide correspondant au modèle
     `WeeklyMenuPlan`.
     Ne retournez RIEN d'autre que cet objet JSON.
-menu_html_task:
+  agent: menu_researcher
+menu_json_task:
   description: >
-    Créer une page HTML élégante présentant le menu hebdomadaire.
-    OBJECTIF: Transformer la structure du menu hebdomadaire en une présentation HTML
-    visuellement attrayante et facile à lire.
+    Transformer les données du menu hebdomadaire en un format JSON structuré et propre.
+    OBJECTIF: Prendre les informations de menu collectées et les structurer en un format JSON
+    conforme au modèle de données requis, sans aucun élément HTML ou formatage visuel.
     INSTRUCTIONS TECHNIQUES:
-    - Utiliser le fichier template HTML disponible dans state["template_path"]
-    - Ce template est conçu pour assurer la cohérence visuelle de tous les menus
+    - Assurer que toutes les données sont correctement structurées selon le modèle WeeklyMenuPlan
+    - Vérifier l'intégrité et la cohérence des données
+    - Éliminer tout élément de formatage ou balise HTML
     CONTENU REQUIS:
-    - Titre attractif présentant le menu de la semaine
     - Organisation par jour de la semaine (Lundi à Dimanche)
-    - Présentation distincte des déjeuners et dîners
-    - Liste claire de tous les plats avec leur type (entrée, plat principal, dessert)
-    - Mise en valeur des ingrédients de saison
-    STYLE VISUEL:
-    - Design élégant et responsive
-    - Lisibilité optimale
-    - Utilisation de sections bien délimitées
-    - Palettes de couleurs harmonieuses selon les saisons
-    - Structure HTML5 sémantique
-    FONCTIONNALITÉS SUPPLÉMENTAIRES:
-    - CSS intégré dans le document HTML
-    - Structure de page responsive
-    - Respect des principes d'accessibilité web
-    Utiliser les informations de la structure du menu précédemment créée pour générer
-    cette présentation HTML complète et autonome en vous basant sur le template fourni.
+    - Distinction claire entre déjeuners et dîners
+    - Tous les plats avec leur type (entrée, plat principal, dessert)
+    - Ingrédients de saison pour chaque plat
+    - Informations nutritionnelles pour chaque plat
+    STRUCTURE DE SORTIE:
+    - JSON valide et bien formaté
+    - Conforme au schéma WeeklyMenuPlan
+    - Facilement parsable par d'autres systèmes
+    Utiliser les informations de la structure du menu précédemment collectées pour générer
+    un document JSON propre et structuré.
   expected_output: >
-    Document HTML complet avec CSS intégré présentant le menu hebdomadaire de façon
-    attrayante et organisée par jour.
-    - Description courte de chaque plat
-    - Justification des choix saisonniers et nutritionnels
-    Format structuré permettant l'extraction des 30 recettes individuelles.
-  agent: html_formatter
+    Document JSON complet et valide présentant le menu hebdomadaire de façon
+    structurée et organisée par jour.
+    - Tous les champs requis pour chaque plat
+    - Format permettant l'extraction facile des 30 recettes individuelles
+    - Aucun élément de formatage HTML ou visuel
+  agent: menu_reporter

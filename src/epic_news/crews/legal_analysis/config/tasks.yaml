@@ -1,87 +1,77 @@
 ---
 legal_compliance_assessment:
   description: >
-    Assess the legal compliance status of {company}, including: - Regulatory
-    frameworks applicable to their industry - Compliance history and any
-    violations - Required licenses and permits - Corporate governance
-    structure - Ethics policies and implementation - Recent regulatory changes
-    affecting the company
-    Use the RAG tools to save your findings for later use by other agents.
-    Format your findings in a clear, structured, and comprehensive Markdown
-    document, ensuring all relevant details are included for a precise and
-    extensive final report.
+    Assess the legal compliance status of {company}, including: 
+    - Regulatory frameworks applicable to their industry 
+    - Compliance history and any violations 
+    - Required licenses and permits 
+    - Corporate governance structure 
+    - Ethics policies and implementation 
+    - Recent regulatory changes affecting the company
+    Format your findings as a structured JSON object.
   expected_output: >
-    A comprehensive Markdown document assessing {company}'s legal compliance
-    status, with proper formatting, headings, and organization. The report
-    should be as detailed and extensive as possible. Save your findings to the
-    RAG database for use by other agents.
-  agent: legal_analyst
-  output_file: output/osint/{company}_legal_compliance_assessment.md
+    A comprehensive JSON object assessing {company}'s legal compliance
+    status. The JSON should be well-structured with appropriate keys and values.
+  agent: legal_researcher
+  output_file: output/osint/{company}_legal_compliance_assessment.json
 intellectual_property_analysis:
   description: >
-    Analyze {company}'s intellectual property portfolio, including: - Patent
-    portfolio and filing trends - Trademark registrations - Copyright holdings
-    - Trade secrets protection measures - IP litigation history - Licensing
-    agreements (if public)
-    Use the RAG tools to retrieve any relevant information already collected
-    and save your findings for later use by other agents. Format your findings
-    in a clear, structured, and comprehensive Markdown document, ensuring all
-    relevant details are included for a precise and extensive final report.
+    Analyze {company}'s intellectual property portfolio, including: 
+    - Patent portfolio and filing trends 
+    - Trademark registrations 
+    - Copyright holdings 
+    - Trade secrets protection measures 
+    - IP litigation history 
+    - Licensing agreements (if public)
+    Format your findings as a structured JSON object.
   expected_output: >
-    A comprehensive Markdown document analyzing {company}'s intellectual
-    property portfolio, with proper formatting, headings, and organization.
-    The report should be as detailed and extensive as possible. Save your
-    findings to the RAG database for use by other agents.
-  agent: legal_analyst
-  output_file: output/osint/{company}_intellectual_property_analysis.md
+    A comprehensive JSON object analyzing {company}'s intellectual
+    property portfolio. The JSON should be well-structured with appropriate keys and values.
+  agent: legal_researcher
+  output_file: output/osint/{company}_intellectual_property_analysis.json
 regulatory_risk_assessment:
   description: >
-    Assess the regulatory risks facing {company}, including: -
-    Industry-specific regulatory challenges - Jurisdictional compliance
-    requirements - Pending legislation that may impact operations - Historical
-    regulatory issues - Regulatory compliance costs - Relationships with
-    regulatory bodies
-    Use the RAG tools to retrieve any relevant information already collected
-    and save your findings for later use by other agents. Format your findings
-    in a clear, structured, and comprehensive Markdown document, ensuring all
-    relevant details are included for a precise and extensive final report.
+    Assess the regulatory risks facing {company}, including: 
+    - Industry-specific regulatory challenges 
+    - Jurisdictional compliance requirements 
+    - Pending legislation that may impact operations 
+    - Historical regulatory issues 
+    - Regulatory compliance costs 
+    - Relationships with regulatory bodies
+    Format your findings as a structured JSON object.
   expected_output: >
-    A comprehensive Markdown document assessing {company}'s regulatory risks,
-    with proper formatting, headings, and organization. The report should be
-    as detailed and extensive as possible. Save your findings to the RAG
-    database for use by other agents.
-  agent: legal_analyst
-  output_file: output/osint/{company}_regulatory_risk_assessment.md
+    A comprehensive JSON object assessing {company}'s regulatory risks.
+    The JSON should be well-structured with appropriate keys and values.
+  agent: legal_researcher
+  output_file: output/osint/{company}_regulatory_risk_assessment.json
 litigation_history_analysis:
   description: >
-    Analyze {company}'s litigation history, including: - Major lawsuits (past
-    and ongoing) - Settlement patterns - Areas of frequent litigation -
-    Notable court decisions - Class action exposure - Legal defense strategies
-    Use the RAG tools to retrieve any relevant information already collected
-    and save your findings for later use by other agents. Format your findings
-    in a clear, structured, and comprehensive Markdown document, ensuring all
-    relevant details are included for a precise and extensive final report.
+    Analyze {company}'s litigation history, including: 
+    - Major lawsuits (past and ongoing) 
+    - Settlement patterns 
+    - Areas of frequent litigation 
+    - Notable court decisions 
+    - Class action exposure 
+    - Legal defense strategies
+    Format your findings as a structured JSON object.
   expected_output: >
-    A comprehensive Markdown document analyzing {company}'s litigation
-    history, with proper formatting, headings, and organization. The report
-    should be as detailed and extensive as possible. Save your findings to the
-    RAG database for use by other agents.
-  agent: legal_analyst
-  output_file: output/osint/{company}_litigation_history_analysis.md
+    A comprehensive JSON object analyzing {company}'s litigation
+    history. The JSON should be well-structured with appropriate keys and values.
+  agent: legal_researcher
+  output_file: output/osint/{company}_litigation_history_analysis.json
 mergers_and_acquisitions_due_diligence:
   description: >
     Conduct legal due diligence for {company}'s mergers and acquisitions,
-    including: - M&A history and patterns - Integration challenges from past
-    acquisitions - Regulatory approvals for past deals - Post-acquisition
-    litigation - Divestiture history - Current M&A targets or rumors
-    Use the RAG tools to retrieve any relevant information already collected
-    and save your findings for later use by other agents. Format your findings
-    in a clear, structured, and comprehensive Markdown document, ensuring all
-    relevant details are included for a precise and extensive final report.
+    including: 
+    - M&A history and patterns 
+    - Integration challenges from past acquisitions 
+    - Regulatory approvals for past deals 
+    - Post-acquisition litigation 
+    - Divestiture history 
+    - Current M&A targets or rumors
+    Format your findings as a structured JSON object.
   expected_output: >
-    A comprehensive Markdown document analyzing {company}'s M&A due diligence,
-    with proper formatting, headings, and organization. The report should be
-    as detailed and extensive as possible. Save your findings to the RAG
-    database for use by other agents.
-  agent: legal_analyst
-  output_file: output/osint/{company}_mergers_and_acquisitions_due_diligence.md
+    A comprehensive JSON object analyzing {company}'s M&A due diligence.
+    The JSON should be well-structured with appropriate keys and values.
+  agent: legal_reporter
+  output_file: output/osint/{company}_legal_analysis_report.json

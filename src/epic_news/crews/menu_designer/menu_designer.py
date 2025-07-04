@@ -4,9 +4,9 @@ from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import DirectoryReadTool, FileReadTool
 
-from epic_news.models.html_output import ReportHTMLOutput
 from epic_news.models.menu_output import WeeklyMenuPlan
 from epic_news.tools.web_tools import get_search_tools
+from epic_news.utils.file_utils import ensure_output_directory
 
 
 @CrewBase
@@ -28,79 +28,66 @@ class MenuDesignerCrew:
         # Output directory for menu files
         self.output_dir = "output/menu_designer"
 
-    @agent
-    def menu_planner(self) -> Agent:
-        """Agent responsible for planning the menu structure."""
-        # Get config and add any missing required fields
-        config = self.agents_config["menu_planner"]
+        # Ensure output directory exists
+        ensure_output_directory(self.output_dir)
 
-        # Add backstory if missing (required field in newer CrewAI versions)
-        if "backstory" not in config:
-            config["backstory"] = (
-                "Vous êtes un chef expérimenté et diététicien, spécialisé dans la planification de menus hebdomadaires équilibrés et adaptés aux contraintes spécifiques. Vous avez une expertise approfondie en nutrition et en cuisine française et internationale."
-            )
+    @agent
+    def menu_researcher(self) -> Agent:
+        """Agent responsible for researching and planning the menu structure."""
+        # Get config and add any missing required fields
+        config = self.agents_config["menu_researcher"]
 
         return Agent(
             config=config,
-            tools=self.planning_tools,
+            tools=self.planning_tools,  # Researcher has tools for data gathering
             respect_context_window=True,
-            reasoning=False,
-            # llm="gpt-4.1-nano",  # Use more powerful model for menu planning
+            reasoning=True,
             verbose=True,
         )
 
     @agent
-    def html_formatter(self) -> Agent:
-        """Agent responsible for creating HTML version of the menu."""
-        # Get config and add any missing required fields
-        config = self.agents_config["html_formatter"]
-
-        # The html_formatter already has a backstory in agents.yaml
-        # but adding a check for consistency in case YAML changes
-        if "backstory" not in config:
-            config["backstory"] = (
-                "Vous êtes un designer et développeur front-end talentueux, spécialisé dans la création d'interfaces web élégantes pour l'industrie culinaire et gastronomique."
-            )
+    def menu_reporter(self) -> Agent:
+        """Agent responsible for creating clean JSON output of the menu."""
+        # Get config from the YAML file
+        config = self.agents_config["menu_reporter"]
 
         return Agent(
             config=config,
-            # tools=self.planning_tools,
+            tools=[],  # Reporter has no tools to ensure clean output
             respect_context_window=True,
-            reasoning=False,
-            # llm="gpt-4.1-mini",  # Use more powerful model for HTML creation
+            reasoning=True,
             verbose=True,
         )
 
     @task
     def menu_planning_task(self) -> Task:
-        """Task to plan the menu structure, assigned to the menu_planner agent."""
+        """Task to plan the menu structure, assigned to the menu_researcher agent."""
         return Task(
             config=self.tasks_config["menu_planning_task"],
-            agent=self.menu_planner(),
+            agent=self.menu_researcher(),
             verbose=True,
             output_pydantic=WeeklyMenuPlan,  # Use Pydantic model for structured output
-            output_file=os.path.join(self.output_dir, "{menu_slug}.json"),
+            output_file=os.path.join(self.output_dir, "menu_research_{menu_slug}.json"),
         )
 
     @task
-    def menu_html_task(self) -> Task:
-        """Task to create an HTML version of the menu, assigned to the html_formatter agent."""
+    def menu_json_task(self) -> Task:
+        """Task to create a clean JSON version of the menu, assigned to the menu_reporter agent."""
         return Task(
-            config=self.tasks_config["menu_html_task"],
-            agent=self.html_formatter(),
+            config=self.tasks_config["menu_json_task"],
+            agent=self.menu_reporter(),
             verbose=True,
-            output_pydantic=ReportHTMLOutput,  # Use HTML output model
-            output_file=os.path.join(self.output_dir, "{menu_slug}.html"),
+            output_file=os.path.join(self.output_dir, "{menu_slug}.json"),
         )
 
     @crew
     def crew(self) -> Crew:
-        """Create a menu designer crew with sequential tasks."""
-        # Set up the standard crew without any custom wrapper
+        """Create a menu designer crew with hierarchical process."""
+        # Implement the Two-Agent Pattern: researcher gathers data, reporter creates clean output
         return Crew(
-            agents=[self.menu_planner(), self.html_formatter()],
-            tasks=[self.menu_planning_task(), self.menu_html_task()],
+            agents=self.agents,
+            tasks=self.tasks,
             manager_llm="gpt-4.1-mini",
-            process=Process.sequential,
+            process=Process.hierarchical,  # Use hierarchical process for better orchestration
             verbose=True,
         )

@@ -28,6 +28,7 @@ Epic News operates on the **CrewAI Flow paradigm** - a revolutionary approach to
 ### 1.3. Development Tools & Environment
 
 #### Package Management
+
 - **ALWAYS use `uv`**: Epic News exclusively uses `uv` for all Python package management operations. Never use `pip`, `poetry`, or other package managers.
 
 ```bash
@@ -44,18 +45,21 @@ uv sync
 ```
 
 **Why uv?**
+
 - **Speed**: Significantly faster than pip/poetry
 - **Reliability**: Better dependency resolution
 - **Consistency**: Ensures reproducible environments
 - **Modern**: Built for Python 3.10+ with latest standards
 
 #### Testing & Quality Assurance
+
 - **Testing**: Always run tests with `uv run pytest`
 - **Linting**: Use `ruff` for code quality (integrated with uv)
 - **Type Checking**: Leverage Pydantic models and type hints
 - **Coverage**: Maintain comprehensive test coverage for all utilities
 
 #### Advanced Testing Libraries
+
 To enhance our testing capabilities, Epic News integrates the following libraries for more robust and realistic tests:
 
 - **`Faker`**: For generating realistic mock data (e.g., names, addresses, dates). This helps create tests that more closely resemble real-world scenarios.
@@ -63,6 +67,7 @@ To enhance our testing capabilities, Epic News integrates the following librarie
 - **`pendulum`**: For precise control over date and time in tests. This is crucial for testing time-sensitive logic, allowing you to "freeze" time or travel to specific points in time.
 
 **Example Usage:**
+
 ```python
 import pendulum
 from faker import Faker
@@ -97,11 +102,23 @@ def test_mocking_with_pytest_mock(mocker):
 ```
 
 #### Development Workflow
-1. **Environment Setup**: Run `uv sync` to install dependencies
+
+1. **Environment Setup**:
+   - Run `uv sync` to install dependencies
+   - Install the package in editable mode: `uv pip install -e .`
+   - This creates a special link to your source code and prevents import errors like `ModuleNotFoundError: No module named 'epic_news'`
+
 2. **Make Changes**: Edit code, add features, fix bugs
-3. **Test Changes**: Run `uv run pytest` to ensure tests pass
+
+3. **Test Changes**:
+   - Run `uv run pytest` to ensure tests pass
+   - For specific components: `uv run python tests/bin/regenerate_holiday_plan.py`
+
 4. **Quality Checks**: Run `uv run yamlfix src ; uv run ruff check --fix` to ensure code quality
-5. **Execute Crews**: Use `crewai flow kickoff` to run CrewAI flows
+
+5. **Execute Crews**:
+   - Use `crewai flow kickoff` to run CrewAI flows
+   - This validates the complete pipeline including Pydantic model validation
 
 ## 2. CrewAI Flow: Engagement Rules & Best Practices
 
@@ -159,6 +176,48 @@ field: str | None = None
 ```
 
 **Rationale**: CrewAI's `PydanticSchemaParser` attempts to access `field_type.__name__` on `types.UnionType` objects, which don't have this attribute. This causes runtime errors during schema generation for task outputs.
+
+### 2.4. Data Normalization for Pydantic Validation
+
+When working with external data (especially from LLMs) that needs to be validated against Pydantic models:
+
+1. **Field Name Mapping**: Create normalization functions to map field names:
+
+   ```python
+   # Map alternative field names to expected schema names
+   if "name" in source and "title" not in source:
+       source["title"] = source["name"]
+   if "type" in contact and "service" not in contact:
+       contact["service"] = contact["type"]
+   ```
+
+2. **Multilingual Key Handling**: Handle alternative language keys:
+
+   ```python
+   # Map French keys to English
+   if "numéro" in contact and "number" not in contact:
+       contact["number"] = contact["numéro"]
+   if "fr" in phrase and "french" not in phrase:
+       phrase["french"] = phrase["fr"]
+   ```
+
+3. **Structure Conversion**: Convert data structures as needed:
+
+   ```python
+   # Convert strings to objects with required fields
+   if isinstance(phrase, str):
+       phrase = {"french": phrase, "local": phrase}
+   ```
+
+4. **Default Values**: Provide sensible defaults for missing required fields:
+
+   ```python
+   # Ensure required fields exist
+   if "address" not in accommodation:
+       accommodation["address"] = "Address not provided"
+   ```
+
+This approach ensures robust validation while maintaining flexibility with various input formats.
 
 ## 3. Agent Handbook
 
