@@ -6,6 +6,7 @@ from crewai_tools import DirectoryReadTool, FileReadTool
 from epic_news.tools.html_to_pdf_tool import HtmlToPdfTool
 from epic_news.tools.report_tools import get_report_tools
 from epic_news.tools.web_tools import get_scrape_tools, get_search_tools
+from epic_news.utils.file_utils import ensure_output_directory
 
 # If you want to run a snippet of code before or after the crew starts,
 # you can use the @before_kickoff and @after_kickoff decorators

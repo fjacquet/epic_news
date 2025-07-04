@@ -1,14 +1,11 @@
 ---
 web_presence_audit:
   description: >
-    Conduct a comprehensive audit of {company}'s web presence, including: 
-    - Primary website analysis (structure, content, functionality) 
-    - Secondary websites and microsites 
-    - Regional or country-specific websites 
-    - Landing pages and marketing campaigns 
-    - SEO performance indicators 
-    - Website traffic estimates if available 
-    - Mobile responsiveness and user experience
+    Conduct a comprehensive audit of {company}'s web presence, including:  - Primary
+    website analysis (structure, content, functionality)  - Secondary websites and
+    microsites  - Regional or country-specific websites  - Landing pages and marketing
+    campaigns  - SEO performance indicators  - Website traffic estimates if available  -
+    Mobile responsiveness and user experience
     Format your findings as a structured JSON object.
   expected_output: >
     A comprehensive JSON object detailing {company}'s web presence
@@ -17,14 +14,11 @@ web_presence_audit:
   output_file: output/osint/{company}_web_presence_audit.json
 social_media_footprint:
   description: >
-    Analyze {company}'s social media footprint across platforms, including: 
-    - Official accounts on major platforms (Twitter, LinkedIn, Facebook,
-    Instagram, etc.) 
-    - Engagement metrics and follower counts 
-    - Content themes and posting frequency 
-    - Brand voice and messaging consistency 
-    - Customer interaction patterns 
-    - Employee social media presence related to the company
+    Analyze {company}'s social media footprint across platforms, including:  - Official
+    accounts on major platforms (Twitter, LinkedIn, Facebook,
+    Instagram, etc.)  - Engagement metrics and follower counts  - Content themes and
+    posting frequency  - Brand voice and messaging consistency  - Customer interaction
+    patterns  - Employee social media presence related to the company
     Format your findings as a structured JSON object.
   expected_output: >
     A comprehensive JSON object analyzing {company}'s social media
@@ -34,13 +28,10 @@ social_media_footprint:
 domain_infrastructure_analysis:
   description: >
     Analyze {company}'s domain infrastructure and technical footprint,
-    including: 
-    - Domain registration information and history 
-    - Subdomains and related domains 
-    - DNS records and hosting information 
-    - SSL/TLS certificate details 
-    - Email security configurations (SPF, DKIM, DMARC) 
-    - Content delivery networks and third-party services
+    including:  - Domain registration information and history  - Subdomains and related
+    domains  - DNS records and hosting information  - SSL/TLS certificate details  -
+    Email security configurations (SPF, DKIM, DMARC)  - Content delivery networks
+    and third-party services
     Format your findings as a structured JSON object.
   expected_output: >
     A comprehensive JSON object analyzing {company}'s domain
@@ -50,11 +41,9 @@ domain_infrastructure_analysis:
 data_leak_analysis:
   description: >
     Analyze potential data leaks and breaches related to {company}, including:
-    - Public data breach records involving the company 
-    - Exposed credentials or sensitive information 
-    - GitHub repositories with potential leaked information 
-    - Exposed API keys or configuration files 
-    - Employee email addresses in data breach databases
+    - Public data breach records involving the company  - Exposed credentials or sensitive
+    information  - GitHub repositories with potential leaked information  - Exposed
+    API keys or configuration files  - Employee email addresses in data breach databases
     Format your findings as a structured JSON object.
   expected_output: >
     A comprehensive JSON object analyzing potential data leaks related
@@ -64,31 +53,27 @@ data_leak_analysis:
 competitive_web_presence_analysis:
   description: >
     Analyze the web presence of {company}'s competitors to identify best
-    practices, including: 
-    - Comparative website analysis 
-    - Social media strategy differences 
-    - Content marketing approaches 
-    - Online reputation management 
-    - Digital marketing tactics
+    practices, including:  - Comparative website analysis  - Social media strategy
+    differences  - Content marketing approaches  - Online reputation management  -
+    Digital marketing tactics
     Format your findings as a structured JSON object.
   expected_output: >
     A comprehensive JSON object analyzing competitors' web presence
-    compared to {company}. The JSON should be well-structured with appropriate keys and values.
+    compared to {company}. The JSON should be well-structured with appropriate keys
+    and values.
   agent: web_researcher
   output_file: output/osint/{company}_competitive_web_presence_analysis.json
 consolidate_web_presence_report:
   description: >
     Consolidate all findings about {company}'s web presence into a
-    comprehensive report, including: 
-    - Executive summary of online presence 
-    - Website analysis and recommendations 
-    - Social media strategy assessment 
-    - Technical infrastructure evaluation 
-    - Security and data leak concerns 
-    - Competitive positioning online
+    comprehensive report, including:  - Executive summary of online presence  - Website
+    analysis and recommendations  - Social media strategy assessment  - Technical
+    infrastructure evaluation  - Security and data leak concerns  - Competitive positioning
+    online
     Format your report as a structured JSON object.
   expected_output: >
     A comprehensive JSON object consolidating all web presence findings
-    about {company}. The JSON should be well-structured with appropriate keys and values.
+    about {company}. The JSON should be well-structured with appropriate keys and
+    values.
   agent: web_reporter
   output_file: output/osint/{company}_web_presence_report.json

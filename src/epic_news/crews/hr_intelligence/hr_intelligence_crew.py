@@ -8,6 +8,7 @@ from epic_news.tools.html_to_pdf_tool import HtmlToPdfTool
 # Import RAG tools
 from epic_news.tools.report_tools import get_report_tools
 from epic_news.tools.scrape_ninja_tool import ScrapeNinjaTool
+from epic_news.utils.file_utils import ensure_output_directory
 
 load_dotenv()
 

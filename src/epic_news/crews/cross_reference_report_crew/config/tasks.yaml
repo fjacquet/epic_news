@@ -2,64 +2,56 @@
 intelligence_requirements_planning:
   description: >
     Develop comprehensive intelligence requirements for investigating
-    {target}, including: 
-    - Priority information needs 
-    - Key intelligence questions 
-    - Collection priorities by domain 
-    - Timeline for intelligence gathering 
-    - Critical information gaps 
-    - Success criteria for the investigation
+    {target}, including:  - Priority information needs  - Key intelligence questions  -
+    Collection priorities by domain  - Timeline for intelligence gathering  - Critical
+    information gaps  - Success criteria for the investigation
     Format your planning as a structured JSON object.
   expected_output: >
     A comprehensive JSON object outlining intelligence requirements for
-    investigating {target}. The JSON should be well-structured with appropriate keys and values.
+    investigating {target}. The JSON should be well-structured with appropriate keys
+    and values.
   agent: osint_researcher
   output_file: output/osint/intelligence_requirements_planning.json
 intelligence_collection_coordination:
   description: >
     Coordinate intelligence collection activities across all specialized crews
-    investigating {target}, including: 
-    - Tasking specialized crews based on intelligence requirements 
-    - Tracking collection progress against requirements 
-    - Identifying collection gaps and redundancies 
-    - Adjusting collection priorities as new information emerges 
-    - Ensuring comprehensive coverage across all domains 
-    - Facilitating information sharing between crews
+    investigating {target}, including:  - Tasking specialized crews based on intelligence
+    requirements  - Tracking collection progress against requirements  - Identifying
+    collection gaps and redundancies  - Adjusting collection priorities as new information
+    emerges  - Ensuring comprehensive coverage across all domains  - Facilitating
+    information sharing between crews
     Format your coordination notes as a structured JSON object.
   expected_output: >
     A comprehensive JSON object detailing intelligence collection
-    coordination for {target}. The JSON should be well-structured with appropriate keys and values.
+    coordination for {target}. The JSON should be well-structured with appropriate
+    keys and values.
   agent: osint_researcher
   output_file: output/osint/intelligence_collection_coordination.json
 intelligence_analysis_integration:
   description: >
     Integrate intelligence analysis from all specialized crews investigating
-    {target}, including: 
-    - Synthesizing findings across domains 
-    - Identifying cross-domain patterns and insights 
-    - Resolving contradictory information 
-    - Validating key findings through multiple sources 
-    - Contextualizing intelligence within the broader picture 
-    - Developing integrated assessments
+    {target}, including:  - Synthesizing findings across domains  - Identifying cross-domain
+    patterns and insights  - Resolving contradictory information  - Validating key
+    findings through multiple sources  - Contextualizing intelligence within the broader
+    picture  - Developing integrated assessments
     Format your integrated analysis as a structured JSON object.
   expected_output: >
     A comprehensive JSON object integrating intelligence analysis from all
-    crews investigating {target}. The JSON should be well-structured with appropriate keys and values.
+    crews investigating {target}. The JSON should be well-structured with appropriate
+    keys and values.
   agent: osint_researcher
   output_file: output/osint/intelligence_analysis_integration.json
 intelligence_product_development:
   description: >
-    Develop final intelligence products about {target}, including:  
-    - Executive summary for decision-makers 
-    - Comprehensive intelligence report 
-    - Key findings and assessments 
-    - Supporting evidence and documentation 
-    - Confidence levels for major assessments 
-    - Recommendations for further investigation
+    Develop final intelligence products about {target}, including:   - Executive summary
+    for decision-makers  - Comprehensive intelligence report  - Key findings and assessments  -
+    Supporting evidence and documentation  - Confidence levels for major assessments  -
+    Recommendations for further investigation
     Format your intelligence products as a structured JSON object.
   expected_output: >
     A comprehensive JSON object serving as final intelligence
-    products about {target}. The JSON should be well-structured with appropriate keys and values.
+    products about {target}. The JSON should be well-structured with appropriate keys
+    and values.
   agent: osint_researcher
   output_file: output/osint/intelligence_product_development.json
 # investigation_quality_assurance:
@@ -85,8 +77,8 @@ global_reporting:
   description: >
     Create a comprehensive and extensive global intelligence report on {target} by
      aggregating all information from the 'output/osint' directory.
-    This report must be extremely detailed and maintain the full depth of 
-    information from all source reports, including:
+    This report must be extremely detailed and maintain the full depth of  information
+    from all source reports, including:
     - A thorough executive summary capturing all key findings
     - Exhaustive presentation of all intelligence gathered, maintaining the original
     level of detail
@@ -101,17 +93,20 @@ global_reporting:
      use the `file_read_tool` to read the FULL TEXTUAL CONTENT of that specific file.
      Do not summarize or list the files at this stage; your goal is to gather all
     the raw information from within them.
-    3. Third, after you have successfully read the content from ALL files, your primary task
+    3. Third, after you have successfully read the content from ALL files, your primary
+    task
     is to SYNTHESIZE this collected textual information. Create a single, coherent,
      and comprehensive global intelligence report. This report is NOT a list of files,
      nor a summary of what files exist. It is an INTEGRATION of the INFORMATION CONTAINED
     WITHIN those files.
-    4. DO NOT HALLUCINATE. Do not invent file counts or content. Base your report strictly
+    4. DO NOT HALLUCINATE. Do not invent file counts or content. Base your report
+    strictly
     on the actual content retrieved using the `file_read_tool`.
     5. The final report should be a structured JSON object that integrates the information
     from the files, not a meta-report about the files themselves or a simple concatenation.
   expected_output: >
-    A comprehensive and extensive global intelligence report in a well-structured JSON format.
+    A comprehensive and extensive global intelligence report in a well-structured
+    JSON format.
     The report must provide a complete synthesis of all gathered intelligence
     on {target} with appropriate keys and values.
   agent: osint_reporter

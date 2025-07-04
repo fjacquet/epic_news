@@ -50,10 +50,12 @@ menu_planning_task:
 menu_json_task:
   description: >
     Transformer les données du menu hebdomadaire en un format JSON structuré et propre.
-    OBJECTIF: Prendre les informations de menu collectées et les structurer en un format JSON
+    OBJECTIF: Prendre les informations de menu collectées et les structurer en un
+    format JSON
     conforme au modèle de données requis, sans aucun élément HTML ou formatage visuel.
     INSTRUCTIONS TECHNIQUES:
-    - Assurer que toutes les données sont correctement structurées selon le modèle WeeklyMenuPlan
+    - Assurer que toutes les données sont correctement structurées selon le modèle
+    WeeklyMenuPlan
     - Vérifier l'intégrité et la cohérence des données
     - Éliminer tout élément de formatage ou balise HTML
     CONTENU REQUIS:
@@ -66,7 +68,8 @@ menu_json_task:
     - JSON valide et bien formaté
     - Conforme au schéma WeeklyMenuPlan
     - Facilement parsable par d'autres systèmes
-    Utiliser les informations de la structure du menu précédemment collectées pour générer
+    Utiliser les informations de la structure du menu précédemment collectées pour
+    générer
     un document JSON propre et structuré.
   expected_output: >
     Document JSON complet et valide présentant le menu hebdomadaire de façon

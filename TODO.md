@@ -3,26 +3,26 @@
 ## 🔥 Next Up (Priority)
 
 * [ ] **Réinjecter le rendu HTML dans les équipes**
-  * [x] holiday_planner
-  * [x] meeting_prep
+  * [x] classify
   * [x] company_news
-  * [x] rss_weekly
-  * [x] news_daily
-  * [x] library
-  * [x] fin_daily
-  * [x] poem
   * [x] cooking
+  * [x] fin_daily
+  * [x] holiday_planner
+  * [x] html_designer
+  * [x] library
+  * [x] meeting_prep
+  * [x] news_daily
+  * [x] poem
+  * [x] post
+  * [x] reception
+  * [x] rss_weekly
   * [x] saint_daily
   * [x] shopping_advisor
-  * [x] classify
-  * [x] html_designer
-  * [x] reception
-  * [x] postuf 
   * [ ] company_profiler
-  * [ ] hr_intelligence
   * [ ] cross_reference_report_crew
   * [ ] geospatial_analysis
-  * [ ] information_extraction
+  * [ ] hr_intelligence
+  * [x] information_extraction
   * [ ] legal_analysis
   * [ ] marketing_writers
   * [ ] menu_designer
@@ -39,11 +39,11 @@
   * [x] Update the `1_DEVELOPMENT_GUIDE.md` to include a section on these new testing standards.
 
 * [ ] **Set up and execute CrewAI within a container environment.**
-  * [ ] Install Docker on the host machine.
-  * [ ] Pull the official CrewAI container image from the Docker registry.
-  * [ ] Create a Dockerfile to customize the CrewAI environment if needed.
-  * [ ] Build the Docker image using the Dockerfile.
-  * [ ] Run the CrewAI container with the necessary configurations and environment variables.
+  * [x] Install Docker on the host machine.
+  * [x] Pull the official CrewAI container image from the Docker registry.
+  * [x] Create a Dockerfile to customize the CrewAI environment if needed.
+  * [x] Build the Docker image using the Dockerfile.
+  * [x] Run the CrewAI container with the necessary configurations and environment variables.
   * [ ] Verify the CrewAI execution and troubleshoot any issues that arise.
 
 ---
@@ -53,13 +53,13 @@
 * [ ] **Connect n8n to retrieve data initiated by CrewAI.**
 * [ ] **Connect n8n to initiate CrewAI integration.**
 * [ ] **Créer des agents pour le suivi technologique**
-  * [ ] Implement Nutanix AOS `(Due: 14 Jul)`
-  * [ ] Beta Netbackup `(Due: 15 Jul)`
-  * [ ] Implement Commvault B&R `(Due: 19 Jul)`
-  * [ ] PowerScale (Dell) `(Due: 28 Jul)`
-  * [ ] Eyeglass (Superna) `(Due: 2 Aug)`
-  * [ ] Suivi Tomcat `(Due: 13 Sep)`
-  * [ ] Implement Brocade FOS `(Due: 27 Sep)`
+  * [ ] Implement Nutanix AOS
+  * [ ] Beta Netbackup
+  * [ ] Implement Commvault B&R
+  * [ ] PowerScale (Dell)
+  * [ ] Eyeglass (Superna)
+  * [ ] Suivi Tomcat
+  * [ ] Implement Brocade FOS
   * [ ] Consul (HashiCorp)
   * [ ] Implement Cisco UCS
   * [ ] Implement Pure FlashArray

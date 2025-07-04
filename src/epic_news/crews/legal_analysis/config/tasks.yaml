@@ -1,13 +1,10 @@
 ---
 legal_compliance_assessment:
   description: >
-    Assess the legal compliance status of {company}, including: 
-    - Regulatory frameworks applicable to their industry 
-    - Compliance history and any violations 
-    - Required licenses and permits 
-    - Corporate governance structure 
-    - Ethics policies and implementation 
-    - Recent regulatory changes affecting the company
+    Assess the legal compliance status of {company}, including:  - Regulatory frameworks
+    applicable to their industry  - Compliance history and any violations  - Required
+    licenses and permits  - Corporate governance structure  - Ethics policies and
+    implementation  - Recent regulatory changes affecting the company
     Format your findings as a structured JSON object.
   expected_output: >
     A comprehensive JSON object assessing {company}'s legal compliance
@@ -16,28 +13,22 @@ legal_compliance_assessment:
   output_file: output/osint/{company}_legal_compliance_assessment.json
 intellectual_property_analysis:
   description: >
-    Analyze {company}'s intellectual property portfolio, including: 
-    - Patent portfolio and filing trends 
-    - Trademark registrations 
-    - Copyright holdings 
-    - Trade secrets protection measures 
-    - IP litigation history 
-    - Licensing agreements (if public)
+    Analyze {company}'s intellectual property portfolio, including:  - Patent portfolio
+    and filing trends  - Trademark registrations  - Copyright holdings  - Trade secrets
+    protection measures  - IP litigation history  - Licensing agreements (if public)
     Format your findings as a structured JSON object.
   expected_output: >
     A comprehensive JSON object analyzing {company}'s intellectual
-    property portfolio. The JSON should be well-structured with appropriate keys and values.
+    property portfolio. The JSON should be well-structured with appropriate keys and
+    values.
   agent: legal_researcher
   output_file: output/osint/{company}_intellectual_property_analysis.json
 regulatory_risk_assessment:
   description: >
-    Assess the regulatory risks facing {company}, including: 
-    - Industry-specific regulatory challenges 
-    - Jurisdictional compliance requirements 
-    - Pending legislation that may impact operations 
-    - Historical regulatory issues 
-    - Regulatory compliance costs 
-    - Relationships with regulatory bodies
+    Assess the regulatory risks facing {company}, including:  - Industry-specific
+    regulatory challenges  - Jurisdictional compliance requirements  - Pending legislation
+    that may impact operations  - Historical regulatory issues  - Regulatory compliance
+    costs  - Relationships with regulatory bodies
     Format your findings as a structured JSON object.
   expected_output: >
     A comprehensive JSON object assessing {company}'s regulatory risks.
@@ -46,13 +37,9 @@ regulatory_risk_assessment:
   output_file: output/osint/{company}_regulatory_risk_assessment.json
 litigation_history_analysis:
   description: >
-    Analyze {company}'s litigation history, including: 
-    - Major lawsuits (past and ongoing) 
-    - Settlement patterns 
-    - Areas of frequent litigation 
-    - Notable court decisions 
-    - Class action exposure 
-    - Legal defense strategies
+    Analyze {company}'s litigation history, including:  - Major lawsuits (past and
+    ongoing)  - Settlement patterns  - Areas of frequent litigation  - Notable court
+    decisions  - Class action exposure  - Legal defense strategies
     Format your findings as a structured JSON object.
   expected_output: >
     A comprehensive JSON object analyzing {company}'s litigation
@@ -62,13 +49,9 @@ litigation_history_analysis:
 mergers_and_acquisitions_due_diligence:
   description: >
     Conduct legal due diligence for {company}'s mergers and acquisitions,
-    including: 
-    - M&A history and patterns 
-    - Integration challenges from past acquisitions 
-    - Regulatory approvals for past deals 
-    - Post-acquisition litigation 
-    - Divestiture history 
-    - Current M&A targets or rumors
+    including:  - M&A history and patterns  - Integration challenges from past acquisitions  -
+    Regulatory approvals for past deals  - Post-acquisition litigation  - Divestiture
+    history  - Current M&A targets or rumors
     Format your findings as a structured JSON object.
   expected_output: >
     A comprehensive JSON object analyzing {company}'s M&A due diligence.
