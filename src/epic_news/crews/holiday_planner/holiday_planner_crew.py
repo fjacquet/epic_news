@@ -2,6 +2,7 @@ from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from dotenv import load_dotenv
 
+from epic_news.models.holiday_planner_models import HolidayPlannerReport
 from epic_news.tools.exchange_rate_tool import ExchangeRateTool
 from epic_news.tools.web_tools import get_scrape_tools, get_search_tools, get_youtube_tools
 
@@ -147,6 +148,7 @@ class HolidayPlannerCrew:
         return Task(
             config=self.tasks_config["format_and_translate_guide"],
             async_execution=False,
+            output_pydantic=HolidayPlannerReport,
         )
 
     @crew

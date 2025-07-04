@@ -47,6 +47,8 @@ dependencies = [
     "yamllint>=1.37.1",
     "pytest-asyncio>=1.0.0",
     "vulture>=2.14",
+    "unicode>=2.9",
+    "unidecode>=1.4.0",
 ]
 
 [project.scripts]
@@ -64,6 +66,7 @@ dev = [
 test = [
     "pytest",
     "pytest-cov",
+    "pytest-mock",
     "pytest-asyncio",
     "langsmith",
 ]

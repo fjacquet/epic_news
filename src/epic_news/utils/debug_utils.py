@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 def _attempt_json_repair(json_str: str) -> str:
     """
-    Attempt to repair truncated or malformed JSON by adding missing closing braces.
+    Attempt to repair malformed JSON with comprehensive fixes for LLM-generated content.
 
     Args:
         json_str: The potentially malformed JSON string
@@ -23,31 +23,67 @@ def _attempt_json_repair(json_str: str) -> str:
     Returns:
         str: Repaired JSON string
     """
-    # Count opening and closing braces/brackets
-    open_braces = json_str.count("{")
-    close_braces = json_str.count("}")
-    open_brackets = json_str.count("[")
-    close_brackets = json_str.count("]")
+    import re
 
-    # Add missing closing braces and brackets
-    repaired = json_str
+    repaired = json_str.strip()
 
-    # If we have unmatched opening braces, add closing braces
+    # 1. Fix common LLM JSON issues
+    # Remove any leading/trailing non-JSON content
+    if not repaired.startswith(("{", "[")):
+        # Find first { or [
+        start_match = re.search(r"[{\[]", repaired)
+        if start_match:
+            repaired = repaired[start_match.start() :]
+
+    # 2. Fix missing colons after keys (common LLM error)
+    # Pattern: "key" value -> "key": value
+    repaired = re.sub(r'"([^"]+)"\s+(["\[\{\d])', r'"\1": \2', repaired)
+
+    # 3. Fix missing quotes around keys (but preserve already quoted keys)
+    # Pattern: key: -> "key": (but not "key":)
+    repaired = re.sub(r'(?<!["])\b([a-zA-Z_][a-zA-Z0-9_]*)\s*:', r'"\1":', repaired)
+
+    # 4. Fix missing quotes around string values (more precise)
+    # Pattern: : word, -> : "word", (but not numbers, booleans, or already quoted)
+    repaired = re.sub(r":\s*([a-zA-Z][a-zA-Z0-9\s]*?)(?=\s*[,}\]])", r': "\1"', repaired)
+
+    # 4b. Fix missing colons in object properties
+    # Pattern: "key" "value" -> "key": "value"
+    repaired = re.sub(r'"([^"]+)"\s+"([^"]+)"', r'"\1": "\2"', repaired)
+
+    # 5. Fix trailing commas before closing braces/brackets
+    repaired = re.sub(r",\s*([}\]])", r"\1", repaired)
+
+    # 6. Fix missing commas between array/object elements
+    # Pattern: } { -> }, {
+    repaired = re.sub(r"}\s*{", r"}, {", repaired)
+    repaired = re.sub(r"]\s*\[", r"], [", repaired)
+
+    # 7. Count and fix unmatched braces/brackets
+    open_braces = repaired.count("{")
+    close_braces = repaired.count("}")
+    open_brackets = repaired.count("[")
+    close_brackets = repaired.count("]")
+
+    # Add missing closing braces
     if open_braces > close_braces:
         missing_braces = open_braces - close_braces
         repaired += "}" * missing_braces
 
-    # If we have unmatched opening brackets, add closing brackets
+    # Add missing closing brackets
+
     if open_brackets > close_brackets:
         missing_brackets = open_brackets - close_brackets
         repaired += "]" * missing_brackets
 
-    # Handle case where JSON ends with a comma (common in truncated JSON)
+    # 8. Handle case where JSON ends with a comma
     repaired = repaired.rstrip()
     if repaired.endswith(","):
         repaired = repaired[:-1]
 
-    return repaired
+    # 9. Fix double quotes issues
+    # Remove escaped quotes that shouldn't be escaped
+    return re.sub(r'\\"', '"', repaired)
 
 
 def dump_crewai_state(state_data: dict[str, Any], crew_name: str, debug_dir: str = "debug") -> str:
@@ -232,14 +268,113 @@ def parse_crewai_output(report_content: Any, model_class: type[T], inputs: dict 
                 if "id" in entry and not isinstance(entry["id"], str):
                     entry["id"] = str(entry["id"])
 
+        # $$$Special handling for HolidayPlannerReport: robustly handle day/jour fields
+        if model_class.__name__ == "HolidayPlannerReport" and "itinerary" in parsed_data:
+            for day in parsed_data["itinerary"]:
+                # Handle 'day' or 'jour' fields that may be int or str
+                for key in ["day", "jour"]:
+                    if key in day and not isinstance(day[key], str):
+                        day[key] = str(day[key])
+                # If 'date' is present and not a string, coerce to string
+                if "date" in day and not isinstance(day["date"], str):
+                    day["date"] = str(day["date"])
+                # If 'activities' is present, ensure it's a list
+                if "activities" in day and not isinstance(day["activities"], list):
+                    day["activities"] = [day["activities"]]
+                # If any string operation is needed, always check type
+                if "jour" in day:
+                    jour_text = day["jour"]
+                    if isinstance(jour_text, str) and "Jour" in jour_text:
+                        pass  # safe to do string ops
+
+
+        # $$$Special handling for HolidayPlannerReport: comprehensive data transformation
+        if model_class.__name__ == "HolidayPlannerReport":
+            # Convert URL strings to Source objects
+            if "sources" in parsed_data:
+                sources = parsed_data["sources"]
+                if sources and isinstance(sources, list):
+                    converted_sources = []
+                    for source in sources:
+                        if isinstance(source, str):  # URL string
+                            # Convert URL string to Source object
+                            converted_sources.append(
+                                {
+                                    "title": source.split("/")[-1]
+                                    or "Source",  # Use last part of URL as title
+                                    "url": source,
+                                    "type": "reference",
+                                }
+                            )
+                        elif isinstance(source, dict):
+                            # Already a proper Source object
+                            converted_sources.append(source)
+                    parsed_data["sources"] = converted_sources
+
+            # Handle French-to-English field mapping for itinerary
+            if "itinerary" in parsed_data and isinstance(parsed_data["itinerary"], list):
+                for day_item in parsed_data["itinerary"]:
+                    if isinstance(day_item, dict):
+                        # Map French fields to English
+                        if "jour" in day_item and "day" not in day_item:
+                            # Extract day number from "Jour 1 - Vendredi" format
+                            jour_text = day_item["jour"]
+                            if "Jour" in jour_text:
+                                day_num = jour_text.split()[1] if len(jour_text.split()) > 1 else "1"
+                                day_item["day"] = int(day_num.replace("-", "").strip())
+                            del day_item["jour"]
+
+                        # Extract date from jour field if present
+                        if "date" not in day_item and "jour" in day_item:
+                            jour_text = day_item["jour"]
+                            # Try to extract date from "Jour 1 - Vendredi 26 juillet" format
+                            parts = jour_text.split("-")
+                            if len(parts) > 1:
+                                day_item["date"] = parts[1].strip()
+                            else:
+                                day_item["date"] = "TBD"
+
+            # Handle French-to-English field mapping for accommodations
+            if "accommodations" in parsed_data and isinstance(parsed_data["accommodations"], list):
+                for accommodation in parsed_data["accommodations"]:
+                    if isinstance(accommodation, dict):
+                        # Map French fields to English
+                        if "nom" in accommodation and "name" not in accommodation:
+                            accommodation["name"] = accommodation["nom"]
+                            del accommodation["nom"]
+                        if "adresse" in accommodation and "address" not in accommodation:
+                            accommodation["address"] = accommodation["adresse"]
+                            del accommodation["adresse"]
+                        # Ensure required fields have defaults
+                        if "address" not in accommodation:
+                            accommodation["address"] = "Address not specified"
+                        if "description" not in accommodation:
+                            accommodation["description"] = accommodation.get("name", "Accommodation option")
+
         return model_class.model_validate(parsed_data)
     except json.JSONDecodeError as e:
-        logger.error(f"Failed to parse JSON. Raw output was: {raw_json[:500]}...")
+        logger.error(f"JSON parsing failed at line {e.lineno}, column {e.colno}: {e.msg}")
+        logger.error(f"Error position (char {e.pos}): '{cleaned_json[max(0, e.pos - 20) : e.pos + 20]}'")
 
-        # Try to repair truncated JSON by adding missing closing braces
+        # Save problematic JSON for debugging
+        debug_file = f"debug/failed_json_{model_class.__name__.lower()}_{int(time.time())}.json"
+        os.makedirs("debug", exist_ok=True)
         try:
-            logger.info("Attempting to repair truncated JSON...")
+            with open(debug_file, "w", encoding="utf-8") as f:
+                f.write(cleaned_json)
+            logger.info(f"Saved problematic JSON to {debug_file}")
+        except Exception:
+            pass  # Don't fail if we can't save debug file
+
+        # Try comprehensive JSON repair
+        try:
+            logger.info("Attempting comprehensive JSON repair...")
             repaired_json = _attempt_json_repair(cleaned_json)
+
+            # Log what repairs were attempted
+            if repaired_json != cleaned_json:
+                logger.info(f"JSON repair made {len(repaired_json) - len(cleaned_json)} character changes")
+
             parsed_data = json.loads(repaired_json)
 
             # Apply same special handling as above
@@ -248,10 +383,95 @@ def parse_crewai_output(report_content: Any, model_class: type[T], inputs: dict 
                     if "id" in entry and not isinstance(entry["id"], str):
                         entry["id"] = str(entry["id"])
 
+            # Apply same HolidayPlannerReport handling as above
+            if model_class.__name__ == "HolidayPlannerReport":
+                # Convert URL strings to Source objects
+                if "sources" in parsed_data:
+                    sources = parsed_data["sources"]
+                    if sources and isinstance(sources, list):
+                        converted_sources = []
+                        for source in sources:
+                            if isinstance(source, str):  # URL string
+                                # Convert URL string to Source object
+                                converted_sources.append(
+                                    {
+                                        "title": source.split("/")[-1]
+                                        or "Source",  # Use last part of URL as title
+                                        "url": source,
+                                        "type": "reference",
+                                    }
+                                )
+                            elif isinstance(source, dict):
+                                # Already a proper Source object
+                                converted_sources.append(source)
+                        parsed_data["sources"] = converted_sources
+
+                # Handle French-to-English field mapping for itinerary
+                if "itinerary" in parsed_data and isinstance(parsed_data["itinerary"], list):
+                    for day_item in parsed_data["itinerary"]:
+                        if isinstance(day_item, dict):
+                            # Map French fields to English
+                            if "jour" in day_item and "day" not in day_item:
+                                # Extract day number from "Jour 1 - Vendredi" format
+                                jour_text = day_item["jour"]
+                                if "Jour" in jour_text:
+                                    day_num = jour_text.split()[1] if len(jour_text.split()) > 1 else "1"
+                                    day_item["day"] = int(day_num.replace("-", "").strip())
+                                del day_item["jour"]
+
+                            # Extract date from jour field if present
+                            if "date" not in day_item and "jour" in day_item:
+                                jour_text = day_item["jour"]
+                                # Try to extract date from "Jour 1 - Vendredi 26 juillet" format
+                                parts = jour_text.split("-")
+                                if len(parts) > 1:
+                                    day_item["date"] = parts[1].strip()
+                                else:
+                                    day_item["date"] = "TBD"
+
+                # Handle French-to-English field mapping for accommodations
+                if "accommodations" in parsed_data and isinstance(parsed_data["accommodations"], list):
+                    for accommodation in parsed_data["accommodations"]:
+                        if isinstance(accommodation, dict):
+                            # Map French fields to English
+                            if "nom" in accommodation and "name" not in accommodation:
+                                accommodation["name"] = accommodation["nom"]
+                                del accommodation["nom"]
+                            if "adresse" in accommodation and "address" not in accommodation:
+                                accommodation["address"] = accommodation["adresse"]
+                                del accommodation["adresse"]
+                            # Ensure required fields have defaults
+                            if "address" not in accommodation:
+                                accommodation["address"] = "Address not specified"
+                            if "description" not in accommodation:
+                                accommodation["description"] = accommodation.get(
+                                    "name", "Accommodation option"
+                                )
+
             logger.info("Successfully repaired and parsed JSON")
             return model_class.model_validate(parsed_data)
+        except json.JSONDecodeError as repair_error:
+            logger.error(
+                f"JSON repair failed at line {repair_error.lineno}, column {repair_error.colno}: {repair_error.msg}"
+            )
+            logger.error(
+                f"Repair error position (char {repair_error.pos}): '{repaired_json[max(0, repair_error.pos - 20) : repair_error.pos + 20]}'"
+            )
+
+            # Save repaired JSON attempt for debugging
+            repair_debug_file = f"debug/repair_attempt_{model_class.__name__.lower()}_{int(time.time())}.json"
+            try:
+                with open(repair_debug_file, "w", encoding="utf-8") as f:
+                    f.write(repaired_json)
+                logger.info(f"Saved repair attempt to {repair_debug_file}")
+            except Exception:
+                pass
+
+            raise ValueError(
+                f"Invalid JSON output from {model_class.__name__} crew. Original error: {e}. Repair failed: {repair_error}"
+            )
         except Exception as repair_error:
-            logger.error(f"JSON repair attempt failed: {repair_error}")
+            logger.error(f"JSON repair attempt failed with unexpected error: {repair_error}")
             raise ValueError(f"Invalid JSON output from {model_class.__name__} crew: {e}")
     except Exception as e:
         logger.error(f"Failed to validate {model_class.__name__} model: {e}")
