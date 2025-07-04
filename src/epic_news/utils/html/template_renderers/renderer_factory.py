@@ -11,7 +11,7 @@ from .company_news_renderer import CompanyNewsRenderer
 from .cooking_renderer import CookingRenderer
 from .financial_renderer import FinancialRenderer
 from .generic_renderer import GenericRenderer
-from .holiday_plan_renderer import HolidayPlanRenderer
+from .holiday_renderer import HolidayRenderer
 from .meeting_prep_renderer import MeetingPrepRenderer
 from .menu_renderer import MenuRenderer
 from .news_daily_renderer import NewsDailyRenderer
@@ -30,7 +30,7 @@ class RendererFactory:
         "COOKING": CookingRenderer,
         "FINDAILY": FinancialRenderer,
         "GENERIC": GenericRenderer,
-        "HOLIDAY_PLANNER": HolidayPlanRenderer,
+        "HOLIDAY_PLANNER": HolidayRenderer,
         "MEETING_PREP": MeetingPrepRenderer,
         "MENU": MenuRenderer,
         "NEWSDAILY": NewsDailyRenderer,

@@ -40,8 +40,7 @@ itinerary_architect:
     Itinerary Architect
   goal: >
     Synthesize information from previous research. Utilize web search and scraping
-    tools only as
-    needed for gap-filling or detailed verification. Create detailed,
+    tools only as needed for gap-filling or detailed verification. Create detailed,
     day-by-day itineraries that maximize experiences while maintaining
     realistic logistics and timing.
   backstory: >

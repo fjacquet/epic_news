@@ -72,7 +72,7 @@ from epic_news.utils.html.book_summary_html_factory import (
 from epic_news.utils.html.company_news_html_factory import company_news_to_html
 from epic_news.utils.html.daily_news_html_factory import daily_news_to_html
 from epic_news.utils.html.fin_daily_html_factory import findaily_to_html
-from epic_news.utils.html.holiday_plan_html_factory import holiday_plan_to_html
+from epic_news.utils.html.holiday_planner_html_factory import holiday_planner_to_html
 from epic_news.utils.html.meeting_prep_html_factory import meeting_prep_to_html
 from epic_news.utils.html.poem_html_factory import poem_to_html
 from epic_news.utils.html.recipe_html_factory import recipe_to_html
@@ -959,7 +959,7 @@ class ReceptionFlow(Flow[ContentState]):
         `self.state.holiday_plan`. Returns 'error' if no destination is found.
         """
         current_inputs = self.state.to_crew_inputs()
-        current_inputs["output_file"] = "output/travel_guides/itinerary.json"
+        current_inputs["output_file"] = "output/holiday/itinerary.json"
 
         if not current_inputs.get("destination"):
             print("⚠️ No destination found for holiday plan. Aborting and routing to error.")
@@ -971,8 +971,8 @@ class ReceptionFlow(Flow[ContentState]):
         # Run the crew
         holiday_plan = HolidayPlannerCrew().crew().kickoff(inputs=current_inputs)
         dump_crewai_state(holiday_plan, "HOLIDAY_PLANNER")
-        html_file = "output/travel_guides/itinerary.html"
-        holiday_plan_to_html(holiday_plan, html_file=html_file)
+        html_file = "output/holiday/itinerary.html"
+        holiday_planner_to_html(holiday_plan, html_file=html_file)
         self.state.holiday_plan = holiday_plan
         return "generate_holiday_plan"
 
@@ -1148,7 +1148,9 @@ def kickoff(user_input: str | None = None):
     """
     # If user_input is not provided, use a default value.
     request = (
-        user_input if user_input else "get me the news for the company Gunvor"
+        user_input
+        if user_input
+        else "let's plan a weekend in cinque terre for 1 person in end of july, I start from finale ligure, give the best hotel and restaurant options"
         # else "get me all news for company JT International SA"
         # else "get the daily news report"
         # else "Meeting preparation for JT International SA with the  CTO to discuss PowerFlex deployment in switzerland for their new 9 OpenShift clusters "

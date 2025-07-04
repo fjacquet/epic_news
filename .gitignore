@@ -7,7 +7,6 @@ __pycache__/
 .vscode/settings.json
 # @/
 # *.html
-output/
 cache/
 checkpoints/
 data/etf.csv
@@ -15,10 +14,12 @@ data/stock.csv
 db/
 debug/
 docs/test.md
+logs/epic_news_error.log
+logs/epic_news.log
+output/
 prompts.md
 prompts.txt
 report.md
 reports/
 src/epic_news.egg-info/
-logs/epic_news_error.log
-logs/epic_news.log
+traces/

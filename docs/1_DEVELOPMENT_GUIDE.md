@@ -25,6 +25,43 @@ Epic News operates on the **CrewAI Flow paradigm** - a revolutionary approach to
 - **Imports**: ALL imports must be placed at the top of Python files, never inside functions or methods. This ensures clarity, prevents circular imports, and follows PEP 8 standards.
 - **Whitespace**: Avoid trailing whitespace (`W291`) and whitespace on blank lines (`W293`). These are enforced by `ruff` and help maintain a clean, readable codebase.
 
+### 1.3. Development Tools & Environment
+
+#### Package Management
+- **ALWAYS use `uv`**: Epic News exclusively uses `uv` for all Python package management operations. Never use `pip`, `poetry`, or other package managers.
+
+```bash
+# ✅ CORRECT - Use uv for all operations
+uv add package-name
+uv remove package-name
+uv run pytest
+uv run python script.py
+uv sync
+
+# ❌ WRONG - Never use other package managers
+# pip install package-name
+# poetry add package-name
+```
+
+**Why uv?**
+- **Speed**: Significantly faster than pip/poetry
+- **Reliability**: Better dependency resolution
+- **Consistency**: Ensures reproducible environments
+- **Modern**: Built for Python 3.10+ with latest standards
+
+#### Testing & Quality Assurance
+- **Testing**: Always run tests with `uv run pytest`
+- **Linting**: Use `ruff` for code quality (integrated with uv)
+- **Type Checking**: Leverage Pydantic models and type hints
+- **Coverage**: Maintain comprehensive test coverage for all utilities
+
+#### Development Workflow
+1. **Environment Setup**: Run `uv sync` to install dependencies
+2. **Make Changes**: Edit code, add features, fix bugs
+3. **Test Changes**: Run `uv run pytest` to ensure tests pass
+4. **Quality Checks**: Run `uv run yamlfix src ; uv run ruff check --fix` to ensure code quality
+5. **Execute Crews**: Use `crewai flow kickoff` to run CrewAI flows
+
 ## 2. CrewAI Flow: Engagement Rules & Best Practices
 
 ### 2.1. Execution Method (CRITICAL)

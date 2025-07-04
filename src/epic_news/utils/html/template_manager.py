@@ -202,7 +202,7 @@ class TemplateManager:
     # See src/epic_news/utils/html/template_renderers/shopping_renderer.py
 
     # The _generate_holiday_body method has been removed and replaced by the HolidayPlanRenderer class
-    # See src/epic_news/utils/html/template_renderers/holiday_plan_renderer.py
+    # See src/epic_news/utils/html/template_renderers/holiday_renderer.py
 
     # The _generate_library_body method has been removed and replaced by the BookSummaryRenderer class
     # See src/epic_news/utils/html/template_renderers/book_summary_renderer.py

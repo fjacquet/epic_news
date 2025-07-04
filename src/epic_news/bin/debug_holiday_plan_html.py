@@ -13,7 +13,7 @@ from pathlib import Path
 # Add the src directory to Python path
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
-from epic_news.utils.html.holiday_plan_html_factory import holiday_plan_to_html
+from epic_news.utils.html.holiday_planner_html_factory import holiday_planner_to_html
 
 
 class MockCrewOutput:
@@ -62,9 +62,9 @@ def main():
         print("\n🔧 Creating mock CrewOutput...")
         mock_crew_output = MockCrewOutput(json_data)
 
-        # Test the holiday_plan_to_html function
-        print("🚀 Testing holiday_plan_to_html function...")
-        html_content = holiday_plan_to_html(mock_crew_output, str(html_file))
+        # Test the holiday_planner_to_html function
+        print("🚀 Testing holiday_planner_to_html function...")
+        html_content = holiday_planner_to_html(mock_crew_output, str(html_file))
 
         print("✅ HTML generated successfully!")
         print(f"📏 HTML length: {len(html_content)} characters")

@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🍳 Salade César Gourmet</title>
+  <script>
+    // Initialize theme on page load
+    (function() {
+      // Check for saved theme preference, then system preference
+      const savedTheme = localStorage.getItem('theme');
+      const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const theme = savedTheme || (systemPrefersDark ? 'dark' : 'light');
+      
+      // Apply theme immediately to prevent flash of unstyled content
+      document.documentElement.setAttribute('data-theme', theme);
+      
+      // Update meta theme-color for mobile browsers
+      const themeColor = theme === 'dark' ? '#1a1a1a' : '#f8f9fa';
+      let metaThemeColor = document.querySelector('meta[name="theme-color"]');
+      if (!metaThemeColor) {
+        metaThemeColor = document.createElement('meta');
+        metaThemeColor.name = 'theme-color';
+        document.head.appendChild(metaThemeColor);
+      }
+      metaThemeColor.content = themeColor;
+    })();
+    
+    // Toggle theme function
+    function toggleTheme() {
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      
+      // Update theme
+      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+      
+      // Update meta theme-color
+      const themeColor = newTheme === 'dark' ? '#1a1a1a' : '#f8f9fa';
+      document.querySelector('meta[name="theme-color"]').content = themeColor;
+    }
+  </script>
+  <style id="theme-styles">
+    /* Theme Variables */
+    :root {
+      --bg-color: #ffffff;
+      --text-color: #343a40;
+      --container-bg: #ffffff;
+      --border-color: #dee2e6;
+      --heading-color: #0056b3;
+      --h2-color: #2980b9;
+      --h3-color: #2c3e50;
+      --highlight-bg: #f8f9fa;
+      --highlight-border: #dee2e6;
+      --shadow-color: rgba(0, 0, 0, 0.1);
+    }
+
+    [data-theme="dark"] {
+      --bg-color: #1a1a1a;
+      --text-color: #e0e0e0;
+      --container-bg: #2d2d2d;
+      --border-color: #444;
+      --heading-color: #64b5f6;
+      --h2-color: #90caf9;
+      --h3-color: #bbdefb;
+      --highlight-bg: #333;
+      --highlight-border: #444;
+      --shadow-color: rgba(0, 0, 0, 0.3);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      margin: 0;
+      padding: 2rem;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      line-height: 1.6;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background-color: var(--container-bg);
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px var(--shadow-color);
+      transition: background-color 0.3s, box-shadow 0.3s;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      color: var(--heading-color);
+      font-weight: 600;
+      margin-top: 1.5em;
+      margin-bottom: 0.5em;
+      transition: color 0.3s;
+    }
+    h1 {
+      font-size: 2.2em;
+      border-bottom: 2px solid var(--border-color);
+      padding-bottom: 0.5rem;
+      margin-top: 0;
+      text-align: center;
+      transition: border-color 0.3s;
+    }
+    h2 {
+      font-size: 1.8em;
+      color: var(--h2-color);
+    }
+    h3 {
+      font-size: 1.4em;
+      color: var(--h3-color);
+    }
+    p {
+      margin-bottom: 1rem;
+    }
+    ul, ol {
+      padding-left: 20px;
+    }
+    li {
+      margin-bottom: 0.5rem;
+    }
+    blockquote {
+      background-color: #e9ecef;
+      border-left: 5px solid #007bff;
+      padding: 1rem;
+      margin: 1.5rem 0;
+      font-style: italic;
+    }
+    .section {
+      background-color: var(--highlight-bg);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      border-left: 4px solid var(--heading-color);
+      transition: background-color 0.3s, border-color 0.3s;
+    }
+    .highlight {
+      background-color: var(--highlight-bg);
+      border: 1px solid var(--highlight-border);
+      border-left-width: 5px;
+      border-left-color: #ffc107;
+      padding: 1rem;
+      margin: 2rem 0;
+      border-radius: 4px;
+      transition: background-color 0.3s, border-color 0.3s;
+    }
+    .recommendation {
+      background-color: #d4edda;
+      border: 1px solid #c3e6cb;
+      border-left-width: 5px;
+      border-left-color: #28a745;
+      padding: 1.5rem;
+      margin: 2rem 0;
+      border-radius: 8px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+      transition: border-color 0.3s;
+    }
+    th, td {
+      border: 1px solid var(--border-color);
+      padding: 12px;
+      text-align: left;
+      transition: border-color 0.3s, background-color 0.3s;
+    }
+    th {
+      background-color: var(--highlight-bg);
+      font-weight: 600;
+      color: var(--text-color);
+    }
+    tr:nth-child(even) {
+      background-color: var(--highlight-bg);
+    }
+    .badge {
+      display: inline-block;
+      padding: 0.3em 0.6em;
+      font-size: 75%;
+      font-weight: 700;
+      line-height: 1;
+      text-align: center;
+      white-space: nowrap;
+      vertical-align: baseline;
+      border-radius: 0.25rem;
+      color: #fff;
+    }
+    .badge-success { background-color: #28a745; }
+    .badge-warning { background-color: #ffc107; color: #212529; }
+    .badge-danger { background-color: #dc3545; }
+    .badge-info { background-color: #17a2b8; }
+    .emoji {
+      font-size: 1.2em;
+      vertical-align: middle;
+    }
+    a {
+      color: #007bff;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: var(--highlight-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 5px 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9em;
+      transition: all 0.3s;
+    }
+
+    .theme-toggle:hover {
+      background: var(--border-color);
+    }
+
+    .theme-icon {
+      width: 16px;
+      height: 16px;
+    }
+
+    .footer {
+      margin-top: 3rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border-color);
+      font-size: 0.9em;
+      color: var(--text-color);
+      text-align: center;
+      opacity: 0.8;
+      transition: border-color 0.3s, color 0.3s;
+    }
+    .date-info {
+      text-align: center;
+      color: #6c757d;
+      font-style: italic;
+      margin-bottom: 2rem;
+    }
+    
+    /* RSS Weekly Specific Styles */
+    .statistics {
+      margin: 2rem 0;
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin: 1rem 0;
+    }
+    
+    .stat-card {
+      background: var(--highlight-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1.5rem;
+      text-align: center;
+      transition: all 0.3s;
+    }
+    
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    .stat-card h3 {
+      margin: 0 0 0.5rem 0;
+      font-size: 1rem;
+      color: var(--text-color);
+    }
+    
+    .stat-number {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #007bff;
+      margin: 0;
+    }
+    
+    .feed-digests {
+      margin: 2rem 0;
+    }
+    
+    .feed-digest {
+      background: var(--container-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      margin: 1.5rem 0;
+      padding: 1.5rem;
+      transition: all 0.3s;
+    }
+    
+    .feed-digest h3 {
+      color: var(--heading-color);
+      margin: 0 0 1rem 0;
+      font-size: 1.3rem;
+    }
+    
+    .feed-url {
+      margin: 0.5rem 0;
+      font-size: 0.9rem;
+    }
+    
+    .feed-url a {
+      color: #6c757d;
+      text-decoration: none;
+      word-break: break-all;
+    }
+    
+    .feed-url a:hover {
+      color: #007bff;
+      text-decoration: underline;
+    }
+    
+    .articles-count {
+      background: var(--highlight-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      padding: 0.5rem 1rem;
+      margin: 1rem 0;
+      font-weight: 600;
+      display: inline-block;
+    }
+    
+    .articles-list {
+      margin: 1rem 0;
+    }
+    
+    .article-summary {
+      background: var(--highlight-bg);
+      border-left: 4px solid #007bff;
+      border-radius: 4px;
+      padding: 1rem;
+      margin: 1rem 0;
+      transition: all 0.3s;
+    }
+    
+    .article-summary:hover {
+      background: var(--border-color);
+      transform: translateX(4px);
+    }
+    
+    .article-summary h4 {
+      margin: 0 0 0.5rem 0;
+      color: var(--heading-color);
+      font-size: 1.1rem;
+    }
+    
+    .article-summary h4 a {
+      color: var(--heading-color);
+      text-decoration: none;
+    }
+    
+    .article-summary h4 a:hover {
+      color: #007bff;
+      text-decoration: underline;
+    }
+    
+    .published-date {
+      color: #6c757d;
+      font-size: 0.9rem;
+      margin: 0.5rem 0;
+    }
+    
+    .article-summary .summary {
+      margin: 0.5rem 0 0 0;
+      line-height: 1.6;
+    }
+    
+    .article-summary .summary p {
+      margin: 0;
+      color: var(--text-color);
+    }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle" onclick="toggleTheme()">
+    <svg class="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+    <span>Toggle Theme</span>
+  </button>
+  
+  <div class="container">
+    <h1>🍳 Salade César Gourmet</h1>
+    
+    <div class="date-info">
+      <p>Généré le 2025-07-01 22:43:27</p>
+    </div>
+    
+    
+    <div class="recipe-container"><header class_="recipe-header"><h1 class_="recipe-title">🍽️ Salade César Gourmet</h1><p class_="recipe-description">Une version raffinée de la célèbre salade César avec des croûtons maison et une sauce crémeuse authentique</p><span class_="recipe-badge">Entrée</span></header><div class_="recipe-meta"><div class_="meta-item"><strong>⏱️ Préparation: </strong>20 minutes</div><div class_="meta-item"><strong>🔥 Cuisson: </strong>10 minutes</div><div class_="meta-item"><strong>👥 Portions: </strong>4 personnes</div><div class_="meta-item"><strong>📊 Difficulté: </strong>🟢 Facile</div><div class_="meta-item"><strong>🏷️ Catégorie: </strong>Salade</div></div><section class_="recipe-ingredients"><h2>🧂 Ingrédients</h2><ul class_="ingredients-list"><li>🥄 2 cœurs de laitue romaine</li><li>🥄 100g de parmesan râpé</li><li>🥄 4 tranches de pain de campagne</li><li>🥄 2 gousses d'ail</li><li>🥄 4 filets d'anchois</li><li>🥄 2 jaunes d'œufs</li><li>🥄 1 citron (jus)</li><li>🥄 100ml d'huile d'olive</li><li>🥄 1 cuillère à café de moutarde de Dijon</li><li>🥄 Poivre noir fraîchement moulu</li></ul></section><section class_="recipe-instructions"><h2>📝 Instructions</h2><ol class_="instructions-list"><li>Préchauffez le four à 200°C. Coupez le pain en cubes et faites-les dorer au four pendant 8-10 minutes pour obtenir des croûtons croustillants.</li><li>Lavez et essorez soigneusement la laitue romaine. Coupez-la en morceaux de taille moyenne.</li><li>Préparez la sauce : dans un bol, écrasez l'ail et les anchois. Ajoutez les jaunes d'œufs et la moutarde.</li><li>Incorporez progressivement l'huile d'olive en fouettant pour émulsionner la sauce.</li><li>Ajoutez le jus de citron et assaisonnez avec le poivre noir.</li><li>Dans un grand saladier, mélangez la laitue avec la sauce César.</li><li>Ajoutez les croûtons et la moitié du parmesan. Mélangez délicatement.</li><li>Servez immédiatement avec le reste du parmesan râpé sur le dessus.</li></ol></section><section class_="chef-notes"><h3>👨‍🍳 Notes du Chef</h3><ul class_="notes-list"><li>Pour une sauce plus authentique, utilisez des anchois de qualité et écrasez-les bien.</li><li>Les croûtons peuvent être préparés à l'avance et conservés dans une boîte hermétique.</li><li>Ajoutez la sauce juste avant de servir pour éviter que la salade ne se ramollisse.</li></ul></section><section class_="nutritional-info"><h3>🥗 Information Nutritionnelle</h3><ul class_="nutrition-list"><li>Calories: 320 kcal par portion</li><li>Proteins: 12g</li><li>Carbs: 18g</li><li>Fats: 24g</li><li>Fiber: 3g</li></ul></section></div><style>
+        .recipe-container {
+            max-width: 800px;
+            margin: 0 auto;
+            font-family: var(--body-font);
+            color: var(--text-color);
+        }
+        .recipe-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: var(--highlight-bg);
+            border-radius: 8px;
+            border-left: 4px solid var(--heading-color);
+            box-shadow: 0 2px 4px var(--shadow-color);
+            transition: all 0.3s;
+        }
+        .recipe-title {
+            color: var(--heading-color);
+            margin-bottom: 0.5rem;
+            font-size: 2.2em;
+            font-weight: 600;
+        }
+        .recipe-description {
+            font-style: italic;
+            color: var(--text-color);
+            font-size: 1.1em;
+            opacity: 0.9;
+            margin-bottom: 1rem;
+        }
+        .recipe-badge {
+            display: inline-block;
+            background: var(--heading-color);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 500;
+            margin-top: 1rem;
+        }
+        .recipe-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: var(--container-bg);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 4px var(--shadow-color);
+            transition: all 0.3s;
+        }
+        .meta-item {
+            background: var(--highlight-bg);
+            padding: 1rem;
+            border-radius: 6px;
+            text-align: center;
+            border-left: 3px solid var(--heading-color);
+            transition: all 0.3s;
+        }
+        .meta-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .recipe-ingredients, .recipe-instructions, .chef-notes, .nutritional-info {
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: var(--container-bg);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 4px var(--shadow-color);
+            transition: all 0.3s;
+        }
+        .recipe-ingredients:hover, .recipe-instructions:hover, .chef-notes:hover, .nutritional-info:hover {
+            box-shadow: 0 4px 8px var(--shadow-color);
+        }
+        .recipe-ingredients h2, .recipe-instructions h2, .chef-notes h3, .nutritional-info h3 {
+            color: var(--heading-color);
+            margin-top: 0;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+        }
+        .ingredients-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .ingredients-list li {
+            margin: 0.8rem 0;
+            padding: 1rem;
+            background: var(--highlight-bg);
+            border-radius: 6px;
+            border-left: 4px solid #28a745;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+        }
+        .ingredients-list li:hover {
+            background: var(--border-color);
+            transform: translateX(4px);
+        }
+        .instructions-list {
+            padding-left: 0;
+            counter-reset: step-counter;
+        }
+        .instructions-list li {
+            margin: 1.2rem 0;
+            padding: 1.2rem;
+            background: var(--highlight-bg);
+            border-radius: 6px;
+            border-left: 4px solid #007bff;
+            position: relative;
+            counter-increment: step-counter;
+            transition: all 0.3s;
+        }
+        .instructions-list li:hover {
+            background: var(--border-color);
+            transform: translateX(4px);
+        }
+        .instructions-list li::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: -15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #007bff;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        .chef-notes, .nutritional-info {
+            border-left: 4px solid #ffc107;
+        }
+        .chef-notes h3, .nutritional-info h3 {
+            color: var(--h3-color);
+        }
+        .notes-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .notes-list li {
+            margin: 0.8rem 0;
+            padding: 1rem;
+            background: var(--highlight-bg);
+            border-radius: 6px;
+            border-left: 4px solid #ffc107;
+            transition: all 0.3s;
+            position: relative;
+        }
+        .notes-list li:hover {
+            background: var(--border-color);
+            transform: translateX(4px);
+        }
+        .notes-list li::before {
+            content: "💡";
+            position: absolute;
+            left: -15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #ffc107;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8em;
+        }
+        .nutrition-list {
+            list-style-type: none;
+            padding-left: 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.8rem;
+        }
+        .nutrition-list li {
+            margin: 0;
+            padding: 1rem;
+            background: var(--highlight-bg);
+            border-radius: 6px;
+            border-left: 4px solid #28a745;
+            transition: all 0.3s;
+            text-align: center;
+            font-weight: 500;
+        }
+        .nutrition-list li:hover {
+            background: var(--border-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        </style>
+    
+    <div class="footer">
+      <p>Ce rapport a été généré automatiquement par Epic News.</p>
+    </div>
+  </div>
+</body>
+</html>
