@@ -8,7 +8,8 @@ research_task:
   expected_output: >
     A detailed research report in french  containing:
     1. At least 10 key news items related to {topic} and {company}
-    2. Sources for each news item (the complete and precise URL of the article, not just the name of the source)
+    2. Sources for each news item (the complete and precise URL of the article, not
+    just the name of the source)
     3. Date of publication for each item
     4. Brief summary of each news item
     Formatted as a JSON file with relevant fields
@@ -86,7 +87,6 @@ editing_task:
        - Publication date (exact date whenever possible)
        - Source name/publication
        - A brief quote from the source (in quotation marks)
-    
     When reviewing sources, ensure that:
     1. The source is credible and relevant to {topic} and {company}
     2. The source includes specific information about the topic

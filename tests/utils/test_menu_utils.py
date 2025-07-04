@@ -38,20 +38,19 @@ def test_extract_html_from_json_success(sample_json_file):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".html") as tmp_out:
         output_path = tmp_out.name
 
-    with patch("epic_news.utils.menu_utils.embed_css_in_html") as mock_embed:
-        with patch("epic_news.utils.menu_utils.enhance_menu_structure") as mock_enhance:
-            # Set up the mocks
-            mock_embed.return_value = "<html><style>body{color:black;}</style><body>Content</body></html>"
-            mock_enhance.return_value = (
-                "<html><style>body{color:black;}</style><body>Enhanced Content</body></html>"
-            )
+    with patch("epic_news.utils.menu_utils.embed_css_in_html") as mock_embed, patch("epic_news.utils.menu_utils.enhance_menu_structure") as mock_enhance:
+        # Set up the mocks
+        mock_embed.return_value = "<html><style>body{color:black;}</style><body>Content</body></html>"
+        mock_enhance.return_value = (
+            "<html><style>body{color:black;}</style><body>Enhanced Content</body></html>"
+        )
 
-            result = extract_html_from_json(sample_json_file, output_path)
+        result = extract_html_from_json(sample_json_file, output_path)
 
-            assert result is True
-            assert os.path.exists(output_path)
-            mock_embed.assert_called_once()
-            mock_enhance.assert_called_once()
+        assert result is True
+        assert os.path.exists(output_path)
+        mock_embed.assert_called_once()
+        mock_enhance.assert_called_once()
 
     # Cleanup
     if os.path.exists(output_path):
@@ -76,9 +75,8 @@ def test_embed_css_in_html():
     html_content = '<html><head><link rel="stylesheet" href="css/menu_report.css"></head><body>Test content</body></html>'
 
     # Mock the file operations
-    with patch("os.path.exists", return_value=True):  # noqa: SIM117
-        with patch("builtins.open", mock_open(read_data="body { font-family: Arial; }")) as m:
-            result = embed_css_in_html(html_content)
+    with patch("os.path.exists", return_value=True), patch("builtins.open", mock_open(read_data="body { font-family: Arial; }")):
+        result = embed_css_in_html(html_content)
 
     # Check if CSS is embedded
     assert "<style>" in result
@@ -129,17 +127,17 @@ def test_process_recipes_from_menu_creates_crew_if_none():
     """Test process_recipes_from_menu creates a cooking crew if none provided."""
     recipe_specs = [{"name": "Simple Recipe"}]
 
-    with patch("epic_news.utils.menu_utils.CookingCrew") as MockCookingCrew:
+    with patch("epic_news.utils.menu_utils.CookingCrew") as mock_cooking_crew_class:
         # Set up nested mocks for the CookingCrew instance
         mock_crew = MagicMock()
         mock_crew.kickoff.return_value = "<html>Recipe</html>"
-        MockCookingCrew.return_value.crew.return_value = mock_crew
+        mock_cooking_crew_class.return_value.crew.return_value = mock_crew
 
         with patch("epic_news.utils.menu_utils.create_topic_slug", return_value="simple-recipe"):
             result = process_recipes_from_menu(recipe_specs)
 
             # A new cooking crew should have been created
-            MockCookingCrew.assert_called_once()
+            mock_cooking_crew_class.assert_called_once()
             # And used to process the recipe
             mock_crew.kickoff.assert_called_once()
             assert "simple-recipe" in result

@@ -35,9 +35,11 @@ classification_task:
     - "financier", "finance", "investissement", "bourse", "crypto", "portefeuille",
     "conseil financier"
     → FINDAILY
-    - "actualités générales", "nouvelles générales", "general news", "événements", "journal", "information"
+    - "actualités générales", "nouvelles générales", "general news", "événements",
+    "journal", "information"
     → NEWSDAILY
-    - "company news", "corporate news", "news for company", "enterprise news", "business updates", "company updates"
+    - "company news", "corporate news", "news for company", "enterprise news", "business
+    updates", "company updates"
     → COMPANY_NEWS
     - "book", "livre", "roman", "auteur", "author", "tell me about",  → BOOK_SUMMARY
     - "saint", "saint du jour", "daily saint", "saint daily"

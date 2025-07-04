@@ -1,10 +1,10 @@
 import json
-import os
 import sys
 from pathlib import Path
 
 from epic_news.models.rss_models import RssFeeds
 from epic_news.models.rss_weekly_models import ArticleSummary, FeedDigest, RssWeeklyReport
+from epic_news.utils.directory_utils import ensure_output_directory
 from epic_news.utils.html.rss_weekly_html_factory import rss_weekly_to_html
 
 # Add the project root to the Python path to allow for absolute imports
@@ -25,7 +25,7 @@ def main():
 
     # Ensure output directory exists
     output_dir = output_html_path.parent
-    os.makedirs(output_dir, exist_ok=True)
+    ensure_output_directory(str(output_dir))
 
     # Check if content.json exists
     if not content_json_path.exists():

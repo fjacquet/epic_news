@@ -245,7 +245,7 @@ class MeetingPrepRenderer(BaseRenderer):
         points_div = soup.new_tag("div")
         points_div.attrs["class"] = ["talking-points-list"]
 
-        for i, point in enumerate(talking_points):
+        for _, point in enumerate(talking_points):
             point_div = soup.new_tag("div")
             point_div.attrs["class"] = ["talking-point"]
 

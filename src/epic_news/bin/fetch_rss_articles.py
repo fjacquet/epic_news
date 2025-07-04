@@ -2,6 +2,7 @@ import asyncio
 import os
 
 from epic_news.tools.unified_rss_tool import UnifiedRssTool
+from epic_news.utils.directory_utils import ensure_output_directory
 
 
 async def fetch_articles_from_opml(
@@ -42,7 +43,7 @@ if __name__ == "__main__":
     output_path = os.path.abspath("output/rss_weekly/report.json")
 
     # Create output directory if it doesn't exist
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    ensure_output_directory(os.path.dirname(output_path))
 
     # Run the async function
     asyncio.run(fetch_articles_from_opml(opml_path, output_path))

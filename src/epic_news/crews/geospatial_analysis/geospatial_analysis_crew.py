@@ -1,5 +1,3 @@
-import os
-
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import SerperDevTool
@@ -13,6 +11,7 @@ from epic_news.tools.location_tools import get_location_tools
 from epic_news.tools.rag_tools import get_rag_tools
 from epic_news.tools.report_tools import get_report_tools
 from epic_news.tools.scrape_ninja_tool import ScrapeNinjaTool
+from epic_news.utils.directory_utils import ensure_output_directory
 
 load_dotenv()
 
@@ -83,7 +82,7 @@ class GeospatialAnalysisCrew:
     def crew(self) -> Crew:
         """Creates the Geospatial Analysis crew"""
         # Ensure output directory exists for final reports
-        os.makedirs("output/geospatial_analysis", exist_ok=True)
+        ensure_output_directory("output/geospatial_analysis")
 
         return Crew(
             agents=self.agents,

@@ -14,6 +14,7 @@ from pydantic import BaseModel, Field
 
 from epic_news.models.rss_models import Article, FeedWithArticles, RssFeeds
 from epic_news.tools.scrape_ninja_tool import ScrapeNinjaTool
+from epic_news.utils.directory_utils import ensure_output_directory
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -132,7 +133,7 @@ class UnifiedRssTool(BaseTool):
                 # Ensure the directory exists
                 output_dir = os.path.dirname(output_file_path)
                 if output_dir:
-                    os.makedirs(output_dir, exist_ok=True)
+                    ensure_output_directory(output_dir)
 
                 # Write results to JSON file
                 with open(output_file_path, "w", encoding="utf-8") as f:
@@ -150,7 +151,7 @@ class UnifiedRssTool(BaseTool):
                 # Ensure the directory exists
                 invalid_sources_dir = os.path.dirname(invalid_sources_file_path)
                 if invalid_sources_dir:
-                    os.makedirs(invalid_sources_dir, exist_ok=True)
+                    ensure_output_directory(invalid_sources_dir)
 
                 with open(invalid_sources_file_path, "w", encoding="utf-8") as f:
                     json.dump(invalid_sources_data, f, ensure_ascii=False, indent=2)
@@ -356,12 +357,13 @@ class UnifiedRssTool(BaseTool):
             logger.error(f"ScrapeNinjaTool failed for {url}: {str(e)}")
             return None
 
+
 def get_default_paths():
     """Get default paths for OPML input and JSON output."""
     # Set default output paths if not provided
     project_root = Path(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))))
     output_dir = project_root / "output" / "rss_weekly"
-    os.makedirs(output_dir, exist_ok=True)
+    ensure_output_directory(str(output_dir))
 
     opml_path = str(project_root / "data" / "feedly.opml")
     output_file_path = str(output_dir / "content.json")

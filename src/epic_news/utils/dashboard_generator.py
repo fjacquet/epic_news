@@ -15,13 +15,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 from jinja2 import Environment, FileSystemLoader
 
+from epic_news.utils.directory_utils import ensure_output_directory
+
 # Constants
 DASHBOARD_DATA_DIR = os.path.join("output", "dashboard_data")
 DASHBOARD_OUTPUT_DIR = os.path.join("output", "dashboards")
 TEMPLATE_DIR = os.path.join("templates")
 
 # Ensure directories exist
-os.makedirs(DASHBOARD_OUTPUT_DIR, exist_ok=True)
+ensure_output_directory(DASHBOARD_OUTPUT_DIR)
 
 
 class DashboardGenerator:

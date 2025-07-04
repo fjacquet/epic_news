@@ -170,25 +170,21 @@ def test_prepare_email_params_custom():
     assert params["attachment_path"] == "custom.html" or params["output_file"] == "test.html"
 
 
-@patch("os.path.exists")
-@patch("os.makedirs")
-def test_setup_crew_output_directory_exists(mock_makedirs, mock_exists):
+@patch("epic_news.utils.report_utils.ensure_output_directory")
+def test_setup_crew_output_directory_exists(mock_ensure_output_directory):
     """Test setup_crew_output_directory when directory already exists."""
-    mock_exists.return_value = True
+    with patch("os.path.exists", return_value=True):
+        result = setup_crew_output_directory("test_crew")
 
-    result = setup_crew_output_directory("test_crew")
-
-    assert result == "output/test_crew"
-    mock_makedirs.assert_not_called()
+        assert result == "output/test_crew"
+        mock_ensure_output_directory.assert_called_once_with("output/test_crew")
 
 
-@patch("os.path.exists")
-@patch("os.makedirs")
-def test_setup_crew_output_directory_create(mock_makedirs, mock_exists):
+@patch("epic_news.utils.report_utils.ensure_output_directory")
+def test_setup_crew_output_directory_create(mock_ensure_output_directory):
     """Test setup_crew_output_directory when directory needs to be created."""
-    mock_exists.return_value = False
+    with patch("os.path.exists", return_value=False):
+        result = setup_crew_output_directory("test_crew")
 
-    result = setup_crew_output_directory("test_crew")
-
-    assert result == "output/test_crew"
-    mock_makedirs.assert_called_once_with("output/test_crew")
+        assert result == "output/test_crew"
+        mock_ensure_output_directory.assert_called_once_with("output/test_crew")

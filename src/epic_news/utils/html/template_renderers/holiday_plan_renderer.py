@@ -401,7 +401,6 @@ class HolidayPlanRenderer(BaseRenderer):
                 phrases_div["class"] = "useful-phrases"
                 phrases_h3 = soup.new_tag("h3")
                 phrases_h3.string = "🗣️ Phrases Utiles"
-
                 phrases_div.append(phrases_h3)
                 phrases_ul = soup.new_tag("ul")
                 for phrase in phrases_utiles:
@@ -417,9 +416,9 @@ class HolidayPlanRenderer(BaseRenderer):
                         li = soup.new_tag("li")
                         li.string = str(phrase)
                         phrases_ul.append(li)
-                        phrases_div.append(phrases_ul)
+                phrases_div.append(phrases_ul)
                 section.append(phrases_div)
-                container.append(section)
+            container.append(section)
 
     def _add_sources_and_media(self, soup: BeautifulSoup, container, data: dict[str, Any]) -> None:
         """Add sources and media references."""
@@ -500,7 +499,7 @@ class HolidayPlanRenderer(BaseRenderer):
         section.append(phrases_div)
 
         # Packing list
-        if liste_bagages := practical.get("liste_bagages", {}):
+        if liste_bagages := practical_info.get("liste_bagages", {}):
             packing_div = soup.new_tag("div")
             packing_div["class"] = "packing-checklist"
             packing_h3 = soup.new_tag("h3")

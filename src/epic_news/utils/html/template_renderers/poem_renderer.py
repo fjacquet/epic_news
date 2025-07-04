@@ -84,7 +84,7 @@ class PoemRenderer(BaseRenderer):
 
                 # Split lines and add line breaks
                 lines = verse_text.split("\n")
-                for j, line in enumerate(lines):
+                for _, line in enumerate(lines):
                     if line.strip():
                         line_p = soup.new_tag("p", class_="verse-line")
                         line_p.string = line.strip()

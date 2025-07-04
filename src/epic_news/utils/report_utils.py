@@ -11,6 +11,7 @@ from epic_news.models.rss_weekly_models import (
     FeedDigest,
     RssWeeklyReport,
 )
+from epic_news.utils.directory_utils import ensure_output_directory
 from epic_news.utils.html.rss_weekly_html_factory import rss_weekly_to_html
 
 logger = logging.getLogger(__name__)
@@ -236,7 +237,6 @@ def setup_crew_output_directory(crew_name: str, base_dir: str = "output") -> str
         Path to the created output directory
     """
     output_dir = os.path.join(base_dir, crew_name.lower())
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-        logger.info(f"Created output directory: {output_dir}")
+    ensure_output_directory(output_dir)
+    logger.info(f"Created output directory: {output_dir}")
     return output_dir

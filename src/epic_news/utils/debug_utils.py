@@ -8,6 +8,8 @@ from typing import Any, TypeVar
 
 from pydantic import BaseModel
 
+from epic_news.utils.directory_utils import ensure_output_directory
+
 logger = logging.getLogger(__name__)
 
 
@@ -60,9 +62,11 @@ def dump_crewai_state(state_data: dict[str, Any], crew_name: str, debug_dir: str
     Returns:
         str: Path to the created debug file, or empty string if failed
     """
+    if os.environ.get("DEBUG_STATE", "false").lower() != "true":
+        return ""
     try:
         # Create debug directory if it doesn't exist
-        os.makedirs(debug_dir, exist_ok=True)
+        ensure_output_directory(debug_dir)
 
         # Generate timestamped filename
         timestamp = int(time.time())

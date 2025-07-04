@@ -14,6 +14,7 @@ from bs4 import BeautifulSoup
 class BaseRenderer(ABC):
     """Abstract base class for all HTML content renderers."""
 
+    @abstractmethod
     def __init__(self):
         """Initialize the renderer."""
 
