@@ -10,6 +10,9 @@ from epic_news.tools.location_tools import get_location_tools
 from epic_news.tools.report_tools import get_report_tools
 from epic_news.tools.scrape_ninja_tool import ScrapeNinjaTool
 from epic_news.utils.directory_utils import ensure_output_directory
+from epic_news.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 load_dotenv()
 

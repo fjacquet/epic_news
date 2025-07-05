@@ -7,6 +7,9 @@ from epic_news.tools.html_to_pdf_tool import HtmlToPdfTool
 from epic_news.tools.report_tools import get_report_tools
 from epic_news.tools.web_tools import get_scrape_tools, get_search_tools
 from epic_news.utils.directory_utils import ensure_output_directory
+from epic_news.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 # If you want to run a snippet of code before or after the crew starts,
 # you can use the @before_kickoff and @after_kickoff decorators

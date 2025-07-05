@@ -56,7 +56,6 @@
 
 ## 📋 Backlog (Future Tasks)
 
-
 * [ ] **Connect n8n to retrieve data initiated by CrewAI.**
 * [ ] **Connect n8n to initiate CrewAI integration.**
 * [ ] **Créer des agents pour le suivi technologique**
