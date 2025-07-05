@@ -79,8 +79,40 @@ Epic News uses **Loguru** for all logging. It provides a more powerful and flexi
   logger.critical("This is a critical message.")
   ```
 
-#### Testing & Quality Assurance
+#### Commit Messages
 
+Well-crafted commit messages are crucial for maintaining a clean and understandable project history. They should be clear, concise, and follow a consistent style.
+
+**Multiline Commit Messages**
+
+When writing multiline commit messages, avoid passing the message directly via the command line, as it can be complex and error-prone with quoting. Instead, use a temporary file.
+
+**Workflow:**
+
+1.  **Create a temporary file** (e.g., `commit_message.tmp`) with your detailed commit message.
+2.  **Use the `-F` or `--file` flag** with `git commit` to read the message from the file.
+3.  **Delete the temporary file** after the commit is successful.
+
+**Example:**
+
+```bash
+# 1. Write the commit message to a temporary file
+echo "feat: Add new feature
+
+- Detailed description of the feature.
+- Rationale behind the implementation.
+- Closes #123" > commit_message.tmp
+
+# 2. Commit using the file
+git commit -F commit_message.tmp
+
+# 3. Clean up the temporary file
+rm commit_message.tmp
+```
+
+This approach ensures that your commit messages are well-formatted and easy to write, especially for more complex changes.
+
+#### Testing & Quality Assurance
 - **Testing**: Always run tests with `uv run pytest`
 - **Linting**: Use `ruff` for code quality (integrated with uv)
 - **Type Checking**: Leverage Pydantic models and type hints
