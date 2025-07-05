@@ -3,8 +3,11 @@ Utility functions for handling file operations.
 """
 
 import json
+import logging
 import os
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 
 def read_file_content(file_path):
@@ -26,10 +29,10 @@ def read_file_content(file_path):
         with open(file_path, encoding="utf-8") as file:
             return file.read()
     except FileNotFoundError:
-        print(f"Error: File not found at path: {file_path}")
+        logger.error(f"Error: File not found at path: {file_path}")
         return ""
     except Exception as e:
-        print(f"Error reading file: {str(e)}")
+        logger.error(f"Error reading file: {str(e)}")
         return ""
 
 
@@ -46,3 +49,14 @@ def save_json_file(file_path: str, data: dict):
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
+
+
+def ensure_output_directory(directory_path: str):
+    """
+    Ensures that the specified output directory exists, creating it if necessary.
+    
+    Args:
+        directory_path (str): The path to the directory to ensure exists.
+    """
+    path = Path(directory_path)
+    path.mkdir(parents=True, exist_ok=True)

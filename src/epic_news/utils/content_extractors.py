@@ -6,6 +6,7 @@ following the Single Responsibility Principle.
 """
 
 import json
+import logging
 from abc import ABC, abstractmethod
 from typing import Any
 
@@ -14,6 +15,8 @@ from epic_news.models.paprika_recipe import PaprikaRecipe
 from epic_news.models.rss_weekly_models import RssWeeklyReport
 from epic_news.models.saint_data import SaintData
 from epic_news.models.shopping_advice_models import ShoppingAdviceOutput
+
+logger = logging.getLogger(__name__)
 
 
 class ContentExtractor(ABC):
@@ -54,9 +57,9 @@ class CookingExtractor(ContentExtractor):
         recipe_obj = state_data.get("recipe", {})
 
         # Debug logging
-        print("🔍 DEBUG COOKING extraction:")
-        print(f"  recipe_obj type: {type(recipe_obj)}")
-        print(f"  recipe_obj keys: {list(recipe_obj.keys()) if hasattr(recipe_obj, 'keys') else 'N/A'}")
+        logger.debug("🔍 DEBUG COOKING extraction:")
+        logger.debug(f"  recipe_obj type: {type(recipe_obj)}")
+        logger.debug(f"  recipe_obj keys: {list(recipe_obj.keys()) if hasattr(recipe_obj, 'keys') else 'N/A'}")
 
         # Check if we have a direct PaprikaRecipe model (new flow)
         recipe_model = None
@@ -66,35 +69,35 @@ class CookingExtractor(ContentExtractor):
             if isinstance(paprika_data, dict):
                 try:
                     recipe_model = PaprikaRecipe(**paprika_data)
-                    print(f"  ✅ PaprikaRecipe reconstructed from dict: {recipe_model.name}")
+                    logger.debug(f"  ✅ PaprikaRecipe reconstructed from dict: {recipe_model.name}")
                 except Exception as e:
-                    print(f"  ⚠️ Failed to reconstruct PaprikaRecipe from dict: {e}")
+                    logger.warning(f"  ⚠️ Failed to reconstruct PaprikaRecipe from dict: {e}")
                     recipe_model = PaprikaRecipe(name="Recette", ingredients="", directions="")
             else:
                 # Direct PaprikaRecipe object
                 recipe_model = paprika_data
-                print(f"  ✅ Direct PaprikaRecipe model found: {recipe_model.name}")
+                logger.debug(f"  ✅ Direct PaprikaRecipe model found: {recipe_model.name}")
         else:
             # Fallback to old flow with raw data parsing
             recipe_raw = recipe_obj.get("raw", "")
-            print(f"  recipe_raw (first 200 chars): {str(recipe_raw)[:200]}...")
+            logger.debug(f"  recipe_raw (first 200 chars): {str(recipe_raw)[:200]}...")
 
             # Try YAML parsing first (since CookingCrew outputs YAML), then JSON as fallback
             try:
                 recipe_model = PaprikaRecipe.from_yaml_string(recipe_raw)
-                print(f"  ✅ YAML parsing successful, recipe: {recipe_model.name}")
+                logger.debug(f"  ✅ YAML parsing successful, recipe: {recipe_model.name}")
             except Exception as e:
-                print(f"  ⚠️ YAML parsing failed, trying JSON: {e}")
+                logger.warning(f"  ⚠️ YAML parsing failed, trying JSON: {e}")
                 try:
                     recipe_model = PaprikaRecipe.from_json_string(recipe_raw)
-                    print(f"  ✅ JSON parsing successful, recipe: {recipe_model.name}")
+                    logger.debug(f"  ✅ JSON parsing successful, recipe: {recipe_model.name}")
                 except Exception as e2:
-                    print(f"  ❌ Both YAML and JSON parsing failed: {e2}")
+                    logger.error(f"  ❌ Both YAML and JSON parsing failed: {e2}")
                     recipe_model = PaprikaRecipe(name="Recette", ingredients="", directions="")
 
         # Use Pydantic model to get template data
         content_data = recipe_model.to_template_data()
-        print(f"  🔍 Template data extracted: {content_data.get('recipe_title', 'Unknown')}")
+        logger.debug(f"  🔍 Template data extracted: {content_data.get('recipe_title', 'Unknown')}")
         return content_data
 
 
@@ -115,30 +118,30 @@ class NewsDailyExtractor(ContentExtractor):
 
     def extract(self, state_data: dict[str, Any]) -> dict[str, Any]:
         """Extract news daily report data using structured format."""
-        print("🔍 DEBUG NEWS_DAILY extraction:")
+        logger.debug("🔍 DEBUG NEWS_DAILY extraction:")
 
         # Check for news_daily_model in state_data
         news_daily_report = state_data.get("news_daily_model")
-        print(f"  news_daily_model type: {type(news_daily_report)}")
+        logger.debug(f"  news_daily_model type: {type(news_daily_report)}")
 
         if news_daily_report is None:
             # Try to find news daily report in raw data
             news_daily_data = state_data.get("news_daily_report", {})
             news_raw = news_daily_data.get("raw", "{}")
-            print(f"  news_raw (first 200 chars): {str(news_raw)[:200]}...")
+            logger.debug(f"  news_raw (first 200 chars): {str(news_raw)[:200]}...")
 
             try:
                 # Try to parse as JSON
                 news_data = json.loads(news_raw) if isinstance(news_raw, str) else news_raw
 
-                print("  ✅ News data parsed from raw data")
+                logger.debug("  ✅ News data parsed from raw data")
                 return news_data
             except Exception as e:
-                print(f"  ❌ Failed to parse news data from raw: {e}")
+                logger.error(f"  ❌ Failed to parse news data from raw: {e}")
                 return {"error": f"Failed to parse news report data: {e}"}
         elif isinstance(news_daily_report, dict):
             # Handle case where news_daily_report is already a dict
-            print("  ✅ News data extracted from dict")
+            logger.debug("  ✅ News data extracted from dict")
             return news_daily_report
         else:
             # Handle Pydantic model case
@@ -147,10 +150,10 @@ class NewsDailyExtractor(ContentExtractor):
                     result = news_daily_report.model_dump()
                 else:
                     result = dict(news_daily_report)
-                print("  ✅ News data extracted from model")
+                logger.debug("  ✅ News data extracted from model")
                 return result
             except Exception as e:
-                print(f"  ❌ Failed to extract news data: {e}")
+                logger.error(f"  ❌ Failed to extract news data: {e}")
                 return {"error": f"Failed to extract news report data: {e}"}
 
 
@@ -173,30 +176,30 @@ class ShoppingExtractor(ContentExtractor):
 
     def extract(self, state_data: dict[str, Any]) -> dict[str, Any]:
         """Extract shopping-specific data using ShoppingAdviceOutput Pydantic model."""
-        print("🔍 DEBUG SHOPPING extraction:")
+        logger.debug("🔍 DEBUG SHOPPING extraction:")
         shopping_obj = state_data.get("shopping_advice_model")
-        print(f"  shopping_obj type: {type(shopping_obj)}")
+        logger.debug(f"  shopping_obj type: {type(shopping_obj)}")
 
         if shopping_obj is None:
-            print("  ⚠️ No shopping_advice_model found in state")
+            logger.warning("  ⚠️ No shopping_advice_model found in state")
             return {"error": "No shopping advice data available"}
 
         # Handle case where shopping_obj is a dict (due to serialization)
         if isinstance(shopping_obj, dict):
-            print(f"  shopping_obj keys: {list(shopping_obj.keys())}")
+            logger.debug(f"  shopping_obj keys: {list(shopping_obj.keys())}")
             if "shopping_advice_model" in shopping_obj:
                 shopping_obj = shopping_obj["shopping_advice_model"]
             # Reconstruct ShoppingAdviceOutput from dict
             try:
                 shopping_obj = ShoppingAdviceOutput(**shopping_obj)
-                print(f"  ✅ ShoppingAdviceOutput reconstructed from dict: {shopping_obj.product_info.name}")
+                logger.debug(f"  ✅ ShoppingAdviceOutput reconstructed from dict: {shopping_obj.product_info.name}")
             except Exception as e:
-                print(f"  ❌ Failed to reconstruct ShoppingAdviceOutput: {e}")
+                logger.error(f"  ❌ Failed to reconstruct ShoppingAdviceOutput: {e}")
                 return {"error": f"Failed to parse shopping advice data: {e}"}
         elif isinstance(shopping_obj, ShoppingAdviceOutput):
-            print(f"  ✅ ShoppingAdviceOutput instance: {shopping_obj.product_info.name}")
+            logger.debug(f"  ✅ ShoppingAdviceOutput instance: {shopping_obj.product_info.name}")
         else:
-            print(f"  ❌ Unexpected shopping_obj type: {type(shopping_obj)}")
+            logger.error(f"  ❌ Unexpected shopping_obj type: {type(shopping_obj)}")
             return {"error": f"Unexpected shopping advice data type: {type(shopping_obj)}"}
 
         # Extract template data from ShoppingAdviceOutput
@@ -247,7 +250,7 @@ class ShoppingExtractor(ContentExtractor):
             "user_preferences_context": shopping_obj.user_preferences_context,
         }
 
-        print(f"  🔍 Template data extracted: {template_data['product_name']}")
+        logger.debug(f"  🔍 Template data extracted: {template_data['product_name']}")
         return template_data
 
 
@@ -256,17 +259,17 @@ class FinancialExtractor(ContentExtractor):
 
     def extract(self, state_data: dict[str, Any]) -> dict[str, Any]:
         """Extract financial report data using FinancialReport Pydantic model."""
-        print("🔍 DEBUG FINANCIAL extraction:")
+        logger.debug("🔍 DEBUG FINANCIAL extraction:")
 
         # Check for financial_report_model in state_data
         financial_report = state_data.get("financial_report_model")
-        print(f"  financial_report type: {type(financial_report)}")
+        logger.debug(f"  financial_report type: {type(financial_report)}")
 
         if financial_report is None:
             # Try to find financial report in raw data
             fin_daily_data = state_data.get("fin_daily_report", {})
             fin_raw = fin_daily_data.get("raw", "{}")
-            print(f"  fin_raw (first 200 chars): {str(fin_raw)[:200]}...")
+            logger.debug(f"  fin_raw (first 200 chars): {str(fin_raw)[:200]}...")
 
             try:
                 # Try to parse as JSON
@@ -274,18 +277,18 @@ class FinancialExtractor(ContentExtractor):
 
                 # Try to create FinancialReport from the data
                 financial_report = FinancialReport.model_validate(fin_data)
-                print(f"  ✅ FinancialReport parsed from raw data: {financial_report.title}")
+                logger.debug(f"  ✅ FinancialReport parsed from raw data: {financial_report.title}")
             except Exception as e:
-                print(f"  ❌ Failed to parse FinancialReport from raw data: {e}")
+                logger.error(f"  ❌ Failed to parse FinancialReport from raw data: {e}")
                 return {"error": f"Failed to parse financial report data: {e}"}
         elif isinstance(financial_report, dict):
             # Handle case where financial_report is a dict (due to serialization)
             try:
                 financial_report = FinancialReport.model_validate(financial_report)
-                print(f"  ✅ FinancialReport reconstructed from dict: {financial_report.title}")
+                logger.debug(f"  ✅ FinancialReport reconstructed from dict: {financial_report.title}")
             except Exception as e:
-                print(f"  ❌ Failed to reconstruct FinancialReport: {e}")
-                print("  🔧 Creating fallback FinancialReport with available data...")
+                logger.error(f"  ❌ Failed to reconstruct FinancialReport: {e}")
+                logger.debug("  🔧 Creating fallback FinancialReport with available data...")
 
                 # Create a fallback FinancialReport with available data
                 financial_report = FinancialReport(
@@ -297,7 +300,7 @@ class FinancialExtractor(ContentExtractor):
                     analyses=[],  # Empty list for now - can be enhanced later
                     suggestions=[],  # Empty list for now - can be enhanced later
                 )
-                print(f"  ✅ Fallback FinancialReport created: {financial_report.title}")
+                logger.debug(f"  ✅ Fallback FinancialReport created: {financial_report.title}")
 
         # Return the financial report model object directly for TemplateManager
         # TemplateManager expects the actual model object, not a dictionary
@@ -319,7 +322,7 @@ class RssWeeklyExtractor(ContentExtractor):
                     raw_data = json.loads(rss_weekly_output.raw)
                     rss_model = RssWeeklyReport.model_validate(raw_data)
                 except (json.JSONDecodeError, ValueError) as e:
-                    print(f"❌ Error parsing RSS weekly raw output: {e}")
+                    logger.error(f"❌ Error parsing RSS weekly raw output: {e}")
                     # Create minimal model with error info
                     rss_model = RssWeeklyReport(
                         title="Erreur de Parsing RSS Weekly",
@@ -338,7 +341,7 @@ class RssWeeklyExtractor(ContentExtractor):
             return rss_model.model_dump()
 
         except Exception as e:
-            print(f"❌ Error in RssWeeklyExtractor: {e}")
+            logger.error(f"❌ Error in RssWeeklyExtractor: {e}")
             # Return minimal error data
             return {
                 "title": "Erreur RSS Weekly",

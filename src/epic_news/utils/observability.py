@@ -18,7 +18,6 @@ from typing import Any
 from epic_news.utils.directory_utils import ensure_output_directory
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("observability")
 
 # Constants

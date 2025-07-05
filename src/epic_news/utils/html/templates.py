@@ -114,33 +114,6 @@ def render_menu_report(
     return render_template("menu_report_template.html", context)
 
 
-def render_universal_report(
-    title: str,
-    content: str,
-    generation_date: str = None,
-) -> str:
-    """Render a universal report using the standard template.
-
-    Args:
-        title: Report title
-        content: HTML content body
-        generation_date: Optional generation date (defaults to current date)
-
-    Returns:
-        Rendered HTML string using universal template
-    """
-    if generation_date is None:
-        generation_date = datetime.now().strftime("%d/%m/%Y à %H:%M")
-
-    context = {
-        "report_title": title,
-        "report_body": content,
-        "generation_date": generation_date,
-    }
-
-    return render_template("universal_report_template.html", context)
-
-
 def render_shopping_list(
     title: str,
     generated_recipes: list[dict[str, Any]],

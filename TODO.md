@@ -2,6 +2,12 @@
 
 ## 🔥 Next Up (Priority)
 
+* [ ] **Refactor Logging to use Loguru**
+  * [x] Add `loguru` to `pyproject.toml`.
+  * [x] Replace the standard `logging` module with `loguru` across the application.
+  * [ ] Configure `loguru` sinks for console and file logging.
+  * [ ] Update the development guide with the new logging standards.
+  
 * [ ] **Réinjecter le rendu HTML dans les équipes**
   * [x] classify
   * [x] company_news
@@ -49,6 +55,7 @@
 ---
 
 ## 📋 Backlog (Future Tasks)
+
 
 * [ ] **Connect n8n to retrieve data initiated by CrewAI.**
 * [ ] **Connect n8n to initiate CrewAI integration.**

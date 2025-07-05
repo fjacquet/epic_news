@@ -9,6 +9,8 @@ without affecting agent and task verbosity.
 import logging
 import os
 
+logger = logging.getLogger(__name__)
+
 
 def configure_tool_logging(mute_tools: bool = True, log_level: str = "WARNING") -> None:
     """
@@ -75,7 +77,7 @@ def apply_tool_silence() -> None:
         os.environ["LANGCHAIN_VERBOSE"] = "false"
         os.environ["CREWAI_VERBOSE"] = "false"
 
-    print("🔇 Tool output has been muted. Agents and tasks remain verbose.")
+    logger.info("🔇 Tool output has been muted. Agents and tasks remain verbose.")
 
 
 # Auto-apply tool silence when module is imported

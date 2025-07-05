@@ -1,9 +1,12 @@
 """HTML factory for RSS Weekly digest reports."""
 
 import json
+import logging
 
 from src.epic_news.models.rss_weekly_models import RssWeeklyReport
 from src.epic_news.utils.html.template_manager import TemplateManager
+
+logger = logging.getLogger(__name__)
 
 
 def rss_weekly_to_html(crew_output, topic: str | None = None, html_file: str | None = None) -> str:
@@ -23,18 +26,18 @@ def rss_weekly_to_html(crew_output, topic: str | None = None, html_file: str | N
         if isinstance(crew_output, RssWeeklyReport):
             # Direct RssWeeklyReport object (from main.py)
             rss_model = crew_output
-            print(f"✅ Using direct RssWeeklyReport object: {rss_model.title}")
+            logger.debug(f"✅ Using direct RssWeeklyReport object: {rss_model.title}")
         elif hasattr(crew_output, "output") and isinstance(crew_output.output, RssWeeklyReport):
             rss_model = crew_output.output
-            print(f"✅ Using RssWeeklyReport from crew_output.output: {rss_model.title}")
+            logger.debug(f"✅ Using RssWeeklyReport from crew_output.output: {rss_model.title}")
         elif hasattr(crew_output, "raw"):
             # Try to parse raw output as JSON
             try:
                 raw_data = json.loads(crew_output.raw)
                 rss_model = RssWeeklyReport.model_validate(raw_data)
-                print(f"✅ Parsed RssWeeklyReport from raw JSON: {rss_model.title}")
+                logger.debug(f"✅ Parsed RssWeeklyReport from raw JSON: {rss_model.title}")
             except (json.JSONDecodeError, ValueError) as e:
-                print(f"❌ Error parsing RSS weekly raw output: {e}")
+                logger.error(f"❌ Error parsing RSS weekly raw output: {e}")
                 # Create a minimal model with error info
                 rss_model = RssWeeklyReport(
                     title="Erreur de Parsing RSS Weekly",
@@ -42,12 +45,12 @@ def rss_weekly_to_html(crew_output, topic: str | None = None, html_file: str | N
                 )
         else:
             # Fallback: try to validate crew_output directly
-            print(f"⚠️ Fallback validation for crew_output type: {type(crew_output)}")
+            logger.warning(f"⚠️ Fallback validation for crew_output type: {type(crew_output)}")
             try:
                 # If it's a pydantic model (even from a duplicate import), dump it to a dict first
                 data_dict = crew_output.model_dump()
                 rss_model = RssWeeklyReport.model_validate(data_dict)
-                print("✅ Successfully validated from model_dump() fallback.")
+                logger.debug("✅ Successfully validated from model_dump() fallback.")
             except (AttributeError, ValueError):
                 # If not, try to validate directly (for raw dict inputs)
                 rss_model = RssWeeklyReport.model_validate(crew_output)
@@ -116,14 +119,14 @@ def rss_weekly_to_html(crew_output, topic: str | None = None, html_file: str | N
             try:
                 with open(html_file, "w", encoding="utf-8") as f:
                     f.write(html_content)
-                print(f"✅ RSS weekly HTML report saved to: {html_file}")
+                logger.info(f"✅ RSS weekly HTML report saved to: {html_file}")
             except Exception as e:
-                print(f"❌ Error saving RSS weekly HTML file: {e}")
+                logger.error(f"❌ Error saving RSS weekly HTML file: {e}")
 
         return html_content
 
     except Exception as e:
-        print(f"❌ Error in rss_weekly_to_html: {e}")
+        logger.error(f"❌ Error in rss_weekly_to_html: {e}")
         # Return a basic error HTML
         return f"""
         <!DOCTYPE html>

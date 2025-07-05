@@ -49,6 +49,10 @@ dependencies = [
     "vulture>=2.14",
     "unicode>=2.9",
     "unidecode>=1.4.0",
+    "pendulum>=3.1.0",
+    "faker>=37.4.0",
+    "pytest-mock>=3.14.1",
+    "loguru>=0.7.3",
 ]
 
 [project.scripts]

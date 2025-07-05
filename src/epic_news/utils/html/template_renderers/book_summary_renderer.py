@@ -15,6 +15,10 @@ from .base_renderer import BaseRenderer
 class BookSummaryRenderer(BaseRenderer):
     """Renders book summary content with rich formatting and structure."""
 
+    def __init__(self):
+        """Initialize the renderer."""
+        pass
+
     def render(self, data: dict[str, Any]) -> str:
         """
         Render book summary data to HTML.

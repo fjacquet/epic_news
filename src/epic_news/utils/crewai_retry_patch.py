@@ -91,9 +91,9 @@ def patch_crewai_llm_initialization(max_retries: int = 5, verbose: bool = True) 
         logger.info("Successfully patched CrewAI LLM initialization with retry logic")
 
     except ImportError as e:
-        logger.error(f"Failed to patch CrewAI - module not found: {str(e)}")
+        logger.error(f"Failed to patch CrewAI - module not found: {e}")
     except Exception as e:
-        logger.error(f"Failed to patch CrewAI with retry logic: {str(e)}")
+        logger.error(f"Failed to patch CrewAI with retry logic: {e}")
 
 
 def initialize_retry_mechanism(max_retries: int = 5, timeout: int = 180) -> None:

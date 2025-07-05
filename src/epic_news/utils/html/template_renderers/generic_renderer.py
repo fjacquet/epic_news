@@ -15,6 +15,10 @@ from .base_renderer import BaseRenderer
 class GenericRenderer(BaseRenderer):
     """Generic fallback renderer for any crew type."""
 
+    def __init__(self):
+        """Initialize the renderer."""
+        pass
+
     def render(self, data: dict[str, Any], crew_type: str = "UNKNOWN") -> str:
         """
         Render generic content data to HTML.

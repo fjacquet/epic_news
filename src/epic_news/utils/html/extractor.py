@@ -1,8 +1,11 @@
 """Utility to extract HTML from CrewAI JSON-wrapped outputs."""
 
 import json
+import logging
 from pathlib import Path
 from typing import Union
+
+logger = logging.getLogger(__name__)
 
 
 def extract_html_from_json_output(file_path: Union[str, Path]) -> bool:
@@ -18,7 +21,7 @@ def extract_html_from_json_output(file_path: Union[str, Path]) -> bool:
     file_path = Path(file_path)
 
     if not file_path.exists():
-        print(f"❌ File not found: {file_path}")
+        logger.error(f"❌ File not found: {file_path}")
         return False
 
     try:
@@ -40,22 +43,22 @@ def extract_html_from_json_output(file_path: Union[str, Path]) -> bool:
                 if html_content:
                     # Write pure HTML back to the same file
                     file_path.write_text(html_content, encoding="utf-8")
-                    print(f"✅ Extracted HTML from JSON wrapper: {file_path}")
+                    logger.info(f"✅ Extracted HTML from JSON wrapper: {file_path}")
                     return True
 
-            print(f"⚠️  No report_body or html field found in JSON: {file_path}")
+            logger.warning(f"⚠️  No report_body or html field found in JSON: {file_path}")
             return False
 
         except json.JSONDecodeError:
             # File is not JSON, assume it's already HTML
             if content.strip().startswith("<!DOCTYPE html>"):
-                print(f"✅ File is already pure HTML: {file_path}")
+                logger.info(f"✅ File is already pure HTML: {file_path}")
                 return True
-            print(f"⚠️  File is neither JSON nor HTML: {file_path}")
+            logger.warning(f"⚠️  File is neither JSON nor HTML: {file_path}")
             return False
 
     except Exception as e:
-        print(f"❌ Error processing file {file_path}: {e}")
+        logger.error(f"❌ Error processing file {file_path}: {e}")
         return False
 
 
@@ -73,7 +76,7 @@ def extract_html_from_directory(directory_path: Union[str, Path], pattern: str =
     directory_path = Path(directory_path)
 
     if not directory_path.exists():
-        print(f"❌ Directory not found: {directory_path}")
+        logger.error(f"❌ Directory not found: {directory_path}")
         return 0
 
     processed = 0
@@ -81,7 +84,7 @@ def extract_html_from_directory(directory_path: Union[str, Path], pattern: str =
         if extract_html_from_json_output(file_path):
             processed += 1
 
-    print(f"✅ Processed {processed} files in {directory_path}")
+    logger.info(f"✅ Processed {processed} files in {directory_path}")
     return processed
 
 

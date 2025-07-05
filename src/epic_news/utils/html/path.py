@@ -7,9 +7,12 @@ des données d'état et générer des chemins de fichiers HTML appropriés.
 
 import contextlib
 import json
+import logging
 from typing import Any
 
 from epic_news.utils.string_utils import create_topic_slug
+
+logger = logging.getLogger(__name__)
 
 
 def extract_recipe_title_from_state(state_data: dict[str, Any]) -> str | None:
@@ -63,14 +66,14 @@ def generate_cooking_output_path(state_data: dict[str, Any]) -> str:
 
         # Vérifier que le slug n'est pas vide
         if not slug or slug.isspace():
-            print(f"  ⚠️ Slug vide généré pour '{recipe_title}', utilisation d'un slug par défaut")
+            logger.warning(f"  ⚠️ Slug vide généré pour '{recipe_title}', utilisation d'un slug par défaut")
             slug = "recette-cuisine"
 
-        print(f"  🔍 Génération du nom de fichier: output/cooking/{slug}.html")
+        logger.debug(f"  🔍 Génération du nom de fichier: output/cooking/{slug}.html")
         return f"output/cooking/{slug}.html"
 
     # Fallback si pas de titre
-    print("  ⚠️ Pas de titre trouvé, utilisation du nom de fichier par défaut")
+    logger.warning("  ⚠️ Pas de titre trouvé, utilisation du nom de fichier par défaut")
     return "output/cooking/recette-cuisine.html"
 
 
@@ -92,7 +95,7 @@ def determine_output_path(selected_crew: str, state_data: dict[str, Any] = None)
         yaml_path = state_data["output_file"]
         # Vérifier que le chemin n'est pas vide ou juste un point
         if not yaml_path or yaml_path.strip() in [".", ""]:
-            print("  ⚠️ output_file vide ou invalide, utilisation du chemin par défaut")
+            logger.warning("  ⚠️ output_file vide ou invalide, utilisation du chemin par défaut")
         else:
             # Si le chemin se termine déjà par .html, le retourner tel quel
             if yaml_path.endswith(".html"):

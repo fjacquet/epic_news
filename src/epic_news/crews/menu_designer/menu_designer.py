@@ -6,7 +6,7 @@ from crewai_tools import DirectoryReadTool, FileReadTool
 
 from epic_news.models.menu_output import WeeklyMenuPlan
 from epic_news.tools.web_tools import get_search_tools
-from epic_news.utils.file_utils import ensure_output_directory
+from epic_news.utils.directory_utils import ensure_output_directory
 
 
 @CrewBase

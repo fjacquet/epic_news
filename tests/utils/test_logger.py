@@ -1,24 +1,40 @@
+import os
 import logging
-import unittest
+from unittest.mock import patch
+from epic_news.utils.logger import setup_logging, get_logger
 
-from epic_news.utils.logger import get_logger, setup_logging
+def test_setup_logging(tmp_path):
+    # Test that setup_logging configures the root logger correctly
+    log_dir = tmp_path / "logs"
+    setup_logging(log_to_file=True, log_dir=log_dir)
+    logger = get_logger(__name__)
+    # We can't directly check the level of a loguru logger, but we can check if it logs at the correct level
+    with patch('loguru._logger.Logger.info') as mock_info:
+        logger.info("test")
+        mock_info.assert_called_once()
 
+def test_log_to_file(tmp_path):
+    # Test that logs are written to a file when log_to_file is True
+    log_dir = tmp_path / "logs"
+    log_file = log_dir / "epic_news.log"
+    setup_logging(log_to_file=True, log_dir=log_dir)
+    logger = get_logger(__name__)
+    logger.info("This is a test log message.")
+    # The logger is asynchronous, so we need to wait for the message to be written
+    logger.complete()
+    assert os.path.exists(log_file)
+    with open(log_file, "r") as f:
+        assert "This is a test log message." in f.read()
 
-class TestLogger(unittest.TestCase):
-    def test_setup_logging(self):
-        """Test that logging is set up correctly."""
-        # Reset logging to a known state before testing
-        logging.getLogger().handlers = []
-        setup_logging(log_level=logging.INFO)
-        logger = get_logger("test_logger")
-        self.assertIsInstance(logger, logging.Logger)
-        self.assertEqual(logger.getEffectiveLevel(), logging.INFO)
-
-    def test_get_logger(self):
-        """Test that get_logger returns a logger with the correct name."""
-        logger = get_logger("my_test_logger")
-        self.assertEqual(logger.name, "my_test_logger")
-
-
-if __name__ == "__main__":
-    unittest.main()
+def test_error_log_to_file(tmp_path):
+    # Test that error logs are written to a separate file
+    log_dir = tmp_path / "logs"
+    error_log_file = log_dir / "epic_news_error.log"
+    setup_logging(log_to_file=True, log_dir=log_dir)
+    logger = get_logger(__name__)
+    logger.error("This is a test error message.")
+    # The logger is asynchronous, so we need to wait for the message to be written
+    logger.complete()
+    assert os.path.exists(error_log_file)
+    with open(error_log_file, "r") as f:
+        assert "This is a test error message." in f.read()

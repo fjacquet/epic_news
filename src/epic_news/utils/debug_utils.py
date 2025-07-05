@@ -37,7 +37,7 @@ def _attempt_json_repair(json_str: str) -> str:
 
     # 2. Fix missing colons after keys (common LLM error)
     # Pattern: "key" value -> "key": value
-    repaired = re.sub(r'"([^"]+)"\s+(["\[\{\d])', r'"\1": \2', repaired)
+    repaired = re.sub(r'"([^"]+)"\s+(["\{\d])', r'"\1": \2', repaired)
 
     # 3. Fix missing quotes around keys (but preserve already quoted keys)
     # Pattern: key: -> "key": (but not "key":)
@@ -45,19 +45,19 @@ def _attempt_json_repair(json_str: str) -> str:
 
     # 4. Fix missing quotes around string values (more precise)
     # Pattern: : word, -> : "word", (but not numbers, booleans, or already quoted)
-    repaired = re.sub(r":\s*([a-zA-Z][a-zA-Z0-9\s]*?)(?=\s*[,}\]])", r': "\1"', repaired)
+    repaired = re.sub(r':\s*([a-zA-Z][a-zA-Z0-9\s]*?)(?=\s*[,}\]])', r': "\1"', repaired)
 
     # 4b. Fix missing colons in object properties
     # Pattern: "key" "value" -> "key": "value"
     repaired = re.sub(r'"([^"]+)"\s+"([^"]+)"', r'"\1": "\2"', repaired)
 
     # 5. Fix trailing commas before closing braces/brackets
-    repaired = re.sub(r",\s*([}\]])", r"\1", repaired)
+    repaired = re.sub(r',\s*([}\]])', r'\1', repaired)
 
     # 6. Fix missing commas between array/object elements
     # Pattern: } { -> }, {
-    repaired = re.sub(r"}\s*{", r"}, {", repaired)
-    repaired = re.sub(r"]\s*\[", r"], [", repaired)
+    repaired = re.sub(r'}\s*{', r'}, {', repaired)
+    repaired = re.sub(r'\]\s*\[', r'], [', repaired)
 
     # 7. Count and fix unmatched braces/brackets
     open_braces = repaired.count("{")
@@ -218,6 +218,58 @@ def analyze_crewai_output(state_data: dict[str, Any], crew_name: str) -> dict[st
 T = TypeVar("T", bound=BaseModel)
 
 
+def _transform_holiday_planner_data(parsed_data: dict) -> dict:
+    """Helper function to transform HolidayPlannerReport data."""
+    # Convert URL strings to Source objects
+    if "sources" in parsed_data:
+        sources = parsed_data["sources"]
+        if sources and isinstance(sources, list):
+            converted_sources = []
+            for source in sources:
+                if isinstance(source, str):  # URL string
+                    converted_sources.append(
+                        {
+                            "title": source.split("/")[-1] or "Source",
+                            "url": source,
+                            "type": "reference",
+                        }
+                    )
+                elif isinstance(source, dict):
+                    converted_sources.append(source)
+            parsed_data["sources"] = converted_sources
+
+    # Handle French-to-English field mapping for itinerary
+    if "itinerary" in parsed_data and isinstance(parsed_data["itinerary"], list):
+        for day_item in parsed_data["itinerary"]:
+            if isinstance(day_item, dict):
+                if "jour" in day_item and "day" not in day_item:
+                    jour_text = day_item["jour"]
+                    if "Jour" in jour_text:
+                        day_num = jour_text.split()[1] if len(jour_text.split()) > 1 else "1"
+                        day_item["day"] = int(day_num.replace("-", "").strip())
+                    del day_item["jour"]
+                if "date" not in day_item and "jour" in day_item:
+                    jour_text = day_item["jour"]
+                    parts = jour_text.split("-")
+                    day_item["date"] = parts[1].strip() if len(parts) > 1 else "TBD"
+
+    # Handle French-to-English field mapping for accommodations
+    if "accommodations" in parsed_data and isinstance(parsed_data["accommodations"], list):
+        for accommodation in parsed_data["accommodations"]:
+            if isinstance(accommodation, dict):
+                if "nom" in accommodation and "name" not in accommodation:
+                    accommodation["name"] = accommodation["nom"]
+                    del accommodation["nom"]
+                if "adresse" in accommodation and "address" not in accommodation:
+                    accommodation["address"] = accommodation["adresse"]
+                    del accommodation["adresse"]
+                if "address" not in accommodation:
+                    accommodation["address"] = "Address not specified"
+                if "description" not in accommodation:
+                    accommodation["description"] = accommodation.get("name", "Accommodation option")
+    return parsed_data
+
+
 def parse_crewai_output(report_content: Any, model_class: type[T], inputs: dict = None) -> T:
     """
     Parse CrewAI output to a Pydantic model with robust JSON cleaning.
@@ -262,13 +314,13 @@ def parse_crewai_output(report_content: Any, model_class: type[T], inputs: dict 
     try:
         parsed_data = json.loads(cleaned_json)
 
-        # $$$Special handling for BookSummaryReport: coerce table_of_contents IDs to strings
+        # $$Special handling for BookSummaryReport: coerce table_of_contents IDs to strings
         if model_class.__name__ == "BookSummaryReport" and "table_of_contents" in parsed_data:
             for entry in parsed_data["table_of_contents"]:
                 if "id" in entry and not isinstance(entry["id"], str):
                     entry["id"] = str(entry["id"])
 
-        # $$$Special handling for HolidayPlannerReport: robustly handle day/jour fields
+        # $$Special handling for HolidayPlannerReport: robustly handle day/jour fields
         if model_class.__name__ == "HolidayPlannerReport" and "itinerary" in parsed_data:
             for day in parsed_data["itinerary"]:
                 # Handle 'day' or 'jour' fields that may be int or str
@@ -288,68 +340,9 @@ def parse_crewai_output(report_content: Any, model_class: type[T], inputs: dict 
                         pass  # safe to do string ops
 
 
-        # $$$Special handling for HolidayPlannerReport: comprehensive data transformation
+        # $$Special handling for HolidayPlannerReport: comprehensive data transformation
         if model_class.__name__ == "HolidayPlannerReport":
-            # Convert URL strings to Source objects
-            if "sources" in parsed_data:
-                sources = parsed_data["sources"]
-                if sources and isinstance(sources, list):
-                    converted_sources = []
-                    for source in sources:
-                        if isinstance(source, str):  # URL string
-                            # Convert URL string to Source object
-                            converted_sources.append(
-                                {
-                                    "title": source.split("/")[-1]
-                                    or "Source",  # Use last part of URL as title
-                                    "url": source,
-                                    "type": "reference",
-                                }
-                            )
-                        elif isinstance(source, dict):
-                            # Already a proper Source object
-                            converted_sources.append(source)
-                    parsed_data["sources"] = converted_sources
-
-            # Handle French-to-English field mapping for itinerary
-            if "itinerary" in parsed_data and isinstance(parsed_data["itinerary"], list):
-                for day_item in parsed_data["itinerary"]:
-                    if isinstance(day_item, dict):
-                        # Map French fields to English
-                        if "jour" in day_item and "day" not in day_item:
-                            # Extract day number from "Jour 1 - Vendredi" format
-                            jour_text = day_item["jour"]
-                            if "Jour" in jour_text:
-                                day_num = jour_text.split()[1] if len(jour_text.split()) > 1 else "1"
-                                day_item["day"] = int(day_num.replace("-", "").strip())
-                            del day_item["jour"]
-
-                        # Extract date from jour field if present
-                        if "date" not in day_item and "jour" in day_item:
-                            jour_text = day_item["jour"]
-                            # Try to extract date from "Jour 1 - Vendredi 26 juillet" format
-                            parts = jour_text.split("-")
-                            if len(parts) > 1:
-                                day_item["date"] = parts[1].strip()
-                            else:
-                                day_item["date"] = "TBD"
-
-            # Handle French-to-English field mapping for accommodations
-            if "accommodations" in parsed_data and isinstance(parsed_data["accommodations"], list):
-                for accommodation in parsed_data["accommodations"]:
-                    if isinstance(accommodation, dict):
-                        # Map French fields to English
-                        if "nom" in accommodation and "name" not in accommodation:
-                            accommodation["name"] = accommodation["nom"]
-                            del accommodation["nom"]
-                        if "adresse" in accommodation and "address" not in accommodation:
-                            accommodation["address"] = accommodation["adresse"]
-                            del accommodation["adresse"]
-                        # Ensure required fields have defaults
-                        if "address" not in accommodation:
-                            accommodation["address"] = "Address not specified"
-                        if "description" not in accommodation:
-                            accommodation["description"] = accommodation.get("name", "Accommodation option")
+            parsed_data = _transform_holiday_planner_data(parsed_data)
 
         return model_class.model_validate(parsed_data)
     except json.JSONDecodeError as e:
@@ -385,68 +378,7 @@ def parse_crewai_output(report_content: Any, model_class: type[T], inputs: dict 
 
             # Apply same HolidayPlannerReport handling as above
             if model_class.__name__ == "HolidayPlannerReport":
-                # Convert URL strings to Source objects
-                if "sources" in parsed_data:
-                    sources = parsed_data["sources"]
-                    if sources and isinstance(sources, list):
-                        converted_sources = []
-                        for source in sources:
-                            if isinstance(source, str):  # URL string
-                                # Convert URL string to Source object
-                                converted_sources.append(
-                                    {
-                                        "title": source.split("/")[-1]
-                                        or "Source",  # Use last part of URL as title
-                                        "url": source,
-                                        "type": "reference",
-                                    }
-                                )
-                            elif isinstance(source, dict):
-                                # Already a proper Source object
-                                converted_sources.append(source)
-                        parsed_data["sources"] = converted_sources
-
-                # Handle French-to-English field mapping for itinerary
-                if "itinerary" in parsed_data and isinstance(parsed_data["itinerary"], list):
-                    for day_item in parsed_data["itinerary"]:
-                        if isinstance(day_item, dict):
-                            # Map French fields to English
-                            if "jour" in day_item and "day" not in day_item:
-                                # Extract day number from "Jour 1 - Vendredi" format
-                                jour_text = day_item["jour"]
-                                if "Jour" in jour_text:
-                                    day_num = jour_text.split()[1] if len(jour_text.split()) > 1 else "1"
-                                    day_item["day"] = int(day_num.replace("-", "").strip())
-                                del day_item["jour"]
-
-                            # Extract date from jour field if present
-                            if "date" not in day_item and "jour" in day_item:
-                                jour_text = day_item["jour"]
-                                # Try to extract date from "Jour 1 - Vendredi 26 juillet" format
-                                parts = jour_text.split("-")
-                                if len(parts) > 1:
-                                    day_item["date"] = parts[1].strip()
-                                else:
-                                    day_item["date"] = "TBD"
-
-                # Handle French-to-English field mapping for accommodations
-                if "accommodations" in parsed_data and isinstance(parsed_data["accommodations"], list):
-                    for accommodation in parsed_data["accommodations"]:
-                        if isinstance(accommodation, dict):
-                            # Map French fields to English
-                            if "nom" in accommodation and "name" not in accommodation:
-                                accommodation["name"] = accommodation["nom"]
-                                del accommodation["nom"]
-                            if "adresse" in accommodation and "address" not in accommodation:
-                                accommodation["address"] = accommodation["adresse"]
-                                del accommodation["adresse"]
-                            # Ensure required fields have defaults
-                            if "address" not in accommodation:
-                                accommodation["address"] = "Address not specified"
-                            if "description" not in accommodation:
-                                accommodation["description"] = accommodation.get(
-                                    "name", "Accommodation option"
-                                )
+                parsed_data = _transform_holiday_planner_data(parsed_data)
 
             logger.info("Successfully repaired and parsed JSON")
             return model_class.model_validate(parsed_data)
