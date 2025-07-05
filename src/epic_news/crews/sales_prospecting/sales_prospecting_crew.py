@@ -9,9 +9,6 @@ from epic_news.tools.data_centric_tools import get_data_centric_tools
 from epic_news.tools.email_search import get_email_search_tools
 from epic_news.tools.report_tools import get_report_tools
 from epic_news.tools.web_tools import get_search_tools
-from epic_news.utils.logger import get_logger
-
-logger = get_logger(__name__)
 
 load_dotenv()
 

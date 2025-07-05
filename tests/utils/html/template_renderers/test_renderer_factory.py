@@ -1,7 +1,8 @@
 
-from epic_news.utils.html.template_renderers.renderer_factory import RendererFactory
 from epic_news.utils.html.template_renderers.book_summary_renderer import BookSummaryRenderer
 from epic_news.utils.html.template_renderers.generic_renderer import GenericRenderer
+from epic_news.utils.html.template_renderers.renderer_factory import RendererFactory
+
 
 def test_create_renderer():
     # Test that the factory creates the correct renderer for a given crew type

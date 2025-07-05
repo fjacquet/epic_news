@@ -1,8 +1,8 @@
 """Tests for string utilities."""
 
-import pytest
 
 from faker import Faker
+
 from epic_news.utils.string_utils import create_topic_slug
 
 fake = Faker()

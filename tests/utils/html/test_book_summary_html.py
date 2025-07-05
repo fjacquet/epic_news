@@ -1,7 +1,6 @@
 """Tests for Book Summary HTML factory and renderer."""
 
 import pytest
-from bs4 import BeautifulSoup
 
 from epic_news.models.book_summary_report import (
     BookSummaryReport,
@@ -9,9 +8,6 @@ from epic_news.models.book_summary_report import (
     TableOfContentsEntry,
 )
 from epic_news.utils.html.book_summary_html_factory import book_summary_to_html
-from epic_news.utils.html.template_renderers.book_summary_renderer import (
-    BookSummaryRenderer,
-)
 
 
 @pytest.fixture
@@ -56,4 +52,3 @@ def test_book_summary_renderer(sample_book_summary_data):
     """Test the BookSummaryRenderer directly."""
     # Skipping this test as BookSummaryRenderer is an abstract class
     # that can't be instantiated directly
-    pass

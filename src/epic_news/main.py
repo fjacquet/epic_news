@@ -28,6 +28,7 @@ from pathlib import Path
 
 from crewai.flow import Flow, listen, or_, router, start
 from dotenv import load_dotenv
+from loguru import logger
 from pydantic import PydanticDeprecatedSince20, PydanticDeprecatedSince211
 
 from epic_news.bin.fetch_rss_articles import fetch_articles_from_opml
@@ -78,7 +79,7 @@ from epic_news.utils.html.poem_html_factory import poem_to_html
 from epic_news.utils.html.recipe_html_factory import recipe_to_html
 from epic_news.utils.html.saint_html_factory import saint_to_html
 from epic_news.utils.html.shopping_advice_html_factory import shopping_advice_to_html
-from epic_news.utils.logger import get_logger
+from epic_news.utils.logger import setup_logging
 from epic_news.utils.menu_generator import MenuGenerator
 from epic_news.utils.observability import get_observability_tools, trace_task
 from epic_news.utils.report_utils import (
@@ -127,7 +128,7 @@ class ReceptionFlow(Flow[ContentState]):
     def __init__(self, user_request: str):
         super().__init__()
         self._user_request = user_request
-        self.logger = get_logger(__name__)
+        self.logger = logger
         self.tracer = tracer
         self.dashboard = dashboard
         self.hallucination_guard = hallucination_guard
@@ -160,7 +161,7 @@ class ReceptionFlow(Flow[ContentState]):
         This structured information is then used for classification and
         as input for other crews.
         """
-        print("🤖 Kicking off Information Extraction Crew...")
+        self.logger.info("🤖 Kicking off Information Extraction Crew...")
         # Instantiate and run the information extraction crew
         extraction_crew = InformationExtractionCrew()
         extracted_data = extraction_crew.crew().kickoff(inputs={"user_request": self.state.user_request})
@@ -170,9 +171,9 @@ class ReceptionFlow(Flow[ContentState]):
         if extracted_data:
             # Assuming extracted_data has a .pydantic attribute for the model instance
             self.state.extracted_info = extracted_data.pydantic
-            print("✅ Information extraction complete.")
+            self.logger.info("✅ Information extraction complete.")
         else:
-            print("⚠️ Information extraction failed or returned no data.")
+            self.logger.warning("⚠️ Information extraction failed or returned no data.")
         # return "extract_info" # Implicitly returns the method name as the next step
 
     @listen("extract_info")
@@ -191,7 +192,7 @@ class ReceptionFlow(Flow[ContentState]):
             if self.state.extracted_info and hasattr(self.state.extracted_info, "main_subject_or_activity")
             else "Unknown Topic"  # Provide a default if topic extraction failed or info is missing
         )
-        print(f"Routing request: '{self.state.user_request}' with topic: '{topic}'")
+        self.logger.info(f"Routing request: '{self.state.user_request}' with topic: '{topic}'")
         # Define the output file path for the classification decision.
         self.state.output_file = "output/classify/decision.md"
 
@@ -218,7 +219,7 @@ class ReceptionFlow(Flow[ContentState]):
                 parsed_category = category_key
 
         self.state.selected_crew = parsed_category
-        print(
+        self.logger.info(
             f"✅ Classification complete. Raw: '{raw_classification}', Selected crew: {self.state.selected_crew}"
         )
         # return "classify" # Implicitly returns the method name as the next step
@@ -266,7 +267,7 @@ class ReceptionFlow(Flow[ContentState]):
             return "go_generate_sales_prospecting_report"
         # Fallback for unhandled or unknown crew types.
         # Consider logging this event for monitoring.
-        print(f"⚠️ Unknown crew type: {self.state.selected_crew}. Routing to 'go_unknown'.")
+        self.logger.warning(f"⚠️ Unknown crew type: {self.state.selected_crew}. Routing to 'go_unknown'.")
         return "go_unknown"
 
     @listen("go_unknown")
@@ -280,12 +281,12 @@ class ReceptionFlow(Flow[ContentState]):
         `output_file` (which might be `output/classify/decision.md` if classification failed early,
         or a default if not set by a prior step).
         """
-        print("⚠�� Unknown crew type selected or error in routing.")
+        self.logger.warning("Unknown crew type selected or error in routing.")
         self.state.final_report = "Error: Unknown crew type or routing issue. Unable to process the request."
         # Ensure output_file is set, even if to a default, before writing.
         if not self.state.output_file:
             self.state.output_file = "output/unknown_request_error.md"
-            print(f"Output file not set, defaulting to {self.state.output_file}")
+            self.logger.warning(f"Output file not set, defaulting to {self.state.output_file}")
         # return "go_unknown" # Implicitly returns method name
 
     @listen("go_generate_poem")
@@ -299,7 +300,7 @@ class ReceptionFlow(Flow[ContentState]):
         poem in `self.state.poem`.
         """
         self.state.output_file = "output/poem/poem.json"
-        print(f"Generating poem about: {self.state.to_crew_inputs().get('topic', 'N/A')}")
+        self.logger.info(f"Generating poem about: {self.state.to_crew_inputs().get('topic', 'N/A')}")
 
         # Generate the poem
         output = PoemCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
@@ -325,7 +326,7 @@ class ReceptionFlow(Flow[ContentState]):
         # Import function explicitly to ensure availability during runtime
 
         self.state.output_file = "output/company_news/report.json"
-        print(f"Generating news about: {self.state.to_crew_inputs().get('topic', 'N/A')}")
+        self.logger.info(f"Generating news about: {self.state.to_crew_inputs().get('topic', 'N/A')}")
 
         # Generate the news
         self.state.company_news_report = CompanyNewsCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
@@ -346,7 +347,7 @@ class ReceptionFlow(Flow[ContentState]):
         2. Translate the articles into French.
         3. Generate a final HTML report.
         """
-        print("📰 Generating RSS weekly report (new pipeline)...")
+        self.logger.info("📰 Generating RSS weekly report (new pipeline)...")
         base_path = Path("output/rss_weekly")
         base_path.mkdir(parents=True, exist_ok=True)
 
@@ -356,11 +357,11 @@ class ReceptionFlow(Flow[ContentState]):
         html_report_path = base_path / "report.html"
 
         # Step 1: Fetch articles from OPML
-        print("Step 1: Fetching articles...")
+        self.logger.info("Step 1: Fetching articles...")
         await fetch_articles_from_opml(opml_file_path=opml_path, output_file_path=str(raw_report_path))
 
         # Step 2: Translate articles using the refactored crew
-        print("Step 2: Translating articles...")
+        self.logger.info("Step 2: Translating articles...")
         translation_inputs = {
             "input_file": str(raw_report_path),
             "output_file": str(translated_report_path),
@@ -369,14 +370,14 @@ class ReceptionFlow(Flow[ContentState]):
         dump_crewai_state(report_output, "RSS_WEEKLY_TRANSLATION")
 
         # Step 2.5: Save the translated report
-        print(f"Step 2.5: Saving translated report to {translated_report_path}...")
+        self.logger.info(f"Step 2.5: Saving translated report to {translated_report_path}...")
         try:
             # Handle the case where the agent returns action traces instead of just JSON
             raw_output = report_output.raw
 
             # Check if the output contains action traces (starts with "Action:")
             if raw_output.strip().startswith("Action:"):
-                print("Detected action trace format in crew output, attempting to extract JSON...")
+                self.logger.info("Detected action trace format in crew output, attempting to extract JSON...")
                 # Try to find JSON in the output - look for the last JSON-like structure
                 # This is a common pattern when agents output their thought process and then the final result
                 json_matches = re.findall(r"\{[\s\S]*\}", raw_output)
@@ -385,7 +386,7 @@ class ReceptionFlow(Flow[ContentState]):
                     potential_json = json_matches[-1]
                     try:
                         translated_data = json.loads(potential_json)
-                        print("Successfully extracted JSON from action trace output")
+                        self.logger.info("Successfully extracted JSON from action trace output")
                     except json.JSONDecodeError:
                         raise ValueError("Found JSON-like structure but couldn't parse it")
                 else:
@@ -422,14 +423,14 @@ class ReceptionFlow(Flow[ContentState]):
 
             with open(translated_report_path, "w", encoding="utf-8") as f:
                 json.dump(translated_data, f, ensure_ascii=False, indent=2)
-            print("✅ Successfully saved translated report.")
+            self.logger.info("✅ Successfully saved translated report.")
         except (json.JSONDecodeError, TypeError) as e:
-            print(f"❌ Failed to decode or save translated JSON from crew result: {e}")
+            self.logger.error(f"❌ Failed to decode or save translated JSON from crew result: {e}")
             # If we can't save the file, there's no point in continuing.
             return
 
         # Step 3: Generate the final HTML report
-        print("Step 3: Generating HTML report...")
+        self.logger.info("Step 3: Generating HTML report...")
         generate_rss_weekly_html_report(
             json_file_path=str(translated_report_path),
             output_html_path=str(html_report_path),
@@ -438,7 +439,7 @@ class ReceptionFlow(Flow[ContentState]):
         # Store the final report path in the state
         self.state.rss_weekly_report = f"Report generated at {html_report_path}"
         self.state.output_file = str(html_report_path)
-        print(f"✅ New RSS weekly pipeline complete. Report at: {html_report_path}")
+        self.logger.info(f"✅ New RSS weekly pipeline complete. Report at: {html_report_path}")
 
     @listen("go_generate_findaily")
     @trace_task(tracer)
@@ -452,7 +453,7 @@ class ReceptionFlow(Flow[ContentState]):
         and stores the report in `self.state.fin_daily_report`.
         """
 
-        print("💰 Generating daily financial analysis report...")
+        self.logger.info("💰 Generating daily financial analysis report...")
 
         # Prepare inputs for the crew
         inputs = self.state.to_crew_inputs()
@@ -470,7 +471,7 @@ class ReceptionFlow(Flow[ContentState]):
 
         financial_report_model = parse_crewai_output(report_content, FinancialReport, inputs)
         findaily_to_html(financial_report_model, html_file=html_file)
-        print(f"✅ Financial content generated and HTML written to {html_file}")
+        self.logger.info(f"✅ Financial content generated and HTML written to {html_file}")
 
     @listen("go_generate_news_daily")
     @trace_task(tracer)
@@ -485,7 +486,7 @@ class ReceptionFlow(Flow[ContentState]):
         """
 
         self.state.output_file = "output/news_daily/final_report.html"
-        print("📰 Generating daily news report in French...")
+        self.logger.info("📰 Generating daily news report in French...")
 
         # Prepare inputs for the crew
         inputs = self.state.to_crew_inputs()
@@ -505,7 +506,7 @@ class ReceptionFlow(Flow[ContentState]):
         if hasattr(report_content, "model_dump"):
             self.state.news_daily_model = report_content
 
-        print(f"✅ News content generated and HTML written to {html_file}")
+        self.logger.info(f"✅ News content generated and HTML written to {html_file}")
 
     @listen("go_generate_saint_daily")
     @trace_task(tracer)
@@ -520,7 +521,7 @@ class ReceptionFlow(Flow[ContentState]):
         and stores the report in `self.state.saint_daily_report`.
         """
         self.state.output_file = "output/saint_daily/report.json"
-        print("⛪ Generating daily saint report in French...")
+        self.logger.info("⛪ Generating daily saint report in French...")
 
         # Prepare inputs for the crew
         inputs = self.state.to_crew_inputs()
@@ -542,7 +543,7 @@ class ReceptionFlow(Flow[ContentState]):
         self.state.saint_daily_model = saint_model
         saint_to_html(saint_model, html_file=html_file)
 
-        print("✅ Saint content generated - HTML rendering will be handled by generate_html_report")
+        self.logger.info("✅ Saint content generated - HTML rendering will be handled by generate_html_report")
 
     @listen("go_generate_recipe")
     @trace_task(tracer)
@@ -564,7 +565,7 @@ class ReceptionFlow(Flow[ContentState]):
         # This ensures topic_slug reflects the mapped topic value from main_subject_or_activity
         if crew_inputs.get("topic") and not self.state.topic_slug:
             self.state.topic_slug = create_topic_slug(crew_inputs["topic"])
-            print(f"🔧 Updated topic_slug from mapped topic: {self.state.topic_slug}")
+            self.logger.info(f"🔧 Updated topic_slug from mapped topic: {self.state.topic_slug}")
 
         self.state.output_file = f"{self.state.output_dir}/{self.state.topic_slug}.json"
         crew_inputs["output_file"] = f"{self.state.output_dir}/{self.state.topic_slug}.json"
@@ -572,10 +573,10 @@ class ReceptionFlow(Flow[ContentState]):
         crew_inputs["html_file"] = f"{self.state.output_dir}/{self.state.topic_slug}.html"
 
         # Log what we're generating
-        print(f"🍳 Generating recipe for: {crew_inputs.get('topic', 'Unknown topic')}")
-        print(f"📁 YAML export will be saved to: {self.state.output_dir}/{self.state.topic_slug}.yaml")
-        print(f"📁 JSON export will be saved to: {self.state.output_dir}/{self.state.topic_slug}.json")
-        print(f"📁 Recipte will be saved to: {self.state.output_dir}/{self.state.topic_slug}.html")
+        self.logger.info(f"🍳 Generating recipe for: {crew_inputs.get('topic', 'Unknown topic')}")
+        self.logger.info(f"📁 YAML export will be saved to: {self.state.output_dir}/{self.state.topic_slug}.yaml")
+        self.logger.info(f"📁 JSON export will be saved to: {self.state.output_dir}/{self.state.topic_slug}.json")
+        self.logger.info(f"📁 Recipte will be saved to: {self.state.output_dir}/{self.state.topic_slug}.html")
 
         # Create crew using context-driven approach with automatic topic_slug injection
         cooking_result = CookingCrew().crew().kickoff(inputs=crew_inputs)
@@ -590,7 +591,7 @@ class ReceptionFlow(Flow[ContentState]):
         # Generate HTML directly
         recipe_to_html(recipe_model, html_file=html_file)
 
-        print("✅ Recipe generation complete")
+        self.logger.info("✅ Recipe generation complete")
 
     @listen("go_generate_menu_designer")
     @trace_task(tracer)
@@ -657,7 +658,7 @@ class ReceptionFlow(Flow[ContentState]):
         `self.state.book_summary`.
         """
 
-        print(f"Generating book summary for: {self.state.to_crew_inputs().get('topic', 'N/A')}")
+        self.logger.info(f"Generating book summary for: {self.state.to_crew_inputs().get('topic', 'N/A')}")
         inputs = self.state.to_crew_inputs()
         inputs["output_file"] = "output/library/book_summary.json"
 
@@ -687,7 +688,7 @@ class ReceptionFlow(Flow[ContentState]):
         """
         # No need to create directories as ensure_output_directories() is called at init
 
-        print(f"🛒 Generating shopping advice for: {self.state.user_request}")
+        self.logger.info(f"🛒 Generating shopping advice for: {self.state.user_request}")
 
         # Prepare inputs for ShoppingAdvisorCrew
         crew_inputs = self.state.to_crew_inputs()
@@ -709,10 +710,10 @@ class ReceptionFlow(Flow[ContentState]):
                     break
 
         if not shopping_advice_obj:
-            print("⚠️ Could not extract ShoppingAdviceOutput from crew result")
+            self.logger.warning("⚠️ Could not extract ShoppingAdviceOutput from crew result")
             return
 
-        print(f"🔍 ShoppingAdviceOutput extracted: {shopping_advice_obj.product_info.name}")
+        self.logger.info(f"🔍 ShoppingAdviceOutput extracted: {shopping_advice_obj.product_info.name}")
         # Store in CrewAI state
         self.state.shopping_advice_model = shopping_advice_obj
 
@@ -725,7 +726,7 @@ class ReceptionFlow(Flow[ContentState]):
         # Generate HTML using the factory function
         shopping_advice_to_html(shopping_advice_obj, topic=topic, html_file=html_file)
 
-        print("✅ Shopping advice content generated - HTML rendering will be handled by generate_html_report")
+        self.logger.info("✅ Shopping advice content generated - HTML rendering will be handled by generate_html_report")
 
     @listen("go_generate_meeting_prep")
     @trace_task(tracer)
@@ -745,9 +746,9 @@ class ReceptionFlow(Flow[ContentState]):
         if not company:
             company = current_inputs.get("topic")  # Fallback to topic if company is not specified
             current_inputs["company"] = company  # Ensure 'company' key is in inputs for the crew
-            print(f"⚠️ No company specified for meeting prep, using topic as company: {company}")
+            self.logger.warning(f"⚠️ No company specified for meeting prep, using topic as company: {company}")
 
-        print(f"Generating meeting prep for company: {company or 'N/A'}")
+        self.logger.info(f"Generating meeting prep for company: {company or 'N/A'}")
 
         current_inputs["output_file"] = "output/meeting/meeting_preparation.json"
         # Generate the meeting prep
@@ -759,9 +760,9 @@ class ReceptionFlow(Flow[ContentState]):
             self.state.meeting_prep_report = parse_crewai_output(
                 meeting_result, MeetingPrepReport, current_inputs
             )
-            print("Successfully parsed meeting prep result to MeetingPrepReport model")
+            self.logger.info("Successfully parsed meeting prep result to MeetingPrepReport model")
         except Exception as e:
-            print(f"Error parsing meeting prep result: {e}")
+            self.logger.error(f"Error parsing meeting prep result: {e}")
 
         # Set the final report to the JSON output
         self.state.final_report = self.state.meeting_prep_report
@@ -787,7 +788,7 @@ class ReceptionFlow(Flow[ContentState]):
         our_product = self.state.to_crew_inputs().get(
             "our_product", "our product/service"
         )  # Default if not specified
-        print(f"Generating sales prospecting report for: {company or 'N/A'} regarding {our_product}")
+        self.logger.info(f"Generating sales prospecting report for: {company or 'N/A'} regarding {our_product}")
 
         self.state.contact_info_report = (
             SalesProspectingCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
@@ -805,7 +806,7 @@ class ReceptionFlow(Flow[ContentState]):
         in `self.state.osint_report`. This is often part of a parallel data gathering process.
         """
         self.state.output_file = "output/osint/global_report.html"
-        print(f"Generating OSINT report for: {self.state.to_crew_inputs().get('topic', 'N/A')}")
+        self.logger.info(f"Generating OSINT report for: {self.state.to_crew_inputs().get('topic', 'N/A')}")
 
         # return "generate_osint"
 
@@ -820,7 +821,7 @@ class ReceptionFlow(Flow[ContentState]):
         and stores the profile in `self.state.company_profile`.
         """
         self.state.output_file = "output/osint/company_profile.html"
-        print(
+        self.logger.info(
             f"Generating company profile for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}"
         )
 
@@ -840,7 +841,7 @@ class ReceptionFlow(Flow[ContentState]):
         and stores the report in `self.state.tech_stack`.
         """
         self.state.output_file = "output/osint/tech_stack.html"
-        print(
+        self.logger.info(
             f"Generating Tech Stack for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}"
         )
 
@@ -859,7 +860,7 @@ class ReceptionFlow(Flow[ContentState]):
         and stores the report in `self.state.web_presence_report`.
         """
         self.state.output_file = "output/osint/web_presence.html"
-        print(
+        self.logger.info(
             f"Generating Web Presence for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}"
         )
 
@@ -877,7 +878,7 @@ class ReceptionFlow(Flow[ContentState]):
         and stores the report in `self.state.hr_intelligence_report`.
         """
         self.state.output_file = "output/osint/hr_intelligence.html"
-        print(
+        self.logger.info(
             f"Generating HR Intelligence for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}"
         )
 
@@ -897,7 +898,7 @@ class ReceptionFlow(Flow[ContentState]):
         and stores the report in `self.state.legal_analysis_report`.
         """
         self.state.output_file = "output/osint/legal_analysis.html"
-        print(
+        self.logger.info(
             f"Generating Legal Analysis for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}"
         )
 
@@ -917,7 +918,7 @@ class ReceptionFlow(Flow[ContentState]):
         and stores the report in `self.state.geospatial_analysis`.
         """
         self.state.output_file = "output/osint/geospatial_analysis.html"
-        print(
+        self.logger.info(
             f"Generating Geospatial Analysis for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}"
         )
 
@@ -938,7 +939,7 @@ class ReceptionFlow(Flow[ContentState]):
         the report in `self.state.cross_reference_report`.
         """
         self.state.output_file = "output/osint/global_report.html"
-        print(
+        self.logger.info(
             f"Generating Cross Reference Report for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}"
         )
 
@@ -962,11 +963,11 @@ class ReceptionFlow(Flow[ContentState]):
         current_inputs["output_file"] = "output/holiday/itinerary.json"
 
         if not current_inputs.get("destination"):
-            print("⚠️ No destination found for holiday plan. Aborting and routing to error.")
+            self.logger.warning("⚠️ No destination found for holiday plan. Aborting and routing to error.")
             # TODO: Define an actual 'error' step or handle this more gracefully.
             return "error"  # Or another appropriate error state like 'go_unknown'
 
-        print(f"Starting HolidayPlannerCrew with inputs: {current_inputs}")
+        self.logger.info(f"Starting HolidayPlannerCrew with inputs: {current_inputs}")
 
         # Run the crew
         holiday_plan = HolidayPlannerCrew().crew().kickoff(inputs=current_inputs)
@@ -988,7 +989,7 @@ class ReceptionFlow(Flow[ContentState]):
         `self.state.marketing_report`.
         """
         self.state.output_file = "output/marketing/enhanced_message.html"
-        print(f"Generating marketing content for topic: {self.state.to_crew_inputs().get('topic', 'N/A')}")
+        self.logger.info(f"Generating marketing content for topic: {self.state.to_crew_inputs().get('topic', 'N/A')}")
 
         # Create and kickoff the marketing writers crew
         self.state.marketing_report = (
@@ -1106,7 +1107,7 @@ class ReceptionFlow(Flow[ContentState]):
         """
 
         if not self.state.email_sent:
-            print("📬 Preparing to send email...")
+            self.logger.info("📬 Preparing to send email...")
 
             # Use utility function to prepare all email parameters
             # email_inputs = prepare_email_params(self.state)
@@ -1146,6 +1147,7 @@ def kickoff(user_input: str | None = None):
     Returns:
         The completed ReceptionFlow object.
     """
+    setup_logging()
     # If user_input is not provided, use a default value.
     request = (
         user_input

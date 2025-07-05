@@ -8,9 +8,6 @@ from epic_news.tools.html_to_pdf_tool import HtmlToPdfTool
 from epic_news.tools.report_tools import get_report_tools
 from epic_news.tools.scrape_ninja_tool import ScrapeNinjaTool
 from epic_news.utils.directory_utils import ensure_output_directory
-from epic_news.utils.logger import get_logger
-
-logger = get_logger(__name__)
 
 load_dotenv()
 
@@ -45,7 +42,7 @@ class CompanyProfilerCrew:
         return Agent(
             config=self.agents_config["company_reporter"],
             verbose=True,
-            tools=[],  # No tools to prevent action traces in output
+            tools=[HtmlToPdfTool()],  # No tools to prevent action traces in output
             allow_delegation=False,
             respect_context_window=True,
             reasoning=True,
@@ -104,6 +101,23 @@ class CompanyProfilerCrew:
         """Research and document any legal or regulatory issues"""
         return Task(
             config=self.tasks_config["company_legal_compliance"],
+        )
+
+    @task
+    def format_report_task(self) -> Task:
+        """Format the comprehensive company profile report"""
+        return Task(
+            config=self.tasks_config["format_report_task"],
+            agent=self.company_reporter(),
+            context=[
+                self.company_core_info(),
+                self.company_history(),
+                self.company_financials(),
+                self.company_market_position(),
+                self.company_products_services(),
+                self.company_management(),
+                self.company_legal_compliance(),
+            ],
         )
 
     @crew

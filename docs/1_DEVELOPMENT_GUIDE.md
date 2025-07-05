@@ -51,6 +51,31 @@ uv sync
 - **Consistency**: Ensures reproducible environments
 - **Modern**: Built for Python 3.10+ with latest standards
 
+#### Logging
+
+Epic News uses **Loguru** for all logging. It provides a more powerful and flexible logging system than the standard `logging` module.
+
+**Configuration:**
+
+- The main logging configuration is located in `src/epic_news/utils/logger.py`.
+- By default, logs are sent to the console and to a file in the `logs/` directory.
+- The `setup_logging()` function in `src/epic_news/utils/logger.py` is called at the beginning of the `kickoff` function in `src/epic_news/main.py` to configure the log sinks.
+
+**Usage:**
+
+- To use the logger in any module, simply import it:
+  ```python
+  from loguru import logger
+  ```
+- Then, you can use the logger to log messages at different levels:
+  ```python
+  logger.debug("This is a debug message.")
+  logger.info("This is an info message.")
+  logger.warning("This is a warning message.")
+  logger.error("This is an error message.")
+  logger.critical("This is a critical message.")
+  ```
+
 #### Testing & Quality Assurance
 
 - **Testing**: Always run tests with `uv run pytest`

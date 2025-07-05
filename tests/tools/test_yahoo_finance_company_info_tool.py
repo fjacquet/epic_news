@@ -1,5 +1,4 @@
 import json
-from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -19,10 +18,10 @@ def test_instantiation(tool_instance):
 
 
 # --- _run Method Tests ---
-@patch("yfinance.Ticker")
-def test_run_successful_info_retrieval_all_fields(mock_yf_ticker, tool_instance):
+def test_run_successful_info_retrieval_all_fields(tool_instance, mocker):
+    mock_yf_ticker = mocker.patch("yfinance.Ticker")
     ticker_symbol = "GOODTICKER"
-    mock_ticker_instance = MagicMock()
+    mock_ticker_instance = mocker.MagicMock()
     mock_yf_ticker.return_value = mock_ticker_instance
 
     mock_ticker_instance.info = {
@@ -81,10 +80,10 @@ def test_run_successful_info_retrieval_all_fields(mock_yf_ticker, tool_instance)
     assert result_data == expected_data
 
 
-@patch("yfinance.Ticker")
-def test_run_successful_info_retrieval_some_fields_na(mock_yf_ticker, tool_instance):
+def test_run_successful_info_retrieval_some_fields_na(tool_instance, mocker):
+    mock_yf_ticker = mocker.patch("yfinance.Ticker")
     ticker_symbol = "MIXEDTICKER"
-    mock_ticker_instance = MagicMock()
+    mock_ticker_instance = mocker.MagicMock()
     mock_yf_ticker.return_value = mock_ticker_instance
 
     mock_ticker_instance.info = {
@@ -138,10 +137,10 @@ def test_run_successful_info_retrieval_some_fields_na(mock_yf_ticker, tool_insta
     assert result_data == expected_data
 
 
-@patch("yfinance.Ticker")
-def test_run_empty_info_object(mock_yf_ticker, tool_instance):
+def test_run_empty_info_object(tool_instance, mocker):
+    mock_yf_ticker = mocker.patch("yfinance.Ticker")
     ticker_symbol = "EMPTYINFOTICKER"
-    mock_ticker_instance = MagicMock()
+    mock_ticker_instance = mocker.MagicMock()
     mock_yf_ticker.return_value = mock_ticker_instance
     mock_ticker_instance.info = {}  # Empty info
 
@@ -153,15 +152,15 @@ def test_run_empty_info_object(mock_yf_ticker, tool_instance):
     assert result_data == {"symbol": ticker_symbol}
 
 
-@patch("yfinance.Ticker")
-def test_run_yfinance_exception(mock_yf_ticker, tool_instance):
+def test_run_yfinance_exception(tool_instance, mocker):
+    mock_yf_ticker = mocker.patch("yfinance.Ticker")
     ticker_symbol = "ERRORTICKER"
     error_message = "Test yfinance error"
     # Test two ways yfinance might raise an error related to .info
     # 1. Error on .info access
-    mock_ticker_instance = MagicMock()
+    mock_ticker_instance = mocker.MagicMock()
     mock_yf_ticker.return_value = mock_ticker_instance
-    type(mock_ticker_instance).info = property(MagicMock(side_effect=Exception(error_message)))
+    type(mock_ticker_instance).info = property(mocker.MagicMock(side_effect=Exception(error_message)))
 
     result_str = tool_instance._run(ticker=ticker_symbol)
     result_data = json.loads(result_str)

@@ -2,10 +2,17 @@
 import json
 import logging
 from unittest.mock import MagicMock
+
 from faker import Faker
-from epic_news.utils.debug_utils import dump_crewai_state, make_serializable, log_state_keys, analyze_crewai_output, parse_crewai_output
 from pydantic import BaseModel
-from loguru import logger
+
+from epic_news.utils.debug_utils import (
+    analyze_crewai_output,
+    dump_crewai_state,
+    log_state_keys,
+    make_serializable,
+    parse_crewai_output,
+)
 
 fake = Faker()
 
@@ -19,7 +26,7 @@ def test_dump_crewai_state(tmp_path, mocker):
     state_data = {"test_key": "test_value"}
     debug_file = dump_crewai_state(state_data, "test_crew", debug_dir=tmp_path)
     assert debug_file.endswith(".json")
-    with open(debug_file, "r") as f:
+    with open(debug_file) as f:
         assert json.load(f) == state_data
 
 def test_make_serializable():
@@ -47,7 +54,7 @@ def test_parse_crewai_output():
     class MockReport(BaseModel):
         title: str
         content: str
-    
+
     report_content = MagicMock()
     report_content.raw = '{"title": "Test Title", "content": "Test Content"}'
     parsed_output = parse_crewai_output(report_content, MockReport)

@@ -1,5 +1,4 @@
 import json
-import logging
 import os
 import sys
 import xml.etree.ElementTree as ET
@@ -9,15 +8,13 @@ from pathlib import Path
 import feedparser
 from crewai.tools import BaseTool
 from dateutil import parser
+from loguru import logger
 from newspaper import Article as NewspaperArticle
 from pydantic import BaseModel, Field
 
 from epic_news.models.rss_models import Article, FeedWithArticles, RssFeeds
 from epic_news.tools.scrape_ninja_tool import ScrapeNinjaTool
 from epic_news.utils.directory_utils import ensure_output_directory
-
-# Set up logging
-logger = logging.getLogger(__name__)
 
 
 class UnifiedRssToolInput(BaseModel):
@@ -56,8 +53,6 @@ class UnifiedRssTool(BaseTool):
         output_file_path: str = None,
         invalid_sources_file_path: str = None,
     ) -> str:
-        # Set up logger
-        logger = logging.getLogger(__name__)
         """
         Execute the entire RSS processing pipeline.
 
@@ -190,11 +185,9 @@ class UnifiedRssTool(BaseTool):
 
             return urls
         except ET.ParseError as e:
-            logger = logging.getLogger(__name__)
             logger.error(f"Error parsing XML file: {e}")
             raise
         except FileNotFoundError:
-            logger = logging.getLogger(__name__)
             logger.error(f"File not found: {opml_file_path}")
             raise
 
@@ -203,7 +196,6 @@ class UnifiedRssTool(BaseTool):
     ) -> list[Article]:
         """Fetch articles from a feed URL and filter by date."""
         try:
-            logger = logging.getLogger(__name__)
             logger.info(f"Fetching and parsing feed: {feed_url}")
             feed = feedparser.parse(feed_url)
 
@@ -395,7 +387,8 @@ def main():
 
     # Set log level based on verbose flag
     if args.verbose:
-        logging.getLogger().setLevel(logging.DEBUG)
+        logger.remove()
+        logger.add(sys.stderr, level="DEBUG")
 
     # Run the tool
     tool = UnifiedRssTool()

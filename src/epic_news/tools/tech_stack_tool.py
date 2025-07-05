@@ -7,17 +7,15 @@ from typing import Any, ClassVar
 
 from crewai.tools import BaseTool
 from dotenv import load_dotenv
+from loguru import logger
 from pydantic import BaseModel, Field
-
-from epic_news.utils.logger import get_logger  # Added project logger
 
 from .search_base import BaseSearchTool
 
 # Load environment variables from .env file
 load_dotenv()
 
-# Use project's logger
-logger = get_logger(__name__)
+
 
 
 class TechStackInput(BaseModel):

@@ -54,7 +54,7 @@ def save_json_file(file_path: str, data: dict):
 def ensure_output_directory(directory_path: str):
     """
     Ensures that the specified output directory exists, creating it if necessary.
-    
+
     Args:
         directory_path (str): The path to the directory to ensure exists.
     """

@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock, call, patch
+from unittest.mock import call
 
 from epic_news.bin.update_knowledge_base import main, prune_outdated_knowledge, update_market_data
 from epic_news.rag_config import DEFAULT_RAG_CONFIG
@@ -27,20 +27,19 @@ SAMPLE_YF_INFO_MSFT = {
 SAMPLE_YF_INFO_NODATA = {}
 
 
-@patch("epic_news.bin.update_knowledge_base.SaveToRagTool")
-@patch("epic_news.bin.update_knowledge_base.RagTool")
-@patch("epic_news.bin.update_knowledge_base.yf.Ticker")
-def test_update_market_data_success(mock_yf_ticker, mock_rag_tool_class, mock_save_tool_class):
+def test_update_market_data_success(mocker):
     """Test successful market data update for multiple tickers."""
-    mock_save_instance = MagicMock()
+    mock_save_instance = mocker.MagicMock()
+    mock_save_tool_class = mocker.patch("epic_news.bin.update_knowledge_base.SaveToRagTool")
     mock_save_tool_class.return_value = mock_save_instance
 
-    mock_rag_instance = MagicMock()
+    mock_rag_instance = mocker.MagicMock()
+    mock_rag_tool_class = mocker.patch("epic_news.bin.update_knowledge_base.RagTool")
     mock_rag_tool_class.return_value = mock_rag_instance
 
     # Configure side_effect for yf.Ticker to return different mocks based on ticker
     def yf_ticker_side_effect(ticker_symbol):
-        mock_ticker = MagicMock()
+        mock_ticker = mocker.MagicMock()
         if ticker_symbol == "AAPL":
             mock_ticker.info = SAMPLE_YF_INFO_AAPL
         elif ticker_symbol == "MSFT":
@@ -49,6 +48,7 @@ def test_update_market_data_success(mock_yf_ticker, mock_rag_tool_class, mock_sa
             mock_ticker.info = {}
         return mock_ticker
 
+    mock_yf_ticker = mocker.patch("epic_news.bin.update_knowledge_base.yf.Ticker")
     mock_yf_ticker.side_effect = yf_ticker_side_effect
 
     tickers_to_update = ["AAPL", "MSFT"]
@@ -93,18 +93,18 @@ def test_update_market_data_success(mock_yf_ticker, mock_rag_tool_class, mock_sa
     assert "Dividend Yield: 0.80%" in msft_call_args
 
 
-@patch("epic_news.bin.update_knowledge_base.SaveToRagTool")
-@patch("epic_news.bin.update_knowledge_base.RagTool")
-@patch("epic_news.bin.update_knowledge_base.yf.Ticker")
-def test_update_market_data_no_suffix(mock_yf_ticker, mock_rag_tool_class, mock_save_tool_class):
+def test_update_market_data_no_suffix(mocker):
     """Test market data update without a collection suffix."""
-    mock_save_instance = MagicMock()
+    mock_save_instance = mocker.MagicMock()
+    mock_save_tool_class = mocker.patch("epic_news.bin.update_knowledge_base.SaveToRagTool")
     mock_save_tool_class.return_value = mock_save_instance
-    mock_rag_instance = MagicMock()
+    mock_rag_instance = mocker.MagicMock()
+    mock_rag_tool_class = mocker.patch("epic_news.bin.update_knowledge_base.RagTool")
     mock_rag_tool_class.return_value = mock_rag_instance
 
-    mock_ticker_aapl = MagicMock()
+    mock_ticker_aapl = mocker.MagicMock()
     mock_ticker_aapl.info = SAMPLE_YF_INFO_AAPL
+    mock_yf_ticker = mocker.patch("epic_news.bin.update_knowledge_base.yf.Ticker")
     mock_yf_ticker.return_value = mock_ticker_aapl  # Only one ticker for simplicity
 
     update_market_data(["AAPL"])
@@ -119,22 +119,20 @@ def test_update_market_data_no_suffix(mock_yf_ticker, mock_rag_tool_class, mock_
     mock_save_instance._run.assert_called_once()
 
 
-@patch("epic_news.bin.update_knowledge_base.SaveToRagTool")
-@patch("epic_news.bin.update_knowledge_base.RagTool")
-@patch("epic_news.bin.update_knowledge_base.yf.Ticker")
-@patch("epic_news.bin.update_knowledge_base.logger")  # Mock logger
-def test_update_market_data_incomplete_info(
-    mock_logger, mock_yf_ticker, mock_rag_tool_class, mock_save_tool_class
-):
+def test_update_market_data_incomplete_info(mocker):
     """Test handling of incomplete info from yfinance."""
-    mock_save_instance = MagicMock()
+    mock_save_instance = mocker.MagicMock()
+    mock_save_tool_class = mocker.patch("epic_news.bin.update_knowledge_base.SaveToRagTool")
     mock_save_tool_class.return_value = mock_save_instance
-    mock_rag_instance = MagicMock()
+    mock_rag_instance = mocker.MagicMock()
+    mock_rag_tool_class = mocker.patch("epic_news.bin.update_knowledge_base.RagTool")
     mock_rag_tool_class.return_value = mock_rag_instance
 
-    mock_ticker_nodata = MagicMock()
+    mock_ticker_nodata = mocker.MagicMock()
     mock_ticker_nodata.info = SAMPLE_YF_INFO_NODATA  # Empty info dict
+    mock_yf_ticker = mocker.patch("epic_news.bin.update_knowledge_base.yf.Ticker")
     mock_yf_ticker.return_value = mock_ticker_nodata
+    mock_logger = mocker.patch("epic_news.bin.update_knowledge_base.logger")
 
     update_market_data(["NODATA"])
 
@@ -142,21 +140,19 @@ def test_update_market_data_incomplete_info(
     mock_logger.warning.assert_called_once_with("Could not retrieve complete information for NODATA")
 
 
-@patch("epic_news.bin.update_knowledge_base.SaveToRagTool")
-@patch("epic_news.bin.update_knowledge_base.RagTool")
-@patch("epic_news.bin.update_knowledge_base.yf.Ticker")
-@patch("epic_news.bin.update_knowledge_base.logger")  # Mock logger
-def test_update_market_data_yfinance_exception(
-    mock_logger, mock_yf_ticker, mock_rag_tool_class, mock_save_tool_class
-):
+def test_update_market_data_yfinance_exception(mocker):
     """Test handling of exceptions from yfinance."""
-    mock_save_instance = MagicMock()
+    mock_save_instance = mocker.MagicMock()
+    mock_save_tool_class = mocker.patch("epic_news.bin.update_knowledge_base.SaveToRagTool")
     mock_save_tool_class.return_value = mock_save_instance
-    mock_rag_instance = MagicMock()
+    mock_rag_instance = mocker.MagicMock()
+    mock_rag_tool_class = mocker.patch("epic_news.bin.update_knowledge_base.RagTool")
     mock_rag_tool_class.return_value = mock_rag_instance
 
     error_message = "Test yfinance error"
+    mock_yf_ticker = mocker.patch("epic_news.bin.update_knowledge_base.yf.Ticker")
     mock_yf_ticker.side_effect = Exception(error_message)
+    mock_logger = mocker.patch("epic_news.bin.update_knowledge_base.logger")
 
     update_market_data(["ERROR"])
 
@@ -164,18 +160,18 @@ def test_update_market_data_yfinance_exception(
     mock_logger.error.assert_called_once_with(f"Error updating ERROR: {error_message}")
 
 
-@patch("epic_news.bin.update_knowledge_base.logger")
-def test_prune_outdated_knowledge(mock_logger):
+def test_prune_outdated_knowledge(mocker):
     """Test the prune_outdated_knowledge function (currently a placeholder)."""
+    mock_logger = mocker.patch("epic_news.bin.update_knowledge_base.logger")
     prune_outdated_knowledge(max_age_days=30, collection_suffix="test_prune")
     mock_logger.info.assert_any_call("Pruning outdated knowledge (older than 30 days) is not yet implemented")
 
 
-@patch("epic_news.bin.update_knowledge_base.update_market_data")
-@patch("epic_news.bin.update_knowledge_base.prune_outdated_knowledge")
-@patch("epic_news.bin.update_knowledge_base.logger")
-def test_main_script_flow(mock_logger, mock_prune, mock_update):
+def test_main_script_flow(mocker):
     """Test the main function's overall flow."""
+    mock_update = mocker.patch("epic_news.bin.update_knowledge_base.update_market_data")
+    mock_prune = mocker.patch("epic_news.bin.update_knowledge_base.prune_outdated_knowledge")
+    mock_logger = mocker.patch("epic_news.bin.update_knowledge_base.logger")
     main()
 
     # Check that update_market_data is called for stocks, etfs, crypto

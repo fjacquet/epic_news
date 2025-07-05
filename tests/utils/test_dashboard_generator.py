@@ -1,6 +1,8 @@
 
 from unittest.mock import mock_open
+
 from faker import Faker
+
 from epic_news.utils.dashboard_generator import DashboardGenerator, generate_all_dashboards
 
 fake = Faker()

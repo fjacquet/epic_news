@@ -1,17 +1,12 @@
-import logging
-
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import FileReadTool
 from dotenv import load_dotenv
+from loguru import logger
 
 # KISS approach: No custom path utilities
 from epic_news.tools.report_tools import get_report_tools
 from epic_news.tools.web_tools import get_scrape_tools, get_search_tools
-
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()

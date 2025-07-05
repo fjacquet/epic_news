@@ -1,5 +1,6 @@
 
-from epic_news.utils.crewai_retry_patch import patch_crewai_llm_initialization, initialize_retry_mechanism
+from epic_news.utils.crewai_retry_patch import initialize_retry_mechanism, patch_crewai_llm_initialization
+
 
 def test_patch_crewai_llm_initialization(mocker):
     # Test that patch_crewai_llm_initialization patches the CrewAI LLM initialization

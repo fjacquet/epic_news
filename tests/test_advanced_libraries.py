@@ -1,6 +1,7 @@
 import pendulum
 from faker import Faker
 
+
 def test_faker_and_pendulum():
     """
     This test demonstrates the use of Faker and Pendulum.

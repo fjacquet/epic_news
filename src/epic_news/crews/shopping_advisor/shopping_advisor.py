@@ -11,9 +11,6 @@ from crewai.project import CrewBase, agent, crew, task
 
 from epic_news.models.shopping_advice_models import ShoppingAdviceOutput
 from epic_news.tools.web_tools import get_scrape_tools, get_search_tools
-from epic_news.utils.logger import get_logger
-
-logger = get_logger(__name__)
 
 
 @CrewBase

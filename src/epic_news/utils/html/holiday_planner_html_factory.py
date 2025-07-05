@@ -38,19 +38,17 @@ def holiday_planner_to_html(holiday_report, html_file=None):
             # 2. Itinerary: ensure 'date' field exists in each day
             if "itinerary" in transformed and isinstance(transformed["itinerary"], list):
                 for day_item in transformed["itinerary"]:
-                    if isinstance(day_item, dict):
-                        # Add date field if missing
-                        if "date" not in day_item:
-                            # Try to extract from day or title if possible
-                            day_num = day_item.get("day", "")
-                            title = day_item.get("title", "")
-                            if title and isinstance(title, str) and ":" in title:
-                                # Try to extract date from title like "Day 1: July 26"
-                                date_part = title.split(":", 1)[1].strip()
-                                day_item["date"] = date_part
-                            else:
-                                # Default date
-                                day_item["date"] = f"Day {day_num}"
+                    if isinstance(day_item, dict) and "date" not in day_item:
+                        # Try to extract from day or title if possible
+                        day_num = day_item.get("day", "")
+                        title = day_item.get("title", "")
+                        if title and isinstance(title, str) and ":" in title:
+                            # Try to extract date from title like "Day 1: July 26"
+                            date_part = title.split(":", 1)[1].strip()
+                            day_item["date"] = date_part
+                        else:
+                            # Default date
+                            day_item["date"] = f"Day {day_num}"
 
             # 3. Useful phrases: ensure 'local' and 'french' keys
             if isinstance(transformed.get("practical_information", {}), dict) and "useful_phrases" in transformed["practical_information"]:
@@ -85,7 +83,7 @@ def holiday_planner_to_html(holiday_report, html_file=None):
                                     break
                             else:
                                 phrase["local"] = "Phrase in local language"
-                                
+
                         if "french" not in phrase:
                             for fr_key in ["fr", "français", "francais", "french"]:
                                 if fr_key in phrase:
@@ -93,9 +91,9 @@ def holiday_planner_to_html(holiday_report, html_file=None):
                                     break
                             else:
                                 phrase["french"] = "Phrase in French"
-                        
+
                         new_phrases.append(phrase)
-                
+
                 # Replace the original phrases with normalized ones
                 if new_phrases:
                     transformed["practical_information"]["useful_phrases"] = new_phrases
@@ -106,7 +104,7 @@ def holiday_planner_to_html(holiday_report, html_file=None):
                     # Ensure description is present
                     if "description" not in accommodation:
                         accommodation["description"] = f"Accommodation {accommodation.get('name', 'Unknown')}"
-                    
+
                     # Ensure address is present
                     if "address" not in accommodation:
                         # Try to find address in other fields
@@ -127,7 +125,7 @@ def holiday_planner_to_html(holiday_report, html_file=None):
                             contact["service"] = contact["type"]
                         else:
                             contact["service"] = "Emergency Service"
-                    
+
                     # Ensure number field exists
                     if "number" not in contact:
                         # Try to find number in alternative fields

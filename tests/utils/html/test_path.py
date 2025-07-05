@@ -1,6 +1,11 @@
 
 from faker import Faker
-from epic_news.utils.html.path import extract_recipe_title_from_state, generate_cooking_output_path, determine_output_path
+
+from epic_news.utils.html.path import (
+    determine_output_path,
+    extract_recipe_title_from_state,
+    generate_cooking_output_path,
+)
 
 fake = Faker()
 

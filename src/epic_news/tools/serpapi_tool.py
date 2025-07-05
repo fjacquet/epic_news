@@ -6,16 +6,15 @@ import os
 import requests
 from crewai.tools import BaseTool
 from dotenv import load_dotenv
+from loguru import logger
 from pydantic import BaseModel
 
-from epic_news.utils.logger import get_logger  # Added project logger
 from src.epic_news.models.web_search_models import SerpApiInput
 
 # Load environment variables from .env file
 load_dotenv()
 
-# Use project's logger
-logger = get_logger(__name__)
+
 
 
 class SerpApiTool(BaseTool):

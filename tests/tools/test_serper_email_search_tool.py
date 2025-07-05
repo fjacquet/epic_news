@@ -1,7 +1,6 @@
 import json
 import os
 import unittest.mock
-from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -17,15 +16,15 @@ SERPER_API_URL = "https://google.serper.dev/search"
 
 # --- Fixtures ---
 @pytest.fixture
-def mock_env_serper_key():
-    with patch.dict(os.environ, {"SERPER_API_KEY": TEST_SERPER_API_KEY}, clear=True):
-        yield
+def mock_env_serper_key(mocker):
+    mocker.patch.dict(os.environ, {"SERPER_API_KEY": TEST_SERPER_API_KEY}, clear=True)
+    yield
 
 
 @pytest.fixture
-def mock_env_no_serper_key():
-    with patch.dict(os.environ, {"SERPER_API_KEY": ""}, clear=True):
-        yield
+def mock_env_no_serper_key(mocker):
+    mocker.patch.dict(os.environ, {"SERPER_API_KEY": ""}, clear=True)
+    yield
 
 
 # --- Instantiation Tests ---
@@ -43,8 +42,8 @@ def test_instantiation_no_api_key(mock_env_no_serper_key):
         SerperEmailSearchTool()
 
 
-def test_instantiation_with_searcher_instance():
-    mock_searcher = MagicMock(spec=EmailSearchTool)
+def test_instantiation_with_searcher_instance(mocker):
+    mock_searcher = mocker.MagicMock(spec=EmailSearchTool)
     mock_searcher.api_key = "custom_key"
     tool = SerperEmailSearchTool(searcher=mock_searcher)
     assert tool.searcher == mock_searcher
@@ -52,9 +51,9 @@ def test_instantiation_with_searcher_instance():
 
 
 # --- _run Method Tests ---
-@patch.object(EmailSearchTool, "_extract_emails")
-@patch.object(EmailSearchTool, "_make_request")
-def test_run_success_emails_found(mock_make_request, mock_extract_emails, mock_env_serper_key):
+def test_run_success_emails_found(mock_env_serper_key, mocker):
+    mock_make_request = mocker.patch.object(EmailSearchTool, "_make_request")
+    mock_extract_emails = mocker.patch.object(EmailSearchTool, "_extract_emails")
     tool = SerperEmailSearchTool()
     query = "Comp Inc"
     expected_search_q = '"comp inc" "@compinc" email'
@@ -65,7 +64,7 @@ def test_run_success_emails_found(mock_make_request, mock_extract_emails, mock_e
             {"snippet": "other text sales1@comp.com", "link": "comp.com/page2"},
         ]
     }
-    mock_response = MagicMock()
+    mock_response = mocker.MagicMock()
     mock_response.json.return_value = mock_api_response_data
     mock_make_request.return_value = mock_response
 
@@ -88,14 +87,12 @@ def test_run_success_emails_found(mock_make_request, mock_extract_emails, mock_e
     assert result_data == [{"emails": sorted(["info1@comp.com", "sales1@comp.com"])}]
 
 
-@patch.object(EmailSearchTool, "_extract_emails")
-@patch.object(EmailSearchTool, "_make_request")
-def test_run_success_no_emails_found_from_extraction(
-    mock_make_request, mock_extract_emails, mock_env_serper_key
-):
+def test_run_success_no_emails_found_from_extraction(mock_env_serper_key, mocker):
+    mock_make_request = mocker.patch.object(EmailSearchTool, "_make_request")
+    mock_extract_emails = mocker.patch.object(EmailSearchTool, "_extract_emails")
     tool = SerperEmailSearchTool()
     mock_api_response_data = {"organic": [{"snippet": "text", "link": "link"}]}
-    mock_response = MagicMock()
+    mock_response = mocker.MagicMock()
     mock_response.json.return_value = mock_api_response_data
     mock_make_request.return_value = mock_response
     mock_extract_emails.return_value = set()  # No emails extracted
@@ -105,12 +102,12 @@ def test_run_success_no_emails_found_from_extraction(
     assert result_data == [{"message": "No emails found"}]
 
 
-@patch.object(EmailSearchTool, "_extract_emails")
-@patch.object(EmailSearchTool, "_make_request")
-def test_run_success_empty_organic_results(mock_make_request, mock_extract_emails, mock_env_serper_key):
+def test_run_success_empty_organic_results(mock_env_serper_key, mocker):
+    mock_make_request = mocker.patch.object(EmailSearchTool, "_make_request")
+    mock_extract_emails = mocker.patch.object(EmailSearchTool, "_extract_emails")
     tool = SerperEmailSearchTool()
     mock_api_response_data = {"organic": []}  # Empty organic results
-    mock_response = MagicMock()
+    mock_response = mocker.MagicMock()
     mock_response.json.return_value = mock_api_response_data
     mock_make_request.return_value = mock_response
 
@@ -121,8 +118,8 @@ def test_run_success_empty_organic_results(mock_make_request, mock_extract_email
     assert result_data == [{"message": "No emails found"}]
 
 
-@patch.object(EmailSearchTool, "_make_request")
-def test_run_api_call_fails(mock_make_request, mock_env_serper_key):
+def test_run_api_call_fails(mock_env_serper_key, mocker):
+    mock_make_request = mocker.patch.object(EmailSearchTool, "_make_request")
     tool = SerperEmailSearchTool()
     mock_make_request.return_value = None  # Simulate request failure
 
@@ -131,15 +128,15 @@ def test_run_api_call_fails(mock_make_request, mock_env_serper_key):
     assert result_data == [{"error": "Failed to fetch data from Serper API"}]
 
 
-@patch.object(EmailSearchTool, "_make_request")
-def test_run_query_cleaning_and_formatting(mock_make_request, mock_env_serper_key):
+def test_run_query_cleaning_and_formatting(mock_env_serper_key, mocker):
+    mock_make_request = mocker.patch.object(EmailSearchTool, "_make_request")
     tool = SerperEmailSearchTool()
     query = "  My Test  Company  "
     expected_search_q = '"my test  company" "@mytestcompany" email'
 
     # Setup mock response to avoid error during json parsing
     mock_api_response_data = {"organic": []}
-    mock_response = MagicMock()
+    mock_response = mocker.MagicMock()
     mock_response.json.return_value = mock_api_response_data
     mock_make_request.return_value = mock_response
 

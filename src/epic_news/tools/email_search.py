@@ -4,9 +4,9 @@ import json
 
 from crewai.tools import BaseTool
 from dotenv import load_dotenv
+from loguru import logger
 from pydantic import BaseModel
 
-from epic_news.utils.logger import get_logger
 from src.epic_news.models.email_search_models import DelegatingEmailSearchInput
 
 from .hunter_io_tool import HunterIOTool  # Import the actual tool
@@ -15,8 +15,7 @@ from .serper_email_search_tool import SerperEmailSearchTool  # Import the actual
 # Load environment variables from .env file
 load_dotenv()
 
-# Use project's logger
-logger = get_logger(__name__)
+
 
 
 class DelegatingEmailSearchTool(BaseTool):

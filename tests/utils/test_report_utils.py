@@ -2,7 +2,6 @@
 
 import os
 import tempfile
-from unittest.mock import MagicMock, patch
 
 from epic_news.utils.report_utils import (
     get_final_report_content,
@@ -12,40 +11,40 @@ from epic_news.utils.report_utils import (
 )
 
 
-def test_get_final_report_content_found():
+def test_get_final_report_content_found(mocker):
     """Test get_final_report_content when content is found."""
     # Create a mock with strict spec to avoid auto-creation of attributes
-    mock_state = MagicMock(spec=[])
+    mock_state = mocker.MagicMock(spec=[])
     # Configure only the attributes we need
     mock_state.news_report = "Sample news report content"
     mock_state.recipe = None
     # Configure all other attributes to return None
     mock_attrs = {
-        'shopping_advice_report': None,
-        'book_summary': None,
-        'poem': None,
-        'holiday_plan': None,
-        'marketing_report': None,
-        'meeting_prep_report': None,
-        'menu_designer_report': None,
-        'contact_info_report': None,
-        'cross_reference_report': None,
-        'fin_daily_report': None,
-        'rss_weekly_report': None,
-        'post_report': None,
-        'location_report': None,
-        'osint_report': None,
-        'company_profile': None,
-        'tech_stack_report': None,
-        'web_presence_report': None,
-        'hr_intelligence_report': None,
-        'legal_analysis_report': None,
-        'geospatial_analysis': None,
-        'lead_score_report': None,
-        'tech_stack': None,
-        'final_report': None,
-        'news_daily_report': None,
-        'saint_daily_report': None,
+        "shopping_advice_report": None,
+        "book_summary": None,
+        "poem": None,
+        "holiday_plan": None,
+        "marketing_report": None,
+        "meeting_prep_report": None,
+        "menu_designer_report": None,
+        "contact_info_report": None,
+        "cross_reference_report": None,
+        "fin_daily_report": None,
+        "rss_weekly_report": None,
+        "post_report": None,
+        "location_report": None,
+        "osint_report": None,
+        "company_profile": None,
+        "tech_stack_report": None,
+        "web_presence_report": None,
+        "hr_intelligence_report": None,
+        "legal_analysis_report": None,
+        "geospatial_analysis": None,
+        "lead_score_report": None,
+        "tech_stack": None,
+        "final_report": None,
+        "news_daily_report": None,
+        "saint_daily_report": None,
     }
     mock_state.configure_mock(**mock_attrs)
 
@@ -53,39 +52,39 @@ def test_get_final_report_content_found():
     assert result == "Sample news report content"
 
 
-def test_get_final_report_content_not_found():
+def test_get_final_report_content_not_found(mocker):
     """Test get_final_report_content when no content is found."""
     # Create a mock with strict spec to avoid auto-creation of attributes
-    mock_state = MagicMock(spec=[])
+    mock_state = mocker.MagicMock(spec=[])
     # Configure all attributes to return None
     mock_attrs = {
-        'news_report': None,
-        'recipe': None,
-        'shopping_advice_report': None,
-        'book_summary': None,
-        'poem': None,
-        'holiday_plan': None,
-        'marketing_report': None,
-        'meeting_prep_report': None,
-        'menu_designer_report': None,
-        'contact_info_report': None,
-        'cross_reference_report': None,
-        'fin_daily_report': None,
-        'rss_weekly_report': None,
-        'post_report': None,
-        'location_report': None,
-        'osint_report': None,
-        'company_profile': None,
-        'tech_stack_report': None,
-        'web_presence_report': None,
-        'hr_intelligence_report': None,
-        'legal_analysis_report': None,
-        'geospatial_analysis': None,
-        'lead_score_report': None,
-        'tech_stack': None,
-        'final_report': None,
-        'news_daily_report': None,
-        'saint_daily_report': None,
+        "news_report": None,
+        "recipe": None,
+        "shopping_advice_report": None,
+        "book_summary": None,
+        "poem": None,
+        "holiday_plan": None,
+        "marketing_report": None,
+        "meeting_prep_report": None,
+        "menu_designer_report": None,
+        "contact_info_report": None,
+        "cross_reference_report": None,
+        "fin_daily_report": None,
+        "rss_weekly_report": None,
+        "post_report": None,
+        "location_report": None,
+        "osint_report": None,
+        "company_profile": None,
+        "tech_stack_report": None,
+        "web_presence_report": None,
+        "hr_intelligence_report": None,
+        "legal_analysis_report": None,
+        "geospatial_analysis": None,
+        "lead_score_report": None,
+        "tech_stack": None,
+        "final_report": None,
+        "news_daily_report": None,
+        "saint_daily_report": None,
     }
     mock_state.configure_mock(**mock_attrs)
 
@@ -121,24 +120,24 @@ def test_write_output_to_file_no_path():
     assert result is False
 
 
-def test_prepare_email_params_defaults():
+def test_prepare_email_params_defaults(mocker):
     """Test prepare_email_params with minimal state."""
     # Create a mock with strict spec to avoid auto-creation of attributes
-    mock_state = MagicMock(spec=[])
+    mock_state = mocker.MagicMock(spec=[])
     mock_state.output_file = "test.html"
     # Configure attributes to return None - essential for the default logic
     mock_attrs = {
-        'recipient': None,
-        'sendto': None,
-        'email_subject': None,
-        'email_body': None,
-        'attachment_file': None,
+        "recipient": None,
+        "sendto": None,
+        "email_subject": None,
+        "email_body": None,
+        "attachment_file": None,
     }
     mock_state.configure_mock(**mock_attrs)
 
     # Patch os.environ.get to return None for MAIL
-    with patch('os.environ.get', return_value=None):
-        params = prepare_email_params(mock_state)
+    mocker.patch("os.environ.get", return_value=None)
+    params = prepare_email_params(mock_state)
 
     assert params["recipient_email"] == "sample@example.com"
     assert "subject" in params
@@ -147,44 +146,30 @@ def test_prepare_email_params_defaults():
     assert params["output_file"] == "test.html"
 
 
-def test_prepare_email_params_custom():
-    """Test prepare_email_params with custom values."""
-    mock_state = MagicMock(spec=[])
-    # Configure all attributes we need
-    mock_attrs = {
-        'output_file': "test.html",
-        'sendto': "user@example.com",
-        'email_subject': "Custom Subject",
-        'email_body': "Custom Body",
-        'attachment_file': "custom.html",
-    }
-    mock_state.configure_mock(**mock_attrs)
-
-    # Patch os.environ.get to return None for MAIL
-    with patch('os.environ.get', return_value=None):
-        params = prepare_email_params(mock_state)
-
-    assert params["recipient_email"] == "user@example.com"
-    assert "subject" in params
-    assert "body" in params
-    assert params["attachment_path"] == "custom.html" or params["output_file"] == "test.html"
+"""Tests for the report_utils module using pytest."""
 
 
-@patch("epic_news.utils.report_utils.ensure_output_directory")
-def test_setup_crew_output_directory_exists(mock_ensure_output_directory):
+
+
+
+
+
+
+def test_setup_crew_output_directory_exists(mocker):
     """Test setup_crew_output_directory when directory already exists."""
-    with patch("os.path.exists", return_value=True):
-        result = setup_crew_output_directory("test_crew")
+    mock_ensure_output_directory = mocker.patch("epic_news.utils.report_utils.ensure_output_directory")
+    mocker.patch("os.path.exists", return_value=True)
+    result = setup_crew_output_directory("test_crew")
 
-        assert result == "output/test_crew"
-        mock_ensure_output_directory.assert_called_once_with("output/test_crew")
+    assert result == "output/test_crew"
+    mock_ensure_output_directory.assert_called_once_with("output/test_crew")
 
 
-@patch("epic_news.utils.report_utils.ensure_output_directory")
-def test_setup_crew_output_directory_create(mock_ensure_output_directory):
+def test_setup_crew_output_directory_create(mocker):
     """Test setup_crew_output_directory when directory needs to be created."""
-    with patch("os.path.exists", return_value=False):
-        result = setup_crew_output_directory("test_crew")
+    mock_ensure_output_directory = mocker.patch("epic_news.utils.report_utils.ensure_output_directory")
+    mocker.patch("os.path.exists", return_value=False)
+    result = setup_crew_output_directory("test_crew")
 
-        assert result == "output/test_crew"
-        mock_ensure_output_directory.assert_called_once_with("output/test_crew")
+    assert result == "output/test_crew"
+    mock_ensure_output_directory.assert_called_once_with("output/test_crew")

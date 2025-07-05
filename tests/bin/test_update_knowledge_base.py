@@ -1,6 +1,5 @@
 import datetime
 import logging
-from unittest.mock import MagicMock, patch
 
 import pytest
 from pydantic import BaseModel
@@ -26,9 +25,9 @@ class KnowledgeEntry(BaseModel):
 
 
 @pytest.fixture
-def mock_yfinance_ticker():
+def mock_yfinance_ticker(mocker):
     """Fixture to mock yfinance.Ticker."""
-    mock_ticker = MagicMock()
+    mock_ticker = mocker.MagicMock()
     mock_ticker.info = {
         "shortName": "Apple Inc.",
         "sector": "Technology",
@@ -41,18 +40,16 @@ def mock_yfinance_ticker():
     return mock_ticker
 
 
-@patch("epic_news.bin.update_knowledge_base.SaveToRagTool")
-@patch("epic_news.bin.update_knowledge_base.RagTool")
-@patch("epic_news.bin.update_knowledge_base.yf.Ticker")
 def test_update_market_data_success(
-    mock_ticker_cls,
-    mock_rag_tool_cls,
-    mock_save_tool_cls,
     mock_yfinance_ticker,
     caplog,
+    mocker,
 ):
     """Test successful update of market data for a single ticker."""
+    mock_ticker_cls = mocker.patch("epic_news.bin.update_knowledge_base.yf.Ticker")
     mock_ticker_cls.return_value = mock_yfinance_ticker
+    mock_rag_tool_cls = mocker.patch("epic_news.bin.update_knowledge_base.RagTool")
+    mock_save_tool_cls = mocker.patch("epic_news.bin.update_knowledge_base.SaveToRagTool")
     mock_save_tool_instance = mock_save_tool_cls.return_value
 
     tickers = ["AAPL"]
@@ -78,17 +75,15 @@ def test_update_market_data_success(
     assert "Updated knowledge base with data for AAPL" in caplog.text
 
 
-@patch("epic_news.bin.update_knowledge_base.SaveToRagTool")
-@patch("epic_news.bin.update_knowledge_base.RagTool")
-@patch("epic_news.bin.update_knowledge_base.yf.Ticker")
 def test_update_market_data_incomplete_info(
-    mock_ticker_cls,
-    mock_rag_tool_cls,
-    mock_save_tool_cls,
     caplog,
+    mocker,
 ):
     """Test update when yfinance returns incomplete info."""
-    mock_incomplete_ticker = MagicMock()
+    mock_ticker_cls = mocker.patch("epic_news.bin.update_knowledge_base.yf.Ticker")
+    mocker.patch("epic_news.bin.update_knowledge_base.RagTool")
+    mock_save_tool_cls = mocker.patch("epic_news.bin.update_knowledge_base.SaveToRagTool")
+    mock_incomplete_ticker = mocker.MagicMock()
     mock_incomplete_ticker.info = {"symbol": "FAIL"}  # Missing 'shortName'
     mock_ticker_cls.return_value = mock_incomplete_ticker
     mock_save_tool_instance = mock_save_tool_cls.return_value
@@ -99,12 +94,12 @@ def test_update_market_data_incomplete_info(
     assert "Could not retrieve complete information for FAIL" in caplog.text
 
 
-@patch("epic_news.bin.update_knowledge_base.yf.Ticker")
 def test_update_market_data_exception(
-    mock_ticker_cls,
     caplog,
+    mocker,
 ):
     """Test update when yfinance raises an exception."""
+    mock_ticker_cls = mocker.patch("epic_news.bin.update_knowledge_base.yf.Ticker")
     mock_ticker_cls.side_effect = Exception("Network Error")
 
     update_market_data(["ERROR"])

@@ -1,6 +1,5 @@
 import json
 import os
-from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -11,12 +10,12 @@ from epic_news.tools.tech_stack_tool import TechStackInput, TechStackTool
 TEST_SERPER_API_KEY = "test_serper_api_key_123"
 
 
-@patch.dict(os.environ, {"SERPER_API_KEY": TEST_SERPER_API_KEY})
-def test_tech_stack_tool_instantiation_success():
+def test_tech_stack_tool_instantiation_success(mocker):
     """Test successful instantiation when SERPER_API_KEY is set."""
     # Mock BaseSearchTool's _search_serper to avoid issues if it's called during init
-    with patch("epic_news.tools.search_base.BaseSearchTool._search_serper", MagicMock(return_value={})):
-        tool = TechStackTool()
+    mocker.patch("epic_news.tools.search_base.BaseSearchTool._search_serper", mocker.MagicMock(return_value={}))
+    mocker.patch.dict(os.environ, {"SERPER_API_KEY": TEST_SERPER_API_KEY})
+    tool = TechStackTool()
     assert tool.api_key == TEST_SERPER_API_KEY
     assert tool.name == "tech_stack_analysis"
     # Adjust description assertion based on BaseTool behavior
@@ -24,25 +23,25 @@ def test_tech_stack_tool_instantiation_success():
     assert tool.args_schema == TechStackInput
 
 
-@patch.dict(os.environ, {}, clear=True)  # Ensure SERPER_API_KEY is not set
-def test_tech_stack_tool_instantiation_no_api_key():
+def test_tech_stack_tool_instantiation_no_api_key(mocker):
     """Test instantiation failure when SERPER_API_KEY is not set."""
+    mocker.patch.dict(os.environ, {}, clear=True)  # Ensure SERPER_API_KEY is not set
     with (
         pytest.raises(ValueError) as excinfo,
-        patch("epic_news.tools.search_base.BaseSearchTool._search_serper", MagicMock(return_value={})),
+        mocker.patch("epic_news.tools.search_base.BaseSearchTool._search_serper", mocker.MagicMock(return_value={})),
     ):
         TechStackTool()
     assert "SERPER_API_KEY environment variable not set" in str(excinfo.value)
 
 
 @pytest.fixture
-def tech_stack_tool_instance_with_mock():  # Renamed fixture
+def tech_stack_tool_instance_with_mock(mocker):  # Renamed fixture
     """Fixture to create a TechStackTool instance with SERPER_API_KEY set and _search_serper mocked."""
     # Patch _search_serper on BaseSearchTool where it's defined
-    with patch("epic_news.tools.search_base.BaseSearchTool._search_serper") as mock_search_serper_method:
-        with patch.dict(os.environ, {"SERPER_API_KEY": TEST_SERPER_API_KEY}):
-            tool = TechStackTool()
-        yield tool, mock_search_serper_method  # Yield tool and the mock
+    mock_search_serper_method = mocker.patch("epic_news.tools.search_base.BaseSearchTool._search_serper")
+    mocker.patch.dict(os.environ, {"SERPER_API_KEY": TEST_SERPER_API_KEY})
+    tool = TechStackTool()
+    yield tool, mock_search_serper_method  # Yield tool and the mock
 
 
 def test_run_simple_success(tech_stack_tool_instance_with_mock):  # Updated to use new fixture

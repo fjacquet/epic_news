@@ -1,6 +1,6 @@
 
-from unittest.mock import patch
-from epic_news.utils.tool_logging import configure_tool_logging, get_quiet_tools_config, apply_tool_silence
+from epic_news.utils.tool_logging import apply_tool_silence, configure_tool_logging, get_quiet_tools_config
+
 
 def test_configure_tool_logging(mocker):
     # Test that configure_tool_logging configures the tool loggers correctly

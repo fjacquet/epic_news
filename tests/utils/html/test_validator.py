@@ -1,5 +1,7 @@
 import pytest
+
 from epic_news.utils.html.validator import validate_html
+
 
 def test_validate_html():
     # Test that validate_html validates HTML correctly

@@ -10,6 +10,8 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+from loguru import logger
+
 
 class CacheManager:
     """Simple file-based cache manager for API results."""
@@ -85,7 +87,7 @@ class CacheManager:
                 json.dump(cache_data, f, indent=2)
         except Exception as e:
             # If caching fails, just continue without caching
-            print(f"Warning: Failed to cache data for key {key}: {e}")
+            logger.warning(f"Failed to cache data for key {key}: {e}")
 
     def clear(self) -> None:
         """Clear all cached data."""

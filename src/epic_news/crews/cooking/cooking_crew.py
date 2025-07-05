@@ -1,8 +1,7 @@
-import logging
-
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from dotenv import load_dotenv
+from loguru import logger
 
 from epic_news.models.paprika_recipe import PaprikaRecipe
 from epic_news.tools.web_tools import get_scrape_tools, get_search_tools
@@ -14,8 +13,7 @@ configure_tool_logging(mute_tools=True, log_level="ERROR")
 # Or just reduce verbosity
 configure_tool_logging(mute_tools=False, log_level="WARNING")
 
-# Set up logging
-logger = logging.getLogger(__name__)
+
 
 # Load environment variables
 load_dotenv()

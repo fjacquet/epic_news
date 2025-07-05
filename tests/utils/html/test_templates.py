@@ -1,6 +1,12 @@
 
 from faker import Faker
-from epic_news.utils.html.templates import get_template_environment, render_template, render_menu_report, render_shopping_list
+
+from epic_news.utils.html.templates import (
+    get_template_environment,
+    render_menu_report,
+    render_shopping_list,
+    render_template,
+)
 
 fake = Faker()
 

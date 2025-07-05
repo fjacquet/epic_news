@@ -1,8 +1,10 @@
 
 from unittest.mock import patch
+
 from faker import Faker
+
+from epic_news.models.rss_weekly_models import ArticleSummary, FeedDigest, RssWeeklyReport
 from epic_news.utils.content_extractors import ContentExtractorFactory, RssWeeklyExtractor
-from epic_news.models.rss_weekly_models import RssWeeklyReport, FeedDigest, ArticleSummary
 
 fake = Faker()
 

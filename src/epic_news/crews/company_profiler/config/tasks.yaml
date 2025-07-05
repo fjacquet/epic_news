@@ -100,5 +100,15 @@ company_legal_compliance:
     A comprehensive JSON object detailing the legal and regulatory aspects of
     {company}.
     The JSON should be well-structured with appropriate keys and values.
-  agent: company_reporter
+  agent: company_researcher
   output_file: output/osint/{company}_legal_compliance.json
+format_report_task:
+  description: >
+    Format the comprehensive company profile report for {company}.
+    This task will take all the previously gathered information and format it into
+    a
+    single, comprehensive, and well-structured HTML report.
+  expected_output: >
+    A comprehensive HTML report containing all the information about {company}.
+  agent: company_reporter
+  output_file: output/company_profiler/{company}_profile.html

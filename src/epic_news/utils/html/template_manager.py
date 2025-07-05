@@ -171,7 +171,7 @@ class TemplateManager:
                 # Use FinancialRenderer instead of legacy _generate_financial_report_body
 
                 renderer = RendererFactory.create_renderer("FINANCIAL")
-                data = self.state.financial_report_model.dict()
+                data = self.state.financial_report_model.model_dump()
                 return renderer.render(data)
 
         # NEWSDAILY now uses NewsDailyRenderer via RendererFactory

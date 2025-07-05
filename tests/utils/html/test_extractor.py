@@ -1,7 +1,9 @@
 
 from unittest.mock import mock_open
+
 from faker import Faker
-from epic_news.utils.html.extractor import extract_html_from_json_output, extract_html_from_directory
+
+from epic_news.utils.html.extractor import extract_html_from_directory, extract_html_from_json_output
 
 fake = Faker()
 

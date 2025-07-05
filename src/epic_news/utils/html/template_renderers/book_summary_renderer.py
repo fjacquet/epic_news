@@ -17,7 +17,6 @@ class BookSummaryRenderer(BaseRenderer):
 
     def __init__(self):
         """Initialize the renderer."""
-        pass
 
     def render(self, data: dict[str, Any]) -> str:
         """

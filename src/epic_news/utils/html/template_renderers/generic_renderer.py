@@ -17,7 +17,6 @@ class GenericRenderer(BaseRenderer):
 
     def __init__(self):
         """Initialize the renderer."""
-        pass
 
     def render(self, data: dict[str, Any], crew_type: str = "UNKNOWN") -> str:
         """

@@ -1,8 +1,13 @@
 
-import os
-from unittest.mock import MagicMock
 from faker import Faker
-from epic_news.utils.observability import TraceEvent, Tracer, HallucinationGuard, Dashboard, get_observability_tools
+
+from epic_news.utils.observability import (
+    Dashboard,
+    HallucinationGuard,
+    TraceEvent,
+    Tracer,
+    get_observability_tools,
+)
 
 fake = Faker()
 

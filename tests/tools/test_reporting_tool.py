@@ -1,5 +1,4 @@
 from pathlib import Path
-from unittest.mock import patch
 
 from freezegun import freeze_time
 
@@ -55,16 +54,16 @@ class TestReportingTool:
         assert "{{ date }}" not in content
         assert "{{ section.content }}" not in content
 
-    def test_template_not_found_error(self):
+    def test_template_not_found_error(self, mocker):
         """Test that the tool returns an error when the template file is not found."""
-        with patch("pathlib.Path.exists") as mock_exists:
-            mock_exists.return_value = False
-            result = self.tool._run(
-                report_title="Test Report",
-                report_body="<p>This should fail.</p>",
-                output_file_path=self.test_output_path,
-            )
-            assert "Error: Template file not found" in result
+        mock_exists = mocker.patch("pathlib.Path.exists")
+        mock_exists.return_value = False
+        result = self.tool._run(
+            report_title="Test Report",
+            report_body="<p>This should fail.</p>",
+            output_file_path=self.test_output_path,
+        )
+        assert "Error: Template file not found" in result
 
     def test_report_content_integrity(self):
         """Test that the HTML structure and key elements are present in the generated file."""

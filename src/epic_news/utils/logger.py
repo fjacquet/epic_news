@@ -5,7 +5,6 @@ This module provides a centralized logging configuration for the entire epic_new
 application using Loguru.
 """
 
-import logging
 import os
 import sys
 from pathlib import Path

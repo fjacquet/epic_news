@@ -1,19 +1,17 @@
-import logging
 import pathlib
 
 from composio_crewai import ComposioToolSet
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from dotenv import load_dotenv
+from loguru import logger
 
 from epic_news.models.company_news_report import CompanyNewsReport
 from epic_news.utils.observability import get_observability_tools, trace_task
 
 # fact_checking_tools module doesn't exist, using alternative approach
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+
 
 # Load environment variables
 load_dotenv()

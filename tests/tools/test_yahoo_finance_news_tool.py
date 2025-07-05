@@ -1,6 +1,5 @@
 import datetime
 import json
-from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -20,11 +19,11 @@ def test_instantiation(tool_instance):
 
 
 # --- _run Method Tests ---
-@patch("src.epic_news.tools.yahoo_finance_news_tool.yf.Ticker")
-def test_run_successful_news_retrieval_with_limit(mock_yfinance_ticker, tool_instance):
+def test_run_successful_news_retrieval_with_limit(tool_instance, mocker):
+    mock_yfinance_ticker = mocker.patch("src.epic_news.tools.yahoo_finance_news_tool.yf.Ticker")
     ticker_symbol = "GOODNEWS"
     limit = 2
-    mock_ticker_instance = MagicMock()
+    mock_ticker_instance = mocker.MagicMock()
     mock_yfinance_ticker.return_value = mock_ticker_instance
 
     timestamp1 = int(datetime.datetime(2023, 1, 1, 10, 0, 0).timestamp())
@@ -49,11 +48,11 @@ def test_run_successful_news_retrieval_with_limit(mock_yfinance_ticker, tool_ins
     assert result_data["news"][1]["published_date"] == "2023-01-01 12:00"
 
 
-@patch("src.epic_news.tools.yahoo_finance_news_tool.yf.Ticker")
-def test_run_successful_news_retrieval_fewer_than_limit(mock_yfinance_ticker, tool_instance):
+def test_run_successful_news_retrieval_fewer_than_limit(tool_instance, mocker):
+    mock_yfinance_ticker = mocker.patch("src.epic_news.tools.yahoo_finance_news_tool.yf.Ticker")
     ticker_symbol = "FEWNEWS"
     limit = 5
-    mock_ticker_instance = MagicMock()
+    mock_ticker_instance = mocker.MagicMock()
     mock_yfinance_ticker.return_value = mock_ticker_instance
     timestamp1 = int(datetime.datetime(2023, 2, 1, 10, 0, 0).timestamp())
     mock_ticker_instance.news = [
@@ -72,10 +71,10 @@ def test_run_successful_news_retrieval_fewer_than_limit(mock_yfinance_ticker, to
     assert result_data["news"][0]["title"] == "Only News"
 
 
-@patch("src.epic_news.tools.yahoo_finance_news_tool.yf.Ticker")
-def test_run_successful_news_retrieval_default_limit(mock_yfinance_ticker, tool_instance):
+def test_run_successful_news_retrieval_default_limit(tool_instance, mocker):
+    mock_yfinance_ticker = mocker.patch("src.epic_news.tools.yahoo_finance_news_tool.yf.Ticker")
     ticker_symbol = "DEFAULTLIMITNEWS"
-    mock_ticker_instance = MagicMock()
+    mock_ticker_instance = mocker.MagicMock()
     mock_yfinance_ticker.return_value = mock_ticker_instance
     # Create 7 news items
     mock_ticker_instance.news = [
@@ -93,10 +92,10 @@ def test_run_successful_news_retrieval_default_limit(mock_yfinance_ticker, tool_
     assert len(result_data["news"]) == 5
 
 
-@patch("src.epic_news.tools.yahoo_finance_news_tool.yf.Ticker")
-def test_run_no_news_found(mock_yfinance_ticker, tool_instance):
+def test_run_no_news_found(tool_instance, mocker):
+    mock_yfinance_ticker = mocker.patch("src.epic_news.tools.yahoo_finance_news_tool.yf.Ticker")
     ticker_symbol = "NONEWS"
-    mock_ticker_instance = MagicMock()
+    mock_ticker_instance = mocker.MagicMock()
     mock_yfinance_ticker.return_value = mock_ticker_instance
     mock_ticker_instance.news = []
 
@@ -106,10 +105,10 @@ def test_run_no_news_found(mock_yfinance_ticker, tool_instance):
     assert result_data == {"message": f"No recent news found for {ticker_symbol}."}
 
 
-@patch("src.epic_news.tools.yahoo_finance_news_tool.yf.Ticker")
-def test_run_news_item_missing_fields(mock_yfinance_ticker, tool_instance):
+def test_run_news_item_missing_fields(tool_instance, mocker):
+    mock_yfinance_ticker = mocker.patch("src.epic_news.tools.yahoo_finance_news_tool.yf.Ticker")
     ticker_symbol = "MISSINGFIELDSNEWS"
-    mock_ticker_instance = MagicMock()
+    mock_ticker_instance = mocker.MagicMock()
     mock_yfinance_ticker.return_value = mock_ticker_instance
     mock_ticker_instance.news = [
         {"title": None, "publisher": "Pub D", "link": "link4.com", "providerPublishTime": None},
@@ -138,15 +137,15 @@ def test_run_news_item_missing_fields(mock_yfinance_ticker, tool_instance):
     )  # Check it's a string, actual date will vary
 
 
-@patch("src.epic_news.tools.yahoo_finance_news_tool.yf.Ticker")
-def test_run_yfinance_exception(mock_yfinance_ticker, tool_instance):
+def test_run_yfinance_exception(tool_instance, mocker):
+    mock_yfinance_ticker = mocker.patch("src.epic_news.tools.yahoo_finance_news_tool.yf.Ticker")
     ticker_symbol = "ERRORNEWS"
     error_message = "Test yfinance news error"
 
     # Test error on .news access
-    mock_ticker_instance = MagicMock()
+    mock_ticker_instance = mocker.MagicMock()
     mock_yfinance_ticker.return_value = mock_ticker_instance
-    type(mock_ticker_instance).news = property(MagicMock(side_effect=Exception(error_message)))
+    type(mock_ticker_instance).news = property(mocker.MagicMock(side_effect=Exception(error_message)))
 
     result_str = tool_instance._run(ticker=ticker_symbol)
     result_data = json.loads(result_str)
@@ -160,10 +159,10 @@ def test_run_yfinance_exception(mock_yfinance_ticker, tool_instance):
     assert result_data == {"error": f"Error retrieving news for {ticker_symbol}: {error_message}"}
 
 
-@patch("src.epic_news.tools.yahoo_finance_news_tool.yf.Ticker")
-def test_run_with_zero_limit(mock_yfinance_ticker, tool_instance):
+def test_run_with_zero_limit(tool_instance, mocker):
+    mock_yfinance_ticker = mocker.patch("src.epic_news.tools.yahoo_finance_news_tool.yf.Ticker")
     ticker_symbol = "ZEROLIMITNEWS"
-    mock_ticker_instance = MagicMock()
+    mock_ticker_instance = mocker.MagicMock()
     mock_yfinance_ticker.return_value = mock_ticker_instance
     mock_ticker_instance.news = [
         {

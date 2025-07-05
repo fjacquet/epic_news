@@ -5,9 +5,6 @@ from dotenv import load_dotenv
 
 from epic_news.models.report import ReportHTMLOutput
 from epic_news.tools.report_tools import get_report_tools
-from epic_news.utils.logger import get_logger
-
-logger = get_logger(__name__)
 
 load_dotenv()
 
