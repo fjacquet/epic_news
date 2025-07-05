@@ -6,9 +6,10 @@ following the Single Responsibility Principle.
 """
 
 import json
-import logging
 from abc import ABC, abstractmethod
 from typing import Any
+
+from loguru import logger
 
 from epic_news.models.financial_report import FinancialReport
 from epic_news.models.paprika_recipe import PaprikaRecipe
@@ -16,7 +17,7 @@ from epic_news.models.rss_weekly_models import RssWeeklyReport
 from epic_news.models.saint_data import SaintData
 from epic_news.models.shopping_advice_models import ShoppingAdviceOutput
 
-logger = logging.getLogger(__name__)
+# logger = logging.getLogger(__name__)
 
 
 class ContentExtractor(ABC):
@@ -59,7 +60,9 @@ class CookingExtractor(ContentExtractor):
         # Debug logging
         logger.debug("🔍 DEBUG COOKING extraction:")
         logger.debug(f"  recipe_obj type: {type(recipe_obj)}")
-        logger.debug(f"  recipe_obj keys: {list(recipe_obj.keys()) if hasattr(recipe_obj, 'keys') else 'N/A'}")
+        logger.debug(
+            f"  recipe_obj keys: {list(recipe_obj.keys()) if hasattr(recipe_obj, 'keys') else 'N/A'}"
+        )
 
         # Check if we have a direct PaprikaRecipe model (new flow)
         recipe_model = None
@@ -192,7 +195,9 @@ class ShoppingExtractor(ContentExtractor):
             # Reconstruct ShoppingAdviceOutput from dict
             try:
                 shopping_obj = ShoppingAdviceOutput(**shopping_obj)
-                logger.debug(f"  ✅ ShoppingAdviceOutput reconstructed from dict: {shopping_obj.product_info.name}")
+                logger.debug(
+                    f"  ✅ ShoppingAdviceOutput reconstructed from dict: {shopping_obj.product_info.name}"
+                )
             except Exception as e:
                 logger.error(f"  ❌ Failed to reconstruct ShoppingAdviceOutput: {e}")
                 return {"error": f"Failed to parse shopping advice data: {e}"}

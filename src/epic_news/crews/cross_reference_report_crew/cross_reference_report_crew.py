@@ -52,9 +52,6 @@ class CrossReferenceReportCrew:
             respect_context_window=True,
             reasoning=True,
             max_reasoning_attempts=5,
-            max_iter=5,
-            max_retry_limit=3,
-            max_rpm=10,
         )
 
     @agent

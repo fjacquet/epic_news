@@ -7,7 +7,6 @@ guardrails against hallucinations in AI agent outputs.
 
 import hashlib
 import json
-import logging
 import os
 import re
 import time
@@ -15,10 +14,12 @@ from datetime import datetime
 from functools import wraps
 from typing import Any
 
+from loguru import logger
+
 from epic_news.utils.directory_utils import ensure_output_directory
 
 # Configure logging
-logger = logging.getLogger("observability")
+# logger = logging.getLogger("observability")
 
 # Constants
 TRACE_DIR = "traces"

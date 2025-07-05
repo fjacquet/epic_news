@@ -6,16 +6,16 @@ This script examines the output files of the LibraryCrew and provides diagnostic
 on structure, content, and templating issues.
 """
 
-import logging
 import os
 import re
 from pathlib import Path
 
 from bs4 import BeautifulSoup
+from loguru import logger
 
 # Set up logging
-logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
-logger = logging.getLogger("library_analyzer")
+# logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+# logger = logging.getLogger("library_analyzer")
 
 # Find the project root (assuming we're in src/epic_news/bin)
 project_root = Path(__file__).resolve().parent.parent.parent.parent
@@ -153,7 +153,7 @@ def analyze_templates_directory():
 
 def analyze_dashboard_directories():
     """Examine dashboard directories setup."""
-    dashboard_data = os.path.join(project_root, "output", "dashboard_data")
+    dashboard_data = os.path.join(project_root, "output", "dashboard__data")
     dashboards = os.path.join(project_root, "output", "dashboards")
 
     logger.info("Analyzing dashboard directories...")

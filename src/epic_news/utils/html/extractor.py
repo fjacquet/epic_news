@@ -1,11 +1,12 @@
 """Utility to extract HTML from CrewAI JSON-wrapped outputs."""
 
 import json
-import logging
 from pathlib import Path
 from typing import Union
 
-logger = logging.getLogger(__name__)
+from loguru import logger
+
+# logger = logging.getLogger(__name__)
 
 
 def extract_html_from_json_output(file_path: Union[str, Path]) -> bool:

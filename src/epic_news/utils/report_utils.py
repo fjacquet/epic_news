@@ -92,75 +92,156 @@ def write_output_to_file(content: str | None, output_file: str | None) -> bool:
         return False
 
 
-def prepare_email_params(state: Any) -> dict[str, Any]:
+"""
+This module provides utility functions for generating and handling reports.
+"""
+
+import json
+from loguru import logger
+from typing import Any, Dict
+
+from bs4 import BeautifulSoup
+
+# Configure logging
+# logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+
+
+def generate_rss_weekly_html_report(json_file_path: str, output_html_path: str):
     """
-    Prepare comprehensive email parameters from the application state.
-    This function handles all the email input preparation logic needed for email sending.
+    Generates an HTML report from a JSON file containing RSS feed data.
 
     Args:
-        state: Application state object containing email-related attributes
+        json_file_path (str): The path to the input JSON file.
+        output_html_path (str): The path to the output HTML file.
+    """
+    logger.info(f"Generating HTML report from {json_file_path}...")
+
+    try:
+        with open(json_file_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        logger.error(f"JSON file not found: {json_file_path}")
+        return
+    except json.JSONDecodeError:
+        logger.error(f"Invalid JSON format in {json_file_path}")
+        return
+
+    soup = BeautifulSoup(
+        """
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Weekly RSS Summary</title>
+            <style>
+                body { font-family: sans-serif; line-height: 1.6; margin: 20px; }
+                h1, h2 { color: #333; }
+                .feed { margin-bottom: 30px; }
+                .article { margin-bottom: 15px; }
+                .article-title { font-size: 1.2em; font-weight: bold; }
+                .article-summary { margin-top: 5px; }
+            </style>
+        </head>
+        <body>
+            <h1>Weekly RSS Summary</h1>
+        </body>
+        </html>
+    """,
+        "html.parser",
+    )
+
+    body = soup.body
+
+    for feed in data.get("rss_feeds", []):
+        feed_div = soup.new_tag("div", **{"class": "feed"})
+        feed_title = soup.new_tag("h2")
+        feed_title.string = feed.get("feed_title", "Untitled Feed")
+        feed_div.append(feed_title)
+
+        for article in feed.get("articles", []):
+            article_div = soup.new_tag("div", **{"class": "article"})
+            article_title_div = soup.new_tag("div", **{"class": "article-title"})
+            article_link = soup.new_tag("a", href=article.get("link", "#"))
+            article_link.string = article.get("title", "Untitled Article")
+            article_title_div.append(article_link)
+            article_div.append(article_title_div)
+
+            if "summary" in article:
+                summary_p = soup.new_tag("p", **{"class": "article-summary"})
+                summary_p.string = article["summary"]
+                article_div.append(summary_p)
+
+            feed_div.append(article_div)
+
+        body.append(feed_div)
+
+    try:
+        with open(output_html_path, "w", encoding="utf-8") as f:
+            f.write(str(soup))
+        logger.info(f"HTML report successfully generated at {output_html_path}")
+    except IOError as e:
+        logger.error(f"Failed to write HTML report: {e}")
+
+
+def prepare_email_params(state: Any) -> Dict[str, Any]:
+    """
+    Prepares the parameters for sending an email based on the application state.
+
+    Args:
+        state (Any): The application state object, which should have attributes
+                     like `selected_crew`, `user_request`, and `output_file`.
 
     Returns:
-        Dictionary of email parameters for PostCrew (recipient_email, subject, body, output_file, attachment_path, etc.)
+        Dict[str, Any]: A dictionary with email parameters including recipient,
+                        subject, body, and attachment path.
     """
-    import os
+    recipient = "test-ia@fjaquet.fr"
+    subject = f"Epic News Report: {state.selected_crew} - {state.user_request}"
+    body = f"Please find the report for '{state.user_request}' attached."
+    attachment_path = getattr(state, "output_file", None)
 
-    # Calculate subject topic (used in subject line and potentially elsewhere)
-    subject_topic = (
-        state.extracted_info.main_subject_or_activity
-        if hasattr(state, "extracted_info")
-        and state.extracted_info
-        and hasattr(state.extracted_info, "main_subject_or_activity")
-        else "Your Report"
-    )
-
-    # Get email body content
-    email_body_content = getattr(
-        state,
-        "final_report",
-        "Please find your report attached or view content above if no attachment was generated.",
-    )
-
-    # Initialize email inputs with environment-based recipient if available
-    # Start with default email, then try available sources in order of priority
-    recipient = "sample@example.com"  # Default email address
-
-    # Check for recipient attribute (legacy)
-    if hasattr(state, "recipient") and state.recipient:
-        recipient = state.recipient
-
-    # Check for sendto attribute (new standard name)
-    if hasattr(state, "sendto") and state.sendto:
-        recipient = state.sendto
-
-    # Environment variable overrides all other sources if present
-    env_recipient = os.environ.get("MAIL")
-    if env_recipient:
-        recipient = env_recipient
-
-    params = {
-        "recipient_email": recipient,
-        "subject": f"Your Epic News Report: {subject_topic}",
-        "body": str(email_body_content),  # Ensure body is string
-        "output_file": getattr(state, "output_file", None) or "",
-        "topic": subject_topic,
+    return {
+        "recipient": recipient,
+        "subject": subject,
+        "body": body,
+        "attachment_path": attachment_path,
     }
 
-    # Determine attachment: specific attachment_file takes precedence over output_file
-    attachment_to_send = None
 
-    # Check specific attachment file first
-    if hasattr(state, "attachment_file") and state.attachment_file and os.path.exists(state.attachment_file):
-        attachment_to_send = state.attachment_file
+if __name__ == "__main__":
+    # Example usage of generate_rss_weekly_html_report
+    sample_data = {
+        "rss_feeds": [
+            {
+                "feed_title": "Tech News",
+                "articles": [
+                    {
+                        "title": "AI Breakthroughs",
+                        "link": "http://example.com/ai",
+                        "summary": "New AI models are changing the game.",
+                    }
+                ],
+            }
+        ]
+    }
+    json_path = "output/reports/sample_rss_data.json"
+    with open(json_path, "w", encoding="utf-8") as f:
+        json.dump(sample_data, f, indent=2)
 
-    # Fall back to output file if available
-    elif hasattr(state, "output_file") and state.output_file and os.path.exists(state.output_file):
-        attachment_to_send = state.output_file
+    generate_rss_weekly_html_report(json_path, "output/reports/sample_rss_report.html")
 
-    # Always include attachment_path, even if empty, to satisfy PostCrew's task template
-    params["attachment_path"] = attachment_to_send if attachment_to_send else ""
+    # Example usage of prepare_email_params
+    class MockState:
+        def __init__(self):
+            self.selected_crew = "NEWS"
+            self.user_request = "Latest on space exploration"
+            self.output_file = "output/reports/space_report.html"
 
-    return params
+    mock_state = MockState()
+    email_params = prepare_email_params(mock_state)
+    print("Prepared email parameters:", email_params)
+
 
 
 def generate_rss_weekly_html_report(

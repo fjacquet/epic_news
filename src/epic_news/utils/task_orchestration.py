@@ -27,31 +27,97 @@ class OrchestrationStrategy:
     HIERARCHICAL = Process.hierarchical
 
     @staticmethod
-    def determine_optimal_strategy(tasks: list[Task], dependencies: dict[str, list[str]] = None) -> Process:
-        """
-        Determines the optimal orchestration strategy based on task dependencies.
+    """
+This module provides utilities for task orchestration, including strategy
+selection and optimization for CrewAI processes.
+"""
 
-        Args:
-            tasks: List of tasks to analyze
-            dependencies: Dictionary mapping task IDs to lists of dependency task IDs
+from enum import Enum
+from loguru import logger
+from typing import Any, Dict, List
 
-        Returns:
-            Process: The recommended Process strategy
-        """
-        if not dependencies:
-            # If no explicit dependencies, check for async_execution flags
-            async_tasks = [task for task in tasks if getattr(task, "async_execution", False)]
-            if len(async_tasks) > len(tasks) / 2:  # If more than half are async
-                logger.info("Majority of tasks are async-capable, recommending hierarchical process")
-                return Process.hierarchical
-            return Process.sequential
+from crewai import Process
 
-        # If we have explicit dependencies, check their structure
-        dependency_count = sum(len(deps) for deps in dependencies.values())
-        if dependency_count > len(tasks) / 2:
-            # Many dependencies - hierarchical is better
-            return Process.hierarchical
-        return Process.sequential
+# Configure logging
+# logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+
+
+class OrchestrationStrategy(Enum):
+    """
+    Defines the orchestration strategies for CrewAI processes.
+    """
+
+    SEQUENTIAL = Process.sequential
+    HIERARCHICAL = Process.hierarchical
+
+
+def select_orchestration_strategy(
+    tasks: List[Any], strategy: OrchestrationStrategy = OrchestrationStrategy.SEQUENTIAL
+) -> Process:
+    """
+    Selects the orchestration strategy for a list of tasks.
+
+    Args:
+        tasks (List[Any]): A list of tasks to be orchestrated.
+        strategy (OrchestrationStrategy): The desired strategy (sequential or hierarchical).
+
+    Returns:
+        Process: The selected CrewAI process type.
+    """
+    logger.info(f"Selecting orchestration strategy: {strategy.name}")
+    return strategy.value
+
+
+def optimize_crew_process(crew_details: Dict[str, Any]) -> OrchestrationStrategy:
+    """
+    Analyzes crew details to recommend an optimal orchestration strategy.
+
+    This function checks the number of async tasks and total tasks to suggest
+    whether a sequential or hierarchical process would be more efficient.
+
+    Args:
+        crew_details (Dict[str, Any]): A dictionary containing details about the
+                                     crew, including 'task_count' and 'async_tasks'.
+
+    Returns:
+        OrchestrationStrategy: The recommended strategy.
+    """
+    task_count = crew_details.get("task_count", 0)
+    async_tasks = crew_details.get("async_tasks", 0)
+
+    # If more than half of the tasks are asynchronous, recommend hierarchical
+    if async_tasks > task_count / 2:
+        logger.info("Recommending HIERARCHICAL strategy due to high number of async tasks.")
+        return OrchestrationStrategy.HIERARCHICAL
+    else:
+        logger.info("Recommending SEQUENTIAL strategy.")
+        return OrchestrationStrategy.SEQUENTIAL
+
+
+if __name__ == "__main__":
+    # Example usage of the task orchestration utilities
+
+    # 1. Define a mock list of tasks
+    mock_tasks = ["task1", "task2", "task3"]
+
+    # 2. Select a sequential strategy
+    sequential_process = select_orchestration_strategy(mock_tasks, OrchestrationStrategy.SEQUENTIAL)
+    print(f"Selected process for sequential: {sequential_process}")
+
+    # 3. Select a hierarchical strategy
+    hierarchical_process = select_orchestration_strategy(mock_tasks, OrchestrationStrategy.HIERARCHICAL)
+    print(f"Selected process for hierarchical: {hierarchical_process}")
+
+    # 4. Optimize crew process based on task details
+    # Scenario 1: Low number of async tasks
+    crew1_details = {"task_count": 5, "async_tasks": 1}
+    optimal_strategy1 = optimize_crew_process(crew1_details)
+    print(f"Optimal strategy for crew 1: {optimal_strategy1.name}")
+
+    # Scenario 2: High number of async tasks
+    crew2_details = {"task_count": 5, "async_tasks": 4}
+    optimal_strategy2 = optimize_crew_process(crew2_details)
+    print(f"Optimal strategy for crew 2: {optimal_strategy2.name}")
 
 
 class TaskGroup:

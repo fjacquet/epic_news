@@ -3,11 +3,12 @@ Utility functions for handling file operations.
 """
 
 import json
-import logging
 import os
 from pathlib import Path
 
-logger = logging.getLogger(__name__)
+from loguru import logger
+
+# logger = logging.getLogger(__name__)
 
 
 def read_file_content(file_path):

@@ -1,14 +1,15 @@
 """Utilities for menu designer and cooking operations."""
 
 import json
-import logging
 import os
 from typing import Any
+
+from loguru import logger
 
 from epic_news.crews.cooking.cooking_crew import CookingCrew
 from epic_news.utils.string_utils import create_topic_slug
 
-logger = logging.getLogger(__name__)
+# logger = logging.getLogger(__name__)
 
 
 def extract_html_from_json(json_report: str, html_output_path: str) -> bool:

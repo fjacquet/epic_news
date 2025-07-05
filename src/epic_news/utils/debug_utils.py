@@ -1,16 +1,16 @@
 """Debug utilities for Epic News CrewAI system."""
 
 import json
-import logging
 import os
 import time
 from typing import Any, TypeVar
 
+from loguru import logger
 from pydantic import BaseModel
 
 from epic_news.utils.directory_utils import ensure_output_directory
 
-logger = logging.getLogger(__name__)
+# logger = logging.getLogger(__name__)
 
 
 def _attempt_json_repair(json_str: str) -> str:
@@ -37,7 +37,7 @@ def _attempt_json_repair(json_str: str) -> str:
 
     # 2. Fix missing colons after keys (common LLM error)
     # Pattern: "key" value -> "key": value
-    repaired = re.sub(r'"([^"]+)"\s+(["\{\d])', r'"\1": \2', repaired)
+    repaired = re.sub(r'"([^"]+)"\s+(["{\d])', r'"\1": \2', repaired)
 
     # 3. Fix missing quotes around keys (but preserve already quoted keys)
     # Pattern: key: -> "key": (but not "key":)
@@ -314,13 +314,13 @@ def parse_crewai_output(report_content: Any, model_class: type[T], inputs: dict 
     try:
         parsed_data = json.loads(cleaned_json)
 
-        # $$Special handling for BookSummaryReport: coerce table_of_contents IDs to strings
+        # $Special handling for BookSummaryReport: coerce table_of_contents IDs to strings
         if model_class.__name__ == "BookSummaryReport" and "table_of_contents" in parsed_data:
             for entry in parsed_data["table_of_contents"]:
                 if "id" in entry and not isinstance(entry["id"], str):
                     entry["id"] = str(entry["id"])
 
-        # $$Special handling for HolidayPlannerReport: robustly handle day/jour fields
+        # $Special handling for HolidayPlannerReport: robustly handle day/jour fields
         if model_class.__name__ == "HolidayPlannerReport" and "itinerary" in parsed_data:
             for day in parsed_data["itinerary"]:
                 # Handle 'day' or 'jour' fields that may be int or str
@@ -340,7 +340,7 @@ def parse_crewai_output(report_content: Any, model_class: type[T], inputs: dict 
                         pass  # safe to do string ops
 
 
-        # $$Special handling for HolidayPlannerReport: comprehensive data transformation
+        # $Special handling for HolidayPlannerReport: comprehensive data transformation
         if model_class.__name__ == "HolidayPlannerReport":
             parsed_data = _transform_holiday_planner_data(parsed_data)
 

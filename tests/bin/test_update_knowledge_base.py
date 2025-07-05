@@ -1,7 +1,7 @@
 import datetime
-import logging
 
 import pytest
+from loguru import logger
 from pydantic import BaseModel
 
 from epic_news.bin.update_knowledge_base import (
@@ -53,8 +53,7 @@ def test_update_market_data_success(
     mock_save_tool_instance = mock_save_tool_cls.return_value
 
     tickers = ["AAPL"]
-    with caplog.at_level(logging.INFO):
-        update_market_data(tickers, collection_suffix="test-stocks")
+    update_market_data(tickers, collection_suffix="test-stocks")
 
     # Verify RagTool was configured correctly
     rag_config = mock_rag_tool_cls.call_args.kwargs["config"]
@@ -109,7 +108,6 @@ def test_update_market_data_exception(
 
 def test_prune_outdated_knowledge(caplog):
     """Test that the prune function logs its unimplemented status."""
-    with caplog.at_level(logging.INFO):
-        prune_outdated_knowledge(max_age_days=90)
+    prune_outdated_knowledge(max_age_days=90)
 
     assert "Pruning outdated knowledge (older than 90 days) is not yet implemented" in caplog.text

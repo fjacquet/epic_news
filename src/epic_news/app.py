@@ -1,9 +1,9 @@
-import logging
 import os
 from queue import Empty, Queue
 from threading import Thread
 
 import streamlit as st
+from loguru import logger
 
 from epic_news.main import kickoff
 
@@ -23,25 +23,19 @@ if "final_report" not in st.session_state:
 
 
 # --- Real-time Logging Setup ---
-class QueueLogger(logging.Handler):
+class QueueLogger:
     """A custom logging handler that puts messages into a queue."""
 
     def __init__(self, queue):
-        super().__init__()
         self.queue = queue
 
-    def emit(self, record):
-        self.queue.put(self.format(record))
+    def write(self, message):
+        self.queue.put(message)
 
 
 log_queue = Queue()
-queue_handler = QueueLogger(log_queue)
-# You can customize the formatter for a cleaner look in the UI
-formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-queue_handler.setFormatter(formatter)
-
-# Add the handler to the root logger to capture logs from crewai and other libs
-logging.basicConfig(level=logging.INFO, handlers=[queue_handler])
+queue_logger = QueueLogger(log_queue)
+logger.add(queue_logger, format="{time:YYYY-MM-DD HH:mm:ss} - {level} - {message}")
 
 
 # --- Crew Execution Logic ---
@@ -61,7 +55,7 @@ def run_crew_thread(user_request: str, log_queue: Queue):
             log_queue.put(("ERROR", error_message))
 
     except Exception as e:
-        logging.error(f"An error occurred in the crew thread: {e}", exc_info=True)
+        logger.error(f"An error occurred in the crew thread: {e}", exc_info=True)
         log_queue.put(("ERROR", str(e)))
     finally:
         log_queue.put(("END", "Crew execution finished."))

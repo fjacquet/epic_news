@@ -1,7 +1,6 @@
-import logging
-
 import pytest
 from crewai import Process, Task
+from loguru import logger
 
 from epic_news.utils.task_orchestration import (
     OrchestrationStrategy,
@@ -40,8 +39,7 @@ def test_performance_monitor(caplog):
     def test_function():
         pass
 
-    with caplog.at_level(logging.INFO):
-        test_function()
+    test_function()
     assert "Starting execution" in caplog.text
     assert "Completed" in caplog.text
 

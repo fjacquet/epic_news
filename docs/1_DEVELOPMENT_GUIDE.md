@@ -64,10 +64,13 @@ Epic News uses **Loguru** for all logging. It provides a more powerful and flexi
 **Usage:**
 
 - To use the logger in any module, simply import it:
+
   ```python
   from loguru import logger
   ```
+
 - Then, you can use the logger to log messages at different levels:
+
   ```python
   logger.debug("This is a debug message.")
   logger.info("This is an info message.")

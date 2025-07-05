@@ -10,11 +10,11 @@ recommendations for process type changes.
 import argparse
 import importlib
 import inspect
-import logging
 import os
 import sys
 from typing import Any
 
+from loguru import logger
 from tabulate import tabulate
 
 # Add the project root to the Python path
@@ -23,7 +23,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../.
 from epic_news.utils.task_orchestration import OrchestrationStrategy
 
 # Configure logging
-logger = logging.getLogger("optimize_crews")
+# logger = logging.getLogger("optimize_crews")
 
 
 def discover_crews() -> list[str]:

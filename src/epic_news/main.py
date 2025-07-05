@@ -543,7 +543,9 @@ class ReceptionFlow(Flow[ContentState]):
         self.state.saint_daily_model = saint_model
         saint_to_html(saint_model, html_file=html_file)
 
-        self.logger.info("✅ Saint content generated - HTML rendering will be handled by generate_html_report")
+        self.logger.info(
+            "✅ Saint content generated - HTML rendering will be handled by generate_html_report"
+        )
 
     @listen("go_generate_recipe")
     @trace_task(tracer)
@@ -574,8 +576,12 @@ class ReceptionFlow(Flow[ContentState]):
 
         # Log what we're generating
         self.logger.info(f"🍳 Generating recipe for: {crew_inputs.get('topic', 'Unknown topic')}")
-        self.logger.info(f"📁 YAML export will be saved to: {self.state.output_dir}/{self.state.topic_slug}.yaml")
-        self.logger.info(f"📁 JSON export will be saved to: {self.state.output_dir}/{self.state.topic_slug}.json")
+        self.logger.info(
+            f"📁 YAML export will be saved to: {self.state.output_dir}/{self.state.topic_slug}.yaml"
+        )
+        self.logger.info(
+            f"📁 JSON export will be saved to: {self.state.output_dir}/{self.state.topic_slug}.json"
+        )
         self.logger.info(f"📁 Recipte will be saved to: {self.state.output_dir}/{self.state.topic_slug}.html")
 
         # Create crew using context-driven approach with automatic topic_slug injection
@@ -726,7 +732,9 @@ class ReceptionFlow(Flow[ContentState]):
         # Generate HTML using the factory function
         shopping_advice_to_html(shopping_advice_obj, topic=topic, html_file=html_file)
 
-        self.logger.info("✅ Shopping advice content generated - HTML rendering will be handled by generate_html_report")
+        self.logger.info(
+            "✅ Shopping advice content generated - HTML rendering will be handled by generate_html_report"
+        )
 
     @listen("go_generate_meeting_prep")
     @trace_task(tracer)
@@ -788,7 +796,9 @@ class ReceptionFlow(Flow[ContentState]):
         our_product = self.state.to_crew_inputs().get(
             "our_product", "our product/service"
         )  # Default if not specified
-        self.logger.info(f"Generating sales prospecting report for: {company or 'N/A'} regarding {our_product}")
+        self.logger.info(
+            f"Generating sales prospecting report for: {company or 'N/A'} regarding {our_product}"
+        )
 
         self.state.contact_info_report = (
             SalesProspectingCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
@@ -989,7 +999,9 @@ class ReceptionFlow(Flow[ContentState]):
         `self.state.marketing_report`.
         """
         self.state.output_file = "output/marketing/enhanced_message.html"
-        self.logger.info(f"Generating marketing content for topic: {self.state.to_crew_inputs().get('topic', 'N/A')}")
+        self.logger.info(
+            f"Generating marketing content for topic: {self.state.to_crew_inputs().get('topic', 'N/A')}"
+        )
 
         # Create and kickoff the marketing writers crew
         self.state.marketing_report = (
@@ -1150,9 +1162,8 @@ def kickoff(user_input: str | None = None):
     setup_logging()
     # If user_input is not provided, use a default value.
     request = (
-        user_input
-        if user_input
-        else "let's plan a weekend in cinque terre for 1 person in end of july, I start from finale ligure, give the best hotel and restaurant options"
+        user_input if user_input else "Donne moi le saint du jour en français"
+        # else "let's plan a weekend in cinque terre for 1 person in end of july, I start from finale ligure, give the best hotel and restaurant options"
         # else "get me all news for company JT International SA"
         # else "get the daily news report"
         # else "Meeting preparation for JT International SA with the  CTO to discuss PowerFlex deployment in switzerland for their new 9 OpenShift clusters "

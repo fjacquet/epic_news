@@ -6,10 +6,11 @@ This module provides utilities to control tool verbosity and logging
 without affecting agent and task verbosity.
 """
 
-import logging
 import os
 
-logger = logging.getLogger(__name__)
+from loguru import logger
+
+# logger = logging.getLogger(__name__)
 
 
 def configure_tool_logging(mute_tools: bool = True, log_level: str = "WARNING") -> None:
@@ -21,7 +22,7 @@ def configure_tool_logging(mute_tools: bool = True, log_level: str = "WARNING") 
         log_level: Logging level for tools (DEBUG, INFO, WARNING, ERROR)
     """
     # Convert string log level to logging constant
-    numeric_level = getattr(logging, log_level.upper(), logging.WARNING)
+    # numeric_level = getattr(logging, log_level.upper(), logging.WARNING)
 
     # List of tool loggers to control
     tool_loggers = [
@@ -36,14 +37,14 @@ def configure_tool_logging(mute_tools: bool = True, log_level: str = "WARNING") 
     ]
 
     for logger_name in tool_loggers:
-        logger = logging.getLogger(logger_name)
+        # logger = logging.getLogger(logger_name)
         if mute_tools:
-            logger.setLevel(logging.ERROR)  # Only show errors
+            logger.disable(logger_name)  # Only show errors
         else:
-            logger.setLevel(numeric_level)
+            logger.enable(logger_name)
 
         # Prevent propagation to parent loggers
-        logger.propagate = False
+        # logger.propagate = False
 
 
 def get_quiet_tools_config() -> dict[str, bool]:

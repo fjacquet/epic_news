@@ -7,17 +7,17 @@ with fresh financial data and prune outdated information.
 """
 
 import datetime
-import logging
 
 import yfinance as yf
 from crewai_tools import RagTool
+from loguru import logger
 
 from epic_news.rag_config import DEFAULT_RAG_CONFIG
 from epic_news.tools.save_to_rag_tool import SaveToRagTool
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-logger = logging.getLogger(__name__)
+# logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+# logger = logging.getLogger(__name__)
 
 
 def update_market_data(tickers: list[str], collection_suffix: str | None = None) -> None:

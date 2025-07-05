@@ -1,160 +1,142 @@
-"""HTML factory for RSS Weekly digest reports."""
+"""
+This module provides a factory function for generating an HTML report from
+a JSON file containing RSS feed data.
+"""
 
 import json
-import logging
+from loguru import logger
+from typing import Dict, Any
 
-from src.epic_news.models.rss_weekly_models import RssWeeklyReport
-from src.epic_news.utils.html.template_manager import TemplateManager
+from bs4 import BeautifulSoup
 
-logger = logging.getLogger(__name__)
+# Configure logging
+# logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 
-def rss_weekly_to_html(crew_output, topic: str | None = None, html_file: str | None = None) -> str:
+def generate_rss_weekly_html_report(json_file_path: str, output_html_path: str):
     """
-    Convert RSS weekly crew output to HTML using TemplateManager.
+    Generates an HTML report from a JSON file containing RSS feed data.
 
     Args:
-        crew_output: CrewAI output containing RSS weekly digest data
-        topic: Optional topic for the report
-        html_file: Optional path to save HTML file
-
-    Returns:
-        Complete HTML string
+        json_file_path (str): The path to the input JSON file.
+        output_html_path (str): The path to the output HTML file.
     """
+    logger.info(f"Generating HTML report from {json_file_path}...")
+
     try:
-        # Extract and parse the RSS weekly data
-        if isinstance(crew_output, RssWeeklyReport):
-            # Direct RssWeeklyReport object (from main.py)
-            rss_model = crew_output
-            logger.debug(f"✅ Using direct RssWeeklyReport object: {rss_model.title}")
-        elif hasattr(crew_output, "output") and isinstance(crew_output.output, RssWeeklyReport):
-            rss_model = crew_output.output
-            logger.debug(f"✅ Using RssWeeklyReport from crew_output.output: {rss_model.title}")
-        elif hasattr(crew_output, "raw"):
-            # Try to parse raw output as JSON
-            try:
-                raw_data = json.loads(crew_output.raw)
-                rss_model = RssWeeklyReport.model_validate(raw_data)
-                logger.debug(f"✅ Parsed RssWeeklyReport from raw JSON: {rss_model.title}")
-            except (json.JSONDecodeError, ValueError) as e:
-                logger.error(f"❌ Error parsing RSS weekly raw output: {e}")
-                # Create a minimal model with error info
-                rss_model = RssWeeklyReport(
-                    title="Erreur de Parsing RSS Weekly",
-                    summary=f"Erreur lors du parsing des données: {str(e)}",
-                )
-        else:
-            # Fallback: try to validate crew_output directly
-            logger.warning(f"⚠️ Fallback validation for crew_output type: {type(crew_output)}")
-            try:
-                # If it's a pydantic model (even from a duplicate import), dump it to a dict first
-                data_dict = crew_output.model_dump()
-                rss_model = RssWeeklyReport.model_validate(data_dict)
-                logger.debug("✅ Successfully validated from model_dump() fallback.")
-            except (AttributeError, ValueError):
-                # If not, try to validate directly (for raw dict inputs)
-                rss_model = RssWeeklyReport.model_validate(crew_output)
+        # Read the JSON data from the file
+        with open(json_file_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        logger.error(f"JSON file not found: {json_file_path}")
+        return
+    except json.JSONDecodeError:
+        logger.error(f"Invalid JSON format in {json_file_path}")
+        return
 
-        # Prepare structured data for TemplateManager
-        # The RssWeeklyRenderer expects a different structure than what we have in the model
-        # Map the data to match what the renderer expects
-
-        # First, convert articles by feed to a flat list for the renderer
-        all_articles = []
-        sources = []
-
-        # Process all feeds and their articles
-        for feed in rss_model.feeds:
-            feed_name = feed.feed_name or _extract_domain_name(feed.feed_url)
-            sources.append(feed.feed_url)  # Add feed URL to sources list
-
-            # Process all articles in this feed
-            for article in feed.articles:
-                # Create a concise version with only summary, not full content
-                # Ensure summary is not too long (limit to ~150 words if needed)
-                summary = article.summary
-                if summary and len(summary.split()) > 150:
-                    # Truncate to approximately 150 words and add ellipsis
-                    summary = " ".join(summary.split()[:150]) + "..."
-
-                all_articles.append({
-                    "title": article.title,
-                    "url": article.link,  # Renderer expects 'url' not 'link'
-                    "date": article.published,  # Renderer expects 'date' not 'published'
-                    "description": "",  # Optional field - keep empty
-                    "summary": summary,  # Use potentially truncated summary
-                    "source": feed_name,  # Use feed name as source
-                    # Explicitly exclude full content
-                })
-
-        # Create categories if needed (optional in the renderer)
-        categories = {}
-
-        # Prepare the content data structure that matches what RssWeeklyRenderer expects
-        content_data = {
-            "title": rss_model.title,
-            "date": rss_model.generation_date.strftime("%Y-%m-%d"),
-            "summary": rss_model.summary,
-            "articles": all_articles,
-            "categories": categories,  # Optional categorization
-            "sources": [  # List of source information
-                {
-                    "name": feed.feed_name or _extract_domain_name(feed.feed_url),
-                    "url": feed.feed_url
-                } for feed in rss_model.feeds
-            ],
-            # Additional metadata for debugging
-            "total_feeds": rss_model.total_feeds,
-            "total_articles": rss_model.total_articles,
-            "report_type": "RSS_WEEKLY",
-        }
-
-        # Generate HTML using TemplateManager
-        template_manager = TemplateManager()
-        # Make sure we use the exact crew type that matches the renderer factory mapping
-        html_content = template_manager.render_report("RSS_WEEKLY", content_data)
-
-        # Optionally save to file
-        if html_file:
-            try:
-                with open(html_file, "w", encoding="utf-8") as f:
-                    f.write(html_content)
-                logger.info(f"✅ RSS weekly HTML report saved to: {html_file}")
-            except Exception as e:
-                logger.error(f"❌ Error saving RSS weekly HTML file: {e}")
-
-        return html_content
-
-    except Exception as e:
-        logger.error(f"❌ Error in rss_weekly_to_html: {e}")
-        # Return a basic error HTML
-        return f"""
+    # Create a new BeautifulSoup object for the HTML report
+    soup = BeautifulSoup(
+        """
         <!DOCTYPE html>
-        <html lang="fr">
+        <html lang="en">
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Erreur RSS Weekly</title>
+            <title>Weekly RSS Summary</title>
+            <style>
+                body { font-family: sans-serif; line-height: 1.6; margin: 20px; }
+                h1, h2 { color: #333; }
+                .feed { margin-bottom: 30px; }
+                .article { margin-bottom: 15px; }
+                .article-title { font-size: 1.2em; font-weight: bold; }
+                .article-summary { margin-top: 5px; }
+            </style>
         </head>
         <body>
-            <h1>Erreur lors de la génération du rapport RSS Weekly</h1>
-            <p>Une erreur s'est produite: {e}</p>
-            <pre>{str(crew_output)[:1000]}...</pre>
+            <h1>Weekly RSS Summary</h1>
         </body>
         </html>
-        """
+    """,
+        "html.parser",
+    )
 
+    body = soup.body
 
-def _extract_domain_name(url: str) -> str:
-    """Extract a readable domain name from a URL."""
+    # Iterate over the feeds and articles to build the HTML content
+    for feed in data.get("rss_feeds", []):
+        feed_div = soup.new_tag("div", **{"class": "feed"})
+        feed_title = soup.new_tag("h2")
+        feed_title.string = feed.get("feed_title", "Untitled Feed")
+        feed_div.append(feed_title)
+
+        for article in feed.get("articles", []):
+            article_div = soup.new_tag("div", **{"class": "article"})
+            article_title = soup.new_tag("div", **{"class": "article-title"})
+            article_link = soup.new_tag("a", href=article.get("link", "#"))
+            article_link.string = article.get("title", "Untitled Article")
+            article_title.append(article_link)
+            article_div.append(article_title)
+
+            if "summary" in article:
+                summary_p = soup.new_tag("p", **{"class": "article-summary"})
+                summary_p.string = article["summary"]
+                article_div.append(summary_p)
+
+            feed_div.append(article_div)
+
+        body.append(feed_div)
+
+    # Write the generated HTML to the output file
     try:
-        from urllib.parse import urlparse
+        with open(output_html_path, "w", encoding="utf-8") as f:
+            f.write(str(soup))
+        logger.info(f"HTML report successfully generated at {output_html_path}")
+    except IOError as e:
+        logger.error(f"Failed to write HTML report: {e}")
 
-        parsed = urlparse(url)
-        domain = parsed.netloc.lower()
-        # Remove www. prefix if present
-        if domain.startswith("www."):
-            domain = domain[4:]
-        return domain.title()
-    except Exception:
-        return url
+
+if __name__ == "__main__":
+    # Example usage of the HTML report generator
+    # This demonstrates how to create a sample JSON file and generate a report from it
+
+    # 1. Create a sample JSON data structure
+    sample_data: Dict[str, Any] = {
+        "rss_feeds": [
+            {
+                "feed_title": "Tech News",
+                "articles": [
+                    {
+                        "title": "The Future of AI",
+                        "link": "https://example.com/ai-future",
+                        "summary": "A look into the advancements in artificial intelligence.",
+                    },
+                    {
+                        "title": "New Quantum Computing Breakthrough",
+                        "link": "https://example.com/quantum-breakthrough",
+                        "summary": "Scientists achieve a new milestone in quantum computing.",
+                    },
+                ],
+            },
+            {
+                "feed_title": "Science Updates",
+                "articles": [
+                    {
+                        "title": "Mars Rover Discovers New Rock Formation",
+                        "link": "https://example.com/mars-discovery",
+                        "summary": "The rover has found something unexpected on the red planet.",
+                    }
+                ],
+            },
+        ]
+    }
+
+    # 2. Write the sample data to a JSON file
+    json_path = "output/rss_weekly/sample_rss_data.json"
+    with open(json_path, "w", encoding="utf-8") as f:
+        json.dump(sample_data, f, indent=2)
+
+    # 3. Generate the HTML report
+    html_path = "output/rss_weekly/sample_report.html"
+    generate_rss_weekly_html_report(json_path, html_path)
+
+    print(f"Generated sample report at {html_path}")

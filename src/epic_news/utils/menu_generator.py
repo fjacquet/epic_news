@@ -4,10 +4,11 @@ Handles recipe parsing, shopping list creation, and report generation.
 """
 
 import datetime
-import logging
 from typing import Any
 
-logger = logging.getLogger(__name__)
+from loguru import logger
+
+# logger = logging.getLogger(__name__)
 
 
 class MenuGenerator:

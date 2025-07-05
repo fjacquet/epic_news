@@ -1,7 +1,7 @@
-import logging
 from pathlib import Path
 
 import pytest
+from loguru import logger
 
 from epic_news.bin.analyze_library_crew import (
     analyze_dashboard_directories,
@@ -44,8 +44,7 @@ def test_analyze_html_file_valid(caplog, mock_project_root):
     html_path = mock_project_root / "output" / "library" / "book_summary.html"
     html_path.write_text(html_content, encoding="utf-8")
 
-    with caplog.at_level(logging.INFO):
-        analyze_html_file(str(html_path))
+    analyze_html_file(str(html_path))
 
     assert "Template usage looks good: 100.0%" in caplog.text
     assert "Word count: 12" in caplog.text
@@ -59,8 +58,7 @@ def test_analyze_html_file_with_issues(caplog, mock_project_root):
     html_path = mock_project_root / "output" / "library" / "book_summary.html"
     html_path.write_text(html_content, encoding="utf-8")
 
-    with caplog.at_level(logging.WARNING):
-        analyze_html_file(str(html_path))
+    analyze_html_file(str(html_path))
 
     assert "Missing DOCTYPE declaration" in caplog.text
     assert "Missing <head> element" in caplog.text
@@ -72,8 +70,7 @@ def test_analyze_html_file_with_issues(caplog, mock_project_root):
 
 def test_analyze_html_file_not_found(caplog):
     """Test analysis when HTML file does not exist."""
-    with caplog.at_level(logging.ERROR):
-        analyze_html_file("non_existent_file.html")
+    analyze_html_file("non_existent_file.html")
     assert "HTML file not found: non_existent_file.html" in caplog.text
 
 
@@ -82,8 +79,7 @@ def test_analyze_file_paths_correct(caplog, monkeypatch, mock_project_root):
     monkeypatch.setattr("epic_news.bin.analyze_library_crew.project_root", mock_project_root)
     (mock_project_root / "output" / "library" / "book.pdf").touch()
 
-    with caplog.at_level(logging.INFO):
-        analyze_file_paths()
+    analyze_file_paths()
 
     assert "Found incorrect nested path" not in caplog.text
     assert "Files in correct output directory: ['book.pdf']" in caplog.text
@@ -98,8 +94,7 @@ def test_analyze_file_paths_incorrect(caplog, monkeypatch, mock_project_root):
     incorrect_path.mkdir(parents=True)
     (incorrect_path / "book_summary.pdf").touch()
 
-    with caplog.at_level(logging.WARNING):
-        analyze_file_paths()
+    analyze_file_paths()
 
     assert f"Found incorrect nested path: {incorrect_path}" in caplog.text
     assert "PDF file exists in the incorrect location" in caplog.text
@@ -110,8 +105,7 @@ def test_analyze_templates_directory_valid(caplog, monkeypatch, mock_project_roo
     monkeypatch.setattr("epic_news.bin.analyze_library_crew.project_root", mock_project_root)
     (mock_project_root / "templates" / "report_template.html").touch()
 
-    with caplog.at_level(logging.INFO):
-        analyze_templates_directory()
+    analyze_templates_directory()
 
     assert "Templates available: ['report_template.html']" in caplog.text
     assert "Report template exists" in caplog.text
@@ -121,8 +115,7 @@ def test_analyze_templates_directory_missing(caplog, monkeypatch, mock_project_r
     """Test template directory analysis when the template is missing."""
     monkeypatch.setattr("epic_news.bin.analyze_library_crew.project_root", mock_project_root)
 
-    with caplog.at_level(logging.WARNING):
-        analyze_templates_directory()
+    analyze_templates_directory()
 
     assert "Report template not found" in caplog.text
 
@@ -133,8 +126,7 @@ def test_analyze_dashboard_directories_valid(caplog, monkeypatch, mock_project_r
     (mock_project_root / "output" / "dashboard_data" / "data.json").touch()
     (mock_project_root / "output" / "dashboards" / "dashboard.html").touch()
 
-    with caplog.at_level(logging.INFO):
-        analyze_dashboard_directories()
+    analyze_dashboard_directories()
 
     assert "Dashboard data files: ['data.json']" in caplog.text
     assert "Dashboard files: ['dashboard.html']" in caplog.text
@@ -145,8 +137,7 @@ def test_analyze_dashboard_directories_missing(caplog, monkeypatch, tmp_path):
     # Use a clean tmp_path without the full mock structure
     monkeypatch.setattr("epic_news.bin.analyze_library_crew.project_root", tmp_path)
 
-    with caplog.at_level(logging.WARNING):
-        analyze_dashboard_directories()
+    analyze_dashboard_directories()
 
     assert f"Dashboard data directory doesn't exist: {tmp_path / 'output/dashboard_data'}" in caplog.text
     assert f"Dashboards directory doesn't exist: {tmp_path / 'output/dashboards'}" in caplog.text

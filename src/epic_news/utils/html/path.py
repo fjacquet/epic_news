@@ -7,12 +7,13 @@ des données d'état et générer des chemins de fichiers HTML appropriés.
 
 import contextlib
 import json
-import logging
 from typing import Any
+
+from loguru import logger
 
 from epic_news.utils.string_utils import create_topic_slug
 
-logger = logging.getLogger(__name__)
+# logger = logging.getLogger(__name__)
 
 
 def extract_recipe_title_from_state(state_data: dict[str, Any]) -> str | None:
