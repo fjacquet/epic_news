@@ -1,7 +1,7 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.agents.agent_builder.base_agent import BaseAgent
 from crewai.project import CrewBase, agent, crew, task
-from crewai_tools import DirectoryReadTool, FileReadTool
+from crewai_tools import DirectoryReadTool, FileReadTool, PDFSearchTool
 
 from epic_news.models.crews.cross_reference_report import CrossReferenceReport
 from epic_news.tools.html_to_pdf_tool import HtmlToPdfTool
@@ -36,11 +36,12 @@ class CrossReferenceReportCrew:
         html_to_pdf_tool = HtmlToPdfTool()
         directory_read_tool = DirectoryReadTool("output/osint")
         file_read_tool = FileReadTool()
+        pdf_search_tool = PDFSearchTool()
 
         all_tools = (
             search_tools
             + scrape_tools
-            + [html_to_pdf_tool, directory_read_tool, file_read_tool]
+            + [html_to_pdf_tool, directory_read_tool, file_read_tool, pdf_search_tool]
             + get_report_tools()
         )
 
@@ -74,6 +75,7 @@ class CrossReferenceReportCrew:
         return Task(
             config=self.tasks_config["intelligence_requirements_planning"],
             async_execution=True,
+            verbose=True,
         )
 
     @task
@@ -82,6 +84,7 @@ class CrossReferenceReportCrew:
         return Task(
             config=self.tasks_config["intelligence_collection_coordination"],
             async_execution=True,
+            verbose=True,
         )
 
     @task
@@ -90,6 +93,7 @@ class CrossReferenceReportCrew:
         return Task(
             config=self.tasks_config["intelligence_analysis_integration"],
             async_execution=True,
+            verbose=True,
         )
 
     @task
@@ -98,6 +102,7 @@ class CrossReferenceReportCrew:
         return Task(
             config=self.tasks_config["intelligence_product_development"],
             async_execution=True,
+            verbose=True,
         )
 
     # @task
@@ -121,6 +126,16 @@ class CrossReferenceReportCrew:
                 self.intelligence_product_development(),
             ],
             output_pydantic=CrossReferenceReport,
+        )
+
+    @task
+    def html_report_generation(self) -> Task:
+        """Generate an HTML report from the cross-reference report."""
+        return Task(
+            config=self.tasks_config["html_report_generation"],
+            agent=self.osint_reporter(),
+            context=[self.global_reporting()],
+            async_execution=False,
         )
 
     @crew

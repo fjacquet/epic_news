@@ -9,6 +9,7 @@ from .base_renderer import BaseRenderer
 from .book_summary_renderer import BookSummaryRenderer
 from .company_news_renderer import CompanyNewsRenderer
 from .cooking_renderer import CookingRenderer
+from .cross_reference_report_renderer import CrossReferenceReportRenderer
 from .financial_renderer import FinancialRenderer
 from .generic_renderer import GenericRenderer
 from .holiday_renderer import HolidayRenderer
@@ -39,6 +40,7 @@ class RendererFactory:
         "SAINT": SaintRenderer,
         "SHOPPING": ShoppingRenderer,
         "COMPANY_NEWS": CompanyNewsRenderer,
+        "CROSS_REFERENCE_REPORT": CrossReferenceReportRenderer,
     }
 
     @classmethod

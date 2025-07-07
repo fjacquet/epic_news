@@ -58,6 +58,7 @@ from epic_news.crews.web_presence.web_presence_crew import WebPresenceCrew
 from epic_news.models.content_state import ContentState
 from epic_news.models.crews.book_summary_report import BookSummaryReport
 from epic_news.models.crews.cooking_recipe import PaprikaRecipe
+from epic_news.models.crews.cross_reference_report import CrossReferenceReport
 from epic_news.models.crews.financial_report import FinancialReport
 from epic_news.models.crews.meeting_prep_report import MeetingPrepReport
 from epic_news.models.crews.poem_report import PoemJSONOutput
@@ -71,6 +72,9 @@ from epic_news.utils.html.book_summary_html_factory import (
     book_summary_to_html,
 )
 from epic_news.utils.html.company_news_html_factory import company_news_to_html
+from epic_news.utils.html.cross_reference_report_html_factory import (
+    cross_reference_report_to_html,
+)
 from epic_news.utils.html.daily_news_html_factory import daily_news_to_html
 from epic_news.utils.html.fin_daily_html_factory import findaily_to_html
 from epic_news.utils.html.holiday_planner_html_factory import holiday_planner_to_html
@@ -942,15 +946,22 @@ class ReceptionFlow(Flow[ContentState]):
         It sets `output_file` to `output/osint/global_report.html` and stores
         the report in `self.state.cross_reference_report`.
         """
-        self.state.output_file = "output/osint/global_report.html"
+        self.state.output_file = "output/osint/global_report.json"
         self.logger.info(
             f"Generating Cross Reference Report for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}"
         )
 
-        self.state.cross_reference_report = (
-            CrossReferenceReportCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
-        )
-        # return "generate_company_profile"
+        inputs = self.state.to_crew_inputs()
+        report_output = CrossReferenceReportCrew().crew().kickoff(inputs=inputs)
+        self.state.cross_reference_report = report_output
+
+        dump_crewai_state(report_output, "CROSS_REFERENCE_REPORT")
+
+        html_file = "output/osint/global_report.html"
+
+        report_model = parse_crewai_output(report_output, CrossReferenceReport, inputs)
+
+        cross_reference_report_to_html(report_model, html_file=html_file)
 
     @listen("go_generate_holiday_plan")
     @trace_task(tracer)
