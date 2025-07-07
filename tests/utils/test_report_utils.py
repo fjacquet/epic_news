@@ -1,7 +1,5 @@
 """Tests for the report_utils module using pytest."""
 
-import os
-import tempfile
 
 from epic_news.utils.report_utils import (
     prepare_email_params,

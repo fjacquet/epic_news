@@ -55,11 +55,11 @@ from epic_news.crews.sales_prospecting.sales_prospecting_crew import SalesProspe
 from epic_news.crews.shopping_advisor.shopping_advisor import ShoppingAdvisorCrew
 from epic_news.crews.tech_stack.tech_stack_crew import TechStackCrew
 from epic_news.crews.web_presence.web_presence_crew import WebPresenceCrew
-from epic_news.models.crews.book_summary_report import BookSummaryReport
 from epic_news.models.content_state import ContentState
+from epic_news.models.crews.book_summary_report import BookSummaryReport
+from epic_news.models.crews.cooking_recipe import PaprikaRecipe
 from epic_news.models.crews.financial_report import FinancialReport
 from epic_news.models.crews.meeting_prep_report import MeetingPrepReport
-from epic_news.models.crews.cooking_recipe import PaprikaRecipe
 from epic_news.models.crews.poem_report import PoemJSONOutput
 from epic_news.models.crews.saint_daily_report import SaintData
 from epic_news.utils.debug_utils import (

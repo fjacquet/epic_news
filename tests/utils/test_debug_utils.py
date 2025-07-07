@@ -1,16 +1,16 @@
 
-import json
-import pytest
-from unittest.mock import patch, mock_open
-from pydantic import BaseModel
+from unittest.mock import mock_open, patch
+
 from loguru import logger
+from pydantic import BaseModel
 
 from epic_news.utils.debug_utils import (
+    analyze_crewai_output,
     dump_crewai_state,
     log_state_keys,
-    analyze_crewai_output,
     parse_crewai_output,
 )
+
 
 class SampleModel(BaseModel):
     name: str
@@ -20,13 +20,14 @@ def test_dump_crewai_state(caplog):
     """Test the dump_crewai_state function."""
     logger.add(caplog.handler, format="{message}")
     state_data = {"key": "value"}
-    with patch("builtins.open", mock_open()) as mock_file:
-        with patch("os.environ.get", return_value="true"):
-            with patch("epic_news.utils.directory_utils.ensure_output_directory"):
-                dump_crewai_state(state_data, "test_crew")
-                # The exact filename is timestamped, so we check for a call rather than the exact filename
-                mock_file.assert_called()
-                assert "CrewAI state dumped to" in caplog.text
+    with patch("builtins.open", mock_open()) as mock_file, \
+         patch("os.environ.get", return_value="true"), \
+         patch("epic_news.utils.directory_utils.ensure_output_directory"):
+        dump_crewai_state(state_data, "test_crew")
+        # The exact filename is timestamped, so we check for a call rather than the exact filename
+        mock_file.assert_called()
+        assert "CrewAI state dumped to" in caplog.text
+
 
 def test_log_state_keys(caplog):
     """Test the log_state_keys function."""

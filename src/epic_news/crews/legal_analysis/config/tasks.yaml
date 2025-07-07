@@ -10,7 +10,7 @@ legal_compliance_assessment:
     A comprehensive JSON object assessing {company}'s legal compliance
     status. The JSON should be well-structured with appropriate keys and values.
   agent: legal_researcher
-  output_file: "output/osint/{company}_legal_compliance_assessment.json"
+  output_file: output/osint/{company}_legal_compliance_assessment.json
 intellectual_property_analysis:
   description: >
     Analyze {company}'s intellectual property portfolio, including:  - Patent portfolio
@@ -22,7 +22,7 @@ intellectual_property_analysis:
     property portfolio. The JSON should be well-structured with appropriate keys and
     values.
   agent: legal_researcher
-  output_file: "output/osint/{company}_intellectual_property_analysis.json"
+  output_file: output/osint/{company}_intellectual_property_analysis.json
 regulatory_risk_assessment:
   description: >
     Assess the regulatory risks facing {company}, including:  - Industry-specific
@@ -34,7 +34,7 @@ regulatory_risk_assessment:
     A comprehensive JSON object assessing {company}'s regulatory risks.
     The JSON should be well-structured with appropriate keys and values.
   agent: legal_researcher
-  output_file: "output/osint/{company}_regulatory_risk_assessment.json"
+  output_file: output/osint/{company}_regulatory_risk_assessment.json
 litigation_history_analysis:
   description: >
     Analyze {company}'s litigation history, including:  - Major lawsuits (past and
@@ -45,7 +45,7 @@ litigation_history_analysis:
     A comprehensive JSON object analyzing {company}'s litigation
     history. The JSON should be well-structured with appropriate keys and values.
   agent: legal_researcher
-  output_file: "output/osint/{company}_litigation_history_analysis.json"
+  output_file: output/osint/{company}_litigation_history_analysis.json
 mergers_and_acquisitions_due_diligence:
   description: >
     Conduct legal due diligence for {company}'s mergers and acquisitions,
@@ -54,6 +54,7 @@ mergers_and_acquisitions_due_diligence:
     history  - Current M&A targets or rumors
     Format your findings as a structured JSON object.
   expected_output: >
-    A comprehensive data object analyzing {company}'s M&A due diligence, conforming to the LegalAnalysisReport Pydantic model.
+    A comprehensive data object analyzing {company}'s M&A due diligence, conforming
+    to the LegalAnalysisReport Pydantic model.
   agent: legal_reporter
-  output_file: "output/osint/{company}_legal_analysis_report.json"
+  output_file: output/osint/{company}_legal_analysis_report.json

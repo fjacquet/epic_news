@@ -9,7 +9,7 @@ import asyncio
 import time
 from enum import Enum
 from functools import wraps
-from typing import Any, Dict, List
+from typing import Any
 
 from crewai import Process, Task
 from loguru import logger

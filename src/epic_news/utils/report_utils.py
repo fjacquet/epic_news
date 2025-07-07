@@ -4,12 +4,12 @@ from typing import Any
 
 from loguru import logger
 
-from epic_news.models.rss_models import RssFeeds
 from epic_news.models.crews.rss_weekly_report import (
     ArticleSummary,
     FeedDigest,
     RssWeeklyReport,
 )
+from epic_news.models.rss_models import RssFeeds
 from epic_news.utils.directory_utils import ensure_output_directory
 from epic_news.utils.html.rss_weekly_html_factory import rss_weekly_to_html
 

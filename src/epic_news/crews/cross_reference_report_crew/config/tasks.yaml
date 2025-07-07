@@ -11,57 +11,49 @@ intelligence_requirements_planning:
     investigating {target}. The JSON should be well-structured with appropriate keys
     and values.
   agent: osint_researcher
-  output_file: output/osint/intelligence_requirements_planning.json
+  output_file: output/osint/{company}_intelligence_requirements_planning.json
 intelligence_collection_coordination:
   description: >
     Coordinate intelligence collection activities across all specialized crews
-    investigating {target}, including:  
-    - Tasking specialized crews based on intelligence requirements  
-    - Tracking collection progress against requirements  
-    - Identifying collection gaps and redundancies  
-    - Adjusting collection priorities as new information emerges  
-    - Ensuring comprehensive coverage across all domains  
-    - Facilitating information sharing between crews
+    investigating {target}, including:   - Tasking specialized crews based on intelligence
+    requirements   - Tracking collection progress against requirements   - Identifying
+    collection gaps and redundancies   - Adjusting collection priorities as new information
+    emerges   - Ensuring comprehensive coverage across all domains   - Facilitating
+    information sharing between crews
     Format your coordination notes as a structured JSON object.
   expected_output: >
     A comprehensive JSON object detailing intelligence collection
     coordination for {target}. The JSON should be well-structured with appropriate
     keys and values.
   agent: osint_researcher
-  output_file: output/osint/intelligence_collection_coordination.json
+  output_file: output/osint/{company}_intelligence_collection_coordination.json
 intelligence_analysis_integration:
   description: >
     Integrate intelligence analysis from all specialized crews investigating
-    {target}, including:  
-    - Synthesizing findings across domains  
-    - Identifying cross-domain patterns and insights  
-    - Resolving contradictory information  
-    - Validating key findings through multiple sources  
-    - Contextualizing intelligence within the broader picture  
-    - Developing integrated assessments
+    {target}, including:   - Synthesizing findings across domains   - Identifying
+    cross-domain patterns and insights   - Resolving contradictory information   -
+    Validating key findings through multiple sources   - Contextualizing intelligence
+    within the broader picture   - Developing integrated assessments
     Format your integrated analysis as a structured JSON object.
   expected_output: >
     A comprehensive JSON object integrating intelligence analysis from all
     crews investigating {target}. The JSON should be well-structured with appropriate
     keys and values.
   agent: osint_researcher
-  output_file: "output/osint/intelligence_analysis_integration.json"
+  output_file: output/osint/{company}_intelligence_analysis_integration.json
 intelligence_product_development:
   description: >
-    Develop final intelligence products about {target}, including:   
-    - Executive summary for decision-makers  
-    - Comprehensive intelligence report  
-    - Key findings and assessments  
-    - Supporting evidence and documentation  
-    - Confidence levels for major assessments  
-    - Recommendations for further investigation
+    Develop final intelligence products about {target}, including:    - Executive
+    summary for decision-makers   - Comprehensive intelligence report   - Key findings
+    and assessments   - Supporting evidence and documentation   - Confidence levels
+    for major assessments   - Recommendations for further investigation
     Format your intelligence products as a structured JSON object.
   expected_output: >
     A comprehensive JSON object serving as final intelligence
     products about {target}. The JSON should be well-structured with appropriate keys
     and values.
   agent: osint_researcher
-  output_file: "output/osint/{company}_intelligence_product_development.json"
+  output_file: output/osint/{company}_intelligence_product_development.json
 # investigation_quality_assurance:
 #   description: >
 #     Conduct quality assurance review of the entire investigation of {target},
@@ -115,4 +107,4 @@ global_reporting:
     The report must provide a complete synthesis of all gathered intelligence
     on {target} with appropriate keys and values.
   agent: osint_reporter
-  output_file: "{output_file}"
+  output_file: '{output_file}'

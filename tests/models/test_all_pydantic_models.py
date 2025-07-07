@@ -15,6 +15,7 @@ from epic_news.models.coinmarketcap_models import (
     CryptocurrencyNewsInput,
 )
 from epic_news.models.content_state import ContentState
+from epic_news.models.crews.cooking_recipe import PaprikaRecipe
 from epic_news.models.custom_tool_models import MyCustomToolInput
 
 # New tests for data_metrics, email_search, and finance models
@@ -49,7 +50,6 @@ from epic_news.models.finance_models import (
 # New tests for github, google_fact_check, and paprika_recipe models
 from epic_news.models.github_models import GitHubSearchInput
 from epic_news.models.google_fact_check_tool import GoogleFactCheckInput
-from epic_news.models.crews.cooking_recipe import PaprikaRecipe
 
 # New tests for report, report_models, and rss_models
 from epic_news.models.report import ReportHTMLOutput

@@ -23,6 +23,7 @@ from epic_news.models.crews.shopping_advice_report import ShoppingAdviceOutput
 from epic_news.models.crews.tech_stack_report import TechStackReport
 from epic_news.models.crews.web_presence_report import WebPresenceReport
 
+
 def test_company_profile_report_instantiation():
     """Test that CompanyProfileReport can be instantiated."""
     # A minimal valid payload would be very large.

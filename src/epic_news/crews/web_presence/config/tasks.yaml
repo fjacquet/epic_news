@@ -11,7 +11,7 @@ web_presence_audit:
     A comprehensive JSON object detailing {company}'s web presence
     audit. The JSON should be well-structured with appropriate keys and values.
   agent: web_researcher
-  output_file: "output/osint/{company}_web_presence_audit.json"
+  output_file: output/osint/{company}_web_presence_audit.json
 social_media_footprint:
   description: >
     Analyze {company}'s social media footprint across platforms, including:  - Official
@@ -24,7 +24,7 @@ social_media_footprint:
     A comprehensive JSON object analyzing {company}'s social media
     footprint. The JSON should be well-structured with appropriate keys and values.
   agent: web_researcher
-  output_file: "output/osint/{company}_social_media_footprint.json"
+  output_file: output/osint/{company}_social_media_footprint.json
 domain_infrastructure_analysis:
   description: >
     Analyze {company}'s domain infrastructure and technical footprint,
@@ -37,7 +37,7 @@ domain_infrastructure_analysis:
     A comprehensive JSON object analyzing {company}'s domain
     infrastructure. The JSON should be well-structured with appropriate keys and values.
   agent: web_researcher
-  output_file: "output/osint/{company}_domain_infrastructure_analysis.json"
+  output_file: output/osint/{company}_domain_infrastructure_analysis.json
 data_leak_analysis:
   description: >
     Analyze potential data leaks and breaches related to {company}, including:
@@ -49,7 +49,7 @@ data_leak_analysis:
     A comprehensive JSON object analyzing potential data leaks related
     to {company}. The JSON should be well-structured with appropriate keys and values.
   agent: web_researcher
-  output_file: "output/osint/{company}_data_leak_analysis.json"
+  output_file: output/osint/{company}_data_leak_analysis.json
 competitive_web_presence_analysis:
   description: >
     Analyze the web presence of {company}'s competitors to identify best
@@ -62,7 +62,7 @@ competitive_web_presence_analysis:
     compared to {company}. The JSON should be well-structured with appropriate keys
     and values.
   agent: web_researcher
-  output_file: "output/osint/{company}_competitive_web_presence_analysis.json"
+  output_file: output/osint/{company}_competitive_web_presence_analysis.json
 consolidate_web_presence_report:
   description: >
     Consolidate all findings about {company}'s web presence into a
@@ -72,6 +72,7 @@ consolidate_web_presence_report:
     online
     Format your report as a structured JSON object.
   expected_output: >
-    A comprehensive data object consolidating all web presence findings about {company}, conforming to the WebPresenceReport Pydantic model.
+    A comprehensive data object consolidating all web presence findings about {company},
+    conforming to the WebPresenceReport Pydantic model.
   agent: web_reporter
-  output_file: "output/osint/{company}_web_presence_report.json"
+  output_file: output/osint/{company}_web_presence_report.json

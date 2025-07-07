@@ -5,7 +5,8 @@ import unittest.mock
 import pytest
 import requests
 
-from epic_news.tools.scrape_ninja_tool import ScrapeNinjaInput, ScrapeNinjaTool
+from src.epic_news.models.web_search_models import ScrapeNinjaInput
+from src.epic_news.tools.scrape_ninja_tool import ScrapeNinjaTool
 
 TEST_RAPIDAPI_KEY = "test_rapidapi_key_for_ninja"
 SCRAPENINJA_API_URL = "https://scrapeninja.p.rapidapi.com/scrape"
@@ -54,7 +55,7 @@ def test_run_basic_success_plain_text_response(mock_env_rapidapi_key, mocker):
     expected_payload = {"url": url_to_scrape, "retryNum": 1, "followRedirects": 1, "timeout": 8}
     expected_headers = {
         "Content-Type": "application/json",
-        "Accept": "application/json",
+        "Accept": "*/*",
         "X-RapidAPI-Key": TEST_RAPIDAPI_KEY,
         "X-RapidAPI-Host": "scrapeninja.p.rapidapi.com",
     }

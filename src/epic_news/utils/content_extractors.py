@@ -11,8 +11,8 @@ from typing import Any
 
 from loguru import logger
 
-from epic_news.models.crews.financial_report import FinancialReport
 from epic_news.models.crews.cooking_recipe import PaprikaRecipe
+from epic_news.models.crews.financial_report import FinancialReport
 from epic_news.models.crews.rss_weekly_report import RssWeeklyReport
 from epic_news.models.crews.saint_daily_report import SaintData
 from epic_news.models.crews.shopping_advice_report import ShoppingAdviceOutput
