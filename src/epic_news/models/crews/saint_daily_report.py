@@ -5,7 +5,6 @@ This module defines the data structure for saint information used by
 SaintDailyCrew and consumed by HtmlDesignerCrew for report generation.
 """
 
-
 from pydantic import BaseModel, Field
 
 
@@ -26,6 +25,7 @@ class SaintData(BaseModel):
 
     class Config:
         """Pydantic configuration."""
+
         json_encoders = {
             # Ensure proper JSON serialization
         }
@@ -51,6 +51,7 @@ class SaintData(BaseModel):
     def from_json_string(cls, json_string: str) -> "SaintData":
         """Create SaintData instance from JSON string."""
         import json
+
         try:
             data = json.loads(json_string)
             return cls(**data)
@@ -70,7 +71,7 @@ class SaintData(BaseModel):
     def from_file(cls, file_path: str) -> "SaintData":
         """Create SaintData instance from JSON file."""
         try:
-            with open(file_path, encoding='utf-8') as f:
+            with open(file_path, encoding="utf-8") as f:
                 content = f.read()
             return cls.from_json_string(content)
         except (OSError, FileNotFoundError):

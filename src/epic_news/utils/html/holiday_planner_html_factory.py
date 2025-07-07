@@ -51,13 +51,16 @@ def holiday_planner_to_html(holiday_report, html_file=None):
                             day_item["date"] = f"Day {day_num}"
 
             # 3. Useful phrases: ensure 'local' and 'french' keys
-            if isinstance(transformed.get("practical_information", {}), dict) and "useful_phrases" in transformed["practical_information"]:
+            if (
+                isinstance(transformed.get("practical_information", {}), dict)
+                and "useful_phrases" in transformed["practical_information"]
+            ):
                 # Check if useful_phrases contains strings instead of objects
                 new_phrases = []
                 for phrase in transformed["practical_information"]["useful_phrases"]:
                     if isinstance(phrase, str):
                         # Convert string phrases to objects
-                        parts = phrase.split('–') if '–' in phrase else phrase.split('-')
+                        parts = phrase.split("–") if "–" in phrase else phrase.split("-")
                         if len(parts) >= 2:
                             local_part = parts[0].strip()
                             french_part = parts[1].strip()
@@ -114,10 +117,15 @@ def holiday_planner_to_html(holiday_report, html_file=None):
                             accommodation["address"] = accommodation["adresse"]
                         else:
                             # Default address
-                            accommodation["address"] = f"Address for {accommodation.get('name', 'Unknown')}, Cinque Terre, Italy"
+                            accommodation["address"] = (
+                                f"Address for {accommodation.get('name', 'Unknown')}, Cinque Terre, Italy"
+                            )
 
             # 5. Emergency contacts: ensure 'service' and 'number'
-            if isinstance(transformed.get("practical_information", {}), dict) and "emergency_contacts" in transformed["practical_information"]:
+            if (
+                isinstance(transformed.get("practical_information", {}), dict)
+                and "emergency_contacts" in transformed["practical_information"]
+            ):
                 for contact in transformed["practical_information"]["emergency_contacts"]:
                     # Ensure service field exists
                     if "service" not in contact:
@@ -135,7 +143,9 @@ def holiday_planner_to_html(holiday_report, html_file=None):
                                 break
                         else:
                             # Default number if none found
-                            contact["number"] = f"Contact number for {contact.get('service', 'Emergency Service')}"
+                            contact["number"] = (
+                                f"Contact number for {contact.get('service', 'Emergency Service')}"
+                            )
 
             # 7. Sources: convert string sources to objects and ensure title field
             if "sources" in transformed and isinstance(transformed["sources"], list):

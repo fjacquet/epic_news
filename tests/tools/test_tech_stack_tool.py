@@ -13,7 +13,9 @@ TEST_SERPER_API_KEY = "test_serper_api_key_123"
 def test_tech_stack_tool_instantiation_success(mocker):
     """Test successful instantiation when SERPER_API_KEY is set."""
     # Mock BaseSearchTool's _search_serper to avoid issues if it's called during init
-    mocker.patch("epic_news.tools.search_base.BaseSearchTool._search_serper", mocker.MagicMock(return_value={}))
+    mocker.patch(
+        "epic_news.tools.search_base.BaseSearchTool._search_serper", mocker.MagicMock(return_value={})
+    )
     mocker.patch.dict(os.environ, {"SERPER_API_KEY": TEST_SERPER_API_KEY})
     tool = TechStackTool()
     assert tool.api_key == TEST_SERPER_API_KEY
@@ -28,7 +30,9 @@ def test_tech_stack_tool_instantiation_no_api_key(mocker):
     mocker.patch.dict(os.environ, {}, clear=True)  # Ensure SERPER_API_KEY is not set
     with (
         pytest.raises(ValueError) as excinfo,
-        mocker.patch("epic_news.tools.search_base.BaseSearchTool._search_serper", mocker.MagicMock(return_value={})),
+        mocker.patch(
+            "epic_news.tools.search_base.BaseSearchTool._search_serper", mocker.MagicMock(return_value={})
+        ),
     ):
         TechStackTool()
     assert "SERPER_API_KEY environment variable not set" in str(excinfo.value)

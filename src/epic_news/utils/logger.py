@@ -39,8 +39,24 @@ def setup_logging(
         error_log_file = os.path.join(log_dir, f"{app_name}_error.log")
 
         # Add file handlers
-        logger.add(log_file, level=log_level.upper(), rotation="10 MB", retention="30 days", enqueue=True, backtrace=True, diagnose=True)
-        logger.add(error_log_file, level="ERROR", rotation="10 MB", retention="30 days", enqueue=True, backtrace=True, diagnose=True)
+        logger.add(
+            log_file,
+            level=log_level.upper(),
+            rotation="10 MB",
+            retention="30 days",
+            enqueue=True,
+            backtrace=True,
+            diagnose=True,
+        )
+        logger.add(
+            error_log_file,
+            level="ERROR",
+            rotation="10 MB",
+            retention="30 days",
+            enqueue=True,
+            backtrace=True,
+            diagnose=True,
+        )
 
 
 def get_logger(name: str, log_level: str | None = None) -> "logger":

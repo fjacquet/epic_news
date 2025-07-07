@@ -36,20 +36,20 @@ class PaprikaFriendlySystem:
     def extract_recipe_info_from_html(self, html_file: Path) -> dict[str, str]:
         """Extract comprehensive recipe information from HTML file."""
         try:
-            with open(html_file, encoding='utf-8') as f:
+            with open(html_file, encoding="utf-8") as f:
                 html_content = f.read()
 
-            soup = BeautifulSoup(html_content, 'html.parser')
+            soup = BeautifulSoup(html_content, "html.parser")
 
             # Extract title and recipe name
-            title_tag = soup.find('title')
+            title_tag = soup.find("title")
             title = title_tag.get_text() if title_tag else html_file.stem
 
-            h1_tag = soup.find('h1')
+            h1_tag = soup.find("h1")
             recipe_name = h1_tag.get_text() if h1_tag else title
 
             # Clean up recipe name (remove emojis and extra whitespace)
-            recipe_name = re.sub(r'[📰🍽️🥘👨‍🍳🔥✨🌟💫🎯]', '', recipe_name).strip()
+            recipe_name = re.sub(r"[📰🍽️🥘👨‍🍳🔥✨🌟💫🎯]", "", recipe_name).strip()
 
             # Extract meal information from filename
             filename_lower = html_file.name.lower()
@@ -57,8 +57,13 @@ class PaprikaFriendlySystem:
             # Determine day
             day = "Non spécifié"
             day_mapping = {
-                "lundi": "Lundi", "mardi": "Mardi", "mercredi": "Mercredi",
-                "jeudi": "Jeudi", "vendredi": "Vendredi", "samedi": "Samedi", "dimanche": "Dimanche"
+                "lundi": "Lundi",
+                "mardi": "Mardi",
+                "mercredi": "Mercredi",
+                "jeudi": "Jeudi",
+                "vendredi": "Vendredi",
+                "samedi": "Samedi",
+                "dimanche": "Dimanche",
             }
             for day_key, day_value in day_mapping.items():
                 if day_key in filename_lower:
@@ -90,7 +95,7 @@ class PaprikaFriendlySystem:
                 "type": recipe_type,
                 "ingredients": ingredients,
                 "directions": directions,
-                "source_file": html_file.name
+                "source_file": html_file.name,
             }
 
         except Exception as e:
@@ -102,7 +107,7 @@ class PaprikaFriendlySystem:
                 "type": "Plat principal",
                 "ingredients": "Ingrédients à compléter",
                 "directions": "Instructions à compléter",
-                "source_file": html_file.name
+                "source_file": html_file.name,
             }
 
     def extract_ingredients_from_html(self, soup: BeautifulSoup) -> str:
@@ -110,40 +115,42 @@ class PaprikaFriendlySystem:
         ingredients = []
 
         # Look for ingredients section
-        ingredients_section = soup.find(['h2', 'h3'], string=re.compile(r'Ingrédients?', re.IGNORECASE))
+        ingredients_section = soup.find(["h2", "h3"], string=re.compile(r"Ingrédients?", re.IGNORECASE))
         if ingredients_section:
             # Find the next list after the ingredients heading
-            next_element = ingredients_section.find_next_sibling(['ul', 'ol'])
+            next_element = ingredients_section.find_next_sibling(["ul", "ol"])
             if next_element:
-                for li in next_element.find_all('li'):
+                for li in next_element.find_all("li"):
                     ingredient = li.get_text().strip()
                     if ingredient:
                         ingredients.append(ingredient)
 
         # If no structured ingredients found, look for any lists
         if not ingredients:
-            for ul in soup.find_all(['ul', 'ol']):
-                for li in ul.find_all('li'):
+            for ul in soup.find_all(["ul", "ol"]):
+                for li in ul.find_all("li"):
                     text = li.get_text().strip()
                     if text and len(text) < 200:  # Reasonable ingredient length
                         ingredients.append(text)
                 if ingredients:  # Take first reasonable list found
                     break
 
-        return '\n'.join(ingredients) if ingredients else "Ingrédients à compléter"
+        return "\n".join(ingredients) if ingredients else "Ingrédients à compléter"
 
     def extract_directions_from_html(self, soup: BeautifulSoup) -> str:
         """Extract cooking directions from HTML content."""
         directions = []
 
         # Look for directions/instructions section
-        directions_section = soup.find(['h2', 'h3'], string=re.compile(r'(Instructions?|Préparation|Étapes?)', re.IGNORECASE))
+        directions_section = soup.find(
+            ["h2", "h3"], string=re.compile(r"(Instructions?|Préparation|Étapes?)", re.IGNORECASE)
+        )
         if directions_section:
             # Find content after the directions heading
-            next_element = directions_section.find_next_sibling(['ol', 'ul', 'div', 'p'])
+            next_element = directions_section.find_next_sibling(["ol", "ul", "div", "p"])
             if next_element:
-                if next_element.name in ['ol', 'ul']:
-                    for li in next_element.find_all('li'):
+                if next_element.name in ["ol", "ul"]:
+                    for li in next_element.find_all("li"):
                         step = li.get_text().strip()
                         if step:
                             directions.append(step)
@@ -156,12 +163,12 @@ class PaprikaFriendlySystem:
         # If no structured directions found, look for numbered steps in text
         if not directions:
             all_text = soup.get_text()
-            step_pattern = re.compile(r'(\d+[\.\)]\s*[^0-9\n]+)', re.MULTILINE)
+            step_pattern = re.compile(r"(\d+[\.\)]\s*[^0-9\n]+)", re.MULTILINE)
             steps = step_pattern.findall(all_text)
             if steps:
                 directions = [step.strip() for step in steps[:10]]  # Limit to reasonable number
 
-        return '\n'.join(directions) if directions else "Instructions à compléter"
+        return "\n".join(directions) if directions else "Instructions à compléter"
 
     def create_paprika_yaml(self, recipe_info: dict[str, str], html_file: Path) -> Path | None:
         """Create a Paprika-compatible YAML file with comprehensive recipe data."""
@@ -207,12 +214,12 @@ class PaprikaFriendlySystem:
                 "hash": None,
                 "photo": None,
                 "photo_hash": None,
-                "scale": None
+                "scale": None,
             }
 
             # Save YAML file with same base name as HTML
-            yaml_file = html_file.with_suffix('.yaml')
-            with open(yaml_file, 'w', encoding='utf-8') as f:
+            yaml_file = html_file.with_suffix(".yaml")
+            with open(yaml_file, "w", encoding="utf-8") as f:
                 yaml.dump(yaml_data, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
 
             print(f"  ✅ Generated Paprika YAML: {yaml_file.name}")
@@ -237,7 +244,7 @@ class PaprikaFriendlySystem:
             self.recipe_mapping[html_file.name] = recipe_info
 
             # Generate YAML if missing
-            yaml_file = html_file.with_suffix('.yaml')
+            yaml_file = html_file.with_suffix(".yaml")
             if not yaml_file.exists():
                 generated_yaml = self.create_paprika_yaml(recipe_info, html_file)
                 if generated_yaml:
@@ -247,7 +254,7 @@ class PaprikaFriendlySystem:
 
     def save_mapping(self) -> None:
         """Save the recipe mapping data."""
-        with open(self.mapping_file, 'w', encoding='utf-8') as f:
+        with open(self.mapping_file, "w", encoding="utf-8") as f:
             json.dump(self.recipe_mapping, f, indent=2, ensure_ascii=False)
         print(f"💾 Recipe mapping saved to: {self.mapping_file}")
 
@@ -323,7 +330,7 @@ class PaprikaFriendlySystem:
 
         # Save report
         report_path = self.project_root / "paprika_friendly_system_report.md"
-        with open(report_path, 'w', encoding='utf-8') as f:
+        with open(report_path, "w", encoding="utf-8") as f:
             f.write(report)
 
         print(f"  ✅ Report saved to: {report_path}")
@@ -340,9 +347,9 @@ def main():
     system = PaprikaFriendlySystem(project_root)
     report = system.run()
 
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("SUMMARY REPORT")
-    print("="*60)
+    print("=" * 60)
     print(report)
 
 

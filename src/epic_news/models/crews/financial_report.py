@@ -1,6 +1,5 @@
 """Pydantic models for structuring financial report data."""
 
-
 from pydantic import BaseModel, Field
 
 
@@ -27,4 +26,6 @@ class FinancialReport(BaseModel):
     executive_summary: str = Field(..., description="A high-level summary of the entire report.")
     analyses: list[AssetAnalysis] = Field(..., description="List of analyses for different asset classes.")
     suggestions: list[AssetSuggestion] = Field(..., description="List of investment suggestions.")
-    report_date: str | None = Field(None, description="The date the report was generated, in YYYY-MM-DD format.")
+    report_date: str | None = Field(
+        None, description="The date the report was generated, in YYYY-MM-DD format."
+    )

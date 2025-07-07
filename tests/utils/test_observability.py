@@ -1,4 +1,3 @@
-
 from faker import Faker
 
 from epic_news.utils.observability import (
@@ -11,12 +10,14 @@ from epic_news.utils.observability import (
 
 fake = Faker()
 
+
 def test_trace_event():
     # Test that a TraceEvent is created correctly
     event = TraceEvent("test_event", "test_source", {"test_key": "test_value"})
     assert event.event_type == "test_event"
     assert event.source == "test_source"
     assert event.details == {"test_key": "test_value"}
+
 
 def test_tracer(tmp_path):
     # Test that the Tracer traces events correctly
@@ -29,6 +30,7 @@ def test_tracer(tmp_path):
     assert len(tracer.events) == 1
     assert tracer.events[0].event_type == "test_event"
 
+
 def test_hallucination_guard():
     # Test that the HallucinationGuard detects hallucinations
     guard = HallucinationGuard(confidence_threshold=0.9)
@@ -36,6 +38,7 @@ def test_hallucination_guard():
     assert result["is_likely_hallucination"]
     result = guard.check_statement("This might be true.", {})
     assert not result["is_likely_hallucination"]
+
 
 def test_dashboard(tmp_path):
     # Test that the Dashboard updates metrics correctly
@@ -45,6 +48,7 @@ def test_dashboard(tmp_path):
     dashboard.data_file = dashboard_dir / "test_dashboard.json"
     dashboard.update_metric("test_category", "test_name", "test_metric", "test_value")
     assert dashboard.get_metrics("test_category", "test_name")["test_metric"] == "test_value"
+
 
 def test_get_observability_tools():
     # Test that get_observability_tools returns a dictionary of observability tools

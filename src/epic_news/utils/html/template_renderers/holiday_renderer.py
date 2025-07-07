@@ -120,7 +120,9 @@ class HolidayRenderer(BaseRenderer):
 
             # Day header
             day_header = soup.new_tag("h3", **{"class": "day-header"})
-            day_header.string = f"Jour {day_data.get('day', 'N/A')} - {day_data.get('date', 'Date non spécifiée')}"
+            day_header.string = (
+                f"Jour {day_data.get('day', 'N/A')} - {day_data.get('date', 'Date non spécifiée')}"
+            )
             day_div.append(day_header)
 
             # Activities
@@ -403,7 +405,7 @@ class HolidayRenderer(BaseRenderer):
                 "electronics": "🔌 Électronique",
                 "medical": "💊 Médical",
                 "activities": "🎯 Activités",
-                "children": "👶 Enfants"
+                "children": "👶 Enfants",
             }
 
             for key, emoji_title in categories.items():
@@ -518,7 +520,9 @@ class HolidayRenderer(BaseRenderer):
                 item_div = soup.new_tag("div", **{"class": "media-item"})
 
                 if media_item.get("type") == "image" or not media_item.get("type"):
-                    img = soup.new_tag("img", src=media_item.get("url", ""), alt=media_item.get("caption", ""))
+                    img = soup.new_tag(
+                        "img", src=media_item.get("url", ""), alt=media_item.get("caption", "")
+                    )
                     item_div.append(img)
                 else:
                     link = soup.new_tag("a", href=media_item.get("url", ""), target="_blank")

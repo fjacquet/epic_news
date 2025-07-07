@@ -239,4 +239,3 @@ class TestUnifiedRssTool:
         result = tool._run(opml_file_path="test.opml")
         assert "Error in UnifiedRssTool" in result
         assert "No such file or directory" in result
-

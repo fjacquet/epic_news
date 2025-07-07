@@ -1,7 +1,8 @@
 from unittest.mock import call
 
-from scripts.update_knowledge_base import main, prune_outdated_knowledge, update_market_data
 from epic_news.rag_config import DEFAULT_RAG_CONFIG
+from scripts.update_knowledge_base import main, prune_outdated_knowledge, update_market_data
+from tests.utils.context_managers import mock_knowledge_base_dependencies
 
 # Sample yfinance info data for mocking
 SAMPLE_YF_INFO_AAPL = {
@@ -26,8 +27,6 @@ SAMPLE_YF_INFO_MSFT = {
 
 SAMPLE_YF_INFO_NODATA = {}
 
-
-from tests.utils.context_managers import mock_knowledge_base_dependencies
 
 def test_update_market_data_success(mocker):
     """Test successful market data update for multiple tickers."""
@@ -135,7 +134,9 @@ def test_prune_outdated_knowledge(mocker):
     """Test the prune_outdated_knowledge function (currently a placeholder)."""
     with mock_knowledge_base_dependencies(mocker) as mocks:
         prune_outdated_knowledge(max_age_days=30, collection_suffix="test_prune")
-        mocks["logger"].info.assert_any_call("Pruning outdated knowledge (older than 30 days) is not yet implemented")
+        mocks["logger"].info.assert_any_call(
+            "Pruning outdated knowledge (older than 30 days) is not yet implemented"
+        )
 
 
 def test_main_script_flow(mocker):

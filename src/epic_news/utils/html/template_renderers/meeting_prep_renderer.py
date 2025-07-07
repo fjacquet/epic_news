@@ -35,7 +35,10 @@ class MeetingPrepRenderer(BaseRenderer):
             data = data.dict()
 
         # Create proper HTML structure
-        soup = BeautifulSoup('<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body><div class="meeting-prep-container"></div></body></html>', "html.parser")
+        soup = BeautifulSoup(
+            '<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body><div class="meeting-prep-container"></div></body></html>',
+            "html.parser",
+        )
         container = soup.select_one(".meeting-prep-container")
 
         # Add title if available

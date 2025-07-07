@@ -8,8 +8,10 @@ class TechStackComponent(BaseModel):
     category: str
     description: str | None = None
 
+
 class TechStackReport(BaseModel):
     """Comprehensive technology stack report for a company."""
+
     company_name: str = Field(..., description="The name of the company.")
     executive_summary: str
     technology_stack: list[TechStackComponent]

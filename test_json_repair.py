@@ -19,22 +19,19 @@ def test_json_repair():
     test_cases = [
         # Missing colon after key
         ('{"key" "value"}', '{"key": "value"}'),
-
         # Missing quotes around key
         ('{key: "value"}', '{"key": "value"}'),
-
         # Missing quotes around string value
         ('{"key": value}', '{"key": "value"}'),
-
         # Trailing comma
         ('{"key": "value",}', '{"key": "value"}'),
-
         # Missing closing brace
         ('{"key": "value"', '{"key": "value"}'),
-
         # Complex case with multiple issues
-        ('{title "Test Article", description: content, "tags": ["tag1", "tag2",]}',
-         '{"title": "Test Article", "description": "content", "tags": ["tag1", "tag2"]}'),
+        (
+            '{title "Test Article", description: content, "tags": ["tag1", "tag2",]}',
+            '{"title": "Test Article", "description": "content", "tags": ["tag1", "tag2"]}',
+        ),
     ]
 
     print("🧪 Testing JSON repair mechanism...")
@@ -59,7 +56,7 @@ def test_json_repair():
     print("\n🎯 Testing with realistic LLM output...")
 
     # Simulate a realistic malformed JSON from LLM
-    realistic_broken = '''
+    realistic_broken = """
     {
         "destination": "Paris",
         "duration" "5 days",
@@ -78,7 +75,7 @@ def test_json_repair():
         "restaurants": [
             {"name": "Le Comptoir", "cuisine": "French"}
         ]
-    '''
+    """
 
     print(f"Realistic input: {realistic_broken[:100]}...")
 
@@ -90,6 +87,7 @@ def test_json_repair():
 
     except Exception as e:
         print(f"❌ Failed to repair realistic JSON: {e}")
+
 
 if __name__ == "__main__":
     test_json_repair()

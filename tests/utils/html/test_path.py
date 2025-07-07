@@ -1,4 +1,3 @@
-
 from faker import Faker
 
 from epic_news.utils.html.path import (
@@ -9,15 +8,18 @@ from epic_news.utils.html.path import (
 
 fake = Faker()
 
+
 def test_extract_recipe_title_from_state():
     # Test that extract_recipe_title_from_state extracts the recipe title from the state data
     state_data = {"recipe": {"raw": '{"name": "Test Recipe"}'}}
     assert extract_recipe_title_from_state(state_data) == "Test Recipe"
 
+
 def test_generate_cooking_output_path():
     # Test that generate_cooking_output_path generates the output path for a cooking recipe
     state_data = {"recipe": {"raw": '{"name": "Test Recipe"}'}}
     assert generate_cooking_output_path(state_data) == "output/cooking/test-recipe.html"
+
 
 def test_determine_output_path():
     # Test that determine_output_path determines the appropriate output path

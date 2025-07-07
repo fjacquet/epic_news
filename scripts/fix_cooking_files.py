@@ -35,11 +35,35 @@ class CookingFilesFixer:
     def is_cooking_related_html(self, file_path: Path) -> bool:
         """Check if an HTML file is cooking/recipe related."""
         cooking_keywords = [
-            'thermomix', 'recette', 'cuisine', 'plat', 'entree', 'dessert',
-            'couscous', 'blanquette', 'bourguignon', 'tarte', 'gateau',
-            'poulet', 'boeuf', 'saumon', 'veloute', 'soupe', 'salade',
-            'oeufs', 'quiche', 'flan', 'jambalaya', 'tajine', 'escalopes',
-            'hachis', 'gougeres', 'bugnes', 'alevropita', 'dinde', 'coq'
+            "thermomix",
+            "recette",
+            "cuisine",
+            "plat",
+            "entree",
+            "dessert",
+            "couscous",
+            "blanquette",
+            "bourguignon",
+            "tarte",
+            "gateau",
+            "poulet",
+            "boeuf",
+            "saumon",
+            "veloute",
+            "soupe",
+            "salade",
+            "oeufs",
+            "quiche",
+            "flan",
+            "jambalaya",
+            "tajine",
+            "escalopes",
+            "hachis",
+            "gougeres",
+            "bugnes",
+            "alevropita",
+            "dinde",
+            "coq",
         ]
 
         filename_lower = file_path.name.lower()
@@ -48,15 +72,15 @@ class CookingFilesFixer:
     def check_html_structure(self, file_path: Path) -> str:
         """Check if HTML file has proper structure or is JSON-wrapped."""
         try:
-            with open(file_path, encoding='utf-8') as f:
+            with open(file_path, encoding="utf-8") as f:
                 content = f.read().strip()
 
             # Check if it's JSON-wrapped
             if content.startswith('{"html":"') and content.endswith('"}'):
                 return "json_wrapped"
-            if content.startswith('<!DOCTYPE html>'):
+            if content.startswith("<!DOCTYPE html>"):
                 return "proper_html5"
-            if content.startswith('<html'):
+            if content.startswith("<html"):
                 return "html_no_doctype"
             return "unknown_format"
         except Exception as e:
@@ -87,11 +111,9 @@ class CookingFilesFixer:
             try:
                 # Move the file
                 shutil.move(str(file_path), str(destination))
-                self.moved_files.append({
-                    'original': str(file_path),
-                    'destination': str(destination),
-                    'structure': structure
-                })
+                self.moved_files.append(
+                    {"original": str(file_path), "destination": str(destination), "structure": structure}
+                )
 
                 # Categorize by structure
                 if structure == "json_wrapped":
@@ -107,7 +129,7 @@ class CookingFilesFixer:
     def check_yaml_files(self) -> None:
         """Check for missing YAML files corresponding to HTML files."""
         for html_file in self.output_dir.glob("*.html"):
-            yaml_file = html_file.with_suffix('.yaml')
+            yaml_file = html_file.with_suffix(".yaml")
 
             if not yaml_file.exists():
                 self.missing_yaml_files.append(str(yaml_file))
@@ -122,7 +144,9 @@ class CookingFilesFixer:
         # Files moved
         report.append(f"## Files Moved: {len(self.moved_files)}")
         for file_info in self.moved_files:
-            report.append(f"- {Path(file_info['original']).name} → output/cooking/ ({file_info['structure']})")
+            report.append(
+                f"- {Path(file_info['original']).name} → output/cooking/ ({file_info['structure']})"
+            )
         report.append("")
 
         # HTML structure analysis
@@ -173,7 +197,7 @@ class CookingFilesFixer:
 
         # Save report
         report_path = self.project_root / "cooking_files_fix_report.md"
-        with open(report_path, 'w', encoding='utf-8') as f:
+        with open(report_path, "w", encoding="utf-8") as f:
             f.write(report)
 
         print(f"  ✅ Report saved to: {report_path}")
@@ -190,9 +214,9 @@ def main():
     fixer = CookingFilesFixer(project_root)
     report = fixer.run()
 
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("SUMMARY REPORT")
-    print("="*60)
+    print("=" * 60)
     print(report)
 
 

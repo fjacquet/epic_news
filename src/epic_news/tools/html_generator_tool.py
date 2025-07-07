@@ -23,9 +23,7 @@ class HtmlGeneratorToolInput(BaseModel):
     selected_crew: str = Field(
         description="The crew type (FINDAILY, NEWSDAILY, COOKING, etc.) for contextual HTML generation"
     )
-    output_file: str = Field(
-        description="Output file path where the HTML report should be written"
-    )
+    output_file: str = Field(description="Output file path where the HTML report should be written")
 
 
 class HtmlGeneratorTool(BaseTool):
@@ -44,7 +42,7 @@ class HtmlGeneratorTool(BaseTool):
         """Initialize the HTML Generator Tool with TemplateManager."""
         super().__init__()
         # Initialize template manager without setting as instance attribute to avoid Pydantic validation error
-        object.__setattr__(self, 'template_manager', TemplateManager())
+        object.__setattr__(self, "template_manager", TemplateManager())
 
     def _run(self, state_data: str, selected_crew: str, output_file: str) -> str:
         """Generate HTML report using the unified template system."""

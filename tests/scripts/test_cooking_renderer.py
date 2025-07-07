@@ -74,7 +74,7 @@ def main():
 
     # Save to file
     output_file = Path(__file__).parent / "test_cooking_output.html"
-    with open(output_file, 'w', encoding='utf-8') as f:
+    with open(output_file, "w", encoding="utf-8") as f:
         f.write(html_content)
 
     print(f"✅ Generated test cooking HTML: {output_file}")

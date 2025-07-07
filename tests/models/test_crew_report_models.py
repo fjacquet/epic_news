@@ -1,4 +1,5 @@
 """Tests for the crew-specific Pydantic report models."""
+
 import pytest
 from pydantic import ValidationError
 
@@ -30,6 +31,7 @@ def test_company_profile_report_instantiation():
     # For this test, we'll just confirm the model exists and is a Pydantic model.
     assert issubclass(CompanyProfileReport, object)
 
+
 def test_cross_reference_report_instantiation():
     """Test that CrossReferenceReport can be instantiated."""
     report = CrossReferenceReport(
@@ -37,9 +39,10 @@ def test_cross_reference_report_instantiation():
         executive_summary="Test Summary",
         detailed_findings={"key": "value"},
         confidence_assessment="High",
-        information_gaps=["gap1"]
+        information_gaps=["gap1"],
     )
     assert report.target == "Test Target"
+
 
 def test_geospatial_analysis_report_instantiation():
     """Test that GeospatialAnalysisReport can be instantiated."""
@@ -48,9 +51,10 @@ def test_geospatial_analysis_report_instantiation():
         physical_locations=[{"name": "HQ", "address": "123 Main St"}],
         risk_assessment=[{"risk": "Flood", "level": "High"}],
         supply_chain_map=[{"supplier": "A", "location": "City B"}],
-        mergers_and_acquisitions_insights=[{"insight": "Synergy"}]
+        mergers_and_acquisitions_insights=[{"insight": "Synergy"}],
     )
     assert report.company_name == "Test Company"
+
 
 def test_hr_intelligence_report_instantiation():
     """Test that HRIntelligenceReport can be instantiated."""
@@ -60,9 +64,10 @@ def test_hr_intelligence_report_instantiation():
         employee_sentiment={"rating": 4.5},
         organizational_culture={"values": ["Innovation"]},
         talent_acquisition_strategy={"focus": "Engineering"},
-        summary_and_recommendations="Good place to work."
+        summary_and_recommendations="Good place to work.",
     )
     assert report.company_name == "Test Corp"
+
 
 def test_legal_analysis_report_instantiation():
     """Test that LegalAnalysisReport can be instantiated."""
@@ -72,9 +77,10 @@ def test_legal_analysis_report_instantiation():
         ip_portfolio_analysis={"patents": 10},
         regulatory_risk_assessment={"risk": "Low"},
         litigation_history=[{"case": "A vs B"}],
-        ma_due_diligence={"status": "Clear"}
+        ma_due_diligence={"status": "Clear"},
     )
     assert report.company_name == "Legal Eagle Inc."
+
 
 # Add tests for a few of the relocated models to ensure they are importable
 def test_book_summary_report_instantiation():
@@ -83,32 +89,33 @@ def test_book_summary_report_instantiation():
         # Expect validation error because required fields are missing
         BookSummaryReport()
 
+
 def test_financial_report_instantiation():
     """Test that FinancialReport can be instantiated from its new location."""
     with pytest.raises(ValidationError):
         FinancialReport()
+
 
 def test_paprika_recipe_instantiation():
     """Test that PaprikaRecipe can be instantiated from its new location."""
     recipe = PaprikaRecipe(name="Test Recipe", ingredients="1 cup flour", directions="Mix it.")
     assert recipe.name == "Test Recipe"
 
+
 def test_tech_stack_report_instantiation():
     """Test that TechStackReport can be instantiated."""
     report = TechStackReport(
         company_name="Test Company",
         executive_summary="Test Summary",
-        technology_stack=[{
-            "name": "Python",
-            "category": "Language"
-        }],
+        technology_stack=[{"name": "Python", "category": "Language"}],
         strengths=["Flexible"],
         weaknesses=["Slow"],
         open_source_contributions=[],
         talent_assessment="Good",
-        recommendations=[]
+        recommendations=[],
     )
     assert report.company_name == "Test Company"
+
 
 def test_web_presence_report_instantiation():
     """Test that WebPresenceReport can be instantiated."""
@@ -120,19 +127,17 @@ def test_web_presence_report_instantiation():
             "structure": "Good",
             "content_quality": "High",
             "seo": "Okay",
-            "recommendations": ["Improve SEO"]
+            "recommendations": ["Improve SEO"],
         },
-        social_media_footprint=[{
-            "platform": "Twitter",
-            "url": "https://twitter.com/test",
-            "followers": 100,
-            "notes": "Active"
-        }],
+        social_media_footprint=[
+            {"platform": "Twitter", "url": "https://twitter.com/test", "followers": 100, "notes": "Active"}
+        ],
         technical_infrastructure={},
         data_leak_analysis=[],
-        competitive_analysis=[]
+        competitive_analysis=[],
     )
     assert report.company_name == "Test Company"
+
 
 def test_all_models_are_importable():
     """A simple test to ensure all model classes were imported correctly."""

@@ -11,9 +11,7 @@ class TestReportingTool:
         self.tool = ReportingTool()
         # Correctly locate the project root and then the templates directory
         project_root = Path(__file__).resolve().parent.parent.parent
-        self.template_path = (
-            project_root / "templates" / "professional_report_template.html"
-        )
+        self.template_path = project_root / "templates" / "professional_report_template.html"
         self.test_output_path = "test_output/test_report.html"
 
     def teardown_method(self):

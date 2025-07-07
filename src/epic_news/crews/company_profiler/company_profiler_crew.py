@@ -1,6 +1,6 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
-from crewai_tools import SerperDevTool, PDFSearchTool
+from crewai_tools import PDFSearchTool, SerperDevTool
 from dotenv import load_dotenv
 
 from epic_news.models.crews.company_profiler_report import CompanyProfileReport

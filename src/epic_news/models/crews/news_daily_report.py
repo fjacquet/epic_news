@@ -41,7 +41,9 @@ class NewsDailyReport(BaseModel):
     """Complete NewsDaily report structure matching the crew's expected JSON output."""
 
     summary: str | None = Field(None, description="Executive summary")
-    suisse_romande: Union[list[NewsItem], str] = Field(default_factory=list, description="Suisse Romande news")
+    suisse_romande: Union[list[NewsItem], str] = Field(
+        default_factory=list, description="Suisse Romande news"
+    )
     suisse: Union[list[NewsItem], str] = Field(default_factory=list, description="Switzerland news")
     france: Union[list[NewsItem], str] = Field(default_factory=list, description="France news")
     europe: Union[list[NewsItem], str] = Field(default_factory=list, description="Europe news")
@@ -50,14 +52,14 @@ class NewsDailyReport(BaseModel):
     economy: Union[list[NewsItem], list[str], str] = Field(default_factory=list, description="Economic news")
     methodology: Union[str, dict] | None = Field(None, description="Collection methodology and statistics")
 
-    @field_validator('methodology')
+    @field_validator("methodology")
     @classmethod
     def validate_methodology(cls, v):
         if isinstance(v, dict):
-            return v.get('description', str(v))
+            return v.get("description", str(v))
         return v
 
-    @field_validator('suisse_romande', 'suisse', 'france', 'europe', 'world', 'wars')
+    @field_validator("suisse_romande", "suisse", "france", "europe", "world", "wars")
     @classmethod
     def validate_news_sections(cls, v):
         if isinstance(v, str):
@@ -69,16 +71,15 @@ class NewsDailyReport(BaseModel):
             news_items = []
             for item in v:
                 if isinstance(item, str):
-                    news_items.append(NewsItem(
-                        titre=item[:100] + "..." if len(item) > 100 else item,
-                        source="Actualité"
-                    ))
+                    news_items.append(
+                        NewsItem(titre=item[:100] + "..." if len(item) > 100 else item, source="Actualité")
+                    )
                 else:
                     news_items.append(item)
             return news_items
         return v
 
-    @field_validator('economy')
+    @field_validator("economy")
     @classmethod
     def validate_economy_section(cls, v):
         if isinstance(v, str):
@@ -88,10 +89,11 @@ class NewsDailyReport(BaseModel):
             news_items = []
             for item in v:
                 if isinstance(item, str):
-                    news_items.append(NewsItem(
-                        titre=item[:100] + "..." if len(item) > 100 else item,
-                        source="Analyse économique"
-                    ))
+                    news_items.append(
+                        NewsItem(
+                            titre=item[:100] + "..." if len(item) > 100 else item, source="Analyse économique"
+                        )
+                    )
                 else:
                     news_items.append(item)
             return news_items

@@ -100,5 +100,3 @@ async def execute_tasks_in_parallel(tasks: list[Task], max_concurrent: int = 3) 
         results[task_id] = result
 
     return results
-
-

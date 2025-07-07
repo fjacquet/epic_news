@@ -16,8 +16,6 @@ from .search_base import BaseSearchTool
 load_dotenv()
 
 
-
-
 class TechStackInput(BaseModel):
     """Input schema for tech stack analysis."""
 

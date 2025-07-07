@@ -8,6 +8,7 @@ from scripts.update_knowledge_base import (
     prune_outdated_knowledge,
     update_market_data,
 )
+from tests.utils.context_managers import mock_knowledge_base_dependencies_no_logger
 
 
 class KnowledgeEntry(BaseModel):
@@ -39,8 +40,6 @@ def mock_yfinance_ticker(mocker):
     }
     return mock_ticker
 
-
-from tests.utils.context_managers import mock_knowledge_base_dependencies, mock_knowledge_base_dependencies_no_logger
 
 def test_update_market_data_success(
     mock_yfinance_ticker,

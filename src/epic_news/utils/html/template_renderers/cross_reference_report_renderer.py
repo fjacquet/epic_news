@@ -1,6 +1,7 @@
 """
 This module contains the renderer for the Cross-Reference Report.
 """
+
 from epic_news.utils.html.template_renderers.base_renderer import BaseRenderer
 
 

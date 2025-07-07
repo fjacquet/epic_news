@@ -12,7 +12,6 @@ from epic_news.utils.observability import get_observability_tools, trace_task
 # fact_checking_tools module doesn't exist, using alternative approach
 
 
-
 # Load environment variables
 load_dotenv()
 

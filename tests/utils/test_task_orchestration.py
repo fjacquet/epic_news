@@ -37,6 +37,7 @@ def test_task_group():
 def test_performance_monitor(caplog):
     # Test that the performance_monitor decorator monitors the performance of a function
     logger.add(caplog.handler, format="{message}")
+
     @performance_monitor
     def test_function():
         pass

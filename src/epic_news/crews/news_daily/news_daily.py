@@ -35,8 +35,6 @@ class NewsDailyCrew:
             verbose=True,
         )
 
-
-
     @task
     def suisse_romande_news_task(self) -> Task:
         return Task(

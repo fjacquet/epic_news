@@ -26,4 +26,6 @@ class RenderReportToolSchema(BaseModel):
     title: str = Field(..., description="Report title")
     sections: list[ReportSection] = Field(..., description="List of sections with headings and content")
     images: Union[list[ReportImage], None] = Field(None, description="Optional list of images with metadata")
-    citations: Union[list[str], None] = Field(None, description="Optional list of citation strings or HTML links")
+    citations: Union[list[str], None] = Field(
+        None, description="Optional list of citation strings or HTML links"
+    )

@@ -9,9 +9,10 @@ def test_setup_logging(tmp_path, mocker):
     setup_logging(log_to_file=True, log_dir=log_dir)
     logger = get_logger(__name__)
     # We can't directly check the level of a loguru logger, but we can check if it logs at the correct level
-    mock_info = mocker.patch('loguru._logger.Logger.info')
+    mock_info = mocker.patch("loguru._logger.Logger.info")
     logger.info("test")
     mock_info.assert_called_once()
+
 
 def test_log_to_file(tmp_path):
     # Test that logs are written to a file when log_to_file is True
@@ -25,6 +26,7 @@ def test_log_to_file(tmp_path):
     assert os.path.exists(log_file)
     with open(log_file) as f:
         assert "This is a test log message." in f.read()
+
 
 def test_error_log_to_file(tmp_path):
     # Test that error logs are written to a separate file

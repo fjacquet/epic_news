@@ -21,9 +21,9 @@ def sample_holiday_planner_data():
                 "activities": [
                     {
                         "time": "10:00-12:00",
-                        "description": "Visit Eiffel Tower - Test activity at iconic landmark"
+                        "description": "Visit Eiffel Tower - Test activity at iconic landmark",
                     }
-                ]
+                ],
             }
         ],
         accommodations=[
@@ -31,7 +31,7 @@ def sample_holiday_planner_data():
                 "name": "Test Hotel",
                 "address": "123 Test Street, Paris",
                 "price_range": "€120/night",
-                "description": "Comfortable test hotel with excellent amenities"
+                "description": "Comfortable test hotel with excellent amenities",
             }
         ],
         dining={
@@ -41,7 +41,7 @@ def sample_holiday_planner_data():
                     "location": "456 Test Avenue, Paris",
                     "cuisine": "French",
                     "price_range": "€€€",
-                    "description": "Excellent French cuisine with local specialties"
+                    "description": "Excellent French cuisine with local specialties",
                 }
             ]
         },
@@ -52,12 +52,12 @@ def sample_holiday_planner_data():
                     "item": "Hotel booking",
                     "cost": "480",
                     "currency": "EUR",
-                    "notes": "4 nights at Test Hotel"
+                    "notes": "4 nights at Test Hotel",
                 }
             ],
             "total_estimated": "800",
-            "currency": "EUR"
-        }
+            "currency": "EUR",
+        },
     )
 
 

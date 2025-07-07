@@ -49,7 +49,9 @@ def test_run_successful_response(mocker):
     mock_response.json.return_value = mock_api_data
     mock_response.status_code = 200
     mock_response.raise_for_status = mocker.MagicMock()  # Ensure it doesn't raise for 200
-    mock_requests_get = mocker.patch("epic_news.tools.alpha_vantage_tool.requests.get", return_value=mock_response)
+    mock_requests_get = mocker.patch(
+        "epic_news.tools.alpha_vantage_tool.requests.get", return_value=mock_response
+    )
 
     mocker.patch.dict(os.environ, {"ALPHA_VANTAGE_API_KEY": TEST_ALPHA_VANTAGE_API_KEY})
     tool = AlphaVantageCompanyOverviewTool()
@@ -77,7 +79,9 @@ def test_run_api_http_error(mocker):
     mock_response = mocker.MagicMock()
     mock_response.status_code = 500
     mock_response.raise_for_status.side_effect = requests.exceptions.HTTPError("Server Error")
-    mock_requests_get = mocker.patch("epic_news.tools.alpha_vantage_tool.requests.get", return_value=mock_response)
+    mock_requests_get = mocker.patch(
+        "epic_news.tools.alpha_vantage_tool.requests.get", return_value=mock_response
+    )
 
     mocker.patch.dict(os.environ, {"ALPHA_VANTAGE_API_KEY": TEST_ALPHA_VANTAGE_API_KEY})
     tool = AlphaVantageCompanyOverviewTool()
@@ -130,7 +134,9 @@ def test_run_api_returns_note_or_empty(mocker):
     mock_response_note.json.return_value = {
         "Note": "Thank you for using Alpha Vantage! Our standard API call frequency is 5 calls per minute and 500 calls per day."
     }
-    mock_requests_get = mocker.patch("epic_news.tools.alpha_vantage_tool.requests.get", return_value=mock_response_note)
+    mock_requests_get = mocker.patch(
+        "epic_news.tools.alpha_vantage_tool.requests.get", return_value=mock_response_note
+    )
 
     mocker.patch.dict(os.environ, {"ALPHA_VANTAGE_API_KEY": TEST_ALPHA_VANTAGE_API_KEY})
     tool = AlphaVantageCompanyOverviewTool()
@@ -170,7 +176,10 @@ def test_run_network_request_exception(mocker):
     mocker.patch("epic_news.tools.alpha_vantage_tool.get_cache_manager", return_value=mock_cache)
 
     network_error_message = "Simulated network error"
-    mocker.patch("epic_news.tools.alpha_vantage_tool.requests.get", side_effect=requests.exceptions.RequestException(network_error_message))
+    mocker.patch(
+        "epic_news.tools.alpha_vantage_tool.requests.get",
+        side_effect=requests.exceptions.RequestException(network_error_message),
+    )
 
     mocker.patch.dict(os.environ, {"ALPHA_VANTAGE_API_KEY": TEST_ALPHA_VANTAGE_API_KEY})
     tool = AlphaVantageCompanyOverviewTool()

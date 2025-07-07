@@ -277,4 +277,3 @@ def test_run_varied_description_formats(mocker):
     assert result_data["articles"][0]["description"] == "Main desc"
     assert result_data["articles"][1]["description"] == "Sub desc"
     assert result_data["articles"][2]["description"] == "Main desc wins"
-

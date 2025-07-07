@@ -1,6 +1,5 @@
 """Tests for the report_utils module using pytest."""
 
-
 from epic_news.utils.report_utils import (
     prepare_email_params,
     setup_crew_output_directory,
@@ -24,12 +23,6 @@ def test_prepare_email_params_defaults(mocker):
 
 
 """Tests for the report_utils module using pytest."""
-
-
-
-
-
-
 
 
 def test_setup_crew_output_directory_exists(mocker):

@@ -1,4 +1,3 @@
-
 from epic_news.utils.tool_logging import (
     apply_tool_silence,
     configure_tool_logging,
@@ -24,11 +23,7 @@ def test_get_quiet_tools_config(mocker):
 
 def test_apply_tool_silence(mocker):
     # Test that apply_tool_silence applies the tool silencing configuration
-    mock_configure_tool_logging = mocker.patch(
-        "epic_news.utils.tool_logging.configure_tool_logging"
-    )
+    mock_configure_tool_logging = mocker.patch("epic_news.utils.tool_logging.configure_tool_logging")
     mocker.patch("os.getenv", return_value="false")
     apply_tool_silence()
-    mock_configure_tool_logging.assert_called_once_with(
-        mute_tools=True, log_level="ERROR"
-    )
+    mock_configure_tool_logging.assert_called_once_with(mute_tools=True, log_level="ERROR")

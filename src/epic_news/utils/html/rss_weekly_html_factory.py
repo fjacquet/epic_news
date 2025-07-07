@@ -51,7 +51,7 @@ def rss_weekly_to_html(report_model: RssWeeklyReport, html_file: str) -> str:
                 }
                 body {
                     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-                    line-height: 1.6; 
+                    line-height: 1.6;
                     margin: 0;
                     padding: 0;
                     background-color: var(--background-color);

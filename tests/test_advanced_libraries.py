@@ -13,6 +13,7 @@ def test_faker_and_pendulum():
     assert isinstance(name, str)
     assert isinstance(now, pendulum.DateTime)
 
+
 def test_mocking_with_pytest_mock(mocker):
     """
     This test demonstrates the use of pytest-mock.

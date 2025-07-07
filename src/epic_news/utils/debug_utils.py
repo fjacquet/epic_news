@@ -45,19 +45,19 @@ def _attempt_json_repair(json_str: str) -> str:
 
     # 4. Fix missing quotes around string values (more precise)
     # Pattern: : word, -> : "word", (but not numbers, booleans, or already quoted)
-    repaired = re.sub(r':\s*([a-zA-Z][a-zA-Z0-9\s]*?)(?=\s*[,}\]])', r': "\1"', repaired)
+    repaired = re.sub(r":\s*([a-zA-Z][a-zA-Z0-9\s]*?)(?=\s*[,}\]])", r': "\1"', repaired)
 
     # 4b. Fix missing colons in object properties
     # Pattern: "key" "value" -> "key": "value"
     repaired = re.sub(r'"([^"]+)"\s+"([^"]+)"', r'"\1": "\2"', repaired)
 
     # 5. Fix trailing commas before closing braces/brackets
-    repaired = re.sub(r',\s*([}\]])', r'\1', repaired)
+    repaired = re.sub(r",\s*([}\]])", r"\1", repaired)
 
     # 6. Fix missing commas between array/object elements
     # Pattern: } { -> }, {
-    repaired = re.sub(r'}\s*{', r'}, {', repaired)
-    repaired = re.sub(r'\]\s*\[', r'], [', repaired)
+    repaired = re.sub(r"}\s*{", r"}, {", repaired)
+    repaired = re.sub(r"\]\s*\[", r"], [", repaired)
 
     # 7. Count and fix unmatched braces/brackets
     open_braces = repaired.count("{")
@@ -338,7 +338,6 @@ def parse_crewai_output(report_content: Any, model_class: type[T], inputs: dict 
                     jour_text = day["jour"]
                     if isinstance(jour_text, str) and "Jour" in jour_text:
                         pass  # safe to do string ops
-
 
         # $Special handling for HolidayPlannerReport: comprehensive data transformation
         if model_class.__name__ == "HolidayPlannerReport":

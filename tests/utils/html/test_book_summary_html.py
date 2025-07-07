@@ -19,9 +19,7 @@ def sample_book_summary_data():
         author="Test Author",
         publication_date="2025-01-01",
         summary="This is a test book summary.",
-        table_of_contents=[
-            TableOfContentsEntry(id="chapter-1", title="The First Chapter")
-        ],
+        table_of_contents=[TableOfContentsEntry(id="chapter-1", title="The First Chapter")],
         sections=[],
         references=[],
         chapter_summaries=[
@@ -38,9 +36,7 @@ def sample_book_summary_data():
 def test_book_summary_to_html(sample_book_summary_data, tmp_path):
     """Test that book_summary_to_html creates a valid HTML file."""
     html_file = tmp_path / "book_summary_report.html"
-    html_content = book_summary_to_html(
-        sample_book_summary_data, html_file=str(html_file)
-    )
+    html_content = book_summary_to_html(sample_book_summary_data, html_file=str(html_file))
 
     assert html_file.exists()
     assert "Test Book" in html_content

@@ -1,4 +1,3 @@
-
 from unittest.mock import mock_open, patch
 
 from loguru import logger
@@ -16,13 +15,16 @@ class SampleModel(BaseModel):
     name: str
     value: int
 
+
 def test_dump_crewai_state(caplog):
     """Test the dump_crewai_state function."""
     logger.add(caplog.handler, format="{message}")
     state_data = {"key": "value"}
-    with patch("builtins.open", mock_open()) as mock_file, \
-         patch("os.environ.get", return_value="true"), \
-         patch("epic_news.utils.directory_utils.ensure_output_directory"):
+    with (
+        patch("builtins.open", mock_open()) as mock_file,
+        patch("os.environ.get", return_value="true"),
+        patch("epic_news.utils.directory_utils.ensure_output_directory"),
+    ):
         dump_crewai_state(state_data, "test_crew")
         # The exact filename is timestamped, so we check for a call rather than the exact filename
         mock_file.assert_called()
@@ -36,12 +38,14 @@ def test_log_state_keys(caplog):
     log_state_keys(state_data)
     assert "State data keys: ['key1', 'key2']" in caplog.text
 
+
 def test_analyze_crewai_output(caplog):
     """Test the analyze_crewai_output function."""
     logger.add(caplog.handler, format="{message}")
     state_data = {"raw": "some raw data", "pydantic": SampleModel(name="test", value=1)}
     analyze_crewai_output(state_data, "test_crew")
     assert "CrewAI Analysis for test_crew" in caplog.text
+
 
 def test_parse_crewai_output():
     """Test the parse_crewai_output function."""

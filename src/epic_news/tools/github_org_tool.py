@@ -14,8 +14,6 @@ from .github_base import GitHubBaseTool
 load_dotenv()
 
 
-
-
 class GitHubOrgSearchInput(BaseModel):
     """Input schema for GitHub organization search."""
 

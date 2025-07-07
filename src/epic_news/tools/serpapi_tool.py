@@ -15,8 +15,6 @@ from src.epic_news.models.web_search_models import SerpApiInput
 load_dotenv()
 
 
-
-
 class SerpApiTool(BaseTool):
     """Tool for performing web searches using SerpAPI."""
 

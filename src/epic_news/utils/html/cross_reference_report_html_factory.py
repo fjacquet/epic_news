@@ -1,6 +1,7 @@
 """
 This module provides a function to generate an HTML report from a CrossReferenceReport object.
 """
+
 from epic_news.models.crews.cross_reference_report import CrossReferenceReport
 from epic_news.utils.html.template_manager import TemplateManager
 

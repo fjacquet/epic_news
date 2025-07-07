@@ -16,8 +16,6 @@ from .serper_email_search_tool import SerperEmailSearchTool  # Import the actual
 load_dotenv()
 
 
-
-
 class DelegatingEmailSearchTool(BaseTool):
     """Routes email search queries to Hunter.io or Serper based on the specified provider."""
 
