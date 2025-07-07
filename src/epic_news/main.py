@@ -31,7 +31,6 @@ from dotenv import load_dotenv
 from loguru import logger
 from pydantic import PydanticDeprecatedSince20, PydanticDeprecatedSince211
 
-from epic_news.bin.fetch_rss_articles import fetch_articles_from_opml
 from epic_news.crews.classify.classify_crew import ClassifyCrew
 from epic_news.crews.company_news.company_news_crew import CompanyNewsCrew
 from epic_news.crews.company_profiler.company_profiler_crew import CompanyProfilerCrew
@@ -90,6 +89,7 @@ from epic_news.utils.report_utils import (
     generate_rss_weekly_html_report,
 )
 from epic_news.utils.string_utils import create_topic_slug
+from scripts.fetch_rss_articles import fetch_articles_from_opml
 
 # Import function explicitly to ensure availability during runtime
 

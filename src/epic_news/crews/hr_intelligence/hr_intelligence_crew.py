@@ -1,6 +1,6 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
-from crewai_tools import SerperDevTool, PDFSearchTool
+from crewai_tools import PDFSearchTool, SerperDevTool
 from dotenv import load_dotenv
 
 from epic_news.models.crews.hr_intelligence_report import HRIntelligenceReport
@@ -45,7 +45,6 @@ class HRIntelligenceCrew:
             config=self.agents_config["hr_reporter"],
             verbose=True,
             tools=[],  # No tools for reporter to ensure clean output
-            llm="gpt-4.1-mini",  # Use more powerful model for HR reporting
             allow_delegation=False,
             respect_context_window=True,
             reasoning=True,

@@ -116,7 +116,6 @@ class HolidayPlannerCrew:
         return Agent(
             config=self.agents_config["content_formatter"],
             tools=self.content_creation_tools,  # To be populated by _init_tools
-            llm="gpt-4.1-mini",  # Use more powerful model for content formatting
             verbose=False,
             allow_delegation=False,
         )

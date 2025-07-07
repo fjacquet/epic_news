@@ -161,6 +161,55 @@ def test_mocking_with_pytest_mock(mocker):
     assert result == "Test Name"
 ```
 
+#### Using `contextlib` for Cleaner Tests
+
+To further improve the readability and maintainability of our tests, we use Python's built-in `contextlib` library to create reusable context managers for mocking dependencies. This is particularly useful when multiple tests require the same set of mocks.
+
+**Benefits:**
+
+- **Encapsulation:** Bundles related setup and teardown logic into a single, reusable function.
+- **Readability:** Replaces repetitive `mocker.patch()` calls with a clean `with` statement, making the test's intent clearer.
+- **Maintainability:** Allows you to update mocking logic in one central place, rather than in every test.
+
+**Example:**
+
+Instead of this:
+
+```python
+def test_some_function_with_many_mocks(mocker):
+    mocker.patch("module.a.dependency_one")
+    mocker.patch("module.b.dependency_two")
+    mocker.patch("module.c.dependency_three")
+    # ... test logic ...
+```
+
+We can create a reusable context manager:
+
+```python
+# In a helper file like tests/utils/context_managers.py
+from contextlib import contextmanager
+
+@contextmanager
+def mock_app_dependencies(mocker):
+    """A context manager to mock core application dependencies."""
+    mocks = {
+        "dep1": mocker.patch("module.a.dependency_one"),
+        "dep2": mocker.patch("module.b.dependency_two"),
+        "dep3": mocker.patch("module.c.dependency_three"),
+    }
+    try:
+        yield mocks
+    finally:
+        # Teardown is handled automatically by pytest-mock
+        pass
+
+# The test becomes much cleaner:
+def test_some_function_with_many_mocks(mocker):
+    with mock_app_dependencies(mocker) as mocks:
+        # ... test logic using mocks['dep1'], etc.
+```
+This approach is highly encouraged for complex test setups.
+
 #### Development Workflow
 
 1. **Environment Setup**:

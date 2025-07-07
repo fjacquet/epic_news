@@ -17,7 +17,7 @@ from loguru import logger
 # logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 # logger = logging.getLogger("library_analyzer")
 
-# Find the project root (assuming we're in src/epic_news/bin)
+# Find the project root (assuming we're in scripts)
 project_root = Path(__file__).resolve().parent.parent.parent.parent
 
 

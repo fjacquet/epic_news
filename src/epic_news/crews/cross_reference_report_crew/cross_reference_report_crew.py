@@ -63,7 +63,6 @@ class CrossReferenceReportCrew:
             config=self.agents_config["osint_reporter"],
             verbose=True,
             tools=[],  # No tools for reporter to ensure clean output
-            llm="gpt-4.1-mini",  # Use more powerful model for complex reporting
             allow_delegation=False,
             respect_context_window=True,
             reasoning=True,

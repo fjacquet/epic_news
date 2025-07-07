@@ -23,8 +23,8 @@ if "final_report" not in st.session_state:
 
 
 # --- Real-time Logging Setup ---
-class QueueLogger:
-    """A custom logging handler that puts messages into a queue."""
+class StreamlitLogSink:
+    """A custom logging sink that puts messages into a queue."""
 
     def __init__(self, queue):
         self.queue = queue
@@ -34,8 +34,7 @@ class QueueLogger:
 
 
 log_queue = Queue()
-queue_logger = QueueLogger(log_queue)
-logger.add(queue_logger, format="{time:YYYY-MM-DD HH:mm:ss} - {level} - {message}")
+logger.add(StreamlitLogSink(log_queue), format="{time:YYYY-MM-DD HH:mm:ss} - {level} - {message}")
 
 
 # --- Crew Execution Logic ---

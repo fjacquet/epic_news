@@ -5,11 +5,29 @@ for the application during execution.
 """
 
 import datetime
-from typing import Any, Union
+from typing import Any, Optional
 
 from pydantic import BaseModel, Field
 
+from epic_news.models.crews.book_summary_report import BookSummaryReport
+from epic_news.models.crews.company_news_report import CompanyNewsReport
+from epic_news.models.crews.company_profiler_report import CompanyProfileReport
+from epic_news.models.crews.cooking_recipe import PaprikaRecipe
+from epic_news.models.crews.cross_reference_report import CrossReferenceReport
+from epic_news.models.crews.financial_report import FinancialReport
+from epic_news.models.crews.geospatial_analysis_report import GeospatialAnalysisReport
+from epic_news.models.crews.holiday_planner_report import HolidayPlannerReport
+from epic_news.models.crews.hr_intelligence_report import HRIntelligenceReport
+from epic_news.models.crews.legal_analysis_report import LegalAnalysisReport
+from epic_news.models.crews.meeting_prep_report import MeetingPrepReport
+from epic_news.models.crews.menu_designer_report import WeeklyMenuPlan
+from epic_news.models.crews.news_daily_report import NewsDailyReport
+from epic_news.models.crews.poem_report import PoemJSONOutput
+from epic_news.models.crews.rss_weekly_report import RssWeeklyReport
+from epic_news.models.crews.saint_daily_report import SaintData
 from epic_news.models.crews.shopping_advice_report import ShoppingAdviceOutput
+from epic_news.models.crews.tech_stack_report import TechStackReport
+from epic_news.models.crews.web_presence_report import WebPresenceReport
 from epic_news.models.extracted_info import ExtractedInfo
 from epic_news.utils.menu_generator import MenuGenerator
 from epic_news.utils.string_utils import create_topic_slug
@@ -76,7 +94,7 @@ class ContentState(BaseModel):
     # REQUEST INFORMATION
     # ============================================================================
     user_request: str = "Get the RSS Weekly Report"
-    extracted_info: Union[ExtractedInfo, None] = None
+    extracted_info: ExtractedInfo | None = None
     attachment_file: str = ""
     current_year: str = str(datetime.datetime.now().year)
     topic_slug: str = ""
@@ -93,49 +111,49 @@ class ContentState(BaseModel):
     # ============================================================================
     # CREW RESULTS - Core Reports
     # ============================================================================
-    final_report: Union[str, None] = None
+    final_report: str | None = None
     error_message: str = ""
 
     # Business Intelligence Reports
-    company_profile: Union[Any, None] = None
-    tech_stack: Union[Any, None] = None
-    tech_stack_report: Union[Any, None] = None
-    contact_info_report: Union[Any, None] = None
-    lead_score_report: Union[Any, None] = None
+    company_profile: Optional["CompanyProfileReport"] = None
+    tech_stack: Optional["TechStackReport"] = None
+    tech_stack_report: Optional["TechStackReport"] = None
+    contact_info_report: Any | None = None
+    lead_score_report: Any | None = None
 
     # Analysis Reports
-    geospatial_analysis: Union[Any, None] = None
-    osint_report: Union[Any, None] = None
-    hr_intelligence_report: Union[Any, None] = None
-    legal_analysis_report: Union[Any, None] = None
-    web_presence_report: Union[Any, None] = None
-    cross_reference_report: Union[Any, None] = None
+    geospatial_analysis: Optional["GeospatialAnalysisReport"] = None
+    osint_report: Optional["CrossReferenceReport"] = None
+    hr_intelligence_report: Optional["HRIntelligenceReport"] = None
+    legal_analysis_report: Optional["LegalAnalysisReport"] = None
+    web_presence_report: Optional["WebPresenceReport"] = None
+    cross_reference_report: Optional["CrossReferenceReport"] = None
 
     # Content Reports
-    news_report: Union[Any, None] = None
-    company_news_report: Union[Any, None] = None
-    rss_weekly_report: Union[Any, None] = None
-    fin_daily_report: Union[Any, None] = None
-    news_daily_report: Union[Any, None] = None
-    saint_daily_report: Union[Any, None] = None
-    post_report: Union[Any, None] = None
-    marketing_report: Union[Any, None] = None
+    news_report: Optional["NewsDailyReport"] = None
+    company_news_report: Optional["CompanyNewsReport"] = None
+    rss_weekly_report: Optional["RssWeeklyReport"] = None
+    fin_daily_report: Optional["FinancialReport"] = None
+    news_daily_report: Optional["NewsDailyReport"] = None
+    saint_daily_report: Optional["SaintData"] = None
+    post_report: Any | None = None
+    marketing_report: Any | None = None
 
     # Specialized Reports
-    location_report: Union[Any, None] = None
-    holiday_plan: Union[Any, None] = None
-    recipe: Union[Any, None] = None
-    menu_designer_report: Union[Any, None] = None
-    book_summary: Union[Any, None] = None
-    shopping_advice_report: Union[Any, None] = None
-    shopping_advice_model: Union[ShoppingAdviceOutput, None] = None
-    poem: Union[Any, None] = None
-    meeting_prep_report: Union[Any, None] = None
+    location_report: Any | None = None
+    holiday_plan: Optional["HolidayPlannerReport"] = None
+    recipe: Optional["PaprikaRecipe"] = None
+    menu_designer_report: Optional["WeeklyMenuPlan"] = None
+    book_summary: Optional["BookSummaryReport"] = None
+    shopping_advice_report: Optional["ShoppingAdviceOutput"] = None
+    shopping_advice_model: ShoppingAdviceOutput | None = None
+    poem: Optional["PoemJSONOutput"] = None
+    meeting_prep_report: Optional["MeetingPrepReport"] = None
 
     # NEW: Model-based state fields for refactored architecture
-    financial_report_model: Union[Any, None] = None
-    news_daily_model: Union[Any, None] = None
-    saint_daily_model: Union[Any, None] = None
+    financial_report_model: Optional["FinancialReport"] = None
+    news_daily_model: Optional["NewsDailyReport"] = None
+    saint_daily_model: Optional["SaintData"] = None
 
     # ============================================================================
     # COMMUNICATION SETTINGS

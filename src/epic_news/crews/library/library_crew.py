@@ -112,7 +112,6 @@ class LibraryCrew:
             verbose=True,
             respect_context_window=True,
             tools=self.all_tools,
-            llm="gpt-4.1-mini",  # Use more powerful model for report generation
             reasoning=True,
             llm_timeout=300,
         )
