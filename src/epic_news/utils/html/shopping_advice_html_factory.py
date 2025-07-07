@@ -4,7 +4,7 @@ Factory function for converting ShoppingAdviceOutput to HTML using the universal
 
 from __future__ import annotations
 
-from epic_news.models.shopping_advice_models import ShoppingAdviceOutput
+from epic_news.models.crews.shopping_advice_report import ShoppingAdviceOutput
 from epic_news.utils.html.template_manager import TemplateManager
 
 

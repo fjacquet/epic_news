@@ -8,9 +8,9 @@ from epic_news.utils.tool_logging import (
 
 def test_configure_tool_logging(mocker):
     # Test that configure_tool_logging configures the tool loggers correctly
-    mock_logger = mocker.patch("loguru.logger")
+    mock_disable = mocker.patch("loguru.logger.disable")
     configure_tool_logging(mute_tools=True)
-    mock_logger.disable.assert_called()
+    mock_disable.assert_called()
 
 
 def test_get_quiet_tools_config(mocker):

@@ -3,6 +3,7 @@ from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import SerperDevTool
 from dotenv import load_dotenv
 
+from epic_news.models.crews.hr_intelligence_report import HRIntelligenceReport
 from epic_news.tools.html_to_pdf_tool import HtmlToPdfTool
 
 # Import RAG tools
@@ -88,6 +89,13 @@ class HRIntelligenceCrew:
         return Task(
             config=self.tasks_config["format_hr_intelligence_report"],
             async_execution=False,
+            context=[
+                self.leadership_team_assessment(),
+                self.employee_sentiment_analysis(),
+                self.organizational_culture_assessment(),
+                self.talent_acquisition_strategy(),
+            ],
+            output_pydantic=HRIntelligenceReport,
         )
 
     @crew
@@ -101,6 +109,6 @@ class HRIntelligenceCrew:
         return Crew(
             agents=self.agents,
             tasks=self.tasks,
-            process=Process.hierarchical,  # Use hierarchical process for better orchestration
+            process=Process.sequential,  # Use hierarchical process for better orchestration
             verbose=True,
         )

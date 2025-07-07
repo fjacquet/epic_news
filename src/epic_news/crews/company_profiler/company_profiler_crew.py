@@ -3,6 +3,7 @@ from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import SerperDevTool
 from dotenv import load_dotenv
 
+from epic_news.models.crews.company_profiler_report import CompanyProfileReport
 from epic_news.tools.finance_tools import get_yahoo_finance_tools
 from epic_news.tools.html_to_pdf_tool import HtmlToPdfTool
 from epic_news.tools.report_tools import get_report_tools
@@ -42,7 +43,7 @@ class CompanyProfilerCrew:
         return Agent(
             config=self.agents_config["company_reporter"],
             verbose=True,
-            tools=[HtmlToPdfTool()],  # No tools to prevent action traces in output
+            tools=[],  # No tools to prevent action traces in output
             allow_delegation=False,
             respect_context_window=True,
             reasoning=True,
@@ -118,6 +119,7 @@ class CompanyProfilerCrew:
                 self.company_management(),
                 self.company_legal_compliance(),
             ],
+            output_pydantic=CompanyProfileReport,
         )
 
     @crew
@@ -134,6 +136,6 @@ class CompanyProfilerCrew:
         return Crew(
             agents=self.agents,
             tasks=self.tasks,
-            process=Process.hierarchical,  # Hierarchical for parallel execution
+            process=Process.sequential,  # Sequential to avoid needing a manager
             verbose=True,
         )

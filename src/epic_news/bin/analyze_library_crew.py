@@ -153,7 +153,7 @@ def analyze_templates_directory():
 
 def analyze_dashboard_directories():
     """Examine dashboard directories setup."""
-    dashboard_data = os.path.join(project_root, "output", "dashboard__data")
+    dashboard_data = os.path.join(project_root, "output", "dashboard_data")
     dashboards = os.path.join(project_root, "output", "dashboards")
 
     logger.info("Analyzing dashboard directories...")

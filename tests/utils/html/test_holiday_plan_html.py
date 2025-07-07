@@ -4,7 +4,7 @@ import pytest
 from bs4 import BeautifulSoup
 from crewai import CrewOutput
 
-from epic_news.models.holiday_planner_models import HolidayPlannerReport
+from epic_news.models.crews.holiday_planner_report import HolidayPlannerReport
 from epic_news.utils.html.holiday_planner_html_factory import holiday_planner_to_html
 from epic_news.utils.html.template_renderers.holiday_renderer import HolidayRenderer
 

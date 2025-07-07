@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import json
 
-from epic_news.models.book_summary_report import BookSummaryReport
+from epic_news.models.crews.book_summary_report import BookSummaryReport
 from epic_news.utils.html.template_manager import TemplateManager
 
 

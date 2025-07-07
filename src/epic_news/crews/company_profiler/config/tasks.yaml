@@ -86,7 +86,7 @@ company_management:
     A comprehensive JSON object analyzing the management team of {company}.
     The JSON should be well-structured with appropriate keys and values.
   agent: company_researcher
-  output_file: output/osint/{company}_management.json
+  output_file: "output/osint/{company}_management.json"
 company_legal_compliance:
   description: >
     Research and document legal and regulatory aspects of {company}, including:
@@ -101,14 +101,14 @@ company_legal_compliance:
     {company}.
     The JSON should be well-structured with appropriate keys and values.
   agent: company_researcher
-  output_file: output/osint/{company}_legal_compliance.json
+  output_file: "output/osint/{company}_legal_compliance.json"
 format_report_task:
   description: >
     Format the comprehensive company profile report for {company}.
     This task will take all the previously gathered information and format it into
-    a
-    single, comprehensive, and well-structured HTML report.
+    a single, comprehensive, and well-structured data object.
   expected_output: >
-    A comprehensive HTML report containing all the information about {company}.
+    A comprehensive data object containing all the information about {company}, conforming to the CompanyProfileReport Pydantic model.
   agent: company_reporter
-  output_file: output/company_profiler/{company}_profile.html
+  output_file: output/osint/{company}_profile.json
+  output_file: output/osint/{company}_profile.html

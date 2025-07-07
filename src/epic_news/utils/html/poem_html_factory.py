@@ -4,7 +4,7 @@ Factory function for converting PoemJSONOutput to HTML using the universal templ
 
 from __future__ import annotations
 
-from epic_news.models.poem_models import PoemJSONOutput
+from epic_news.models.crews.poem_report import PoemJSONOutput
 from epic_news.utils.html.template_manager import TemplateManager
 
 

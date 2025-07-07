@@ -3,7 +3,7 @@ from crewai.project import CrewBase, agent, crew, task
 from dotenv import load_dotenv
 from loguru import logger
 
-from epic_news.models.paprika_recipe import PaprikaRecipe
+from epic_news.models.crews.cooking_recipe import PaprikaRecipe
 from epic_news.tools.web_tools import get_scrape_tools, get_search_tools
 from epic_news.utils.tool_logging import apply_tool_silence, configure_tool_logging
 

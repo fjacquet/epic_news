@@ -2,7 +2,7 @@
 
 import pytest
 
-from epic_news.models.book_summary_report import (
+from epic_news.models.crews.book_summary_report import (
     BookSummaryReport,
     ChapterSummary,
     TableOfContentsEntry,

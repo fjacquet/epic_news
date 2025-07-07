@@ -96,6 +96,13 @@ class WebPresenceCrew:
         return Task(
             config=self.tasks_config["consolidate_web_presence_report"],
             async_execution=False,
+            context=[
+                self.web_presence_audit(),
+                self.social_media_footprint(),
+                self.domain_infrastructure_analysis(),
+                self.data_leak_analysis(),
+                self.competitive_web_presence_analysis(),
+            ],
         )
 
     @crew
@@ -109,6 +116,7 @@ class WebPresenceCrew:
         return Crew(
             agents=self.agents,
             tasks=self.tasks,
-            process=Process.hierarchical,  # Use hierarchical process for better orchestration
+            process=Process.sequential,  # Sequential to avoid needing a manager
             verbose=True,
+            reasoning=True,
         )

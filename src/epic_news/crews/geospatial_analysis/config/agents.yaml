@@ -14,6 +14,7 @@ geospatial_researcher:
     can identify patterns, risks, and opportunities from location data and
     provide strategic insights based on geographic factors. You collect data but
     do not produce the final output - you pass your findings to the reporter agent.
+  tools: []
 geospatial_reporter:
   role: >
     Geospatial Intelligence Reporter
@@ -29,3 +30,4 @@ geospatial_reporter:
     about
     ensuring all required information is included and properly structured in the final
     output.
+  tools: []

@@ -3,6 +3,7 @@ from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import SerperDevTool
 from dotenv import load_dotenv
 
+from epic_news.models.crews.geospatial_analysis_report import GeospatialAnalysisReport
 from epic_news.tools.html_to_pdf_tool import HtmlToPdfTool
 
 # Import tool factories
@@ -84,6 +85,12 @@ class GeospatialAnalysisCrew:
         return Task(
             config=self.tasks_config["geospatial_intelligence_for_mergers_acquisitions"],
             async_execution=False,
+            context=[
+                self.physical_location_mapping(),
+                self.geospatial_risk_assessment(),
+                self.supply_chain_mapping(),
+            ],
+            output_pydantic=GeospatialAnalysisReport,
         )
 
     @crew
@@ -98,6 +105,6 @@ class GeospatialAnalysisCrew:
         return Crew(
             agents=self.agents,
             tasks=self.tasks,
-            process=Process.hierarchical,  # Use hierarchical process for better orchestration
+            process=Process.sequential,  # Use hierarchical process for better orchestration
             verbose=True,
         )

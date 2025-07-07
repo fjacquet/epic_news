@@ -9,7 +9,7 @@ competitor analysis, and generates professional HTML reports with actionable rec
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 
-from epic_news.models.shopping_advice_models import ShoppingAdviceOutput
+from epic_news.models.crews.shopping_advice_report import ShoppingAdviceOutput
 from epic_news.tools.web_tools import get_scrape_tools, get_search_tools
 
 

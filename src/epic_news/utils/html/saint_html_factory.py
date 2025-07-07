@@ -4,7 +4,7 @@ Factory function for converting SaintData to HTML using the universal template s
 
 from __future__ import annotations
 
-from epic_news.models.saint_data import SaintData
+from epic_news.models.crews.saint_daily_report import SaintData
 from epic_news.utils.html.template_manager import TemplateManager
 
 

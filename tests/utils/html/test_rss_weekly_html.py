@@ -2,7 +2,7 @@
 
 import pytest
 
-from epic_news.models.rss_weekly_models import FeedDigest, RssWeeklyReport
+from epic_news.models.crews.rss_weekly_report import FeedDigest, RssWeeklyReport
 from epic_news.utils.html.rss_weekly_html_factory import rss_weekly_to_html
 
 

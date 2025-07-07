@@ -1,7 +1,7 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 
-from epic_news.models.poem_models import PoemJSONOutput
+from epic_news.models.crews.poem_report import PoemJSONOutput
 
 
 @CrewBase

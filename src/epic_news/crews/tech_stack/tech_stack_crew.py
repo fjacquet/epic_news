@@ -85,6 +85,12 @@ class TechStackCrew:
         return Task(
             config=self.tasks_config["consolidate_tech_stack_report"],
             async_execution=False,
+            context=[
+                self.tech_stack_identification(),
+                self.tech_stack_analysis(),
+                self.open_source_contributions(),
+                self.tech_talent_assessment(),
+            ],
         )
 
     @crew
@@ -98,6 +104,6 @@ class TechStackCrew:
         return Crew(
             agents=self.agents,
             tasks=self.tasks,
-            process=Process.hierarchical,  # Use hierarchical process for better orchestration
+            process=Process.sequential,  # Sequential to avoid needing a manager
             verbose=True,
         )

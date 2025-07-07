@@ -46,6 +46,7 @@ def test_update_market_data_success(
     mocker,
 ):
     """Test successful update of market data for a single ticker."""
+    logger.add(caplog.handler, format="{message}")
     mock_ticker_cls = mocker.patch("epic_news.bin.update_knowledge_base.yf.Ticker")
     mock_ticker_cls.return_value = mock_yfinance_ticker
     mock_rag_tool_cls = mocker.patch("epic_news.bin.update_knowledge_base.RagTool")
@@ -79,6 +80,7 @@ def test_update_market_data_incomplete_info(
     mocker,
 ):
     """Test update when yfinance returns incomplete info."""
+    logger.add(caplog.handler, format="{message}")
     mock_ticker_cls = mocker.patch("epic_news.bin.update_knowledge_base.yf.Ticker")
     mocker.patch("epic_news.bin.update_knowledge_base.RagTool")
     mock_save_tool_cls = mocker.patch("epic_news.bin.update_knowledge_base.SaveToRagTool")
@@ -98,6 +100,7 @@ def test_update_market_data_exception(
     mocker,
 ):
     """Test update when yfinance raises an exception."""
+    logger.add(caplog.handler, format="{message}")
     mock_ticker_cls = mocker.patch("epic_news.bin.update_knowledge_base.yf.Ticker")
     mock_ticker_cls.side_effect = Exception("Network Error")
 
@@ -108,6 +111,7 @@ def test_update_market_data_exception(
 
 def test_prune_outdated_knowledge(caplog):
     """Test that the prune function logs its unimplemented status."""
+    logger.add(caplog.handler, format="{message}")
     prune_outdated_knowledge(max_age_days=90)
 
     assert "Pruning outdated knowledge (older than 90 days) is not yet implemented" in caplog.text

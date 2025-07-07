@@ -4,7 +4,7 @@ Factory function for converting FinancialReport to HTML using the universal temp
 
 from __future__ import annotations
 
-from epic_news.models.financial_report import FinancialReport
+from epic_news.models.crews.financial_report import FinancialReport
 from epic_news.utils.html.template_manager import TemplateManager
 
 

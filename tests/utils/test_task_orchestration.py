@@ -15,6 +15,7 @@ def test_determine_optimal_strategy():
     tasks = [
         Task(description="Test Task 1", expected_output="Test Output 1", async_execution=True),
         Task(description="Test Task 2", expected_output="Test Output 2", async_execution=True),
+        Task(description="Test Task 3", expected_output="Test Output 3", async_execution=True),
     ]
     strategy = OrchestrationStrategy.determine_optimal_strategy(tasks)
     assert strategy == Process.hierarchical
@@ -35,6 +36,7 @@ def test_task_group():
 
 def test_performance_monitor(caplog):
     # Test that the performance_monitor decorator monitors the performance of a function
+    logger.add(caplog.handler, format="{message}")
     @performance_monitor
     def test_function():
         pass

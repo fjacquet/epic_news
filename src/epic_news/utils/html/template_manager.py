@@ -11,7 +11,7 @@ from typing import Any
 
 from pydantic import BaseModel
 
-from epic_news.models.financial_report import FinancialReport
+from epic_news.models.crews.financial_report import FinancialReport
 from epic_news.utils.html.template_renderers.renderer_factory import RendererFactory
 
 

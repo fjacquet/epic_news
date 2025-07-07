@@ -4,7 +4,7 @@ from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import DirectoryReadTool, FileReadTool
 
-from epic_news.models.menu_output import WeeklyMenuPlan
+from epic_news.models.crews.menu_designer_report import WeeklyMenuPlan
 from epic_news.tools.web_tools import get_search_tools
 from epic_news.utils.directory_utils import ensure_output_directory
 
@@ -88,6 +88,6 @@ class MenuDesignerCrew:
             agents=self.agents,
             tasks=self.tasks,
             manager_llm="gpt-4.1-mini",
-            process=Process.hierarchical,  # Use hierarchical process for better orchestration
+            process=Process.sequential,  # Use hierarchical process for better orchestration
             verbose=True,
         )

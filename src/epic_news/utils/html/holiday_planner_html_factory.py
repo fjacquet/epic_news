@@ -5,7 +5,7 @@ Follows the deterministic pattern documented in docs/html_rendering_pattern.md.
 
 import os
 
-from src.epic_news.models.holiday_planner_models import HolidayPlannerReport
+from epic_news.models.crews.holiday_planner_report import HolidayPlannerReport
 from src.epic_news.utils.debug_utils import parse_crewai_output
 from src.epic_news.utils.directory_utils import ensure_output_directory
 from src.epic_news.utils.html.template_manager import TemplateManager

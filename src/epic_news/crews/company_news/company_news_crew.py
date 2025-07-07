@@ -6,7 +6,7 @@ from crewai.project import CrewBase, agent, crew, task
 from dotenv import load_dotenv
 from loguru import logger
 
-from epic_news.models.company_news_report import CompanyNewsReport
+from epic_news.models.crews.company_news_report import CompanyNewsReport
 from epic_news.utils.observability import get_observability_tools, trace_task
 
 # fact_checking_tools module doesn't exist, using alternative approach

@@ -7,7 +7,7 @@ then generates a comprehensive French HTML report.
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 
-from epic_news.models.saint_data import SaintData
+from epic_news.models.crews.saint_daily_report import SaintData
 from epic_news.tools.wikipedia_article_tool import WikipediaArticleTool
 from epic_news.tools.wikipedia_processing_tool import WikipediaProcessingTool
 from epic_news.tools.wikipedia_search_tool import WikipediaSearchTool

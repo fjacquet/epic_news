@@ -2,7 +2,10 @@
 
 import pytest
 
-from epic_news.models.company_news_report import ArticleItem, CompanyNewsReport
+from epic_news.models.crews.company_news_report import (
+    ArticleItem,
+    CompanyNewsReport,
+)
 from epic_news.utils.html.company_news_html_factory import company_news_to_html
 
 

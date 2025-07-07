@@ -23,6 +23,7 @@ def mock_project_root(tmp_path: Path) -> Path:
 
 def test_analyze_html_file_valid(caplog, mock_project_root):
     """Test analysis of a valid HTML file."""
+    logger.add(caplog.handler, format="{message}")
     html_content = """
     <!DOCTYPE html>
     <html lang="en">
@@ -54,6 +55,7 @@ def test_analyze_html_file_valid(caplog, mock_project_root):
 
 def test_analyze_html_file_with_issues(caplog, mock_project_root):
     """Test analysis of an HTML file with multiple issues."""
+    logger.add(caplog.handler, format="{message}")
     html_content = """<html><body><h1>A Topic</h1><p>Some text.</p></body></html>"""
     html_path = mock_project_root / "output" / "library" / "book_summary.html"
     html_path.write_text(html_content, encoding="utf-8")
@@ -70,12 +72,14 @@ def test_analyze_html_file_with_issues(caplog, mock_project_root):
 
 def test_analyze_html_file_not_found(caplog):
     """Test analysis when HTML file does not exist."""
+    logger.add(caplog.handler, format="{message}")
     analyze_html_file("non_existent_file.html")
     assert "HTML file not found: non_existent_file.html" in caplog.text
 
 
 def test_analyze_file_paths_correct(caplog, monkeypatch, mock_project_root):
     """Test file path analysis when paths are correct."""
+    logger.add(caplog.handler, format="{message}")
     monkeypatch.setattr("epic_news.bin.analyze_library_crew.project_root", mock_project_root)
     (mock_project_root / "output" / "library" / "book.pdf").touch()
 
@@ -87,6 +91,7 @@ def test_analyze_file_paths_correct(caplog, monkeypatch, mock_project_root):
 
 def test_analyze_file_paths_incorrect(caplog, monkeypatch, mock_project_root):
     """Test file path analysis when an incorrect nested path exists."""
+    logger.add(caplog.handler, format="{message}")
     monkeypatch.setattr("epic_news.bin.analyze_library_crew.project_root", mock_project_root)
     incorrect_path = (
         mock_project_root / "Users" / "fjacquet" / "Projects" / "crews" / "epic_news" / "output" / "library"
@@ -102,6 +107,7 @@ def test_analyze_file_paths_incorrect(caplog, monkeypatch, mock_project_root):
 
 def test_analyze_templates_directory_valid(caplog, monkeypatch, mock_project_root):
     """Test template directory analysis when the template exists."""
+    logger.add(caplog.handler, format="{message}")
     monkeypatch.setattr("epic_news.bin.analyze_library_crew.project_root", mock_project_root)
     (mock_project_root / "templates" / "report_template.html").touch()
 
@@ -113,6 +119,7 @@ def test_analyze_templates_directory_valid(caplog, monkeypatch, mock_project_roo
 
 def test_analyze_templates_directory_missing(caplog, monkeypatch, mock_project_root):
     """Test template directory analysis when the template is missing."""
+    logger.add(caplog.handler, format="{message}")
     monkeypatch.setattr("epic_news.bin.analyze_library_crew.project_root", mock_project_root)
 
     analyze_templates_directory()
@@ -122,6 +129,7 @@ def test_analyze_templates_directory_missing(caplog, monkeypatch, mock_project_r
 
 def test_analyze_dashboard_directories_valid(caplog, monkeypatch, mock_project_root):
     """Test dashboard directory analysis when directories exist."""
+    logger.add(caplog.handler, format="{message}")
     monkeypatch.setattr("epic_news.bin.analyze_library_crew.project_root", mock_project_root)
     (mock_project_root / "output" / "dashboard_data" / "data.json").touch()
     (mock_project_root / "output" / "dashboards" / "dashboard.html").touch()
@@ -134,6 +142,7 @@ def test_analyze_dashboard_directories_valid(caplog, monkeypatch, mock_project_r
 
 def test_analyze_dashboard_directories_missing(caplog, monkeypatch, tmp_path):
     """Test dashboard directory analysis when directories are missing."""
+    logger.add(caplog.handler, format="{message}")
     # Use a clean tmp_path without the full mock structure
     monkeypatch.setattr("epic_news.bin.analyze_library_crew.project_root", tmp_path)
 

@@ -24,6 +24,7 @@ def test_save_json_file(mocker):
 
 def test_read_file_content_file_not_found_prints_error(caplog):
     """Test that an error message is printed for a non-existent file."""
+    logger.add(caplog.handler, format="{message}")
     file_path = "another_non_existent_file.txt"
     read_file_content(file_path)
     assert "Error: File not found at path:" in caplog.text

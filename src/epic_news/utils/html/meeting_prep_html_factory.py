@@ -6,7 +6,7 @@ Uses the modular renderer pattern with MeetingPrepRenderer for better maintainab
 
 import os
 
-from epic_news.models.meeting_prep_report import MeetingPrepReport
+from epic_news.models.crews.meeting_prep_report import MeetingPrepReport
 from epic_news.utils.debug_utils import parse_crewai_output
 from epic_news.utils.directory_utils import ensure_output_directory
 from epic_news.utils.html.template_manager import TemplateManager

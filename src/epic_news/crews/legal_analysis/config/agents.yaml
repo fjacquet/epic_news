@@ -15,6 +15,7 @@ legal_researcher:
     opportunities from public records and legal filings.
     You collect data but do not produce the final output - you pass your findings
     to the reporter agent.
+  tools: []
 legal_reporter:
   role: >
     Legal Intelligence Reporter
@@ -30,3 +31,4 @@ legal_reporter:
     about
     ensuring all required information is included and properly structured in the final
     output.
+  tools: []

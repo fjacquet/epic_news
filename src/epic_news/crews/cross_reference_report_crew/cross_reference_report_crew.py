@@ -3,6 +3,8 @@ from crewai.agents.agent_builder.base_agent import BaseAgent
 from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import DirectoryReadTool, FileReadTool
 
+from epic_news.models.crews.cross_reference_report import CrossReferenceReport
+
 from epic_news.tools.html_to_pdf_tool import HtmlToPdfTool
 from epic_news.tools.report_tools import get_report_tools
 from epic_news.tools.web_tools import get_scrape_tools, get_search_tools
@@ -113,6 +115,13 @@ class CrossReferenceReportCrew:
         return Task(
             config=self.tasks_config["global_reporting"],
             async_execution=False,
+            context=[
+                self.intelligence_requirements_planning(),
+                self.intelligence_collection_coordination(),
+                self.intelligence_analysis_integration(),
+                self.intelligence_product_development(),
+            ],
+            output_pydantic=CrossReferenceReport,
         )
 
     @crew
@@ -126,6 +135,6 @@ class CrossReferenceReportCrew:
         return Crew(
             agents=self.agents,  # Automatically created by the @agent decorator
             tasks=self.tasks,  # Automatically created by the @task decorator
-            process=Process.hierarchical,  # Use hierarchical process for better orchestration
+            process=Process.sequential,  # Sequential to avoid needing a manager
             verbose=True,
         )

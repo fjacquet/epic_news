@@ -2,7 +2,7 @@
 
 import pytest
 
-from epic_news.models.financial_report import (
+from epic_news.models.crews.financial_report import (
     AssetAnalysis,
     AssetSuggestion,
     FinancialReport,

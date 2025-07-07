@@ -3,6 +3,7 @@ from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import SerperDevTool
 from dotenv import load_dotenv
 
+from epic_news.models.crews.legal_analysis_report import LegalAnalysisReport
 from epic_news.tools.html_to_pdf_tool import HtmlToPdfTool
 
 # Import RAG tools
@@ -89,6 +90,13 @@ class LegalAnalysisCrew:
         return Task(
             config=self.tasks_config["mergers_and_acquisitions_due_diligence"],
             async_execution=False,
+            context=[
+                self.legal_compliance_assessment(),
+                self.intellectual_property_analysis(),
+                self.regulatory_risk_assessment(),
+                self.litigation_history_analysis(),
+            ],
+            output_pydantic=LegalAnalysisReport,
         )
 
     @crew
@@ -102,6 +110,6 @@ class LegalAnalysisCrew:
         return Crew(
             agents=self.agents,
             tasks=self.tasks,
-            process=Process.hierarchical,  # Use hierarchical process for better orchestration
+            process=Process.sequential,  # Use hierarchical process for better orchestration
             verbose=True,
         )

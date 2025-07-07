@@ -6,7 +6,7 @@ This script creates a sample MeetingPrepReport and renders it to HTML.
 import json
 from pathlib import Path
 
-from epic_news.models.meeting_prep_report import MeetingPrepReport
+from epic_news.models.crews.meeting_prep_report import MeetingPrepReport
 from epic_news.utils.directory_utils import ensure_output_directory
 from epic_news.utils.html.meeting_prep_html_factory import meeting_prep_to_html
 

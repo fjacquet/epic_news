@@ -4,7 +4,7 @@ Factory function for converting PaprikaRecipe to HTML using the universal templa
 
 from __future__ import annotations
 
-from epic_news.models.paprika_recipe import PaprikaRecipe
+from epic_news.models.crews.cooking_recipe import PaprikaRecipe
 from epic_news.utils.html.template_manager import TemplateManager
 
 

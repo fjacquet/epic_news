@@ -2,7 +2,7 @@
 
 import pytest
 
-from epic_news.models.news_daily_report import NewsDailyReport
+from epic_news.models.crews.news_daily_report import NewsDailyReport
 from epic_news.utils.html.daily_news_html_factory import daily_news_to_html
 
 

@@ -10,7 +10,7 @@ from typing import Any, Union
 from pydantic import BaseModel, Field
 
 from epic_news.models.extracted_info import ExtractedInfo
-from epic_news.models.shopping_advice_models import ShoppingAdviceOutput
+from epic_news.models.crews.shopping_advice_report import ShoppingAdviceOutput
 from epic_news.utils.menu_generator import MenuGenerator
 from epic_news.utils.string_utils import create_topic_slug
 

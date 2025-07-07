@@ -55,13 +55,13 @@ from epic_news.crews.sales_prospecting.sales_prospecting_crew import SalesProspe
 from epic_news.crews.shopping_advisor.shopping_advisor import ShoppingAdvisorCrew
 from epic_news.crews.tech_stack.tech_stack_crew import TechStackCrew
 from epic_news.crews.web_presence.web_presence_crew import WebPresenceCrew
-from epic_news.models.book_summary_report import BookSummaryReport
+from epic_news.models.crews.book_summary_report import BookSummaryReport
 from epic_news.models.content_state import ContentState
-from epic_news.models.financial_report import FinancialReport
-from epic_news.models.meeting_prep_report import MeetingPrepReport
-from epic_news.models.paprika_recipe import PaprikaRecipe
-from epic_news.models.poem_models import PoemJSONOutput
-from epic_news.models.saint_data import SaintData
+from epic_news.models.crews.financial_report import FinancialReport
+from epic_news.models.crews.meeting_prep_report import MeetingPrepReport
+from epic_news.models.crews.cooking_recipe import PaprikaRecipe
+from epic_news.models.crews.poem_report import PoemJSONOutput
+from epic_news.models.crews.saint_daily_report import SaintData
 from epic_news.utils.debug_utils import (
     dump_crewai_state,
     parse_crewai_output,
@@ -830,7 +830,6 @@ class ReceptionFlow(Flow[ContentState]):
         about a company. It sets `output_file` to `output/osint/company_profile.html`
         and stores the profile in `self.state.company_profile`.
         """
-        self.state.output_file = "output/osint/company_profile.html"
         self.logger.info(
             f"Generating company profile for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}"
         )
@@ -850,7 +849,6 @@ class ReceptionFlow(Flow[ContentState]):
         technologies used by a company. It sets `output_file` to `output/osint/tech_stack.html`
         and stores the report in `self.state.tech_stack`.
         """
-        self.state.output_file = "output/osint/tech_stack.html"
         self.logger.info(
             f"Generating Tech Stack for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}"
         )
@@ -869,7 +867,6 @@ class ReceptionFlow(Flow[ContentState]):
         company's online presence. It sets `output_file` to `output/osint/web_presence.html`
         and stores the report in `self.state.web_presence_report`.
         """
-        self.state.output_file = "output/osint/web_presence.html"
         self.logger.info(
             f"Generating Web Presence for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}"
         )
@@ -887,7 +884,6 @@ class ReceptionFlow(Flow[ContentState]):
         about the company's human resources. It sets `output_file` to `output/osint/hr_intelligence.html`
         and stores the report in `self.state.hr_intelligence_report`.
         """
-        self.state.output_file = "output/osint/hr_intelligence.html"
         self.logger.info(
             f"Generating HR Intelligence for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}"
         )
@@ -907,7 +903,6 @@ class ReceptionFlow(Flow[ContentState]):
         company's legal aspects. It sets `output_file` to `output/osint/legal_analysis.html`
         and stores the report in `self.state.legal_analysis_report`.
         """
-        self.state.output_file = "output/osint/legal_analysis.html"
         self.logger.info(
             f"Generating Legal Analysis for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}"
         )
@@ -927,7 +922,6 @@ class ReceptionFlow(Flow[ContentState]):
         company's geospatial aspects. It sets `output_file` to `output/osint/geospatial_analysis.html`
         and stores the report in `self.state.geospatial_analysis`.
         """
-        self.state.output_file = "output/osint/geospatial_analysis.html"
         self.logger.info(
             f"Generating Geospatial Analysis for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}"
         )
@@ -1162,7 +1156,7 @@ def kickoff(user_input: str | None = None):
     setup_logging()
     # If user_input is not provided, use a default value.
     request = (
-        user_input if user_input else "Donne moi le saint du jour en français"
+        user_input if user_input else "Complete OSINT analysis of Temenos Group"
         # else "let's plan a weekend in cinque terre for 1 person in end of july, I start from finale ligure, give the best hotel and restaurant options"
         # else "get me all news for company JT International SA"
         # else "get the daily news report"
