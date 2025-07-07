@@ -1,6 +1,6 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
-from crewai_tools import SerperDevTool
+from crewai_tools import SerperDevTool, PDFSearchTool
 from dotenv import load_dotenv
 
 from epic_news.models.crews.legal_analysis_report import LegalAnalysisReport
@@ -23,7 +23,7 @@ class LegalAnalysisCrew:
     def legal_researcher(self) -> Agent:
         """Creates the legal researcher agent with tools for data gathering"""
         # Get all tools
-        search_tools = [SerperDevTool(), ScrapeNinjaTool()]
+        search_tools = [SerperDevTool(), ScrapeNinjaTool(), PDFSearchTool()]
         html_to_pdf_tool = HtmlToPdfTool()
 
         all_tools = search_tools + [html_to_pdf_tool] + get_report_tools()
@@ -58,6 +58,7 @@ class LegalAnalysisCrew:
         return Task(
             config=self.tasks_config["legal_compliance_assessment"],
             async_execution=True,
+            verbose=True,
         )
 
     @task
@@ -66,6 +67,7 @@ class LegalAnalysisCrew:
         return Task(
             config=self.tasks_config["intellectual_property_analysis"],
             async_execution=True,
+            verbose=True,
         )
 
     @task
@@ -74,6 +76,7 @@ class LegalAnalysisCrew:
         return Task(
             config=self.tasks_config["regulatory_risk_assessment"],
             async_execution=True,
+            verbose=True,
         )
 
     @task
@@ -82,6 +85,7 @@ class LegalAnalysisCrew:
         return Task(
             config=self.tasks_config["litigation_history_analysis"],
             async_execution=True,
+            verbose=True,
         )
 
     @task

@@ -1,6 +1,6 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
-from crewai_tools import SerperDevTool
+from crewai_tools import SerperDevTool, PDFSearchTool
 from dotenv import load_dotenv
 
 from epic_news.models.crews.hr_intelligence_report import HRIntelligenceReport
@@ -23,7 +23,7 @@ class HRIntelligenceCrew:
     def hr_researcher(self) -> Agent:
         """Creates the HR researcher agent with tools for data gathering"""
         # Get all tools
-        search_tools = [SerperDevTool(), ScrapeNinjaTool()]
+        search_tools = [SerperDevTool(), ScrapeNinjaTool(), PDFSearchTool()]
         html_to_pdf_tool = HtmlToPdfTool()
 
         all_tools = search_tools + [html_to_pdf_tool] + get_report_tools()
@@ -57,6 +57,7 @@ class HRIntelligenceCrew:
         return Task(
             config=self.tasks_config["leadership_team_assessment"],
             async_execution=True,
+            verbose=True,
         )
 
     @task
@@ -65,6 +66,7 @@ class HRIntelligenceCrew:
         return Task(
             config=self.tasks_config["employee_sentiment_analysis"],
             async_execution=True,
+            verbose=True,
         )
 
     @task
@@ -73,6 +75,7 @@ class HRIntelligenceCrew:
         return Task(
             config=self.tasks_config["organizational_culture_assessment"],
             async_execution=True,
+            verbose=True,
         )
 
     @task
@@ -81,6 +84,7 @@ class HRIntelligenceCrew:
         return Task(
             config=self.tasks_config["talent_acquisition_strategy"],
             async_execution=True,
+            verbose=True,
         )
 
     @task

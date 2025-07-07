@@ -11,14 +11,14 @@ cache/
 checkpoints/
 data/etf.csv
 data/stock.csv
-# db/
-# debug/
+db/
+debug/
 docs/test.md
-# logs/*.log
-# output/
+logs/*.log
+output/
 prompts.md
 prompts.txt
 report.md
 reports/
 src/epic_news.egg-info/
-# traces/
+traces/

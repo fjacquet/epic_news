@@ -1,6 +1,6 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
-from crewai_tools import SerperDevTool
+from crewai_tools import SerperDevTool, PDFSearchTool
 from dotenv import load_dotenv
 
 from epic_news.models.crews.web_presence_report import WebPresenceReport
@@ -21,7 +21,7 @@ class WebPresenceCrew:
     def web_researcher(self) -> Agent:
         """Creates the web researcher agent with tools for data gathering"""
         # Get all tools
-        search_tools = [SerperDevTool(), ScrapeNinjaTool()]
+        search_tools = [SerperDevTool(), ScrapeNinjaTool(), PDFSearchTool()]
         html_to_pdf_tool = HtmlToPdfTool()
 
         all_tools = search_tools + [html_to_pdf_tool] + get_report_tools()
@@ -65,6 +65,7 @@ class WebPresenceCrew:
         return Task(
             config=self.tasks_config["social_media_footprint"],
             async_execution=True,
+            verbose=True,
         )
 
     @task
@@ -73,6 +74,7 @@ class WebPresenceCrew:
         return Task(
             config=self.tasks_config["domain_infrastructure_analysis"],
             async_execution=True,
+            verbose=True,
         )
 
     @task
@@ -81,6 +83,7 @@ class WebPresenceCrew:
         return Task(
             config=self.tasks_config["data_leak_analysis"],
             async_execution=True,
+            verbose=True,
         )
 
     @task
@@ -89,6 +92,7 @@ class WebPresenceCrew:
         return Task(
             config=self.tasks_config["competitive_web_presence_analysis"],
             async_execution=True,
+            verbose=True,
         )
 
     @task

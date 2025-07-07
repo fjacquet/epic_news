@@ -1,6 +1,6 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
-from crewai_tools import SerperDevTool
+from crewai_tools import SerperDevTool, PDFSearchTool
 from dotenv import load_dotenv
 
 from epic_news.models.crews.geospatial_analysis_report import GeospatialAnalysisReport
@@ -24,7 +24,7 @@ class GeospatialAnalysisCrew:
     def geospatial_researcher(self) -> Agent:
         """Creates the geospatial researcher agent with tools for data gathering"""
         # Get all tools
-        search_tools = [SerperDevTool(), ScrapeNinjaTool()]
+        search_tools = [SerperDevTool(), ScrapeNinjaTool(), PDFSearchTool()]
         location_tools = get_location_tools()
         html_to_pdf_tool = HtmlToPdfTool()
 
@@ -61,6 +61,7 @@ class GeospatialAnalysisCrew:
         return Task(
             config=self.tasks_config["physical_location_mapping"],
             async_execution=True,
+            verbose=True,
         )
 
     @task
@@ -69,6 +70,7 @@ class GeospatialAnalysisCrew:
         return Task(
             config=self.tasks_config["geospatial_risk_assessment"],
             async_execution=True,
+            verbose=True,
         )
 
     @task
@@ -77,6 +79,7 @@ class GeospatialAnalysisCrew:
         return Task(
             config=self.tasks_config["supply_chain_mapping"],
             async_execution=True,
+            verbose=True,
         )
 
     @task

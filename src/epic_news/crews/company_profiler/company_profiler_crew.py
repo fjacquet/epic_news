@@ -1,6 +1,6 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
-from crewai_tools import SerperDevTool
+from crewai_tools import SerperDevTool, PDFSearchTool
 from dotenv import load_dotenv
 
 from epic_news.models.crews.company_profiler_report import CompanyProfileReport
@@ -22,7 +22,7 @@ class CompanyProfilerCrew:
     def company_researcher(self) -> Agent:
         """Creates the company researcher agent with tools for data gathering"""
         # Get all tools
-        search_tools = [SerperDevTool(), ScrapeNinjaTool()]
+        search_tools = [SerperDevTool(), ScrapeNinjaTool(), PDFSearchTool()]
         finance_tools = get_yahoo_finance_tools()
         html_to_pdf_tool = HtmlToPdfTool()
 
@@ -55,6 +55,7 @@ class CompanyProfilerCrew:
         return Task(
             config=self.tasks_config["company_core_info"],
             async_execution=True,
+            verbose=True,
         )
 
     @task
@@ -63,6 +64,7 @@ class CompanyProfilerCrew:
         return Task(
             config=self.tasks_config["company_history"],
             async_execution=True,
+            verbose=True,
         )
 
     @task
@@ -71,6 +73,7 @@ class CompanyProfilerCrew:
         return Task(
             config=self.tasks_config["company_financials"],
             async_execution=True,
+            verbose=True,
         )
 
     @task
@@ -79,6 +82,7 @@ class CompanyProfilerCrew:
         return Task(
             config=self.tasks_config["company_market_position"],
             async_execution=True,
+            verbose=True,
         )
 
     @task
@@ -87,6 +91,7 @@ class CompanyProfilerCrew:
         return Task(
             config=self.tasks_config["company_products_services"],
             async_execution=True,
+            verbose=True,
         )
 
     @task
@@ -95,6 +100,7 @@ class CompanyProfilerCrew:
         return Task(
             config=self.tasks_config["company_management"],
             async_execution=True,
+            verbose=True,
         )
 
     @task
@@ -102,6 +108,8 @@ class CompanyProfilerCrew:
         """Research and document any legal or regulatory issues"""
         return Task(
             config=self.tasks_config["company_legal_compliance"],
+            async_execution=True,
+            verbose=True,
         )
 
     @task
