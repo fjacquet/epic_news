@@ -3,6 +3,7 @@ from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import SerperDevTool
 from dotenv import load_dotenv
 
+from epic_news.models.crews.web_presence_report import WebPresenceReport
 from epic_news.tools.html_to_pdf_tool import HtmlToPdfTool
 from epic_news.tools.report_tools import get_report_tools
 from epic_news.tools.scrape_ninja_tool import ScrapeNinjaTool
@@ -103,6 +104,7 @@ class WebPresenceCrew:
                 self.data_leak_analysis(),
                 self.competitive_web_presence_analysis(),
             ],
+            output_pydantic=WebPresenceReport,
         )
 
     @crew

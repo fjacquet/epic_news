@@ -107,10 +107,7 @@ global_reporting:
      and comprehensive global intelligence report. This report is NOT a list of files,
      nor a summary of what files exist. It is an INTEGRATION of the INFORMATION CONTAINED
     WITHIN those files.
-    4. DO NOT HALLUCINATE. Do not invent file counts or content. Base your report
-    strictly
-    on the actual content retrieved using the `file_read_tool`.
-    5. The final report should be a structured JSON object that integrates the information
+    4. The final report should be a structured JSON object that integrates the information
     from the files, not a meta-report about the files themselves or a simple concatenation.
   expected_output: >
     A comprehensive and extensive global intelligence report in a well-structured

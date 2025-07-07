@@ -20,6 +20,8 @@ from epic_news.models.crews.poem_report import PoemJSONOutput
 from epic_news.models.crews.rss_weekly_report import RssWeeklyReport
 from epic_news.models.crews.saint_daily_report import SaintData
 from epic_news.models.crews.shopping_advice_report import ShoppingAdviceOutput
+from epic_news.models.crews.tech_stack_report import TechStackReport
+from epic_news.models.crews.web_presence_report import WebPresenceReport
 
 def test_company_profile_report_instantiation():
     """Test that CompanyProfileReport can be instantiated."""
@@ -90,6 +92,47 @@ def test_paprika_recipe_instantiation():
     recipe = PaprikaRecipe(name="Test Recipe", ingredients="1 cup flour", directions="Mix it.")
     assert recipe.name == "Test Recipe"
 
+def test_tech_stack_report_instantiation():
+    """Test that TechStackReport can be instantiated."""
+    report = TechStackReport(
+        company_name="Test Company",
+        executive_summary="Test Summary",
+        technology_stack=[{
+            "name": "Python",
+            "category": "Language"
+        }],
+        strengths=["Flexible"],
+        weaknesses=["Slow"],
+        open_source_contributions=[],
+        talent_assessment="Good",
+        recommendations=[]
+    )
+    assert report.company_name == "Test Company"
+
+def test_web_presence_report_instantiation():
+    """Test that WebPresenceReport can be instantiated."""
+    report = WebPresenceReport(
+        company_name="Test Company",
+        executive_summary="Test Summary",
+        website_analysis={
+            "domain": "test.com",
+            "structure": "Good",
+            "content_quality": "High",
+            "seo": "Okay",
+            "recommendations": ["Improve SEO"]
+        },
+        social_media_footprint=[{
+            "platform": "Twitter",
+            "url": "https://twitter.com/test",
+            "followers": 100,
+            "notes": "Active"
+        }],
+        technical_infrastructure={},
+        data_leak_analysis=[],
+        competitive_analysis=[]
+    )
+    assert report.company_name == "Test Company"
+
 def test_all_models_are_importable():
     """A simple test to ensure all model classes were imported correctly."""
     assert issubclass(BookSummaryReport, object)
@@ -104,3 +147,5 @@ def test_all_models_are_importable():
     assert issubclass(RssWeeklyReport, object)
     assert issubclass(SaintData, object)
     assert issubclass(ShoppingAdviceOutput, object)
+    assert issubclass(TechStackReport, object)
+    assert issubclass(WebPresenceReport, object)

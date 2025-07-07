@@ -16,6 +16,7 @@ tech_researcher:
     company's technology ecosystem.
     You collect data but do not produce the final output - you pass your findings
     to the reporter agent.
+  tools: []
 tech_reporter:
   role: >
     Technology Stack Reporter
@@ -31,3 +32,4 @@ tech_reporter:
     about
     ensuring all required information is included and properly structured in the final
     output.
+  tools: []

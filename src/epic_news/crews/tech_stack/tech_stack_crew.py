@@ -3,6 +3,7 @@ from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import SerperDevTool
 from dotenv import load_dotenv
 
+from epic_news.models.crews.tech_stack_report import TechStackReport
 from epic_news.tools.github_tools import get_github_tools
 from epic_news.tools.html_to_pdf_tool import HtmlToPdfTool
 from epic_news.tools.report_tools import get_report_tools
@@ -91,6 +92,7 @@ class TechStackCrew:
                 self.open_source_contributions(),
                 self.tech_talent_assessment(),
             ],
+            output_pydantic=TechStackReport,
         )
 
     @crew

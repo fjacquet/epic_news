@@ -72,8 +72,6 @@ consolidate_web_presence_report:
     online
     Format your report as a structured JSON object.
   expected_output: >
-    A comprehensive JSON object consolidating all web presence findings
-    about {company}. The JSON should be well-structured with appropriate keys and
-    values.
+    A comprehensive data object consolidating all web presence findings about {company}, conforming to the WebPresenceReport Pydantic model.
   agent: web_reporter
   output_file: "output/osint/{company}_web_presence_report.json"

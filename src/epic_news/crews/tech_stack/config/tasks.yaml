@@ -56,8 +56,6 @@ consolidate_tech_stack_report:
     for further technical investigation
     Format your report as a structured JSON object.
   expected_output: >
-    A comprehensive JSON object consolidating all tech stack findings
-    about {company}. The JSON should be well-structured with appropriate keys and
-    values.
+    A comprehensive data object consolidating all tech stack findings about {company}, conforming to the TechStackReport Pydantic model.
   agent: tech_reporter
   output_file: "output/osint/{company}_tech_stack_report.json"
