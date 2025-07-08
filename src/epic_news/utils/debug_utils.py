@@ -31,10 +31,9 @@ def _attempt_json_repair(json_str: str) -> str:
 
     # Escape unescaped newlines within strings
     def escape_newlines(match):
-        return match.group(0).replace('\n', '\\n')
+        return match.group(0).replace("\n", "\\n")
 
     repaired = re.sub(r'"[^"\\]*(?:\\.[^"\\]*)*"', escape_newlines, repaired)
-
 
     # Try to detect and fix common JSON errors by line
     lines = repaired.split("\n")
@@ -73,10 +72,10 @@ def _attempt_json_repair(json_str: str) -> str:
     repaired = re.sub(r",\s*]", "]", repaired)
 
     # Fix missing commas between elements
-    repaired = re.sub(r'(\d+|true|false|null|"|})\s*({|\[|")', r'\1, \2', repaired)
+    repaired = re.sub(r'(\d+|true|false|null|"|})\s*({|\[|")', r"\1, \2", repaired)
 
     # Fix unquoted keys
-    repaired = re.sub(r'([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:', r'\1"\2":', repaired)
+    repaired = re.sub(r"([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:", r'\1"\2":', repaired)
 
     # Fix single quotes used as string delimiters
     repaired = re.sub(r"'([^']*)'\s*:", r'"\1":', repaired)
@@ -90,14 +89,14 @@ def _attempt_json_repair(json_str: str) -> str:
     repaired = re.sub(r",\s*]", "]", repaired)
 
     # Fix missing commas between array elements or object properties
-    repaired = re.sub(r'("[^"]*"|\d+|true|false|null)\s*(")', r'\1, \2', repaired)
+    repaired = re.sub(r'("[^"]*"|\d+|true|false|null)\s*(")', r"\1, \2", repaired)
 
     # 4b. Fix missing colons in object properties
     # Pattern: "key" "value" -> "key": "value"
     repaired = re.sub(r'"([^"]+)"\s+"([^"]+)"', r'"\1": "\2"', repaired)
 
     # 5. Fix trailing commas before closing braces/brackets
-    repaired = re.sub(r",\s*([}\]])", r'\1', repaired)
+    repaired = re.sub(r",\s*([}\]])", r"\1", repaired)
 
     # 6. Fix missing commas between array/object elements
     # Pattern: } { -> }, {
@@ -358,11 +357,10 @@ def parse_crewai_output(report_content: Any, model_class: type[T], inputs: dict 
             # Find the start of the JSON content
             start_index = 0
             for i, line in enumerate(content_lines):
-                if line.strip().startswith('{') or line.strip().startswith('['):
+                if line.strip().startswith("{") or line.strip().startswith("["):
                     start_index = i
                     break
             cleaned_json = "\n".join(content_lines[start_index:])
-
 
         # --- Sanitize common issues -------------------------------------------------
 

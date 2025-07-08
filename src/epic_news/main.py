@@ -636,7 +636,7 @@ class ReceptionFlow(Flow[ContentState]):
         menu_to_html(report_model, html_file, "Weekly Menu Plan")
         self.logger.info(f"✅ Menu plan generated and HTML written to {html_file}")
 
-        # final_report = f"{output_dir}/{crew_inputs['menu_slug']}.html"
+        final_report = f"{output_dir}/{crew_inputs['menu_slug']}.html"
 
         # Parse menu structure and generate recipes (step 2)
         self.logger.info("👩‍🍳 Step 2/2: Generating individual recipes")
@@ -646,29 +646,28 @@ class ReceptionFlow(Flow[ContentState]):
 
         total_recipes = len(recipe_specs)
 
-        # cooking_crew = CookingCrew().crew()
-        # for i, recipe_spec in enumerate(recipe_specs):
-        #     recipe_name = recipe_spec["name"]
-        #     recipe_code = recipe_spec["code"]
-        #     # Generate slug directly from recipe name
-        #     recipe_slug = create_topic_slug(recipe_name)
-        #     self.logger.info(f"  - Recipe {i + 1}/{total_recipes}: {recipe_name} ({recipe_code})")
+        cooking_crew = CookingCrew().crew()
+        for i, recipe_spec in enumerate(recipe_specs):
+            recipe_name = recipe_spec["name"]
+            recipe_code = recipe_spec["code"]
+            # Generate slug directly from recipe name
+            recipe_slug = create_topic_slug(recipe_name)
+            self.logger.info(f"  - Recipe {i + 1}/{total_recipes}: {recipe_name} ({recipe_code})")
 
-        #     try:
-        #         # Direct CrewAI call with slug already included
-        #         recipe_request = {
-        #             "topic": recipe_spec["name"],
-        #             "topic_slug": recipe_slug,  # Include slug directly
-        #             "preferences": f"Type: {recipe_spec['type']}, Day: {recipe_spec['day']}, Meal: {recipe_spec['meal']}",
-        #         }
+            try:
+                # Direct CrewAI call with slug already included
+                recipe_request = {
+                    "topic": recipe_spec["name"],
+                    "topic_slug": recipe_slug,  # Include slug directly
+                    "preferences": f"Type: {recipe_spec['type']}, Day: {recipe_spec['day']}, Meal: {recipe_spec['meal']}",
+                }
 
-        #         cooking_crew.kickoff(inputs=recipe_request)
+                cooking_crew.kickoff(inputs=recipe_request)
 
-        #     except Exception as e:
-        #         self.logger.error(f"  ❌ Error with {recipe_code}: {e}")
+            except Exception as e:
+                self.logger.error(f"  ❌ Error with {recipe_code}: {e}")
 
-        # self.state.menu_designer_report = final_report
-        # return final_report
+        self.state.menu_designer_report = final_report
 
     @listen("go_generate_book_summary")
     @trace_task(tracer)

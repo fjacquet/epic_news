@@ -13,7 +13,7 @@ def generic_html_factory(report_model: BaseModel, html_file: str, title: str) ->
         title: The title of the report.
     """
     template_manager = TemplateManager()
-    
+
     # The selected_crew parameter is not available here.
     # I will use a generic name for the crew.
     html_content = template_manager.render_report("GENERIC", report_model.model_dump())

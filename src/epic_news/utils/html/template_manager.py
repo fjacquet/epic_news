@@ -60,7 +60,7 @@ class TemplateManager:
             "FINDAILY": "💰 Analyse Financière Quotidienne",
             "NEWSDAILY": "📈 Revue de Presse Quotidienne",
             "RSS": "📡 Synthèse RSS Hebdomadaire",
-        "SALES_PROSPECTING": "💼 Prospection Commerciale",
+            "SALES_PROSPECTING": "💼 Prospection Commerciale",
             "OPEN_SOURCE_INTELLIGENCE": "🔍 Intelligence Open Source",
         }
 
