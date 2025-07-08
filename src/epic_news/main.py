@@ -59,9 +59,15 @@ from epic_news.models.crews.book_summary_report import BookSummaryReport
 from epic_news.models.crews.cooking_recipe import PaprikaRecipe
 from epic_news.models.crews.cross_reference_report import CrossReferenceReport
 from epic_news.models.crews.financial_report import FinancialReport
+from epic_news.models.crews.marketing_report import MarketingReport
 from epic_news.models.crews.meeting_prep_report import MeetingPrepReport
+from epic_news.models.crews.menu_designer_report import WeeklyMenuPlan
 from epic_news.models.crews.poem_report import PoemJSONOutput
 from epic_news.models.crews.saint_daily_report import SaintData
+from epic_news.models.crews.sales_prospecting_report import SalesProspectingReport
+from epic_news.utils.data_normalization import normalize_sales_prospecting_report
+
+# Import the normalization utility
 from epic_news.utils.debug_utils import (
     dump_crewai_state,
     parse_crewai_output,
@@ -76,11 +82,13 @@ from epic_news.utils.html.cross_reference_report_html_factory import (
 )
 from epic_news.utils.html.daily_news_html_factory import daily_news_to_html
 from epic_news.utils.html.fin_daily_html_factory import findaily_to_html
+from epic_news.utils.html.generic_html_factory import generic_html_factory
 from epic_news.utils.html.holiday_planner_html_factory import holiday_planner_to_html
 from epic_news.utils.html.meeting_prep_html_factory import meeting_prep_to_html
 from epic_news.utils.html.poem_html_factory import poem_to_html
 from epic_news.utils.html.recipe_html_factory import recipe_to_html
 from epic_news.utils.html.saint_html_factory import saint_to_html
+from epic_news.utils.html.sales_prospecting_html_factory import sales_prospecting_report_to_html
 from epic_news.utils.html.shopping_advice_html_factory import shopping_advice_to_html
 from epic_news.utils.logger import setup_logging
 from epic_news.utils.menu_generator import MenuGenerator
@@ -622,8 +630,14 @@ class ReceptionFlow(Flow[ContentState]):
         self.logger.info("🗓️ Step 1/2: Planning the weekly menu structure")
 
         menu_structure_result = MenuDesignerCrew().crew().kickoff(inputs=crew_inputs)
+        dump_crewai_state(menu_structure_result, "MENU_DESIGNER")
+        html_file = f"{output_dir}/{crew_inputs['menu_slug']}.html"
 
-        final_report = output_dir + "/" + crew_inputs["menu_slug"] + ".html"
+        report_model = parse_crewai_output(menu_structure_result, WeeklyMenuPlan, crew_inputs)
+        generic_html_factory(report_model, html_file, "Weekly Menu Plan")
+        self.logger.info(f"✅ Menu plan generated and HTML written to {html_file}")
+
+        final_report = f"{output_dir}/{crew_inputs['menu_slug']}.html"
 
         # Parse menu structure and generate recipes (step 2)
         self.logger.info("👩‍🍳 Step 2/2: Generating individual recipes")
@@ -792,10 +806,10 @@ class ReceptionFlow(Flow[ContentState]):
 
         Invokes the `SalesProspectingCrew` to generate a sales prospecting report,
         including contact information and an approach strategy. Sets `output_file`
-        to `output/sales_prospecting/approach_strategy.html` and stores the report
+        to `output/sales_prospecting/report.html` and stores the report
         in `self.state.contact_info_report`.
         """
-        self.state.output_file = "output/sales_prospecting/approach_strategy.html"
+        self.state.output_file = "output/sales_prospecting/report.json"
         company = self.state.to_crew_inputs().get("target_company")  # Expects 'target_company' from inputs
         our_product = self.state.to_crew_inputs().get(
             "our_product", "our product/service"
@@ -804,10 +818,27 @@ class ReceptionFlow(Flow[ContentState]):
             f"Generating sales prospecting report for: {company or 'N/A'} regarding {our_product}"
         )
 
-        self.state.contact_info_report = (
-            SalesProspectingCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
+        # Get raw report content from the crew
+        raw_report_content = SalesProspectingCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
+
+        # Normalize the report data to fix enum validation issues
+        if isinstance(raw_report_content, dict):
+            normalized_report_content = normalize_sales_prospecting_report(raw_report_content)
+            self.logger.info("Sales prospecting report data normalized for validation")
+        else:
+            normalized_report_content = raw_report_content
+            self.logger.warning("Sales prospecting report data is not a dictionary, skipping normalization")
+
+        # Save the normalized report content
+        report_content = normalized_report_content
+        dump_crewai_state(report_content, "SALES_PROSPECTING")
+        html_file = "output/sales_prospecting/report.html"
+
+        report_model = parse_crewai_output(
+            report_content, SalesProspectingReport, self.state.to_crew_inputs()
         )
-        # return "generate_contact_info" # Original comment, implies this was a rename/refactor
+        sales_prospecting_report_to_html(report_model, html_file)
+        self.logger.info(f"✅ Sales prospecting report generated and HTML written to {html_file}")
 
     @listen("go_generate_osint")
     @trace_task(tracer)
@@ -1003,16 +1034,19 @@ class ReceptionFlow(Flow[ContentState]):
         to `output/marketing/enhanced_message.html` and stores the report in
         `self.state.marketing_report`.
         """
-        self.state.output_file = "output/marketing/enhanced_message.html"
+        self.state.output_file = "output/marketing/report.json"
         self.logger.info(
             f"Generating marketing content for topic: {self.state.to_crew_inputs().get('topic', 'N/A')}"
         )
 
         # Create and kickoff the marketing writers crew
-        self.state.marketing_report = (
-            MarketingWritersCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
-        )
-        # return "generate_marketing_content"
+        report_content = MarketingWritersCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
+        dump_crewai_state(report_content, "MARKETING_WRITERS")
+        html_file = "output/marketing/report.html"
+
+        report_model = parse_crewai_output(report_content, MarketingReport, self.state.to_crew_inputs())
+        generic_html_factory(report_model, html_file, "Marketing Report")
+        self.logger.info(f"✅ Marketing content generated and HTML written to {html_file}")
 
     @listen(
         or_(
@@ -1167,7 +1201,10 @@ def kickoff(user_input: str | None = None):
     setup_logging()
     # If user_input is not provided, use a default value.
     request = (
-        user_input if user_input else "Complete OSINT analysis of Temenos Group"
+        user_input
+        if user_input
+        else "let's find a sales prospect at temenos  to sell our product : dell powerflex"
+        # else "Complete OSINT analysis of Temenos Group"
         # else "let's plan a weekend in cinque terre for 1 person in end of july, I start from finale ligure, give the best hotel and restaurant options"
         # else "get me all news for company JT International SA"
         # else "get the daily news report"

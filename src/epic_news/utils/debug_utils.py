@@ -2,6 +2,7 @@
 
 import json
 import os
+import re
 import time
 from typing import Any, TypeVar
 
@@ -25,27 +26,64 @@ def _attempt_json_repair(json_str: str) -> str:
     """
     import re
 
-    repaired = json_str.strip()
+    # Make a copy to avoid modifying the original
+    repaired = json_str
 
-    # 1. Fix common LLM JSON issues
-    # Remove any leading/trailing non-JSON content
-    if not repaired.startswith(("{", "[")):
-        # Find first { or [
-        start_match = re.search(r"[{\[]", repaired)
-        if start_match:
-            repaired = repaired[start_match.start() :]
+    # Try to detect and fix common JSON errors by line
+    lines = repaired.split("\n")
+    fixed_lines = []
 
-    # 2. Fix missing colons after keys (common LLM error)
-    # Pattern: "key" value -> "key": value
-    repaired = re.sub(r'"([^"]+)"\s+(["{\d])', r'"\1": \2', repaired)
+    for i, line in enumerate(lines):
+        # Fix missing commas at the end of lines
+        if i < len(lines) - 1:
+            next_line = lines[i + 1].strip()
+            if (
+                (
+                    line.strip().endswith(('"', "'", "}", "]", "true", "false", "null"))
+                    or line.strip().rstrip("0123456789").strip() != line.strip()
+                )
+                and next_line.startswith(('"', "'", "{", "["))
+                and not line.strip().endswith((",", "{", "[", ":"))
+            ):
+                line = line.rstrip() + ","
 
-    # 3. Fix missing quotes around keys (but preserve already quoted keys)
-    # Pattern: key: -> "key": (but not "key":)
-    repaired = re.sub(r'(?<!["])\b([a-zA-Z_][a-zA-Z0-9_]*)\s*:', r'"\1":', repaired)
+        fixed_lines.append(line.strip())
 
-    # 4. Fix missing quotes around string values (more precise)
-    # Pattern: : word, -> : "word", (but not numbers, booleans, or already quoted)
-    repaired = re.sub(r":\s*([a-zA-Z][a-zA-Z0-9\s]*?)(?=\s*[,}\]])", r': "\1"', repaired)
+    # Rejoin the fixed lines
+    repaired = "\n".join(fixed_lines)
+
+    # Fix common issues
+    repaired = repaired.replace("'", '"')
+    repaired = repaired.replace("True", "true")
+    repaired = repaired.replace("False", "false")
+    repaired = repaired.replace("None", "null")
+    repaired = repaired.replace("NaN", "null")
+    repaired = repaired.replace("Infinity", "null")
+    repaired = repaired.replace("-Infinity", "null")
+
+    # Fix trailing commas in arrays and objects
+    repaired = re.sub(r",\s*\}", "}", repaired)
+    repaired = re.sub(r",\s*\]", "]", repaired)
+
+    # Fix missing commas between elements
+    repaired = re.sub(r"(\d+|true|false|null|\"|\})\s*(\{|\[|\")", r"\1, \2", repaired)
+
+    # Fix unquoted keys
+    repaired = re.sub(r"([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:", r'\1"\2":', repaired)
+
+    # Fix single quotes used as string delimiters
+    repaired = re.sub(r"'([^']*)'\s*:", r'"\1":', repaired)
+    repaired = re.sub(r":\s*'([^']*)'([,}])", r':"\1"\2', repaired)
+
+    # Fix missing quotes around string values
+    repaired = re.sub(r":\s*([a-zA-Z][a-zA-Z0-9_]*)\s*([,}])", r':"\1"\2', repaired)
+
+    # Fix trailing commas in JSON objects and arrays
+    repaired = re.sub(r",\s*\}", "}", repaired)
+    repaired = re.sub(r",\s*\]", "]", repaired)
+
+    # Fix missing commas between array elements or object properties
+    repaired = re.sub(r'("[^"]*"|\d+|true|false|null)\s*(")', r"\1, \2", repaired)
 
     # 4b. Fix missing colons in object properties
     # Pattern: "key" "value" -> "key": "value"
@@ -310,6 +348,17 @@ def parse_crewai_output(report_content: Any, model_class: type[T], inputs: dict 
         if len(lines) > 2:
             cleaned_json = "\n".join(lines[1:-1])
 
+        # --- Sanitize common issues -------------------------------------------------
+
+    def _sanitize_json(text: str) -> str:
+        """Fix common JSON issues like 1,000 style numbers and smart quotes."""
+        # Remove commas used as thousand separators inside numbers (1,234,567)
+        text = re.sub(r"(?<=\d),(?=\d{3}(?!\d))", "", text)
+        # Replace smart quotes with straight quotes
+        return text.replace("“", '"').replace("”", '"').replace("‘", "'").replace("’", "'")
+
+    cleaned_json = _sanitize_json(cleaned_json)
+
     # Parse and validate JSON
     try:
         parsed_data = json.loads(cleaned_json)
@@ -319,6 +368,43 @@ def parse_crewai_output(report_content: Any, model_class: type[T], inputs: dict 
             for entry in parsed_data["table_of_contents"]:
                 if "id" in entry and not isinstance(entry["id"], str):
                     entry["id"] = str(entry["id"])
+
+                # $Special handling for SalesProspectingReport: clean metrics list
+        if model_class.__name__ == "SalesProspectingReport" and "sales_metrics" in parsed_data:
+            try:
+                from epic_news.utils.data_normalization import normalize_metric_type
+            except ImportError:
+
+                def normalize_metric_type(v: str):
+                    return v
+
+            metrics = parsed_data.get("sales_metrics", {}).get("metrics", [])
+            cleaned_metrics = []
+            for metric in metrics:
+                # Normalize metric type synonyms
+                m_type = metric.get("type")
+                if m_type:
+                    metric["type"] = normalize_metric_type(m_type)
+                # Ensure metric has a proper value dict
+                val_field = metric.get("value")
+                if not isinstance(val_field, dict):
+                    # numeric or string, wrap into dict
+                    metric["value"] = {"value": val_field, "unit": "", "trend": "flat"}
+                else:
+                    if "value" not in val_field:
+                        # Try to pick the first numeric entry as value
+                        numeric_val = None
+                        for v in val_field.values():
+                            if isinstance(v, int | float):
+                                numeric_val = v
+                                break
+                        if numeric_val is not None:
+                            metric["value"] = {"value": numeric_val, "unit": "", "trend": "flat"}
+                        else:
+                            # skip metric if cannot determine value
+                            continue
+                cleaned_metrics.append(metric)
+            parsed_data["sales_metrics"]["metrics"] = cleaned_metrics
 
         # $Special handling for HolidayPlannerReport: robustly handle day/jour fields
         if model_class.__name__ == "HolidayPlannerReport" and "itinerary" in parsed_data:
@@ -342,6 +428,13 @@ def parse_crewai_output(report_content: Any, model_class: type[T], inputs: dict 
         # $Special handling for HolidayPlannerReport: comprehensive data transformation
         if model_class.__name__ == "HolidayPlannerReport":
             parsed_data = _transform_holiday_planner_data(parsed_data)
+
+        # $Special handling for SalesProspectingReport: ensure proper metric types and trend directions
+        if model_class.__name__ == "SalesProspectingReport" and "sales_metrics" in parsed_data:
+            from epic_news.utils.data_normalization import normalize_structured_data_report
+
+            if "sales_metrics" in parsed_data:
+                parsed_data["sales_metrics"] = normalize_structured_data_report(parsed_data["sales_metrics"])
 
         return model_class.model_validate(parsed_data)
     except json.JSONDecodeError as e:

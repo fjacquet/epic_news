@@ -14,6 +14,7 @@ analyze_market_task:
   expected_output: >
     Une analyse détaillée du message avec 5 points d'amélioration concrets et stratégiques.
   agent: marketing_specialist
+  output_file: /output/marketing/analysis.json
 enhance_message_task:
   description: >
     En vous basant sur l'analyse marketing, réécrivez et améliorez le message suivant
@@ -32,4 +33,4 @@ enhance_message_task:
     Le message marketing amélioré en français, optimisé pour générer plus d'engagement
     et de conversions.
   agent: copywriter
-  output_file: output/marketing/enhanced_message.html
+  output_file: '{output_file}'

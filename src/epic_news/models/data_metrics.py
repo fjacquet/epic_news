@@ -48,8 +48,8 @@ class TrendDirection(str, Enum):
 class MetricValue(BaseModel):
     """A single metric value with optional comparison to previous period."""
 
-    value: float | int | str | bool | datetime = Field(..., description="The current value of the metric")
-    previous_value: float | int | str | bool | Union[datetime, None] = Field(
+    value: Union[float, int, str, bool, datetime] = Field(..., description="The current value of the metric")
+    previous_value: Union[float, int, str, bool, datetime, None] = Field(
         None, description="The previous value of the metric for comparison"
     )
     change_percentage: Union[float, None] = Field(None, description="Percentage change from previous value")
@@ -89,7 +89,7 @@ class Metric(BaseModel):
     unit: Union[str, None] = Field(None, description="Unit of measurement (e.g., '$', '%', 'days')")
     source: Union[str, None] = Field(None, description="Source of the metric data")
     timestamp: datetime = Field(default_factory=datetime.now, description="When the metric was recorded")
-    target: float | int | str | Union[bool, None] = Field(
+    target: Union[float, int, str, bool, None] = Field(
         None, description="Target value for this metric if applicable"
     )
     is_key_metric: bool = Field(default=False, description="Whether this is a key metric to highlight")
@@ -102,7 +102,7 @@ class KPI(Metric):
     """A Key Performance Indicator extending the base Metric with additional properties."""
 
     is_key_metric: bool = Field(default=True, description="KPIs are always key metrics")
-    target: float | int | str | bool = Field(..., description="Target value for this KPI (required)")
+    target: Union[float, int, str, bool] = Field(..., description="Target value for this KPI (required)")
     target_date: Union[datetime, None] = Field(None, description="Date by which the target should be reached")
     progress_percentage: Union[float, None] = Field(None, description="Percentage progress toward target")
     status: str = Field(

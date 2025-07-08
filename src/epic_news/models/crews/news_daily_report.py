@@ -1,6 +1,6 @@
 """Pydantic model for NewsDaily crew output."""
 
-from typing import Union
+from typing import Optional, Union
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -9,10 +9,10 @@ class NewsItem(BaseModel):
     """Individual news item."""
 
     titre: str = Field(..., alias="title", description="News article title")
-    source: str | None = Field(None, description="News source")
-    resume: str | None = Field(None, alias="content", description="Article summary")
-    lien: str | None = Field(None, alias="link", description="Article URL")
-    date: str | None = Field(None, description="Article date")
+    source: Optional[str] = Field(None, description="News source")
+    resume: Optional[str] = Field(None, alias="content", description="Article summary")
+    lien: Optional[str] = Field(None, alias="link", description="Article URL")
+    date: Optional[str] = Field(None, description="Article date")
 
     class Config:
         populate_by_name = True  # Allow both field name and alias
@@ -40,7 +40,7 @@ class NewsSection(BaseModel):
 class NewsDailyReport(BaseModel):
     """Complete NewsDaily report structure matching the crew's expected JSON output."""
 
-    summary: str | None = Field(None, description="Executive summary")
+    summary: Optional[str] = Field(None, description="Executive summary")
     suisse_romande: Union[list[NewsItem], str] = Field(
         default_factory=list, description="Suisse Romande news"
     )

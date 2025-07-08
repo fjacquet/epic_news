@@ -19,6 +19,7 @@ from .news_daily_renderer import NewsDailyRenderer
 from .poem_renderer import PoemRenderer
 from .rss_weekly_renderer import RssWeeklyRenderer
 from .saint_renderer import SaintRenderer
+from .sales_prospecting_renderer import SalesProspectingRenderer
 from .shopping_renderer import ShoppingRenderer
 
 
@@ -41,6 +42,8 @@ class RendererFactory:
         "SHOPPING": ShoppingRenderer,
         "COMPANY_NEWS": CompanyNewsRenderer,
         "CROSS_REFERENCE_REPORT": CrossReferenceReportRenderer,
+        "SALESPROSPECTING": SalesProspectingRenderer,
+        "SALES_PROSPECTING": SalesProspectingRenderer,
     }
 
     @classmethod

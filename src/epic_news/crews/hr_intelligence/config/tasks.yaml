@@ -1,13 +1,10 @@
 ---
 leadership_team_assessment:
   description: >
-    Assess the leadership team of {company}, including:   
-    - CEO and C-suite executives' backgrounds and experience  
-    - Leadership team stability and tenure   
-    - Leadership style and public communication   
-    - Board of directors composition and expertise   
-    - Leadership diversity metrics   
-    - Public perception of leadership
+    Assess the leadership team of {company}, including:    - CEO and C-suite executives'
+    backgrounds and experience   - Leadership team stability and tenure    - Leadership
+    style and public communication    - Board of directors composition and expertise    -
+    Leadership diversity metrics    - Public perception of leadership
     Format your findings as a structured JSON object.
   expected_output: >
     A comprehensive JSON object assessing {company}'s leadership team.
@@ -16,13 +13,10 @@ leadership_team_assessment:
   output_file: output/osint/{company}_leadership_team_assessment.json
 employee_sentiment_analysis:
   description: >
-    Analyze employee reviews and sentiment about {company}, including:   
-    - Glassdoor, Indeed, and other review site analysis   
-    - Common themes in positive and negative reviews   
-    - Changes in sentiment over time   
-    - Comparison to industry benchmarks   
-    - Response patterns from company management   
-    - Employee satisfaction indicators
+    Analyze employee reviews and sentiment about {company}, including:    - Glassdoor,
+    Indeed, and other review site analysis    - Common themes in positive and negative
+    reviews    - Changes in sentiment over time    - Comparison to industry benchmarks    -
+    Response patterns from company management    - Employee satisfaction indicators
     Format your findings as a structured JSON object.
   expected_output: >
     A comprehensive JSON object analyzing employee sentiment at
@@ -31,13 +25,10 @@ employee_sentiment_analysis:
   output_file: output/osint/{company}_employee_sentiment_analysis.json
 organizational_culture_assessment:
   description: >
-    Assess the organizational culture of {company}, including:   
-    - Stated company values and their implementation   
-    - Work environment and practices   
-    - Recognition and reward systems   
-    - Communication and transparency   
-    - Innovation and adaptability indicators   
-    - Diversity, equity, and inclusion initiatives
+    Assess the organizational culture of {company}, including:    - Stated company
+    values and their implementation    - Work environment and practices    - Recognition
+    and reward systems    - Communication and transparency    - Innovation and adaptability
+    indicators    - Diversity, equity, and inclusion initiatives
     Format your findings as a structured JSON object.
   expected_output: >
     A comprehensive JSON object assessing {company}'s organizational
@@ -46,13 +37,10 @@ organizational_culture_assessment:
   output_file: output/osint/{company}_organizational_culture_assessment.json
 talent_acquisition_strategy:
   description: >
-    Analyze {company}'s talent acquisition strategy, including:   
-    - Job posting patterns and hiring focus areas   
-    - Recruitment methods and channels   
-    - Employer branding approach   
-    - Candidate experience indicators   
-    - Retention strategies and turnover patterns   
-    - Career development opportunities
+    Analyze {company}'s talent acquisition strategy, including:    - Job posting patterns
+    and hiring focus areas    - Recruitment methods and channels    - Employer branding
+    approach    - Candidate experience indicators    - Retention strategies and turnover
+    patterns    - Career development opportunities
     Format your findings as a structured JSON object.
   expected_output: >
     A comprehensive JSON object analyzing {company}'s talent acquisition
@@ -62,13 +50,10 @@ talent_acquisition_strategy:
 format_hr_intelligence_report:
   description: >
     Consolidate all HR intelligence findings about {company} into a
-    comprehensive report, including:    
-    - Executive summary of human capital insights  
-    - Leadership team assessment  
-    - Organizational culture analysis  
-    - Employee sentiment trends  
-    - Talent acquisition and retention strategies  
-    - Recommendations for further HR intelligence gathering
+    comprehensive report, including:     - Executive summary of human capital insights   -
+    Leadership team assessment   - Organizational culture analysis   - Employee sentiment
+    trends   - Talent acquisition and retention strategies   - Recommendations for
+    further HR intelligence gathering
     Format your report as a structured JSON object.
   expected_output: >
     A comprehensive data object consolidating all HR intelligence findings about {company},

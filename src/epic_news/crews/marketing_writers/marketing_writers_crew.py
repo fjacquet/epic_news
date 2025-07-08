@@ -3,7 +3,7 @@ from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from dotenv import load_dotenv
 
-from epic_news.models.report import ReportHTMLOutput
+from epic_news.models.crews.marketing_report import MarketingReport
 from epic_news.tools.report_tools import get_report_tools
 
 load_dotenv()
@@ -38,7 +38,7 @@ class MarketingWritersCrew:
     def copywriter(self) -> Agent:
         return Agent(
             config=self.agents_config["copywriter"],
-            tools=marketing_tools + get_report_tools(),
+            tools=[],
             verbose=True,
             llm_timeout=300,
             respect_context_window=True,
@@ -58,8 +58,9 @@ class MarketingWritersCrew:
         return Task(
             config=self.tasks_config["enhance_message_task"],
             agent=self.copywriter(),
-            output_file="output/marketing/enhanced_message.html",
-            output_pydantic=ReportHTMLOutput,
+            context=[self.analyze_market_task()],
+            output_file="output/marketing/report.json",
+            output_pydantic=MarketingReport,
             verbose=True,
             llm_timeout=300,
         )
@@ -72,5 +73,4 @@ class MarketingWritersCrew:
             tasks=self.tasks,
             process=Process.sequential,
             verbose=True,
-            # process=Process.sequential, # In case you wanna use that instead https://docs.crewai.com/how-to/Hierarchical/
         )

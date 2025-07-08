@@ -76,7 +76,9 @@ class MenuDesignerCrew:
         return Task(
             config=self.tasks_config["menu_json_task"],
             agent=self.menu_reporter(),
+            context=[self.menu_planning_task()],
             verbose=True,
+            output_pydantic=WeeklyMenuPlan,
             output_file=os.path.join(self.output_dir, "{menu_slug}.json"),
         )
 

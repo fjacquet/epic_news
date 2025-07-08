@@ -94,7 +94,7 @@ class ContentState(BaseModel):
     # REQUEST INFORMATION
     # ============================================================================
     user_request: str = "Get the RSS Weekly Report"
-    extracted_info: ExtractedInfo | None = None
+    extracted_info: Optional[ExtractedInfo] = None
     attachment_file: str = ""
     current_year: str = str(datetime.datetime.now().year)
     topic_slug: str = ""
@@ -111,15 +111,15 @@ class ContentState(BaseModel):
     # ============================================================================
     # CREW RESULTS - Core Reports
     # ============================================================================
-    final_report: str | None = None
+    final_report: Optional[str] = None
     error_message: str = ""
 
     # Business Intelligence Reports
     company_profile: Optional["CompanyProfileReport"] = None
     tech_stack: Optional["TechStackReport"] = None
     tech_stack_report: Optional["TechStackReport"] = None
-    contact_info_report: Any | None = None
-    lead_score_report: Any | None = None
+    contact_info_report: Optional[Any] = None
+    lead_score_report: Optional[Any] = None
 
     # Analysis Reports
     geospatial_analysis: Optional["GeospatialAnalysisReport"] = None
@@ -136,17 +136,17 @@ class ContentState(BaseModel):
     fin_daily_report: Optional["FinancialReport"] = None
     news_daily_report: Optional["NewsDailyReport"] = None
     saint_daily_report: Optional["SaintData"] = None
-    post_report: Any | None = None
-    marketing_report: Any | None = None
+    post_report: Optional[Any] = None
+    marketing_report: Optional[Any] = None
 
     # Specialized Reports
-    location_report: Any | None = None
+    location_report: Optional[Any] = None
     holiday_plan: Optional["HolidayPlannerReport"] = None
     recipe: Optional["PaprikaRecipe"] = None
     menu_designer_report: Optional["WeeklyMenuPlan"] = None
     book_summary: Optional["BookSummaryReport"] = None
     shopping_advice_report: Optional["ShoppingAdviceOutput"] = None
-    shopping_advice_model: ShoppingAdviceOutput | None = None
+    shopping_advice_model: Optional[ShoppingAdviceOutput] = None
     poem: Optional["PoemJSONOutput"] = None
     meeting_prep_report: Optional["MeetingPrepReport"] = None
 
@@ -226,6 +226,8 @@ class ContentState(BaseModel):
             "meeting_context": "context",
             "meeting_objective": "objective",
             "prior_interactions": "prior_interactions",
+            # Capture the product or service we are offering
+            "our_product": "our_product",
         }
 
         flattened: dict[str, Any] = {}
