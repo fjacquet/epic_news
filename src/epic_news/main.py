@@ -48,6 +48,7 @@ from epic_news.crews.meeting_prep.meeting_prep_crew import MeetingPrepCrew
 from epic_news.crews.menu_designer.menu_designer import MenuDesignerCrew
 from epic_news.crews.news_daily.news_daily import NewsDailyCrew
 from epic_news.crews.poem.poem_crew import PoemCrew
+from epic_news.crews.post.post_crew import PostCrew
 from epic_news.crews.rss_weekly.rss_weekly_crew import RssWeeklyCrew
 from epic_news.crews.saint_daily.saint_daily import SaintDailyCrew
 from epic_news.crews.sales_prospecting.sales_prospecting_crew import SalesProspectingCrew
@@ -81,7 +82,6 @@ from epic_news.utils.html.cross_reference_report_html_factory import (
 )
 from epic_news.utils.html.daily_news_html_factory import daily_news_to_html
 from epic_news.utils.html.fin_daily_html_factory import findaily_to_html
-from epic_news.utils.html.generic_html_factory import generic_html_factory
 from epic_news.utils.html.holiday_planner_html_factory import holiday_planner_to_html
 from epic_news.utils.html.meeting_prep_html_factory import meeting_prep_to_html
 from epic_news.utils.html.menu_html_factory import menu_to_html
@@ -95,6 +95,7 @@ from epic_news.utils.menu_generator import MenuGenerator
 from epic_news.utils.observability import get_observability_tools, trace_task
 from epic_news.utils.report_utils import (
     generate_rss_weekly_html_report,
+    prepare_email_params,
 )
 from epic_news.utils.string_utils import create_topic_slug
 from scripts.fetch_rss_articles import fetch_articles_from_opml
@@ -1040,80 +1041,6 @@ class ReceptionFlow(Flow[ContentState]):
             "generate_menu_designer",
         )
     )
-    @trace_task(tracer)
-    def generate_html_report(self, *results):
-        """
-        Synchronizes the flow after a crew has finished its primary task.
-
-        Now integrates HtmlDesignerCrew to generate professional HTML reports
-        from the consolidated data before proceeding to the email sending step.
-        """
-        pass  # noqa: PIE790
-        # self.logger.info("Join step reached. Generating professional HTML report with HtmlDesignerCrew.")
-
-        # try:
-        #     # Initialize HtmlDesignerCrew
-        #     html_designer_crew = HtmlDesignerCrew()
-
-        #     # Prepare state data for proper CrewAI Flow
-        #     selected_crew = getattr(self.state, "selected_crew", "UNKNOWN")
-        #     state_data = self.state.model_dump()
-        #     state_data["selected_crew"] = selected_crew
-
-        #     # Debug: Log available state data keys and analyze structure
-        #     log_state_keys(state_data)
-        #     analyze_crewai_output(state_data, selected_crew)
-
-        #     # Debug: Dump complete CrewAI state to JSON file for easier debugging
-        #     dump_crewai_state(state_data, selected_crew)
-
-        #     # Debug: Log specific data if available (poem, recipe, etc.)
-        #     filter_keywords = ["poem", "title", "recipe", "saint", "cook"]
-        #     log_state_keys(state_data, filter_keywords)
-
-        #     self.logger.info(f"🎨 Using proper CrewAI Flow to generate {selected_crew} HTML report...")
-        #     self.logger.info("🌙 Dark mode and responsive design enabled automatically")
-
-        #     # Ensure output directories exist using proper utility
-        #     ensure_output_directories()
-
-        #     # Use proper CrewAI Flow - prepare inputs and kickoff the crew
-        #     # Ensure output file has .html extension for HTML reports
-        #     html_output_file = self.state.output_file
-        #     if html_output_file and not html_output_file.endswith(".html"):
-        #         html_output_file = html_output_file.rsplit(".", 1)[0] + ".html"
-
-        #     inputs = self.state.to_crew_inputs()
-        #     inputs["state_data"] = state_data
-        #     inputs["selected_crew"] = selected_crew
-        #     inputs["output_file"] = html_output_file  # Required by task config
-
-        #     # Proper CrewAI Flow execution
-        #     result = html_designer_crew.crew().kickoff(inputs=inputs)
-
-        #     html_result = f"HTML report generated successfully via CrewAI Flow for {selected_crew}"
-
-        #     self.logger.info(
-        #         "✅ Unified template system completed successfully. Professional HTML report generated."
-        #     )
-        #     self.logger.info(f"📄 Report available at: {html_output_file}")
-        #     self.logger.debug(f"Template system result: {html_result}")
-
-        #     # Update state with the generated HTML report path
-        #     self.state.output_file = html_output_file
-
-        #     self.logger.info(f"🎯 {selected_crew} report generated with unified CSS and dark mode support")
-
-        # except Exception as e:
-        #     # NO FALLBACK - Expose the real error for proper debugging
-        #     error_msg = f"❌ HtmlDesignerCrew execution failed: {e}"
-        #     self.logger.error(error_msg)
-        #     self.logger.error(f"Selected crew: {selected_crew}")
-        #     self.logger.error(f"State data keys: {list(state_data.keys())}")
-
-        #     # Re-raise the exception to prevent silent failures
-        #     raise RuntimeError(f"HTML generation failed for {selected_crew}: {e}") from e
-
     @listen(or_("generate_cross_reference_report", "generate_html_report"))
     @trace_task(tracer)
     def send_email(self):
@@ -1133,29 +1060,26 @@ class ReceptionFlow(Flow[ContentState]):
             self.logger.info("📬 Preparing to send email...")
 
             # Use utility function to prepare all email parameters
-            # email_inputs = prepare_email_params(self.state)
+            email_inputs = prepare_email_params(self.state)
 
-            # # Log attachment status for better visibility
-            # if email_inputs.get("attachment_path"):
-            #     print(f"Using attachment: {email_inputs['attachment_path']}")
-            # else:
-            #     print("⚠️ No valid attachment file found. Email will be sent without attachment.")
-        #     if email_inputs.get("attachment_path"):
-        #         print(f"Using attachment: {email_inputs['attachment_path']}")
-        #     else:
-        #         print("⚠️ No valid attachment file found. Email will be sent without attachment.")
+            # Log attachment status for better visibility
+            if email_inputs.get("attachment_path"):
+                print(f"📎 Using attachment: {email_inputs['attachment_path']}")
+            else:
+                print("⚠️ No valid attachment file found. Email will be sent without attachment.")
 
-        #     # Instantiate and kickoff the PostCrew
-        #     try:
-        #         post_crew = PostCrew()
-        #         email_result = post_crew.crew().kickoff(inputs=email_inputs)
-        #         print(f"📧 Email sending process initiated. Result: {email_result}")
-        #         self.state.email_sent = True  # Mark email as sent to prevent duplicates
-        #     except Exception as e:
-        #         print(f"❌ Error during email sending: {e}")
-        # else:
-        #     print("📧 Email already sent for this request. Skipping.")
-        # return "send_email" # Implicitly returns method name
+            # Instantiate and kickoff the PostCrew
+            try:
+                post_crew = PostCrew()
+                email_result = post_crew.crew().kickoff(inputs=email_inputs)
+                print(f"📧 Email sending process initiated. Result: {email_result}")
+                self.state.email_sent = True  # Mark email as sent to prevent duplicates
+            except Exception as e:
+                self.logger.error(f"❌ Error during email sending: {e}")
+                print(f"❌ Error during email sending: {e}")
+        else:
+            print("📧 Email already sent for this request. Skipping.")
+        return "send_email"  # Implicitly returns method name
 
 
 def kickoff(user_input: str | None = None):
@@ -1174,6 +1098,7 @@ def kickoff(user_input: str | None = None):
     # If user_input is not provided, use a default value.
     request = (
         user_input if user_input else "get the findaily report"
+        # else "Donne moi le saint du jour en français"
         # else "Generate a complete weekly menu planner with 30 recipes and shopping list for a family of 3 in French"
         # else "let's find a sales prospect at temenos  to sell our product : dell powerflex"
         # else "Complete OSINT analysis of Temenos Group"

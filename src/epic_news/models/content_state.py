@@ -5,6 +5,7 @@ for the application during execution.
 """
 
 import datetime
+import os
 from typing import Any, Optional
 
 from pydantic import BaseModel, Field
@@ -66,7 +67,7 @@ class CrewCategories:
 
 
 # Default values
-DEFAULT_EMAIL = "fred.jacquet@gmail.com"
+DEFAULT_EMAIL = os.getenv("MAIL", "fred.jacquet@gmail.com")
 DEFAULT_PARTICIPANTS = [
     "John Doe <john.doe@pictet.com> - CEO",
     "Jane Smith <jane.smith@pictet.com> - CTO",

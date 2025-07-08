@@ -15,6 +15,10 @@ from .base_renderer import BaseRenderer
 class FinancialRenderer(BaseRenderer):
     """Renders financial report content with structured formatting."""
 
+    def __init__(self):
+        """Initialize the financial renderer."""
+        super().__init__()
+
     def render(self, data: dict[str, Any]) -> str:
         """
         Render financial report data to HTML.

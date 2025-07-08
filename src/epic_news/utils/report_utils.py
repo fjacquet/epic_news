@@ -81,22 +81,26 @@ def prepare_email_params(state: Any) -> dict[str, Any]:
 
     Args:
         state (Any): The application state object, which should have attributes
-                     like `selected_crew`, `user_request`, and `output_file`.
+                     like `selected_crew`, `user_request`, `sendto`, and `output_file`.
 
     Returns:
         A dictionary with email parameters including recipient,
         subject, body, and attachment path.
     """
-    recipient = "test-ia@fjaquet.fr"
+    recipient = getattr(state, "sendto", "test-ia@fjaquet.fr")
     subject = f"Epic News Report: {state.selected_crew} - {state.user_request}"
     body = f"Please find the report for '{state.user_request}' attached."
     attachment_path = getattr(state, "output_file", None)
+    output_file = getattr(state, "output_file", None)
+    topic = f"{state.selected_crew} - {state.user_request}"
 
     return {
-        "recipient": recipient,
+        "recipient_email": recipient,
         "subject": subject,
         "body": body,
         "attachment_path": attachment_path,
+        "output_file": output_file,
+        "topic": topic,
     }
 
 
