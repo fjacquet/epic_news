@@ -15,6 +15,10 @@ from .base_renderer import BaseRenderer
 class MenuRenderer(BaseRenderer):
     """Renders menu planning content with structured formatting."""
 
+    def __init__(self) -> None:
+        # No special initialisation needed currently
+        pass
+
     def render(self, data: dict[str, Any]) -> str:
         """
         Render menu planning data to HTML.
@@ -112,8 +116,15 @@ class MenuRenderer(BaseRenderer):
         daily_plans_section.append(plans_title)
 
         # Iterate through each day's plan
-        for day, meals in daily_plans.items():
-            day_div = self._create_day_plan(soup, day, meals)
+        for day_dict in daily_plans:
+            # Accept list of DailyMenu objects or dict with 'day'
+            if isinstance(day_dict, dict) and "day" in day_dict:
+                day_name = day_dict["day"]
+                meals = {"lunch": day_dict.get("lunch"), "dinner": day_dict.get("dinner")}
+            else:
+                # Legacy mapping where key is day and value meals
+                day_name, meals = day_dict
+            day_div = self._create_day_plan(soup, day_name, meals)
             daily_plans_section.append(day_div)
 
         container.append(daily_plans_section)
@@ -186,10 +197,33 @@ class MenuRenderer(BaseRenderer):
                         dishes_list.append(dish_item)
                     meal_div.append(dishes_list)
                 else:
-                    # Single dish or text description
-                    meal_text = soup.new_tag("p", class_="meal-text")
-                    meal_text.string = str(meal_content)
-                    meal_div.append(meal_text)
+                    # Nested structured meal (e.g. with starter / main_course / dessert)
+                    if isinstance(meal_content, dict) and any(
+                        k in meal_content for k in ("starter", "main_course", "dessert")
+                    ):
+                        sub_dishes_ul = soup.new_tag("ul", class_="dishes-list")
+                        sub_map = {
+                            "starter": "🥗 Entrée",
+                            "main_course": "🍽️ Plat principal",
+                            "dessert": "🍮 Dessert",
+                        }
+                        for sub_key, label in sub_map.items():
+                            sub_val = meal_content.get(sub_key)
+                            if not sub_val:
+                                continue
+                            dish_li = soup.new_tag("li", class_="dish-item")
+                            if isinstance(sub_val, dict):
+                                dish_name = sub_val.get("name") or str(sub_val)
+                            else:
+                                dish_name = str(sub_val)
+                            dish_li.string = f"{label}: {dish_name}"
+                            sub_dishes_ul.append(dish_li)
+                        meal_div.append(sub_dishes_ul)
+                    else:
+                        # Single dish or text description
+                        meal_text = soup.new_tag("p", class_="meal-text")
+                        meal_text.string = str(meal_content)
+                        meal_div.append(meal_text)
 
                 meals_div.append(meal_div)
         elif isinstance(meals, list):

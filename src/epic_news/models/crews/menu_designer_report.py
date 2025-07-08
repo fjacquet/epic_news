@@ -1,6 +1,7 @@
 """Pydantic models for menu designer output validation."""
 
 from enum import Enum
+from typing import Optional, Union
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -44,8 +45,8 @@ class MenuOutputValidation(BaseModel):
     """Complete validation model for menu designer output."""
 
     recipe_files: list[RecipeFile] = Field(..., description="List of all expected recipe files")
-    menu_report: MenuReport | None = Field(None, description="Final menu report structure")
-    shopping_list: ShoppingList | None = Field(None, description="Aggregated shopping list")
+    menu_report: Union[MenuReport, None] = Field(None, description="Final menu report structure")
+    shopping_list: Union[ShoppingList, None] = Field(None, description="Aggregated shopping list")
     validation_success: bool = Field(False, description="Whether validation was successful")
     total_files: int = Field(0, description="Total number of files found")
     expected_files: int = Field(62, description="Expected number of files")
@@ -95,7 +96,7 @@ class DailyMeal(BaseModel):
     meal_type: MealType = Field(..., description="Type de repas (déjeuner ou dîner)")
     starter: DishInfo = Field(..., description="Entrée du repas")
     main_course: DishInfo = Field(..., description="Plat principal du repas")
-    dessert: DishInfo | None = Field(
+    dessert: Optional[DishInfo] = Field(
         None, description="Dessert du repas (uniquement pour les déjeuners weekend)"
     )
 

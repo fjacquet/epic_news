@@ -31,6 +31,7 @@ from dotenv import load_dotenv
 from loguru import logger
 from pydantic import PydanticDeprecatedSince20, PydanticDeprecatedSince211
 
+# Patch CrewAI's Pydantic schema parser to support Python 3.10 ``X | Y`` unions
 from epic_news.crews.classify.classify_crew import ClassifyCrew
 from epic_news.crews.company_news.company_news_crew import CompanyNewsCrew
 from epic_news.crews.company_profiler.company_profiler_crew import CompanyProfilerCrew
@@ -85,6 +86,7 @@ from epic_news.utils.html.fin_daily_html_factory import findaily_to_html
 from epic_news.utils.html.generic_html_factory import generic_html_factory
 from epic_news.utils.html.holiday_planner_html_factory import holiday_planner_to_html
 from epic_news.utils.html.meeting_prep_html_factory import meeting_prep_to_html
+from epic_news.utils.html.menu_html_factory import menu_to_html
 from epic_news.utils.html.poem_html_factory import poem_to_html
 from epic_news.utils.html.recipe_html_factory import recipe_to_html
 from epic_news.utils.html.saint_html_factory import saint_to_html
@@ -634,10 +636,10 @@ class ReceptionFlow(Flow[ContentState]):
         html_file = f"{output_dir}/{crew_inputs['menu_slug']}.html"
 
         report_model = parse_crewai_output(menu_structure_result, WeeklyMenuPlan, crew_inputs)
-        generic_html_factory(report_model, html_file, "Weekly Menu Plan")
+        menu_to_html(report_model, html_file, "Weekly Menu Plan")
         self.logger.info(f"✅ Menu plan generated and HTML written to {html_file}")
 
-        final_report = f"{output_dir}/{crew_inputs['menu_slug']}.html"
+        # final_report = f"{output_dir}/{crew_inputs['menu_slug']}.html"
 
         # Parse menu structure and generate recipes (step 2)
         self.logger.info("👩‍🍳 Step 2/2: Generating individual recipes")
@@ -647,29 +649,29 @@ class ReceptionFlow(Flow[ContentState]):
 
         total_recipes = len(recipe_specs)
 
-        cooking_crew = CookingCrew().crew()
-        for i, recipe_spec in enumerate(recipe_specs):
-            recipe_name = recipe_spec["name"]
-            recipe_code = recipe_spec["code"]
-            # Generate slug directly from recipe name
-            recipe_slug = create_topic_slug(recipe_name)
-            self.logger.info(f"  - Recipe {i + 1}/{total_recipes}: {recipe_name} ({recipe_code})")
+        # cooking_crew = CookingCrew().crew()
+        # for i, recipe_spec in enumerate(recipe_specs):
+        #     recipe_name = recipe_spec["name"]
+        #     recipe_code = recipe_spec["code"]
+        #     # Generate slug directly from recipe name
+        #     recipe_slug = create_topic_slug(recipe_name)
+        #     self.logger.info(f"  - Recipe {i + 1}/{total_recipes}: {recipe_name} ({recipe_code})")
 
-            try:
-                # Direct CrewAI call with slug already included
-                recipe_request = {
-                    "topic": recipe_spec["name"],
-                    "topic_slug": recipe_slug,  # Include slug directly
-                    "preferences": f"Type: {recipe_spec['type']}, Day: {recipe_spec['day']}, Meal: {recipe_spec['meal']}",
-                }
+        #     try:
+        #         # Direct CrewAI call with slug already included
+        #         recipe_request = {
+        #             "topic": recipe_spec["name"],
+        #             "topic_slug": recipe_slug,  # Include slug directly
+        #             "preferences": f"Type: {recipe_spec['type']}, Day: {recipe_spec['day']}, Meal: {recipe_spec['meal']}",
+        #         }
 
-                cooking_crew.kickoff(inputs=recipe_request)
+        #         cooking_crew.kickoff(inputs=recipe_request)
 
-            except Exception as e:
-                self.logger.error(f"  ❌ Error with {recipe_code}: {e}")
+        #     except Exception as e:
+        #         self.logger.error(f"  ❌ Error with {recipe_code}: {e}")
 
-        self.state.menu_designer_report = final_report
-        return final_report
+        # self.state.menu_designer_report = final_report
+        # return final_report
 
     @listen("go_generate_book_summary")
     @trace_task(tracer)
@@ -1203,7 +1205,8 @@ def kickoff(user_input: str | None = None):
     request = (
         user_input
         if user_input
-        else "let's find a sales prospect at temenos  to sell our product : dell powerflex"
+        else "Generate a complete weekly menu planner with 30 recipes and shopping list for a family of 3 in French"
+        # else "let's find a sales prospect at temenos  to sell our product : dell powerflex"
         # else "Complete OSINT analysis of Temenos Group"
         # else "let's plan a weekend in cinque terre for 1 person in end of july, I start from finale ligure, give the best hotel and restaurant options"
         # else "get me all news for company JT International SA"
@@ -1218,7 +1221,7 @@ def kickoff(user_input: str | None = None):
         # else "Donne moi le saint du jour en français"
         # else "Get me a poem on the mouse of the desert Muad dib"
         # else "tell me all about the book : Clamser à Tataouine de Raphaël Quenard"
-        # else "Generate a complete weekly menu planner with 30 recipes and shopping list for a family of 3 in French"
+        #
     )
 
     reception_flow = ReceptionFlow(user_request=request)

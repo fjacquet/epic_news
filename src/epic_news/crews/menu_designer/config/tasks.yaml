@@ -6,12 +6,11 @@ menu_planning_task:
      30 recettes harmonieusement associées.
     STRUCTURE OBLIGATOIRE:
     - 7 jours × 2 repas = 14 repas
-    - Chaque repas: entrée + plat principal   - Weekend déjeuners: entrée + plat principal
-    + dessert
+    - Chaque repas: entrée + plat principal   - Weekend déjeuners: entrée + plat principal + dessert
     - TOTAL: 30 recettes spécifiées individuellement
     RÉPARTITION EXACTE:
-    - Lundi-Vendredi: Déjeuner (entrée + plat), Dîner (entrée + plat)  - Samedi-Dimanche:
-    Déjeuner (entrée + plat + dessert), Dîner (entrée + plat)
+    - Lundi-Vendredi: Déjeuner (entrée + plat), Dîner (entrée + plat) 
+    - Samedi-Dimanche: Déjeuner (entrée + plat + dessert), Dîner (entrée + plat)
     Contraintes à respecter:
     - Saison: {season} - utiliser les produits de saison correspondant à la date {current_date}
     - Cuisine française familiale traditionnelle
@@ -19,20 +18,15 @@ menu_planning_task:
     - Respect des préférences culinaires: {preferences}
     - Prise en compte du contexte familial: {user_context}
     CRITÈRES DE COHÉRENCE GLOBALE:
-    - Harmonie gustative: les plats d'un même repas doivent se compléter (saveurs,
-    textures, intensités)
-    - Progression culinaire: entrée légère → plat principal plus consistant → dessert
-    équilibré
-    - Variété sur la semaine: alterner les types de protéines, de féculents et de
-    légumes
-    - Équilibre nutritionnel: répartition optimale des groupes alimentaires sur la
-    semaine
+    - Harmonie gustative: les plats d'un même repas doivent se compléter (saveurs, textures, intensités)
+    - Progression culinaire: entrée légère → plat principal plus consistant → dessert équilibré
+    - Variété sur la semaine: alterner les types de protéines, de féculents et de légumes
+    - Équilibre nutritionnel: répartition optimale des groupes alimentaires sur la semaine
     - Rythme hebdomadaire: plats plus légers en semaine, plus élaborés le weekend
     - Chaque recette doit être UNIQUE et clairement spécifiée
     - Noms de recettes précis et attractifs
     IMPORTANT: Ne PAS générer les recettes détaillées - seulement la structure du
-    menu
-    avec les noms et descriptions des plats. Les recettes seront générées séparément.
+    menu avec les noms et descriptions des plats. Les recettes seront générées séparément.
   expected_output: >
     Un plan de menu hebdomadaire complet qui respecte SCRUPULEUSEMENT la structure
     du modèle Pydantic `WeeklyMenuPlan`.
@@ -51,11 +45,9 @@ menu_json_task:
   description: >
     Transformer les données du menu hebdomadaire en un format JSON structuré et propre.
     OBJECTIF: Prendre les informations de menu collectées et les structurer en un
-    format JSON
-    conforme au modèle de données requis, sans aucun élément HTML ou formatage visuel.
+    format JSON conforme au modèle de données requis, sans aucun élément HTML ou formatage visuel.
     INSTRUCTIONS TECHNIQUES:
-    - Assurer que toutes les données sont correctement structurées selon le modèle
-    WeeklyMenuPlan
+    - Assurer que toutes les données sont correctement structurées selon le modèle WeeklyMenuPlan
     - Vérifier l'intégrité et la cohérence des données
     - Éliminer tout élément de formatage ou balise HTML
     CONTENU REQUIS:
@@ -68,13 +60,11 @@ menu_json_task:
     - JSON valide et bien formaté
     - Conforme au schéma WeeklyMenuPlan
     - Facilement parsable par d'autres systèmes
-    Utiliser les informations de la structure du menu précédemment collectées pour
-    générer
-    un document JSON propre et structuré.
+    Utiliser les informations de la structure du menu précédemment collectées pour générer un document JSON propre et structuré.
   expected_output: >
-    Document JSON complet et valide présentant le menu hebdomadaire de façon
-    structurée et organisée par jour.
+    Document JSON complet et valide présentant le menu hebdomadaire de façon structurée et organisée par jour.
     - Tous les champs requis pour chaque plat
     - Format permettant l'extraction facile des 30 recettes individuelles
     - Aucun élément de formatage HTML ou visuel
   agent: menu_reporter
+  output_file: "{output_file}"

@@ -23,8 +23,8 @@ This document outlines the development roadmap, current tasks, and a history of 
   - [x] `hr_intelligence`
   - [x] `legal_analysis`
   - [ ] `marketing_writers`
-  - [ ] `menu_designer`
-  - [ ] `sales_prospecting`
+  - [x] `menu_designer`
+  - [x] `sales_prospecting`
   - [x] `tech_stack`
   - [x] `web_presence`
 

@@ -445,6 +445,25 @@ epic_news/
 └── tests/               # Unit tests
 ```
 
+### 4.4. Menu Designer & HTML Renderer Learnings
+
+The following best-practices were distilled while integrating the **MenuDesignerCrew** and its HTML pipeline:
+
+1. **Pydantic `Union` Syntax** – CrewAI’s internal schema parser still requires legacy `typing.Union` / `Optional[...]` annotations. Ensure every field in `menu_designer_report.py` (and any new model) avoids the `X | Y` pipe syntax to prevent runtime parsing errors.
+2. **Factory Pattern Consistency** – Each crew must expose a small, deterministic factory (e.g. `menu_to_html`) that:
+   - Normalises `CrewOutput`, Pydantic model or `dict` into a serialisable `dict`.
+   - Delegates body creation to `TemplateManager.render_report()` using the correct crew identifier.
+   - Optionally persists the resulting HTML.
+3. **Renderer Construction** – All concrete subclasses of `BaseRenderer` **must implement `__init__`** (even if empty) to avoid Python treating them as abstract, otherwise TemplateManager fails to instantiate them.
+4. **Nested Meal Rendering** – For structured meals (`starter` / `main_course` / `dessert`), `MenuRenderer` now:
+   - Detects nested dicts within `lunch` / `dinner` entries.
+   - Renders readable bullet-lists with appropriate emojis.
+   - Falls back gracefully to plain strings when structure is missing.
+5. **DailyMenu Iteration** – `MenuRenderer` supports both legacy `{day: meals}` mappings and the new list-of-objects (`DailyMenu`) produced by the Pydantic model.
+6. **Debugging Pattern** – Use `dump_crewai_state()` to capture problematic crew outputs. Enable by setting `DEBUG_STATE=true` in the environment.
+
+Adhering to these guidelines keeps new menu-style crews consistent with the broader HTML rendering architecture.
+
 ## 6. Development Workflow
 
 - **Package Management**: Use `uv` for all Python operations.

@@ -64,7 +64,6 @@ class MenuDesignerCrew:
         """Task to plan the menu structure, assigned to the menu_researcher agent."""
         return Task(
             config=self.tasks_config["menu_planning_task"],
-            agent=self.menu_researcher(),
             verbose=True,
             output_pydantic=WeeklyMenuPlan,  # Use Pydantic model for structured output
             output_file=os.path.join(self.output_dir, "menu_research_{menu_slug}.json"),
@@ -75,7 +74,6 @@ class MenuDesignerCrew:
         """Task to create a clean JSON version of the menu, assigned to the menu_reporter agent."""
         return Task(
             config=self.tasks_config["menu_json_task"],
-            agent=self.menu_reporter(),
             context=[self.menu_planning_task()],
             verbose=True,
             output_pydantic=WeeklyMenuPlan,
@@ -89,7 +87,6 @@ class MenuDesignerCrew:
         return Crew(
             agents=self.agents,
             tasks=self.tasks,
-            manager_llm="gpt-4.1-mini",
             process=Process.sequential,  # Use hierarchical process for better orchestration
             verbose=True,
         )
