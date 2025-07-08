@@ -124,7 +124,6 @@ def determine_output_path(selected_crew: str, state_data: dict[str, Any] = None)
         "MENU": "output/menu_designer/menu.html",
         "NEWSCOMPANY": "output/news/report.html",
         "RSS": "output/rss_weekly/report.html",
-        "MARKETING_WRITERS": "output/marketing/content.html",
         "SALES_PROSPECTING": "output/sales_prospecting/report.html",
         "OPEN_SOURCE_INTELLIGENCE": "output/osint/report.html",
     }

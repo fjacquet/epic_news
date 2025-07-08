@@ -144,7 +144,7 @@ Each “crew” is a team of specialized AI agents. Here’s what they do:
 - **Sample prompt:** "Investigate recent cybersecurity incidents affecting European banks."
 - **Output:** OSINT report.
 
-### **MarketingWritersCrew**
+
 
 - **What:** Improves French marketing messages for persuasion and engagement.
 - **Sample prompt:** "Améliorer ce message marketing: 'Découvrez notre nouveau produit qui vous aide à gagner du temps.'"

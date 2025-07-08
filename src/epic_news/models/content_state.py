@@ -43,7 +43,6 @@ class CrewCategories:
     LEAD_SCORING = "LEAD_SCORING"
     BOOK_SUMMARY = "BOOK_SUMMARY"
     LOCATION = "LOCATION"
-    MARKETING_WRITERS = "MARKETING_WRITERS"
     MEETING_PREP = "MEETING_PREP"
     MENU = "MENU"
     COMPANY_NEWS = "COMPANY_NEWS"
@@ -137,7 +136,6 @@ class ContentState(BaseModel):
     news_daily_report: Optional["NewsDailyReport"] = None
     saint_daily_report: Optional["SaintData"] = None
     post_report: Optional[Any] = None
-    marketing_report: Optional[Any] = None
 
     # Specialized Reports
     location_report: Optional[Any] = None
@@ -193,10 +191,12 @@ class ContentState(BaseModel):
         # Add menu-specific mappings
         inputs.update(self._add_menu_mappings(inputs))
 
-        # Ensure required placeholders always exist to prevent CrewAI KeyError
+        # Ensure required placeholders always exist
         for required_key in [
             "user_preferences_and_constraints",
             "context",
+            "original_message",
+            "target_audience",
         ]:
             inputs.setdefault(required_key, "")
 

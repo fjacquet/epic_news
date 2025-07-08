@@ -22,7 +22,6 @@ This document outlines the development roadmap, current tasks, and a history of 
   - [x] `geospatial_analysis`
   - [x] `hr_intelligence`
   - [x] `legal_analysis`
-  - [ ] `marketing_writers`
   - [x] `menu_designer`
   - [x] `sales_prospecting`
   - [x] `tech_stack`

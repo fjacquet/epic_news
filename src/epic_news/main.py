@@ -44,7 +44,6 @@ from epic_news.crews.hr_intelligence.hr_intelligence_crew import HRIntelligenceC
 from epic_news.crews.information_extraction.information_extraction_crew import InformationExtractionCrew
 from epic_news.crews.legal_analysis.legal_analysis_crew import LegalAnalysisCrew
 from epic_news.crews.library.library_crew import LibraryCrew
-from epic_news.crews.marketing_writers.marketing_writers_crew import MarketingWritersCrew
 from epic_news.crews.meeting_prep.meeting_prep_crew import MeetingPrepCrew
 from epic_news.crews.menu_designer.menu_designer import MenuDesignerCrew
 from epic_news.crews.news_daily.news_daily import NewsDailyCrew
@@ -60,7 +59,6 @@ from epic_news.models.crews.book_summary_report import BookSummaryReport
 from epic_news.models.crews.cooking_recipe import PaprikaRecipe
 from epic_news.models.crews.cross_reference_report import CrossReferenceReport
 from epic_news.models.crews.financial_report import FinancialReport
-from epic_news.models.crews.marketing_report import MarketingReport
 from epic_news.models.crews.meeting_prep_report import MeetingPrepReport
 from epic_news.models.crews.menu_designer_report import WeeklyMenuPlan
 from epic_news.models.crews.poem_report import PoemJSONOutput
@@ -267,8 +265,6 @@ class ReceptionFlow(Flow[ContentState]):
             return "go_generate_news_company"
         if self.state.selected_crew == "OPEN_SOURCE_INTELLIGENCE":
             return "go_generate_osint"
-        if self.state.selected_crew == "MARKETING_WRITERS":
-            return "go_generate_marketing_content"
         if self.state.selected_crew == "RSS":
             return "go_generate_rss_weekly"
         if self.state.selected_crew == "FINDAILY":
@@ -1025,31 +1021,6 @@ class ReceptionFlow(Flow[ContentState]):
         self.state.holiday_plan = holiday_plan
         return "generate_holiday_plan"
 
-    @listen("go_generate_marketing_content")
-    @trace_task(tracer)
-    def generate_marketing_content(self):
-        """
-        Handles requests classified for the 'MarketingWritersCrew'.
-
-        Invokes `MarketingWritersCrew` to generate enhanced marketing content,
-        typically in French, based on an original message or topic. Sets `output_file`
-        to `output/marketing/enhanced_message.html` and stores the report in
-        `self.state.marketing_report`.
-        """
-        self.state.output_file = "output/marketing/report.json"
-        self.logger.info(
-            f"Generating marketing content for topic: {self.state.to_crew_inputs().get('topic', 'N/A')}"
-        )
-
-        # Create and kickoff the marketing writers crew
-        report_content = MarketingWritersCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
-        dump_crewai_state(report_content, "MARKETING_WRITERS")
-        html_file = "output/marketing/report.html"
-
-        report_model = parse_crewai_output(report_content, MarketingReport, self.state.to_crew_inputs())
-        generic_html_factory(report_model, html_file, "Marketing Report")
-        self.logger.info(f"✅ Marketing content generated and HTML written to {html_file}")
-
     @listen(
         or_(
             "generate_poem",
@@ -1062,7 +1033,6 @@ class ReceptionFlow(Flow[ContentState]):
             "generate_osint",
             "generate_cross_reference_report",
             "generate_holiday_plan",
-            "generate_marketing_content",
             "generate_rss_weekly",
             "generate_findaily",
             "generate_news_daily",
@@ -1203,9 +1173,8 @@ def kickoff(user_input: str | None = None):
     setup_logging()
     # If user_input is not provided, use a default value.
     request = (
-        user_input
-        if user_input
-        else "Generate a complete weekly menu planner with 30 recipes and shopping list for a family of 3 in French"
+        user_input if user_input else "get the findaily report"
+        # else "Generate a complete weekly menu planner with 30 recipes and shopping list for a family of 3 in French"
         # else "let's find a sales prospect at temenos  to sell our product : dell powerflex"
         # else "Complete OSINT analysis of Temenos Group"
         # else "let's plan a weekend in cinque terre for 1 person in end of july, I start from finale ligure, give the best hotel and restaurant options"
@@ -1217,7 +1186,6 @@ def kickoff(user_input: str | None = None):
         # else "get the rss weekly report"
         # else "Donne moi un conseil d'achat pour remplacer mon sodastream par une marque plus ethique et non israélienne"
         # else "get the daily  news report"
-        # else "get the findaily report"
         # else "Donne moi le saint du jour en français"
         # else "Get me a poem on the mouse of the desert Muad dib"
         # else "tell me all about the book : Clamser à Tataouine de Raphaël Quenard"

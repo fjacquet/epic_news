@@ -24,10 +24,17 @@ def _attempt_json_repair(json_str: str) -> str:
     Returns:
         str: Repaired JSON string
     """
-    import re
-
-    # Make a copy to avoid modifying the original
     repaired = json_str
+
+    # Replace smart quotes with straight quotes
+    repaired = repaired.replace("“", '"').replace("”", '"').replace("‘", "'").replace("’", "'")
+
+    # Escape unescaped newlines within strings
+    def escape_newlines(match):
+        return match.group(0).replace('\n', '\\n')
+
+    repaired = re.sub(r'"[^"\\]*(?:\\.[^"\\]*)*"', escape_newlines, repaired)
+
 
     # Try to detect and fix common JSON errors by line
     lines = repaired.split("\n")
@@ -62,14 +69,14 @@ def _attempt_json_repair(json_str: str) -> str:
     repaired = repaired.replace("-Infinity", "null")
 
     # Fix trailing commas in arrays and objects
-    repaired = re.sub(r",\s*\}", "}", repaired)
-    repaired = re.sub(r",\s*\]", "]", repaired)
+    repaired = re.sub(r",\s*}", "}", repaired)
+    repaired = re.sub(r",\s*]", "]", repaired)
 
     # Fix missing commas between elements
-    repaired = re.sub(r"(\d+|true|false|null|\"|\})\s*(\{|\[|\")", r"\1, \2", repaired)
+    repaired = re.sub(r'(\d+|true|false|null|"|})\s*({|\[|")', r'\1, \2', repaired)
 
     # Fix unquoted keys
-    repaired = re.sub(r"([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:", r'\1"\2":', repaired)
+    repaired = re.sub(r'([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:', r'\1"\2":', repaired)
 
     # Fix single quotes used as string delimiters
     repaired = re.sub(r"'([^']*)'\s*:", r'"\1":', repaired)
@@ -79,23 +86,23 @@ def _attempt_json_repair(json_str: str) -> str:
     repaired = re.sub(r":\s*([a-zA-Z][a-zA-Z0-9_]*)\s*([,}])", r':"\1"\2', repaired)
 
     # Fix trailing commas in JSON objects and arrays
-    repaired = re.sub(r",\s*\}", "}", repaired)
-    repaired = re.sub(r",\s*\]", "]", repaired)
+    repaired = re.sub(r",\s*}", "}", repaired)
+    repaired = re.sub(r",\s*]", "]", repaired)
 
     # Fix missing commas between array elements or object properties
-    repaired = re.sub(r'("[^"]*"|\d+|true|false|null)\s*(")', r"\1, \2", repaired)
+    repaired = re.sub(r'("[^"]*"|\d+|true|false|null)\s*(")', r'\1, \2', repaired)
 
     # 4b. Fix missing colons in object properties
     # Pattern: "key" "value" -> "key": "value"
     repaired = re.sub(r'"([^"]+)"\s+"([^"]+)"', r'"\1": "\2"', repaired)
 
     # 5. Fix trailing commas before closing braces/brackets
-    repaired = re.sub(r",\s*([}\]])", r"\1", repaired)
+    repaired = re.sub(r",\s*([}\]])", r'\1', repaired)
 
     # 6. Fix missing commas between array/object elements
     # Pattern: } { -> }, {
     repaired = re.sub(r"}\s*{", r"}, {", repaired)
-    repaired = re.sub(r"\]\s*\[", r"], [", repaired)
+    repaired = re.sub(r"]\s*\[", r"], [", repaired)
 
     # 7. Count and fix unmatched braces/brackets
     open_braces = repaired.count("{")
@@ -346,7 +353,16 @@ def parse_crewai_output(report_content: Any, model_class: type[T], inputs: dict 
     if cleaned_json.startswith("```") and cleaned_json.endswith("```"):
         lines = cleaned_json.split("\n")
         if len(lines) > 2:
-            cleaned_json = "\n".join(lines[1:-1])
+            # Extract content, assuming first line might be a language hint (e.g., "json")
+            content_lines = lines[1:-1]
+            # Find the start of the JSON content
+            start_index = 0
+            for i, line in enumerate(content_lines):
+                if line.strip().startswith('{') or line.strip().startswith('['):
+                    start_index = i
+                    break
+            cleaned_json = "\n".join(content_lines[start_index:])
+
 
         # --- Sanitize common issues -------------------------------------------------
 

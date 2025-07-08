@@ -361,7 +361,7 @@ class DashboardGenerator:
                 },
                 {
                     "timestamp": f"{today} 12:15:09",
-                    "crew": "MarketingWritersCrew",
+                    
                     "duration": 15.3,
                     "status": "Success",
                     "hallucination_score": 0.14,
