@@ -61,7 +61,6 @@ from epic_news.models.crews.cooking_recipe import PaprikaRecipe
 from epic_news.models.crews.cross_reference_report import CrossReferenceReport
 from epic_news.models.crews.financial_report import FinancialReport
 from epic_news.models.crews.meeting_prep_report import MeetingPrepReport
-from epic_news.models.crews.menu_designer_report import WeeklyMenuPlan
 from epic_news.models.crews.poem_report import PoemJSONOutput
 from epic_news.models.crews.saint_daily_report import SaintData
 from epic_news.models.crews.sales_prospecting_report import SalesProspectingReport
@@ -99,6 +98,7 @@ from epic_news.utils.report_utils import (
 )
 from epic_news.utils.string_utils import create_topic_slug
 from scripts.fetch_rss_articles import fetch_articles_from_opml
+from src.epic_news.services.menu_designer_service import MenuDesignerService
 
 # Import function explicitly to ensure availability during runtime
 
@@ -614,9 +614,9 @@ class ReceptionFlow(Flow[ContentState]):
     @trace_task(tracer)
     def generate_menu_designer(self):
         """
-        Orchestrates the end-to-end weekly menu generation process using CrewAI native flows.
+        Orchestrates the end-to-end weekly menu generation process with validation and error recovery.
         """
-        self.logger.info("🍽️ Starting Menu Designer Workflow")
+        self.logger.info("🍽️ Starting Menu Designer Workflow with Validation")
 
         # Initialize utilities and output directory
         menu_generator = MenuGenerator()
@@ -625,21 +625,87 @@ class ReceptionFlow(Flow[ContentState]):
         crew_inputs = self.state.to_crew_inputs()
         output_dir = "output/menu_designer"
 
-        # Prepare menu crew inputs using direct CrewAI approach
-        self.logger.info("🗓️ Step 1/2: Planning the weekly menu structure")
+        # Use MenuDesignerService with validation
+        self.logger.info("🗓️ Step 1/2: Planning the weekly menu structure with validation")
 
-        menu_structure_result = MenuDesignerCrew().crew().kickoff(inputs=crew_inputs)
-        dump_crewai_state(menu_structure_result, "MENU_DESIGNER")
-        html_file = f"{output_dir}/{crew_inputs['menu_slug']}.html"
+        menu_structure_result = None  # Initialize for recipe generation
 
-        report_model = parse_crewai_output(menu_structure_result, WeeklyMenuPlan, crew_inputs)
-        menu_to_html(report_model, html_file, "Weekly Menu Plan")
-        self.logger.info(f"✅ Menu plan generated and HTML written to {html_file}")
+        try:
+            menu_service = MenuDesignerService()
 
-        final_report = f"{output_dir}/{crew_inputs['menu_slug']}.html"
+            # Generate menu plan with validation and error recovery
+            menu_plan = menu_service.generate_menu_plan(
+                constraints=crew_inputs.get("constraints", ""),
+                preferences=crew_inputs.get("preferences", ""),
+                user_context=crew_inputs.get("user_context", ""),
+                season=crew_inputs.get("season", "hiver"),
+                current_date=crew_inputs.get("current_date", "2025-01-27"),
+                menu_slug=crew_inputs.get("menu_slug", "menu_hebdomadaire"),
+            )
+
+            if menu_plan:
+                self.logger.info("✅ Menu plan validated successfully")
+
+                # Generate HTML using the validated menu plan
+                html_file = f"{output_dir}/{crew_inputs['menu_slug']}.html"
+                menu_to_html(menu_plan, html_file, "Weekly Menu Plan")
+                self.logger.info(f"✅ Menu plan HTML written to {html_file}")
+
+                # Store the validated menu plan in state
+                self.state.menu_plan = menu_plan
+
+                # Convert WeeklyMenuPlan back to dict for recipe parsing
+                # This ensures compatibility with parse_menu_structure
+                menu_structure_result = menu_plan.model_dump()
+                self.logger.info("🔄 Converted validated menu plan to dict for recipe generation")
+
+                final_report = html_file
+            else:
+                self.logger.error("❌ Failed to generate valid menu plan")
+                final_report = f"{output_dir}/error.html"
+
+        except Exception as e:
+            self.logger.error(f"❌ Error in menu designer workflow: {e}")
+            # Fallback to original method if service fails
+            self.logger.info("🔄 Falling back to original menu generation method")
+
+            menu_structure_result = MenuDesignerCrew().crew().kickoff(inputs=crew_inputs)
+            dump_crewai_state(menu_structure_result, "MENU_DESIGNER")
+            html_file = f"{output_dir}/{crew_inputs['menu_slug']}.html"
+
+            # Use MenuPlanValidator for error recovery instead of direct Pydantic validation
+            from epic_news.utils.menu_plan_validator import MenuPlanValidator
+
+            validator = MenuPlanValidator()
+
+            # Extract raw output for validation
+            raw_output = None
+            if hasattr(menu_structure_result, "raw"):
+                raw_output = menu_structure_result.raw
+            elif hasattr(menu_structure_result, "json"):
+                raw_output = menu_structure_result.json
+            else:
+                raw_output = str(menu_structure_result)
+
+            # Parse and validate with error recovery
+            report_model = validator.parse_and_validate_ai_output(raw_output)
+            if not report_model:
+                self.logger.warning("⚠️ Fallback validation failed, creating emergency fallback")
+                report_model = validator.create_fallback_menu_plan()
+
+            menu_to_html(report_model, html_file, "Weekly Menu Plan")
+            self.logger.info(f"✅ Fallback menu plan generated and HTML written to {html_file}")
+
+            final_report = html_file
 
         # Parse menu structure and generate recipes (step 2)
         self.logger.info("👩‍🍳 Step 2/2: Generating individual recipes")
+
+        if menu_structure_result is None:
+            self.logger.error("❌ No menu structure available for recipe generation")
+            self.state.menu_designer_report = final_report
+            return
+
         recipe_specs = menu_generator.parse_menu_structure(menu_structure_result)
 
         # Process recipes using direct CrewAI calls
@@ -660,6 +726,8 @@ class ReceptionFlow(Flow[ContentState]):
                     "topic": recipe_spec["name"],
                     "topic_slug": recipe_slug,  # Include slug directly
                     "preferences": f"Type: {recipe_spec['type']}, Day: {recipe_spec['day']}, Meal: {recipe_spec['meal']}",
+                    "patrika_file": f"output/cooking/{recipe_slug}.yaml",  # Add missing template variable
+                    "output_file": f"output/cooking/{recipe_slug}.json",  # Add missing output_file variable
                 }
 
                 cooking_crew.kickoff(inputs=recipe_request)
@@ -1096,7 +1164,9 @@ def kickoff(user_input: str | None = None):
     setup_logging()
     # If user_input is not provided, use a default value.
     request = (
-        user_input if user_input else "get the findaily report"
+        user_input
+        if user_input
+        else "Generate a complete weekly menu planner with 30 recipes and shopping list for a family of 3 in French"
         # else "Donne moi le saint du jour en français"
         # else "Generate a complete weekly menu planner with 30 recipes and shopping list for a family of 3 in French"
         # else "let's find a sales prospect at temenos  to sell our product : dell powerflex"

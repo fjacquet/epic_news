@@ -197,10 +197,41 @@ class MenuRenderer(BaseRenderer):
                         dishes_list.append(dish_item)
                     meal_div.append(dishes_list)
                 else:
-                    # Nested structured meal (e.g. with starter / main_course / dessert)
-                    if isinstance(meal_content, dict) and any(
+                    # Handle new 'dishes' array format or old structured meal format
+                    if isinstance(meal_content, dict) and "dishes" in meal_content:
+                        # New format: meal_content = {"dishes": [{"name": "...", "dish_type": "..."}]}
+                        dishes_list = soup.new_tag("ul", class_="dishes-list")
+                        dishes = meal_content.get("dishes", [])
+
+                        # Map dish types to emojis
+                        dish_type_emojis = {
+                            "entrée": "🥗",
+                            "plat principal": "🍽️",
+                            "dessert": "🍮",
+                            "starter": "🥗",
+                            "main_course": "🍽️",
+                            "main course": "🍽️",
+                        }
+
+                        for dish in dishes:
+                            if isinstance(dish, dict):
+                                dish_name = dish.get("name", "")
+                                dish_type = dish.get("dish_type", "").lower()
+
+                                if dish_name:
+                                    dish_li = soup.new_tag("li", class_="dish-item")
+                                    emoji = dish_type_emojis.get(dish_type, "🍽️")
+                                    # Capitalize dish type for display
+                                    display_type = dish_type.capitalize() if dish_type else "Plat"
+                                    dish_li.string = f"{emoji} {display_type}: {dish_name}"
+                                    dishes_list.append(dish_li)
+
+                        meal_div.append(dishes_list)
+
+                    elif isinstance(meal_content, dict) and any(
                         k in meal_content for k in ("starter", "main_course", "dessert")
                     ):
+                        # Old format: backward compatibility
                         sub_dishes_ul = soup.new_tag("ul", class_="dishes-list")
                         sub_map = {
                             "starter": "🥗 Entrée",

@@ -76,7 +76,8 @@ class MenuDesignerCrew:
             config=self.tasks_config["menu_json_task"],
             context=[self.menu_planning_task()],
             verbose=True,
-            output_pydantic=WeeklyMenuPlan,
+            # Remove output_pydantic to prevent validation errors
+            # Let MenuPlanValidator handle validation and error recovery
             output_file=os.path.join(self.output_dir, "{menu_slug}.json"),
         )
 

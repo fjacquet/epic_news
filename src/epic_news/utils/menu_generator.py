@@ -122,18 +122,26 @@ class MenuGenerator:
                 meal_obj = day_item.get(meal_key) or {}
                 meal_label = meal_obj.get("meal_type") or ("Déjeuner" if meal_key == "lunch" else "Dîner")
 
-                # Iterate through the three possible dish categories
-                for dish_key in ("starter", "main_course", "dessert"):
-                    dish_obj = meal_obj.get(dish_key)
-                    if dish_obj is None:
-                        continue  # No dessert etc.
+                # Handle new 'dishes' array format
+                dishes = meal_obj.get("dishes", [])
+                if not dishes:
+                    # Fallback to old format for backward compatibility
+                    for dish_key in ("starter", "main_course", "dessert"):
+                        dish_obj = meal_obj.get(dish_key)
+                        if dish_obj is not None:
+                            dishes.append(dish_obj)
+
+                # Process all dishes in the meal
+                for dish_obj in dishes:
+                    if not isinstance(dish_obj, dict):
+                        continue
 
                     dish_name: str = dish_obj.get("name", "")
                     dish_type: str = dish_obj.get("dish_type", "").lower()
                     if not dish_name or not dish_type:
                         # Skip malformed entries but warn for visibility
                         logger.warning(
-                            "Skipping malformed dish entry in %s %s (%s)", day_label, meal_label, dish_key
+                            "Skipping malformed dish entry in %s %s: %s", day_label, meal_label, dish_obj
                         )
                         continue
 
