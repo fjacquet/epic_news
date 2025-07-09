@@ -48,12 +48,14 @@ jobs:
       run: |
         uv sync -U
     
+    - name: Install epic_news in editable mode
+      run: pip install -e .
+
+    - name: Set PYTHONPATH
+      run: export PYTHONPATH=$PYTHONPATH:$(pwd):$(pwd)/SRC:${{ github.workspace }}/src:
+
     - name: Run tests with coverage
-      run: |
-        uv pip install -e .
-        uv run pytest tests/ --cov=src --cov-report=xml --cov-report=term
-      env:
-        PYTHONPATH: ${{ github.workspace }}/src
+      run: uv run pytest tests/ --cov=src --cov-report=xml --cov-report=term
     
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v5
@@ -63,9 +65,7 @@ jobs:
         fail_ci_if_error: false
     
     - name: Run ruff linter
-      run: |
-        uv run ruff check .
+      run: uv run ruff check .
     
     - name: Run ruff formatter check
-      run: |
-        uv run ruff format --check .
+      run: uv run ruff format --check .
