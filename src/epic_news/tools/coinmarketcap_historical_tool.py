@@ -3,18 +3,14 @@ CoinMarketCap API tool for cryptocurrency historical data.
 """
 
 import json
-
-# Using standard logging
-import logging
 import os
 
 import requests
 from crewai.tools import BaseTool
+from loguru import logger
 from pydantic import BaseModel
 
 from src.epic_news.models.coinmarketcap_models import CryptocurrencyHistoricalInput
-
-logger = logging.getLogger(__name__)
 
 # Base URL for CoinMarketCap API
 CMC_BASE_URL = "https://pro-api.coinmarketcap.com/v1"

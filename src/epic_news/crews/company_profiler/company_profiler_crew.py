@@ -1,18 +1,14 @@
-import os
-
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
-from crewai_tools import SerperDevTool
+from crewai_tools import PDFSearchTool, SerperDevTool
 from dotenv import load_dotenv
 
-from epic_news.models.report import ReportHTMLOutput
+from epic_news.models.crews.company_profiler_report import CompanyProfileReport
 from epic_news.tools.finance_tools import get_yahoo_finance_tools
 from epic_news.tools.html_to_pdf_tool import HtmlToPdfTool
-
-# Import RAG tools
-from epic_news.tools.rag_tools import get_rag_tools
 from epic_news.tools.report_tools import get_report_tools
 from epic_news.tools.scrape_ninja_tool import ScrapeNinjaTool
+from epic_news.utils.directory_utils import ensure_output_directory
 
 load_dotenv()
 
@@ -23,27 +19,34 @@ class CompanyProfilerCrew:
     tasks_config = "config/tasks.yaml"
 
     @agent
-    def company_profiler(self) -> Agent:
-        """Creates the company profiler agent"""
+    def company_researcher(self) -> Agent:
+        """Creates the company researcher agent with tools for data gathering"""
         # Get all tools
-        search_tools = [SerperDevTool(), ScrapeNinjaTool()]
+        search_tools = [SerperDevTool(), ScrapeNinjaTool(), PDFSearchTool()]
         finance_tools = get_yahoo_finance_tools()
-        rag_tools = get_rag_tools()
         html_to_pdf_tool = HtmlToPdfTool()
 
-        all_tools = search_tools + finance_tools + rag_tools + [html_to_pdf_tool] + get_report_tools()
+        all_tools = search_tools + finance_tools + [html_to_pdf_tool] + get_report_tools()
 
         return Agent(
-            config=self.agents_config["company_profiler"],
+            config=self.agents_config["company_researcher"],
             verbose=True,
             tools=all_tools,
             allow_delegation=False,
             respect_context_window=True,
             reasoning=True,
-            max_reasoning_attempts=5,
-            max_iter=5,
-            max_retry_limit=3,
-            max_rpm=10,
+        )
+
+    @agent
+    def company_reporter(self) -> Agent:
+        """Creates the company reporter agent with no tools for clean output generation"""
+        return Agent(
+            config=self.agents_config["company_reporter"],
+            verbose=True,
+            tools=[],  # No tools to prevent action traces in output
+            allow_delegation=False,
+            respect_context_window=True,
+            reasoning=True,
         )
 
     @task
@@ -52,6 +55,7 @@ class CompanyProfilerCrew:
         return Task(
             config=self.tasks_config["company_core_info"],
             async_execution=True,
+            verbose=True,
         )
 
     @task
@@ -60,6 +64,7 @@ class CompanyProfilerCrew:
         return Task(
             config=self.tasks_config["company_history"],
             async_execution=True,
+            verbose=True,
         )
 
     @task
@@ -68,6 +73,7 @@ class CompanyProfilerCrew:
         return Task(
             config=self.tasks_config["company_financials"],
             async_execution=True,
+            verbose=True,
         )
 
     @task
@@ -76,6 +82,7 @@ class CompanyProfilerCrew:
         return Task(
             config=self.tasks_config["company_market_position"],
             async_execution=True,
+            verbose=True,
         )
 
     @task
@@ -84,6 +91,7 @@ class CompanyProfilerCrew:
         return Task(
             config=self.tasks_config["company_products_services"],
             async_execution=True,
+            verbose=True,
         )
 
     @task
@@ -92,6 +100,7 @@ class CompanyProfilerCrew:
         return Task(
             config=self.tasks_config["company_management"],
             async_execution=True,
+            verbose=True,
         )
 
     @task
@@ -99,18 +108,42 @@ class CompanyProfilerCrew:
         """Research and document any legal or regulatory issues"""
         return Task(
             config=self.tasks_config["company_legal_compliance"],
-            output_pydantic=ReportHTMLOutput,
+            async_execution=True,
+            verbose=True,
+        )
+
+    @task
+    def format_report_task(self) -> Task:
+        """Format the comprehensive company profile report"""
+        return Task(
+            config=self.tasks_config["format_report_task"],
+            agent=self.company_reporter(),
+            context=[
+                self.company_core_info(),
+                self.company_history(),
+                self.company_financials(),
+                self.company_market_position(),
+                self.company_products_services(),
+                self.company_management(),
+                self.company_legal_compliance(),
+            ],
+            output_pydantic=CompanyProfileReport,
         )
 
     @crew
     def crew(self) -> Crew:
         """Creates the Company Profiler crew"""
         # Ensure output directory exists for final reports
-        os.makedirs("output/company_profiler", exist_ok=True)
+        ensure_output_directory("output/company_profiler")
+        ensure_output_directory("output/osint")
 
+        # Implement the Two-Agent Pattern:
+        # 1. Research tasks are assigned to company_researcher (with tools)
+        # 2. Final output task is assigned to company_reporter (without tools)
+        # This prevents action traces from contaminating the output
         return Crew(
             agents=self.agents,
             tasks=self.tasks,
-            process=Process.hierarchical,  # Changed from sequential to hierarchical for parallel execution
+            process=Process.sequential,  # Sequential to avoid needing a manager
             verbose=True,
         )

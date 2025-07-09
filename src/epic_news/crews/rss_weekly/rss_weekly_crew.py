@@ -2,40 +2,66 @@ from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import FileReadTool
 
-from src.epic_news.tools.rag_tools import get_rag_tools
-from src.epic_news.tools.reporting_tool import ReportingTool
-from src.epic_news.tools.save_to_rag_tool import SaveToRagTool
-from src.epic_news.tools.unified_rss_tool import UnifiedRssTool
-
 
 @CrewBase
 class RssWeeklyCrew:
-    """RssWeeklyCrew crew - Simplified version using UnifiedRssTool"""
+    """RssWeekly crew for translating the weekly RSS digest.
+
+    Uses the two-agent pattern recommended in the design principles:
+    1. content_reader_agent: Uses tools to read and extract content
+    2. translator_agent: No tools, just translates and formats the final output
+
+    This pattern prevents action traces from appearing in the final output.
+    """
 
     agents_config = "config/agents.yaml"
     tasks_config = "config/tasks.yaml"
 
     @agent
-    def content_summarizer(self) -> Agent:
+    def content_reader_agent(self) -> Agent:
+        """Agent responsible for reading the content from files.
+        This agent uses tools but its output won't be the final result."""
         return Agent(
-            config=self.agents_config["content_summarizer"],
+            config=self.agents_config["content_reader_agent"],
+            tools=[FileReadTool()],
             verbose=True,
-            tools=[FileReadTool(), UnifiedRssTool(), SaveToRagTool(), ReportingTool()] + get_rag_tools(),
-            reasoning=False,
-            respect_context_window=True,
+            allow_delegation=False,
+        )
+
+    @agent
+    def translator_agent(self) -> Agent:
+        """Agent responsible for translating content and producing clean JSON output.
+        This agent has NO tools to ensure clean output without action traces."""
+        return Agent(
+            config=self.agents_config["translator_agent"],
+            tools=[],  # NO TOOLS = No action traces in output
+            verbose=True,
+            allow_delegation=False,
         )
 
     @task
-    def compile_digest_task(self) -> Task:
-        return Task(config=self.tasks_config["compile_digest_task"], async_execution=False)
+    def content_reading_task(self) -> Task:
+        """Task for reading the content from the input file."""
+        return Task(
+            config=self.tasks_config["content_reading_task"],
+            agent=self.content_reader_agent(),
+        )
+
+    @task
+    def translation_task(self) -> Task:
+        """Task for translating the content into French and formatting as clean JSON."""
+        return Task(
+            config=self.tasks_config["translation_task"],
+            agent=self.translator_agent(),
+            context=[self.content_reading_task()],
+        )
 
     @crew
     def crew(self) -> Crew:
-        """Creates the simplified RSS Weekly crew"""
+        """Creates the RssWeekly translation crew with sequential processing."""
         return Crew(
             agents=self.agents,
             tasks=self.tasks,
             process=Process.sequential,
             verbose=True,
-            respect_context_window=True,
         )

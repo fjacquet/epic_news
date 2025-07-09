@@ -1,113 +1,92 @@
+---
 research_destination:
   description: >
     Research all aspects of {destination} for a {duration} trip for {family},
-    including: 
-    - Suitability for {duration} 
-    - Attractions, activities, local culture, customs 
-    - Transportation from {origin} and within {destination} 
-    - Seasonal/weather considerations 
-    - Special needs: {special_needs} 
-    - Local events during travel dates 
-    - Safety considerations and travel advisories 
-    - Packing recommendations based on season/activities
-
+    including:    - Suitability for {duration}    - Attractions, activities, local
+    culture, customs    - Transportation from {origin} and within {destination}    -
+    Seasonal/weather considerations    - Special needs: {user_preferences_and_constraints}    -
+    Local events during travel dates    - Safety considerations and travel advisories    -
+    Packing recommendations based on season/activities
   agent: travel_researcher
   expected_output: >
-    Comprehensive destination guide covering all key aspects with detailed
-    practical information, including maps, transportation options, and
-    cultural tips.
-
+    A comprehensive JSON object containing a destination guide. It should cover all
+    key aspects with detailed practical information, including maps, transportation
+    options, and cultural tips.
+  output_file: output/holiday/research_destination.json
 recommend_accommodation_and_dining:
   description: >
-    Using the Research aon {destination} for a {duration}  recommend: 
-    - 3-5 accommodations with details (amenities, photos, exact locations, cancellation policies) 
-    - Dining options for each day (including dietary accommodations) 
-    - Nearby grocery stores and markets 
-    - Kid-friendly options where applicable 
-    - Accessibility information for all recommendations
-
+    Using the Research aon {destination} for a {duration}  recommend:     - 3-5 accommodations
+    with details (amenities, photos, exact locations, cancellation policies)     -
+    Dining options for each day (including dietary accommodations)     - Nearby grocery
+    stores and markets     - Kid-friendly options where applicable     - Accessibility
+    information for all recommendations
   agent: accommodation_specialist
   expected_output: >
-    Detailed accommodation and dining plan with booking links, maps, and
-    comprehensive details.
-
+    A JSON object with a detailed accommodation and dining plan, including booking
+    links, maps, and comprehensive details.
+  output_file: output/holiday/recommend_accommodation_and_dining.json
 plan_itinerary:
   description: >
-    Create a detailed day-by-day itinerary including: 
-    - Morning, afternoon, evening activities with time allocations 
-    - Travel times between locations
-    - Restaurant reservations needed 
-    - Downtime and relaxation periods 
-    - Alternative options for bad weather 
-    - Estimated costs for each day
-
+    Create a detailed day-by-day itinerary including:    - Morning, afternoon, evening
+    activities with time allocations     - Travel times between locations     - Restaurant
+    reservations needed     - Downtime and relaxation periods     - Alternative options
+    for bad weather     - Estimated costs for each day
   agent: itinerary_architect
   expected_output: >
-    Hour-by-hour itinerary with maps, transportation details, and backup
-    options.
-
+    A JSON object representing an hour-by-hour itinerary with maps, transportation
+    details, and backup options.
+  output_file: output/holiday/plan_itinerary.json
 analyze_and_optimize_budget:
   description: >
-    Analyze the proposed itinerary and accommodations to: 
-    - Provide total cost breakdown 
-    - Suggest cost-saving alternatives 
-    - Highlight splurge-worthy experiences 
-    - Calculate potential savings from packages/deals
+    Analyze the proposed itinerary and accommodations to:    - Provide total cost
+    breakdown     - Suggest cost-saving alternatives     - Highlight splurge-worthy
+    experiences     - Calculate potential savings from packages/deals
     - ensure all amount are in the same currency (swiss franc ideally)
-
   agent: budget_manager
   expected_output: >
-    Detailed budget analysis with cost breakdowns and optimization
-    suggestions.
-
+    A JSON object with a detailed budget analysis, including cost breakdowns and
+    optimization suggestions.
+  output_file: output/holiday/analyze_and_optimize_budget.json
 format_and_translate_guide:
   description: >
-    Compile all information into a beautifully formatted guide including: 
-    - Table of contents 
-    - Key information summary 
-    - Day-by-day itinerary with maps 
-    - Accommodation and dining details 
-    - Budget summary 
-    - Emergency contacts and local phrases 
-    - Packing checklist 
-    - Translated sections if needed
+    Compile all information into a beautifully formatted guide including:     - Table
+    of contents     - Key information summary     - Day-by-day itinerary with maps     -
+    Accommodation and dining details     - Budget summary     - Emergency contacts
+    and local phrases     - Packing checklist     - Translated sections if needed
     - ensure all amount are in the same currency (swiss franc ideally)
     - ensure all prices are up to date
   agent: content_formatter
   expected_output: >
-    A comprehensive, richly detailed, and visually appealing travel guide in a
-    single HTML file. The guide must be exhaustive and meticulously details ALL
-    information from the previous research, accommodation, itinerary, and budget
-    tasks. It should present the information in a narrative and engaging format,
-    not just as a list of points. The final output must be professionally formatted
-    using clear HTML structure (e.g., H1, H2, H3 for headings; UL/OL for lists;
-    TABLEs for budget summaries or comparisons). Ensure a clean, modern aesthetic
-    with ample white space for readability. The guide must include:
-    1.  A detailed introduction to the destination, its culture, and key highlights 
-    relevant to the user's interests.
-    2.  A full day-by-day itinerary with vivid descriptions for each activity, 
-    including estimated timings, travel notes between locations, and any booking information.
-    3.  Detailed hotel/accommodation information: For each recommended option, i
-    nclude name, address, contact/booking link, approximate price range, and a 
-    brief explanation of why it's suitable for the user's party and preferences. 
-    If no specific options were finalized by the accommodation specialist, clearly 
-    state this and provide guidance on how the user can search based on the gathered 
+    A comprehensive, richly detailed, and visually structured travel guide in a single
+    JSON object. The guide must be exhaustive and meticulously detail ALL information
+    from the previous research, accommodation, itinerary, and budget tasks. The output
+    must be a well-structured JSON object containing the following fields:
+    - introduction: A detailed introduction to the destination, its culture, and key
+    highlights relevant to the user's interests.
+    - itinerary: A list of day-by-day entries, each with vivid descriptions for each
+    activity, estimated timings, travel notes between locations, and any booking information.
+    - accommodations: A list of recommended options, each with name, address, contact/booking
+    link, approximate price range, and a brief explanation of why it's suitable for
+    the user's party and preferences. If no specific options were finalized, clearly
+    state this and provide guidance on how the user can search based on the gathered
     criteria (e.g., preferred areas, budget, amenities sought).
-    4.  In-depth sections on recommended dining experiences, covering various meal 
-    times and cuisines, with justifications for choices.
-    5.  A complete and itemized budget breakdown and analysis, presented clearly (e.g., using a table).
-    6.  Practical information: 
-        a. A comprehensive and categorized packing checklist (e.g., clothing, toiletries, 
-        documents, electronics, ski-specific gear if applicable, items for children).
-        b. Safety tips and relevant local customs.
-        c. Emergency contacts (local emergency numbers, embassy/consulate if applicable).
-        d. Useful local phrases if applicable.
-    7.  Source Attribution: The guide must include all relevant links (for bookings, attractions,
-     official tourism sites, and other sources used by previous agents). 
-    8.  Media: Where appropriate and if high-quality images or video links were identified by 
-    previous research tasks and stored in RAG, these should be tastefully incorporated 
-    (e.g., embedded if possible and lightweight) or clearly linked to enhance the guide.
-    The final HTML should be well-structured, easy to navigate, and ready for the user, 
-    written in French with appropriate emojis, suitable for printing or digital use. 
-    The tone should be engaging and helpful.
-  output_file: output/travel_guides/itinerary.html
+    - dining: In-depth sections on recommended dining experiences, covering various
+    meal times and cuisines, with justifications for choices.
+    - budget: A complete and itemized budget breakdown and analysis, as a structured
+    object or list (e.g., with categories, items, and totals).
+    - practical_information: An object containing:
+        - packing_checklist: A categorized list (e.g., clothing, toiletries, documents,
+    electronics, ski-specific gear if applicable, items for children)
+        - safety_tips: List of safety tips and relevant local customs
+        - emergency_contacts: List of local emergency numbers, embassy/consulate if
+    applicable
+        - useful_phrases: List of useful local phrases (if applicable)
+    - sources: List of all relevant links (for bookings, attractions, official tourism
+    sites, and other sources used by previous agents)
+    - media: List of high-quality images or video links identified by previous research
+    tasks and stored in RAG, with captions or context if available
+    The final JSON must be well-structured, easy to parse, and ready for downstream
+    use. All content must be written in French with appropriate emojis. The tone should
+    be engaging and helpful. Do NOT include any HTML formatting or markup; all output
+    must be valid JSON.
+  output_file: '{output_file}'

@@ -1,6 +1,5 @@
 import json
 import os
-from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -13,15 +12,15 @@ HUNTER_API_URL = "https://api.hunter.io/v2/domain-search"
 
 # --- Fixtures ---
 @pytest.fixture
-def mock_env_hunter_key():
-    with patch.dict(os.environ, {"HUNTER_API_KEY": TEST_HUNTER_API_KEY}, clear=True):
-        yield
+def mock_env_hunter_key(mocker):
+    mocker.patch.dict(os.environ, {"HUNTER_API_KEY": TEST_HUNTER_API_KEY}, clear=True)
+    yield
 
 
 @pytest.fixture
-def mock_env_no_hunter_key():
-    with patch.dict(os.environ, {"HUNTER_API_KEY": ""}, clear=True):
-        yield
+def mock_env_no_hunter_key(mocker):
+    mocker.patch.dict(os.environ, {"HUNTER_API_KEY": ""}, clear=True)
+    yield
 
 
 # --- Instantiation Tests ---
@@ -41,8 +40,8 @@ def test_instantiation_no_api_key(mock_env_no_hunter_key):
         HunterIOTool()
 
 
-def test_instantiation_with_searcher_instance():
-    mock_searcher = MagicMock(spec=EmailSearchTool)
+def test_instantiation_with_searcher_instance(mocker):
+    mock_searcher = mocker.MagicMock(spec=EmailSearchTool)
     mock_searcher.api_key = "custom_key"
     tool = HunterIOTool(searcher=mock_searcher)
     assert tool.searcher == mock_searcher
@@ -52,11 +51,11 @@ def test_instantiation_with_searcher_instance():
 # --- _run Method Tests ---
 
 
-@patch.object(EmailSearchTool, "_make_request")  # Patching on the class used by the instance
-def test_run_success(mock_make_request, mock_env_hunter_key):
+def test_run_success(mock_env_hunter_key, mocker):
+    mock_make_request = mocker.patch.object(EmailSearchTool, "_make_request")
     tool = HunterIOTool()
     mock_response_data = {"data": {"domain": "example.com", "emails": [{"value": "test@example.com"}]}}
-    mock_api_response = MagicMock()
+    mock_api_response = mocker.MagicMock()
     mock_api_response.json.return_value = mock_response_data
     mock_make_request.return_value = mock_api_response
 
@@ -70,8 +69,8 @@ def test_run_success(mock_make_request, mock_env_hunter_key):
     assert result == mock_response_data["data"]
 
 
-@patch.object(EmailSearchTool, "_make_request")
-def test_run_api_call_fails(mock_make_request, mock_env_hunter_key):
+def test_run_api_call_fails(mock_env_hunter_key, mocker):
+    mock_make_request = mocker.patch.object(EmailSearchTool, "_make_request")
     tool = HunterIOTool()
     mock_make_request.return_value = None  # Simulate request failure
 
@@ -81,10 +80,10 @@ def test_run_api_call_fails(mock_make_request, mock_env_hunter_key):
     assert result == {"error": "Failed to fetch data from Hunter.io"}
 
 
-@patch.object(EmailSearchTool, "_make_request")
-def test_run_api_returns_no_data_key(mock_make_request, mock_env_hunter_key):
+def test_run_api_returns_no_data_key(mock_env_hunter_key, mocker):
+    mock_make_request = mocker.patch.object(EmailSearchTool, "_make_request")
     tool = HunterIOTool()
-    mock_api_response = MagicMock()
+    mock_api_response = mocker.MagicMock()
     mock_api_response.json.return_value = {"errors": [{"message": "Some API error"}]}  # No 'data' key
     mock_make_request.return_value = mock_api_response
 
@@ -94,11 +93,11 @@ def test_run_api_returns_no_data_key(mock_make_request, mock_env_hunter_key):
     assert result == {}  # Default from .get("data", {})
 
 
-@patch.object(EmailSearchTool, "_make_request")
-def test_run_empty_domain(mock_make_request, mock_env_hunter_key):
+def test_run_empty_domain(mock_env_hunter_key, mocker):
+    mock_make_request = mocker.patch.object(EmailSearchTool, "_make_request")
     tool = HunterIOTool()
     mock_response_data = {"data": {"domain": "", "emails": []}}
-    mock_api_response = MagicMock()
+    mock_api_response = mocker.MagicMock()
     mock_api_response.json.return_value = mock_response_data
     mock_make_request.return_value = mock_api_response
 

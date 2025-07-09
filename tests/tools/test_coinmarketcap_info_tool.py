@@ -1,7 +1,6 @@
 # tests/tools/test_coinmarketcap_info_tool.py
 import json
 import os
-from unittest.mock import MagicMock, patch
 
 import pytest
 import requests
@@ -16,10 +15,10 @@ CMC_BASE_URL = "https://pro-api.coinmarketcap.com/v1"
 
 
 @pytest.fixture
-def tool_for_instantiation_test():
+def tool_for_instantiation_test(mocker):
     """Fixture for CoinMarketCapInfoTool instantiation testing."""
-    with patch.dict(os.environ, {"X-CMC_PRO_API_KEY": TEST_CMC_API_KEY}, clear=True):
-        return CoinMarketCapInfoTool()
+    mocker.patch.dict(os.environ, {"X-CMC_PRO_API_KEY": TEST_CMC_API_KEY}, clear=True)
+    return CoinMarketCapInfoTool()
 
 
 def test_instantiation_success(tool_for_instantiation_test):
@@ -31,10 +30,10 @@ def test_instantiation_success(tool_for_instantiation_test):
     assert tool_for_instantiation_test.args_schema == CoinInfoInput
 
 
-@patch("requests.get")
-def test_run_successful_response(mock_requests_get):
+def test_run_successful_response(mocker):
     """Test _run method with a successful API response."""
-    mock_response = MagicMock()
+    mock_requests_get = mocker.patch("requests.get")
+    mock_response = mocker.MagicMock()
     mock_response.status_code = 200
     mock_response.json.return_value = {
         "status": {
@@ -70,9 +69,9 @@ def test_run_successful_response(mock_requests_get):
     }
     mock_requests_get.return_value = mock_response
 
-    with patch.dict(os.environ, {"X-CMC_PRO_API_KEY": TEST_CMC_API_KEY}, clear=True):
-        tool = CoinMarketCapInfoTool()
-        result_json = tool._run(symbol="BTC")
+    mocker.patch.dict(os.environ, {"X-CMC_PRO_API_KEY": TEST_CMC_API_KEY}, clear=True)
+    tool = CoinMarketCapInfoTool()
+    result_json = tool._run(symbol="BTC")
 
     result_data = json.loads(result_json)
 
@@ -91,17 +90,17 @@ def test_run_successful_response(mock_requests_get):
     mock_requests_get.assert_called_once_with(expected_url, headers=expected_headers, params=expected_params)
 
 
-@patch("requests.get")
-def test_run_api_key_missing(mock_requests_get):
+def test_run_api_key_missing(mocker):
     """Test _run when API key is missing (simulated by empty string)."""
-    mock_response = MagicMock()
+    mock_requests_get = mocker.patch("requests.get")
+    mock_response = mocker.MagicMock()
     mock_response.status_code = 401  # Simulate unauthorized due to bad/missing key
     mock_response.text = "Unauthorized - API Key missing or invalid"
     mock_requests_get.return_value = mock_response
 
-    with patch.dict(os.environ, {"X-CMC_PRO_API_KEY": ""}, clear=True):
-        tool = CoinMarketCapInfoTool()
-        result_json = tool._run(symbol="ETH")
+    mocker.patch.dict(os.environ, {"X-CMC_PRO_API_KEY": ""}, clear=True)
+    tool = CoinMarketCapInfoTool()
+    result_json = tool._run(symbol="ETH")
 
     result_data = json.loads(result_json)
     assert "error" in result_data
@@ -115,17 +114,17 @@ def test_run_api_key_missing(mock_requests_get):
     )
 
 
-@patch("requests.get")
-def test_run_api_error_non_200(mock_requests_get):
+def test_run_api_error_non_200(mocker):
     """Test _run with a non-200 API error response."""
-    mock_response = MagicMock()
+    mock_requests_get = mocker.patch("requests.get")
+    mock_response = mocker.MagicMock()
     mock_response.status_code = 500
     mock_response.text = "Internal Server Error"
     mock_requests_get.return_value = mock_response
 
-    with patch.dict(os.environ, {"X-CMC_PRO_API_KEY": TEST_CMC_API_KEY}, clear=True):
-        tool = CoinMarketCapInfoTool()
-        result_json = tool._run(symbol="ADA")
+    mocker.patch.dict(os.environ, {"X-CMC_PRO_API_KEY": TEST_CMC_API_KEY}, clear=True)
+    tool = CoinMarketCapInfoTool()
+    result_json = tool._run(symbol="ADA")
 
     result_data = json.loads(result_json)
     assert "error" in result_data
@@ -133,10 +132,10 @@ def test_run_api_error_non_200(mock_requests_get):
     assert "Internal Server Error" in result_data["error"]
 
 
-@patch("requests.get")
-def test_run_symbol_not_found(mock_requests_get):
+def test_run_symbol_not_found(mocker):
     """Test _run when the API returns 200 but the symbol data is missing."""
-    mock_response = MagicMock()
+    mock_requests_get = mocker.patch("requests.get")
+    mock_response = mocker.MagicMock()
     mock_response.status_code = 200
     mock_response.json.return_value = {
         "status": {"error_code": 0},
@@ -144,19 +143,19 @@ def test_run_symbol_not_found(mock_requests_get):
     }
     mock_requests_get.return_value = mock_response
 
-    with patch.dict(os.environ, {"X-CMC_PRO_API_KEY": TEST_CMC_API_KEY}, clear=True):
-        tool = CoinMarketCapInfoTool()
-        result_json = tool._run(symbol="XYZ")
+    mocker.patch.dict(os.environ, {"X-CMC_PRO_API_KEY": TEST_CMC_API_KEY}, clear=True)
+    tool = CoinMarketCapInfoTool()
+    result_json = tool._run(symbol="XYZ")
 
     result_data = json.loads(result_json)
     assert "error" in result_data
     assert "No data found for cryptocurrency symbol: XYZ" in result_data["error"]
 
 
-@patch("requests.get")
-def test_run_malformed_response_no_data_key(mock_requests_get):
+def test_run_malformed_response_no_data_key(mocker):
     """Test _run when API response is 200 but missing the 'data' key."""
-    mock_response = MagicMock()
+    mock_requests_get = mocker.patch("requests.get")
+    mock_response = mocker.MagicMock()
     mock_response.status_code = 200
     mock_response.json.return_value = {
         "status": {"error_code": 0}
@@ -164,40 +163,40 @@ def test_run_malformed_response_no_data_key(mock_requests_get):
     }
     mock_requests_get.return_value = mock_response
 
-    with patch.dict(os.environ, {"X-CMC_PRO_API_KEY": TEST_CMC_API_KEY}, clear=True):
-        tool = CoinMarketCapInfoTool()
-        result_json = tool._run(symbol="LTC")
+    mocker.patch.dict(os.environ, {"X-CMC_PRO_API_KEY": TEST_CMC_API_KEY}, clear=True)
+    tool = CoinMarketCapInfoTool()
+    result_json = tool._run(symbol="LTC")
 
     result_data = json.loads(result_json)
     assert "error" in result_data
     assert "No data found for cryptocurrency symbol: LTC" in result_data["error"]
 
 
-@patch("requests.get")
-def test_run_requests_exception(mock_requests_get):
+def test_run_requests_exception(mocker):
     """Test _run when requests.get raises an exception."""
+    mock_requests_get = mocker.patch("requests.get")
     mock_requests_get.side_effect = requests.exceptions.RequestException("Network Error")
 
-    with patch.dict(os.environ, {"X-CMC_PRO_API_KEY": TEST_CMC_API_KEY}, clear=True):
-        tool = CoinMarketCapInfoTool()
-        result_json = tool._run(symbol="DOT")
+    mocker.patch.dict(os.environ, {"X-CMC_PRO_API_KEY": TEST_CMC_API_KEY}, clear=True)
+    tool = CoinMarketCapInfoTool()
+    result_json = tool._run(symbol="DOT")
 
     result_data = json.loads(result_json)
     assert "error" in result_data
     assert "Error retrieving cryptocurrency data for DOT: Network Error" in result_data["error"]
 
 
-@patch("requests.get")
-def test_run_json_decode_error(mock_requests_get):
+def test_run_json_decode_error(mocker):
     """Test _run when response.json() raises a JSONDecodeError."""
-    mock_response = MagicMock()
+    mock_requests_get = mocker.patch("requests.get")
+    mock_response = mocker.MagicMock()
     mock_response.status_code = 200
     mock_response.json.side_effect = json.JSONDecodeError("Invalid JSON", "{}", 0)
     mock_requests_get.return_value = mock_response
 
-    with patch.dict(os.environ, {"X-CMC_PRO_API_KEY": TEST_CMC_API_KEY}, clear=True):
-        tool = CoinMarketCapInfoTool()
-        result_json = tool._run(symbol="SOL")
+    mocker.patch.dict(os.environ, {"X-CMC_PRO_API_KEY": TEST_CMC_API_KEY}, clear=True)
+    tool = CoinMarketCapInfoTool()
+    result_json = tool._run(symbol="SOL")
 
     result_data = json.loads(result_json)
     assert "error" in result_data

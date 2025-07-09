@@ -1,81 +1,59 @@
+---
 intelligence_requirements_planning:
   description: >
     Develop comprehensive intelligence requirements for investigating
-    {target}, including: - Priority information needs - Key intelligence
-    questions - Collection priorities by domain - Timeline for intelligence
-    gathering - Critical information gaps - Success criteria for the
-    investigation
-
-    Use the RAG tools to save your planning for later use by other agents.
-    Format your planning in a clear, structured HTML document.
+    {target}, including:  - Priority information needs  - Key intelligence questions  -
+    Collection priorities by domain  - Timeline for intelligence gathering  - Critical
+    information gaps  - Success criteria for the investigation
+    Format your planning as a structured JSON object.
   expected_output: >
-    A comprehensive HTML document in french,outlining intelligence requirements for
-    investigating {target}, with proper formatting, headings, and
-    organization. Save your planning to the RAG database for use by other
-    agents.
-  agent: osint_coordinator
-  output_file: "output/osint/intelligence_requirements_planning.html"
-
+    A comprehensive JSON object outlining intelligence requirements for
+    investigating {target}. The JSON should be well-structured with appropriate keys
+    and values.
+  agent: osint_researcher
+  output_file: output/osint/{company}_intelligence_requirements_planning.json
 intelligence_collection_coordination:
   description: >
     Coordinate intelligence collection activities across all specialized crews
-    investigating {target}, including: - Tasking specialized crews based on
-    intelligence requirements - Tracking collection progress against
-    requirements - Identifying collection gaps and redundancies - Adjusting
-    collection priorities as new information emerges - Ensuring comprehensive
-    coverage across all domains - Facilitating information sharing between
-    crews
-
-    Use the RAG tools to retrieve any relevant information already collected
-    and save your coordination notes for later use by other agents. Format
-    your coordination notes in a clear, structured HTML document.
+    investigating {target}, including:   - Tasking specialized crews based on intelligence
+    requirements   - Tracking collection progress against requirements   - Identifying
+    collection gaps and redundancies   - Adjusting collection priorities as new information
+    emerges   - Ensuring comprehensive coverage across all domains   - Facilitating
+    information sharing between crews
+    Format your coordination notes as a structured JSON object.
   expected_output: >
-    A comprehensive HTML document in french, detailing intelligence collection
-    coordination for {target}, with proper formatting, headings, and
-    organization. Save your coordination notes to the RAG database for use by
-    other agents.
-  agent: osint_coordinator
-  output_file: "output/osint/intelligence_collection_coordination.html"
-
+    A comprehensive JSON object detailing intelligence collection
+    coordination for {target}. The JSON should be well-structured with appropriate
+    keys and values.
+  agent: osint_researcher
+  output_file: output/osint/{company}_intelligence_collection_coordination.json
 intelligence_analysis_integration:
   description: >
     Integrate intelligence analysis from all specialized crews investigating
-    {target}, including: - Synthesizing findings across domains - Identifying
-    cross-domain patterns and insights - Resolving contradictory information -
-    Validating key findings through multiple sources - Contextualizing
-    intelligence within the broader picture - Developing integrated
-    assessments
-
-    Use the RAG tools to retrieve all relevant information collected by
-    specialized crews and save your integrated analysis for later use by other
-    agents. Format your integrated analysis in a clear, structured HTML
-    document.
+    {target}, including:   - Synthesizing findings across domains   - Identifying
+    cross-domain patterns and insights   - Resolving contradictory information   -
+    Validating key findings through multiple sources   - Contextualizing intelligence
+    within the broader picture   - Developing integrated assessments
+    Format your integrated analysis as a structured JSON object.
   expected_output: >
-    A comprehensive HTML document in french, integrating intelligence analysis from all
-    crews investigating {target}, with proper formatting, headings, and
-    organization. Save your integrated analysis to the RAG database for use by
-    other agents.
-  agent: osint_coordinator
-  output_file: "output/osint/intelligence_analysis_integration.html"
-
+    A comprehensive JSON object integrating intelligence analysis from all
+    crews investigating {target}. The JSON should be well-structured with appropriate
+    keys and values.
+  agent: osint_researcher
+  output_file: output/osint/{company}_intelligence_analysis_integration.json
 intelligence_product_development:
   description: >
-    Develop final intelligence products about {target}, including: - Executive
-    summary for decision-makers - Comprehensive intelligence report - Key
-    findings and assessments - Supporting evidence and documentation -
-    Confidence levels for major assessments - Recommendations for further
-    investigation
-
-    Use the RAG tools to retrieve all relevant information and analysis and
-    create polished, professional intelligence products. Format your
-    intelligence products as complete HTML documents.
+    Develop final intelligence products about {target}, including:    - Executive
+    summary for decision-makers   - Comprehensive intelligence report   - Key findings
+    and assessments   - Supporting evidence and documentation   - Confidence levels
+    for major assessments   - Recommendations for further investigation
+    Format your intelligence products as a structured JSON object.
   expected_output: >
-    A set of comprehensive HTML documents in french, serving as final intelligence
-    products about {target}, with proper formatting, headings, and
-    organization. Save your intelligence products to the RAG database.
-  agent: osint_coordinator
-  output_file: "output/osint/intelligence_product_development.html"
-
+    A comprehensive JSON object serving as final intelligence
+    products about {target}. The JSON should be well-structured with appropriate keys
+    and values.
+  agent: osint_researcher
+  output_file: output/osint/{company}_intelligence_product_development.json
 # investigation_quality_assurance:
 #   description: >
 #     Conduct quality assurance review of the entire investigation of {target},
@@ -86,7 +64,6 @@ intelligence_product_development:
 #     - Evaluation of intelligence product quality 
 #     - Documentation of lessons learned 
 #     - Recommendations for process improvements
-
 #     Use the RAG tools to retrieve all relevant information, analysis, and
 #     products and conduct a thorough quality assurance review. Format your QA
 #     review in a clear, structured HTML document.
@@ -96,45 +73,38 @@ intelligence_product_development:
 #     and organization. Save your QA review to the RAG database.
 #   agent: osint_coordinator
 #   output_file: "output/osint/investigation_quality_assurance.html"
-
 global_reporting:
   description: >
     Create a comprehensive and extensive global intelligence report on {target} by
      aggregating all information from the 'output/osint' directory.
-      This report must be in french, extremely detailed and maintain the full depth of 
-      information from all source reports, including:
+    This report must be extremely detailed and maintain the full depth of  information
+    from all source reports, including:
     - A thorough executive summary capturing all key findings
-    - Exhaustive presentation of all intelligence gathered, maintaining the original level of detail
-    - A highly structured organization with clear sections, subsections, and hierarchical information architecture
-    - Complete representation of all technical details, statistics, and specialized information
+    - Exhaustive presentation of all intelligence gathered, maintaining the original
+    level of detail
+    - A highly structured organization with clear sections and subsections
+    - Complete representation of all technical details, statistics, and specialized
+    information
     - Preservation of all nuances, context, and supporting evidence from source materials
-    - Comprehensive appendices for reference materials and supporting documentation
-
     Your process to generate this report is CRITICAL and MUST be followed EXACTLY:
-    1.  First, use the `directory_read_tool` specifically on the 'output/osint' directory.
+    1. First, use the `directory_read_tool` specifically on the 'output/osint' directory.
      This will give you a list of filenames of the previously generated reports.
-    2.  Second, for EACH AND EVERY filename obtained in step 1, you ABSOLUTELY MUST
+    2. Second, for EACH AND EVERY filename obtained in step 1, you ABSOLUTELY MUST
      use the `file_read_tool` to read the FULL TEXTUAL CONTENT of that specific file.
-     Do not summarize or list the files at this stage; your goal is to gather all the raw information from within them.
-    3.  Third, after you have successfully read the content from ALL files, your primary 
-    task is to SYNTHESIZE this collected textual information. Create a single, coherent,
-     and comprehensive global intelligence report. This report is NOT a list of files, 
-     nor a summary of what files exist. It is an INTEGRATION of the INFORMATION CONTAINED WITHIN those files.
-    4.  DO NOT HALLUCINATE. Do not invent file counts or content. Base your report 
-    strictly on the actual content retrieved using the `file_read_tool`.
-    5.  The final report should be a narrative document that integrates the information from the files,
-     not a meta-report about the files themselves or a simple concatenation. It needs to be a well-structured analysis drawing from all sources.
-    
-    The final output must be a professionally formatted HTML document with:
-    - Proper semantic HTML5 structure with nested headings (h1-h6)
-    - Table of contents with anchor links to each major section
-    - Data tables for structured information where appropriate
-    - CSS styling for readability, including proper spacing, typography, and color coding
-    - Clear visual hierarchy to enhance navigation of the extensive content
+     Do not summarize or list the files at this stage; your goal is to gather all
+    the raw information from within them.
+    3. Third, after you have successfully read the content from ALL files, your primary
+    task
+    is to SYNTHESIZE this collected textual information. Create a single, coherent,
+     and comprehensive global intelligence report. This report is NOT a list of files,
+     nor a summary of what files exist. It is an INTEGRATION of the INFORMATION CONTAINED
+    WITHIN those files.
+    4. The final report should be a structured JSON object that integrates the information
+    from the files, not a meta-report about the files themselves or a simple concatenation.
   expected_output: >
-    A comprehensive and extensive global intelligence report in a professional
-    HTML format (.html). The report must be well-structured, visually
-    appealing, and provide a complete synthesis of all gathered intelligence
-    on {target}.
-  agent: osint_coordinator
-  output_file: "output/osint/global_report.html"
+    A comprehensive and extensive global intelligence report in a well-structured
+    JSON format.
+    The report must provide a complete synthesis of all gathered intelligence
+    on {target} with appropriate keys and values.
+  agent: osint_reporter
+  output_file: '{output_file}'

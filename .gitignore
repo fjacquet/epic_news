@@ -9,11 +9,16 @@ __pycache__/
 # *.html
 cache/
 checkpoints/
+data/etf.csv
+data/stock.csv
 db/
-prompts.txt
+debug/
+docs/test.md
+logs/*.log
 output/
+prompts.md
+prompts.txt
 report.md
 reports/
-
-data/stock.csv
-prompts.md
+src/epic_news.egg-info/
+traces/

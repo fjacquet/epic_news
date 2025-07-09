@@ -1,20 +1,35 @@
-
-compile_digest_task:
+---
+content_reading_task:
   description: >
-    Process the content.json file containing RSS feed articles. You should:
-    1. Read the content.json file from output/rss_weekly/content.json using FileReadTool
-    2. Parse the JSON to extract feed URLs and their associated articles
-    3. Filter out any articles with empty or null 'content'
-    4. For each remaining article, summarize the content in elegant, professional French
-    5. Group summaries by their original RSS feed source (feed_url)
-    6. Create HTML content with all summaries, ensuring each includes a hyperlink to the original article
-    7. Use the ReportingTool to generate a professional HTML report with the following parameters:
-       - report_title: "Résumé Hebdomadaire des Flux RSS"
-       - report_body: Your generated HTML content with all summaries
-       - output_file_path: output/rss_weekly/report.html
+    Your task is to read and extract the content from a JSON file for translation.
+    The file is located at '{input_file}'.
+    Follow these steps:
+    1. Use the FileReadTool to read the content of the file.
+    2. Parse the content as JSON and verify it contains the expected structure.
+    3. Return the complete JSON data as a string to be passed to the translator agent.
+  agent: content_reader_agent
   expected_output: >
-    A single, well-formed HTML document containing all summarized articles,
-    grouped by their original RSS feed source. Each summary must include a
-    hyperlink to the original article. All content should be in elegant, professional French.
-  agent: content_summarizer
-  output_file: output/rss_weekly/report.html
+    The complete JSON data from the file as a string, ready for translation.
+translation_task:
+  description: >
+    Your task is to translate the JSON data provided by the content reader agent into
+    French.
+    Follow these steps:
+    1. Parse the JSON data provided to you.
+    2. For every article in the data, translate the 'title', 'summary', and 'content'
+    fields into French.
+    3. Ensure all other fields remain unchanged.
+    4. CRITICAL INSTRUCTION: Your final answer MUST BE ONLY the complete, modified
+    JSON data, as a single, well-formed JSON string.
+    5. DO NOT include ANY explanations, action descriptions, thoughts, or other text
+    - ONLY output the final JSON string.
+    6. NEVER start your output with phrases like "Here is the translated JSON:" or
+    "Action:" - ONLY output the raw JSON.
+    7. Your entire response should be valid JSON that can be parsed by json.loads()
+    without any modifications.
+  agent: translator_agent
+  expected_output: >
+    A single, valid JSON string containing all articles with their 'title', 'summary',  and
+    'content' translated into French. The structure of the JSON must be perfectly  preserved.
+    The output must ONLY be the raw JSON string.
+  output_file: '{output_file}'

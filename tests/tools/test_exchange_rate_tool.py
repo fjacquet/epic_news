@@ -1,6 +1,5 @@
 import os
 import unittest
-from unittest.mock import MagicMock, patch
 
 import pytest
 import requests
@@ -9,21 +8,21 @@ from epic_news.tools.exchange_rate_tool import ExchangeRateTool
 
 
 @pytest.fixture
-@patch.dict(os.environ, {"OPENEXCHANGERATES_API_KEY": "test_api_key"})
-def tool():
+def tool(mocker):
+    mocker.patch.dict(os.environ, {"OPENEXCHANGERATES_API_KEY": "test_api_key"})
     return ExchangeRateTool()
 
 
-@patch.dict(os.environ, {}, clear=True)
-def test_run_missing_api_key():
+def test_run_missing_api_key(mocker):
+    mocker.patch.dict(os.environ, {}, clear=True)
     tool_no_key = ExchangeRateTool()
     expected_error = "Error: OPENEXCHANGERATES_API_KEY environment variable not set. Please get an API key from openexchangerates.org."
     assert tool_no_key.run(base_currency="USD", target_currencies=["EUR"]) == expected_error
 
 
-@patch("requests.get")
-def test_run_successful_all_rates(mock_get, tool):
-    mock_response = MagicMock()
+def test_run_successful_all_rates(tool, mocker):
+    mock_get = mocker.patch("requests.get")
+    mock_response = mocker.MagicMock()
     mock_response.status_code = 200
     mock_response.json.return_value = {
         "disclaimer": "...",
@@ -44,9 +43,9 @@ def test_run_successful_all_rates(mock_get, tool):
     )
 
 
-@patch("requests.get")
-def test_run_successful_specific_currencies(mock_get, tool):
-    mock_response = MagicMock()
+def test_run_successful_specific_currencies(tool, mocker):
+    mock_get = mocker.patch("requests.get")
+    mock_response = mocker.MagicMock()
     mock_response.status_code = 200
     mock_response.json.return_value = {
         "timestamp": 1678886400,
@@ -70,9 +69,9 @@ def test_run_successful_specific_currencies(mock_get, tool):
     )
 
 
-@patch("requests.get")
-def test_run_api_error_in_response(mock_get, tool):
-    mock_response = MagicMock()
+def test_run_api_error_in_response(tool, mocker):
+    mock_get = mocker.patch("requests.get")
+    mock_response = mocker.MagicMock()
     mock_response.status_code = 200  # API can return 200 but still have an error in JSON
     mock_response.json.return_value = {
         "error": True,
@@ -86,9 +85,9 @@ def test_run_api_error_in_response(mock_get, tool):
     assert result == "API Error: Invalid App ID provided."
 
 
-@patch("requests.get")
-def test_run_http_error(mock_get, tool):
-    mock_response = MagicMock()
+def test_run_http_error(tool, mocker):
+    mock_get = mocker.patch("requests.get")
+    mock_response = mocker.MagicMock()
     mock_response.status_code = 500
     mock_response.text = "Internal Server Error"
     mock_response.raise_for_status.side_effect = requests.exceptions.HTTPError("500 Server Error")
@@ -99,16 +98,16 @@ def test_run_http_error(mock_get, tool):
     assert "Response: Internal Server Error" in result
 
 
-@patch("requests.get")
-def test_run_request_exception(mock_get, tool):
+def test_run_request_exception(tool, mocker):
+    mock_get = mocker.patch("requests.get")
     mock_get.side_effect = requests.exceptions.Timeout("Connection timed out")
     result = tool.run(base_currency="USD")
     assert result == "Request error occurred: Connection timed out"
 
 
-@patch("requests.get")
-def test_run_no_rates_in_response(mock_get, tool):
-    mock_response = MagicMock()
+def test_run_no_rates_in_response(tool, mocker):
+    mock_get = mocker.patch("requests.get")
+    mock_response = mocker.MagicMock()
     mock_response.status_code = 200
     mock_response.json.return_value = {
         "timestamp": 1678886400,
@@ -120,9 +119,9 @@ def test_run_no_rates_in_response(mock_get, tool):
     assert result == "Error: Could not retrieve exchange rates from the API response."
 
 
-@patch("requests.get")
-def test_run_no_rates_for_specified_targets(mock_get, tool):
-    mock_response = MagicMock()
+def test_run_no_rates_for_specified_targets(tool, mocker):
+    mock_get = mocker.patch("requests.get")
+    mock_response = mocker.MagicMock()
     mock_response.status_code = 200
     mock_response.json.return_value = {
         "timestamp": 1678886400,

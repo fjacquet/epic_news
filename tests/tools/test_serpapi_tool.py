@@ -1,6 +1,5 @@
 import json
 import os
-from unittest.mock import MagicMock, patch
 
 import pytest
 import requests
@@ -16,40 +15,40 @@ SERPAPI_SEARCH_URL = "https://serpapi.com/search"
 
 # --- Fixtures ---
 @pytest.fixture
-def mock_env_serpapi_key():
-    with patch.dict(os.environ, {"SERPAPI_API_KEY": TEST_SERPAPI_API_KEY}, clear=True):
-        yield
+def mock_env_serpapi_key(mocker):
+    mocker.patch.dict(os.environ, {"SERPAPI_API_KEY": TEST_SERPAPI_API_KEY}, clear=True)
+    yield
 
 
 @pytest.fixture
-def mock_env_no_serpapi_key():
-    with patch.dict(os.environ, {"SERPAPI_API_KEY": ""}, clear=True):
-        yield
+def mock_env_no_serpapi_key(mocker):
+    mocker.patch.dict(os.environ, {"SERPAPI_API_KEY": ""}, clear=True)
+    yield
 
 
 @pytest.fixture
-@patch("epic_news.utils.logger.get_logger")  # Mock the logger
-def tool_instance(mock_get_logger, mock_env_serpapi_key):
-    mock_get_logger.return_value = MagicMock()  # Ensure logger calls don't break tests
+def tool_instance(mocker, mock_env_serpapi_key):
+    mock_get_logger = mocker.patch("epic_news.utils.logger.get_logger")
+    mock_get_logger.return_value = mocker.MagicMock()  # Ensure logger calls don't break tests
     return SerpApiTool()
 
 
 # --- Instantiation Tests ---
-def test_instantiation_success(mock_env_serpapi_key):
-    with patch("epic_news.utils.logger.get_logger") as mock_get_logger:
-        mock_get_logger.return_value = MagicMock()
-        tool = SerpApiTool()
-        assert tool.name == "serpapi_search"
-        assert "Perform a web search" in tool.description
-        assert tool.args_schema == SerpApiInput
-        assert tool.api_key == TEST_SERPAPI_API_KEY
+def test_instantiation_success(mock_env_serpapi_key, mocker):
+    mock_get_logger = mocker.patch("epic_news.utils.logger.get_logger")
+    mock_get_logger.return_value = mocker.MagicMock()
+    tool = SerpApiTool()
+    assert tool.name == "serpapi_search"
+    assert "Perform a web search" in tool.description
+    assert tool.args_schema == SerpApiInput
+    assert tool.api_key == TEST_SERPAPI_API_KEY
 
 
-def test_instantiation_no_api_key(mock_env_no_serpapi_key):
-    with patch("epic_news.utils.logger.get_logger") as mock_get_logger:
-        mock_get_logger.return_value = MagicMock()
-        with pytest.raises(ValueError, match="SERPAPI_API_KEY environment variable not set"):
-            SerpApiTool()
+def test_instantiation_no_api_key(mock_env_no_serpapi_key, mocker):
+    mock_get_logger = mocker.patch("epic_news.utils.logger.get_logger")
+    mock_get_logger.return_value = mocker.MagicMock()
+    with pytest.raises(ValueError, match="SERPAPI_API_KEY environment variable not set"):
+        SerpApiTool()
 
 
 # --- _run Method - Input Validation ---
@@ -64,8 +63,8 @@ def test_run_invalid_query(tool_instance, invalid_query):
 
 
 # --- _run Method - API Interaction and Response Handling ---
-@patch("requests.get")
-def test_run_successful_search_results_found(mock_requests_get, tool_instance):
+def test_run_successful_search_results_found(tool_instance, mocker):
+    mock_requests_get = mocker.patch("requests.get")
     query = "test query"
     num_results = 2
     country = "ca"
@@ -78,7 +77,7 @@ def test_run_successful_search_results_found(mock_requests_get, tool_instance):
             {"title": "Result 2", "link": "link2.com", "snippet": "Snippet 2"},
         ]
     }
-    mock_response = MagicMock()
+    mock_response = mocker.MagicMock()
     mock_response.status_code = 200
     mock_response.json.return_value = mock_api_response_data
     mock_requests_get.return_value = mock_response
@@ -106,8 +105,8 @@ def test_run_successful_search_results_found(mock_requests_get, tool_instance):
     assert result_data == {"query": query, "results": expected_results, "count": len(expected_results)}
 
 
-@patch("requests.get")
-def test_run_successful_search_no_organic_results(mock_requests_get, tool_instance):
+def test_run_successful_search_no_organic_results(tool_instance, mocker):
+    mock_requests_get = mocker.patch("requests.get")
     query = "no results query"
     mock_requests_get.return_value.status_code = 200
     mock_requests_get.return_value.json.return_value = {"organic_results": []}
@@ -120,8 +119,8 @@ def test_run_successful_search_no_organic_results(mock_requests_get, tool_instan
     assert json.loads(result_str) == expected_error
 
 
-@patch("requests.get")
-def test_run_api_returns_error_in_json(mock_requests_get, tool_instance):
+def test_run_api_returns_error_in_json(tool_instance, mocker):
+    mock_requests_get = mocker.patch("requests.get")
     query = "api error query"
     api_error_msg = "Your API key is invalid."
     mock_requests_get.return_value.status_code = 200
@@ -131,8 +130,8 @@ def test_run_api_returns_error_in_json(mock_requests_get, tool_instance):
     assert json.loads(result_str) == expected_error
 
 
-@patch("requests.get")
-def test_run_http_error(mock_requests_get, tool_instance):
+def test_run_http_error(tool_instance, mocker):
+    mock_requests_get = mocker.patch("requests.get")
     query = "http error query"
     mock_requests_get.return_value.status_code = 401
     mock_requests_get.return_value.text = "Unauthorized access"
@@ -145,8 +144,8 @@ def test_run_http_error(mock_requests_get, tool_instance):
     assert json.loads(result_str) == expected_error
 
 
-@patch("requests.get")
-def test_run_request_timeout(mock_requests_get, tool_instance):
+def test_run_request_timeout(tool_instance, mocker):
+    mock_requests_get = mocker.patch("requests.get")
     query = "timeout query"
     mock_requests_get.side_effect = requests.exceptions.Timeout
     result_str = tool_instance._run(query=query)
@@ -158,8 +157,8 @@ def test_run_request_timeout(mock_requests_get, tool_instance):
     assert json.loads(result_str) == expected_error
 
 
-@patch("requests.get")
-def test_run_connection_error(mock_requests_get, tool_instance):
+def test_run_connection_error(tool_instance, mocker):
+    mock_requests_get = mocker.patch("requests.get")
     query = "connection error query"
     mock_requests_get.side_effect = requests.exceptions.ConnectionError
     result_str = tool_instance._run(query=query)
@@ -171,8 +170,8 @@ def test_run_connection_error(mock_requests_get, tool_instance):
     assert json.loads(result_str) == expected_error
 
 
-@patch("requests.get")
-def test_run_other_request_exception(mock_requests_get, tool_instance):
+def test_run_other_request_exception(tool_instance, mocker):
+    mock_requests_get = mocker.patch("requests.get")
     query = "request exception query"
     error_msg = "Some other request error"
     mock_requests_get.side_effect = requests.exceptions.RequestException(error_msg)
@@ -181,8 +180,8 @@ def test_run_other_request_exception(mock_requests_get, tool_instance):
     assert json.loads(result_str) == expected_error
 
 
-@patch("requests.get")
-def test_run_invalid_json_response(mock_requests_get, tool_instance):
+def test_run_invalid_json_response(tool_instance, mocker):
+    mock_requests_get = mocker.patch("requests.get")
     query = "json error query"
     mock_requests_get.return_value.status_code = 200
     mock_requests_get.return_value.json.side_effect = json.JSONDecodeError("Expecting value", "doc", 0)
@@ -194,8 +193,8 @@ def test_run_invalid_json_response(mock_requests_get, tool_instance):
     assert "Expecting value" in result_data["error"]
 
 
-@patch("requests.get")
-def test_run_pagination_logic(mock_requests_get, tool_instance):
+def test_run_pagination_logic(tool_instance, mocker):
+    mock_requests_get = mocker.patch("requests.get")
     query = "page test"
     num_results = 5
     page = 3
@@ -208,8 +207,8 @@ def test_run_pagination_logic(mock_requests_get, tool_instance):
     assert kwargs["params"]["start"] == (page - 1) * num_results + 1  # (3-1)*5 + 1 = 11
 
 
-@patch("requests.get")
-def test_run_default_parameters(mock_requests_get, tool_instance):
+def test_run_default_parameters(tool_instance, mocker):
+    mock_requests_get = mocker.patch("requests.get")
     query = "default params test"
     # Mock successful response
     mock_requests_get.return_value.status_code = 200

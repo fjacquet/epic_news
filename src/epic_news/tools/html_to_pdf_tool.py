@@ -1,15 +1,8 @@
-import logging
 import os
 
 from crewai.tools import BaseTool
 from pydantic import BaseModel, Field
 from weasyprint import HTML
-
-# Silence WeasyPrint's verbose logging to keep output clean.
-logging.getLogger("weasyprint").setLevel(logging.WARNING)
-
-
-logger = logging.getLogger(__name__)
 
 
 class HtmlToPdfToolSchema(BaseModel):

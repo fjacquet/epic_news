@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cross-Reference Intelligence Report: {{ report.target }}</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        .container {
+            margin-top: 20px;
+        }
+        .card {
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: #007bff;
+            color: white;
+            font-weight: bold;
+        }
+        .findings-section {
+            margin-top: 15px;
+        }
+        .finding-item {
+            margin-bottom: 10px;
+        }
+        .badge {
+            font-size: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mb-4">Cross-Reference Intelligence Report: {{ report.target }}</h1>
+
+        <div class="card">
+            <div class="card-header">
+                Executive Summary
+            </div>
+            <div class="card-body">
+                <p class="card-text">{{ report.executive_summary }}</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                Detailed Findings
+            </div>
+            <div class="card-body">
+                {% for section, content in report.detailed_findings.items() %}
+                <div class="findings-section">
+                    <h4>{{ section.replace('_', ' ')|title }}</h4>
+                    {% if content is mapping %}
+                        <ul>
+                        {% for key, value in content.items() %}
+                            <li class="finding-item"><strong>{{ key.replace('_', ' ')|title }}:</strong> {{ value }}</li>
+                        {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>{{ content }}</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                Confidence Assessment
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    <span class="badge badge-info">{{ report.confidence_assessment }}</span>
+                </p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                Information Gaps
+            </div>
+            <div class="card-body">
+                {% if report.information_gaps %}
+                    <ul>
+                        {% for gap in report.information_gaps %}
+                        <li>{{ gap }}</li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>No information gaps identified.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

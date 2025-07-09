@@ -1,20 +1,17 @@
 """GitHub organization search tool implementation."""
 
 import json
-import logging
 import os
 
 from crewai.tools import BaseTool
 from dotenv import load_dotenv
+from loguru import logger
 from pydantic import BaseModel, Field
 
 from .github_base import GitHubBaseTool
 
 # Load environment variables from .env file
 load_dotenv()
-
-# Setup logger
-logger = logging.getLogger(__name__)
 
 
 class GitHubOrgSearchInput(BaseModel):

@@ -1,12 +1,12 @@
 import json
 import os
 import unittest.mock
-from unittest.mock import MagicMock, patch
 
 import pytest
 import requests
 
-from epic_news.tools.scrape_ninja_tool import ScrapeNinjaInput, ScrapeNinjaTool
+from src.epic_news.models.web_search_models import ScrapeNinjaInput
+from src.epic_news.tools.scrape_ninja_tool import ScrapeNinjaTool
 
 TEST_RAPIDAPI_KEY = "test_rapidapi_key_for_ninja"
 SCRAPENINJA_API_URL = "https://scrapeninja.p.rapidapi.com/scrape"
@@ -14,15 +14,15 @@ SCRAPENINJA_API_URL = "https://scrapeninja.p.rapidapi.com/scrape"
 
 # --- Fixtures ---
 @pytest.fixture
-def mock_env_rapidapi_key():
-    with patch.dict(os.environ, {"RAPIDAPI_KEY": TEST_RAPIDAPI_KEY}, clear=True):
-        yield
+def mock_env_rapidapi_key(mocker):
+    mocker.patch.dict(os.environ, {"RAPIDAPI_KEY": TEST_RAPIDAPI_KEY}, clear=True)
+    yield
 
 
 @pytest.fixture
-def mock_env_no_rapidapi_key():
-    with patch.dict(os.environ, {"RAPIDAPI_KEY": ""}, clear=True):
-        yield
+def mock_env_no_rapidapi_key(mocker):
+    mocker.patch.dict(os.environ, {"RAPIDAPI_KEY": ""}, clear=True)
+    yield
 
 
 # --- Instantiation Tests ---
@@ -40,13 +40,13 @@ def test_instantiation_no_api_key(mock_env_no_rapidapi_key):
 
 
 # --- _run Method Tests ---
-@patch("requests.post")
-def test_run_basic_success_plain_text_response(mock_requests_post, mock_env_rapidapi_key):
+def test_run_basic_success_plain_text_response(mock_env_rapidapi_key, mocker):
+    mock_requests_post = mocker.patch("requests.post")
     tool = ScrapeNinjaTool()
     url_to_scrape = "http://example.com"
     plain_text_content = "<html><body>Hello World</body></html>"
 
-    mock_api_response = MagicMock()
+    mock_api_response = mocker.MagicMock()
     mock_api_response.text = plain_text_content
     mock_api_response.raise_for_status.return_value = None
     mock_requests_post.return_value = mock_api_response
@@ -55,7 +55,7 @@ def test_run_basic_success_plain_text_response(mock_requests_post, mock_env_rapi
     expected_payload = {"url": url_to_scrape, "retryNum": 1, "followRedirects": 1, "timeout": 8}
     expected_headers = {
         "Content-Type": "application/json",
-        "Accept": "application/json",
+        "Accept": "*/*",
         "X-RapidAPI-Key": TEST_RAPIDAPI_KEY,
         "X-RapidAPI-Host": "scrapeninja.p.rapidapi.com",
     }
@@ -66,13 +66,13 @@ def test_run_basic_success_plain_text_response(mock_requests_post, mock_env_rapi
     assert json.loads(result_str) == {"content": plain_text_content}
 
 
-@patch("requests.post")
-def test_run_basic_success_json_response(mock_requests_post, mock_env_rapidapi_key):
+def test_run_basic_success_json_response(mock_env_rapidapi_key, mocker):
+    mock_requests_post = mocker.patch("requests.post")
     tool = ScrapeNinjaTool()
     url_to_scrape = "http://example.com/api/data"
     json_content_str = '{"title": "Example API", "data": [1, 2, 3]}'
 
-    mock_api_response = MagicMock()
+    mock_api_response = mocker.MagicMock()
     mock_api_response.text = json_content_str
     mock_api_response.raise_for_status.return_value = None
     mock_requests_post.return_value = mock_api_response
@@ -81,8 +81,8 @@ def test_run_basic_success_json_response(mock_requests_post, mock_env_rapidapi_k
     assert result_str == json_content_str  # Should return the JSON string as is
 
 
-@patch("requests.post")
-def test_run_with_all_optional_params(mock_requests_post, mock_env_rapidapi_key):
+def test_run_with_all_optional_params(mock_env_rapidapi_key, mocker):
+    mock_requests_post = mocker.patch("requests.post")
     tool = ScrapeNinjaTool()
     url_to_scrape = "http://advanced.example.com"
     params = {
@@ -111,7 +111,7 @@ def test_run_with_all_optional_params(mock_requests_post, mock_env_rapidapi_key)
         "extractor": params["extractor"],
     }
 
-    mock_api_response = MagicMock()
+    mock_api_response = mocker.MagicMock()
     mock_api_response.text = '{"title": "Advanced Scrape"}'
     mock_api_response.raise_for_status.return_value = None
     mock_requests_post.return_value = mock_api_response
@@ -125,8 +125,8 @@ def test_run_with_all_optional_params(mock_requests_post, mock_env_rapidapi_key)
     assert result_str == '{"title": "Advanced Scrape"}'
 
 
-@patch("requests.post")
-def test_run_requests_exception(mock_requests_post, mock_env_rapidapi_key):
+def test_run_requests_exception(mock_env_rapidapi_key, mocker):
+    mock_requests_post = mocker.patch("requests.post")
     tool = ScrapeNinjaTool()
     url_to_scrape = "http://example.com"
     error_message = "Network connection failed"
@@ -137,13 +137,13 @@ def test_run_requests_exception(mock_requests_post, mock_env_rapidapi_key):
     assert json.loads(result_str) == expected_error
 
 
-@patch("requests.post")
-def test_run_http_error(mock_requests_post, mock_env_rapidapi_key):
+def test_run_http_error(mock_env_rapidapi_key, mocker):
+    mock_requests_post = mocker.patch("requests.post")
     tool = ScrapeNinjaTool()
     url_to_scrape = "http://example.com"
     error_message = "401 Client Error: Unauthorized for url"
 
-    mock_api_response = MagicMock()
+    mock_api_response = mocker.MagicMock()
     mock_api_response.raise_for_status.side_effect = requests.exceptions.HTTPError(error_message)
     mock_requests_post.return_value = mock_api_response
 

@@ -1,7 +1,6 @@
 # tests/tools/test_coinmarketcap_historical_tool.py
 import json
 import os
-from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -16,10 +15,10 @@ CMC_BASE_URL = "https://pro-api.coinmarketcap.com/v1"
 
 # Test Instantiation - Uses a simple fixture as _run is not called
 @pytest.fixture
-def tool_for_instantiation_test():
+def tool_for_instantiation_test(mocker):
     # This patch is for instantiation time if the tool read env vars in __init__
-    with patch.dict(os.environ, {"X-CMC_PRO_API_KEY": TEST_CMC_API_KEY}, clear=True):
-        return CoinMarketCapHistoricalTool()
+    mocker.patch.dict(os.environ, {"X-CMC_PRO_API_KEY": TEST_CMC_API_KEY}, clear=True)
+    return CoinMarketCapHistoricalTool()
 
 
 def test_instantiation_success(tool_for_instantiation_test):
@@ -30,10 +29,10 @@ def test_instantiation_success(tool_for_instantiation_test):
 
 
 # Test _run method
-@patch("requests.get")
-def test_run_successful_response(mock_requests_get):  # No fixture for the tool here
+def test_run_successful_response(mocker):  # No fixture for the tool here
     """Test _run method with a successful API response for both ID and historical data."""
-    mock_id_response = MagicMock()
+    mock_requests_get = mocker.patch("requests.get")
+    mock_id_response = mocker.MagicMock()
     mock_id_response.status_code = 200
     mock_id_response.json.return_value = {
         "status": {
@@ -46,7 +45,7 @@ def test_run_successful_response(mock_requests_get):  # No fixture for the tool 
         "data": [{"id": 1, "name": "Bitcoin", "symbol": "BTC", "slug": "bitcoin"}],
     }
 
-    mock_historical_response = MagicMock()
+    mock_historical_response = mocker.MagicMock()
     mock_historical_response.status_code = 200
     mock_historical_response.json.return_value = {
         "status": {
@@ -82,9 +81,9 @@ def test_run_successful_response(mock_requests_get):  # No fixture for the tool 
     mock_requests_get.side_effect = [mock_id_response, mock_historical_response]
 
     # Patch environment and instantiate/run tool INSIDE this context
-    with patch.dict(os.environ, {"X-CMC_PRO_API_KEY": TEST_CMC_API_KEY}, clear=True):
-        tool = CoinMarketCapHistoricalTool()
-        result_json = tool._run(symbol="BTC", time_period="30d")
+    mocker.patch.dict(os.environ, {"X-CMC_PRO_API_KEY": TEST_CMC_API_KEY}, clear=True)
+    tool = CoinMarketCapHistoricalTool()
+    result_json = tool._run(symbol="BTC", time_period="30d")
 
     result_data = json.loads(result_json)
 
@@ -115,16 +114,16 @@ def test_run_successful_response(mock_requests_get):  # No fixture for the tool 
     assert call_args_list[1].kwargs["params"] == expected_historical_params
 
 
-@patch("requests.get")
-def test_run_api_key_missing_simulated_by_id_failure(mock_requests_get):
-    mock_id_response_fail = MagicMock()
+def test_run_api_key_missing_simulated_by_id_failure(mocker):
+    mock_requests_get = mocker.patch("requests.get")
+    mock_id_response_fail = mocker.MagicMock()
     mock_id_response_fail.status_code = 401
     mock_id_response_fail.text = "Unauthorized - API Key issue"
     mock_requests_get.return_value = mock_id_response_fail
 
-    with patch.dict(os.environ, {"X-CMC_PRO_API_KEY": ""}, clear=True):
-        tool = CoinMarketCapHistoricalTool()
-        result_json = tool._run(symbol="BTC", time_period="7d")
+    mocker.patch.dict(os.environ, {"X-CMC_PRO_API_KEY": ""}, clear=True)
+    tool = CoinMarketCapHistoricalTool()
+    result_json = tool._run(symbol="BTC", time_period="7d")
 
     result_data = json.loads(result_json)
     assert "error" in result_data
@@ -138,92 +137,92 @@ def test_run_api_key_missing_simulated_by_id_failure(mock_requests_get):
     )
 
 
-@patch("requests.get")
-def test_run_id_lookup_fails_not_200(mock_requests_get):
-    mock_id_response_fail = MagicMock()
+def test_run_id_lookup_fails_not_200(mocker):
+    mock_requests_get = mocker.patch("requests.get")
+    mock_id_response_fail = mocker.MagicMock()
     mock_id_response_fail.status_code = 500
     mock_id_response_fail.text = "Server Error"
     mock_requests_get.return_value = mock_id_response_fail
 
-    with patch.dict(os.environ, {"X-CMC_PRO_API_KEY": TEST_CMC_API_KEY}, clear=True):
-        tool = CoinMarketCapHistoricalTool()
-        result_json = tool._run(symbol="FAIL", time_period="24h")
+    mocker.patch.dict(os.environ, {"X-CMC_PRO_API_KEY": TEST_CMC_API_KEY}, clear=True)
+    tool = CoinMarketCapHistoricalTool()
+    result_json = tool._run(symbol="FAIL", time_period="24h")
     result_data = json.loads(result_json)
     assert "error" in result_data
     assert "CoinMarketCap API error retrieving ID: 500 - Server Error" in result_data["error"]
 
 
-@patch("requests.get")
-def test_run_id_not_found_for_symbol(mock_requests_get):
-    mock_id_response_no_data = MagicMock()
+def test_run_id_not_found_for_symbol(mocker):
+    mock_requests_get = mocker.patch("requests.get")
+    mock_id_response_no_data = mocker.MagicMock()
     mock_id_response_no_data.status_code = 200
     mock_id_response_no_data.json.return_value = {"status": {}, "data": []}
     mock_requests_get.return_value = mock_id_response_no_data
 
-    with patch.dict(os.environ, {"X-CMC_PRO_API_KEY": TEST_CMC_API_KEY}, clear=True):
-        tool = CoinMarketCapHistoricalTool()
-        result_json = tool._run(symbol="UNKNOWN", time_period="30d")
+    mocker.patch.dict(os.environ, {"X-CMC_PRO_API_KEY": TEST_CMC_API_KEY}, clear=True)
+    tool = CoinMarketCapHistoricalTool()
+    result_json = tool._run(symbol="UNKNOWN", time_period="30d")
     result_data = json.loads(result_json)
     assert "error" in result_data
     assert "No ID found for cryptocurrency symbol: UNKNOWN" in result_data["error"]
 
 
-@patch("requests.get")
-def test_run_id_unexpected_data_format(mock_requests_get):
-    mock_id_response_bad_format = MagicMock()
+def test_run_id_unexpected_data_format(mocker):
+    mock_requests_get = mocker.patch("requests.get")
+    mock_id_response_bad_format = mocker.MagicMock()
     mock_id_response_bad_format.status_code = 200
     mock_id_response_bad_format.json.return_value = {"status": {}, "data": {"id": 1}}
     mock_requests_get.return_value = mock_id_response_bad_format
 
-    with patch.dict(os.environ, {"X-CMC_PRO_API_KEY": TEST_CMC_API_KEY}, clear=True):
-        tool = CoinMarketCapHistoricalTool()
-        result_json = tool._run(symbol="BADFORMAT", time_period="30d")
+    mocker.patch.dict(os.environ, {"X-CMC_PRO_API_KEY": TEST_CMC_API_KEY}, clear=True)
+    tool = CoinMarketCapHistoricalTool()
+    result_json = tool._run(symbol="BADFORMAT", time_period="30d")
     result_data = json.loads(result_json)
     assert "error" in result_data
     assert "Unexpected ID data format for symbol: BADFORMAT" in result_data["error"]
 
 
-@patch("requests.get")
-def test_run_historical_lookup_fails_not_200(mock_requests_get):
-    mock_id_response = MagicMock()
+def test_run_historical_lookup_fails_not_200(mocker):
+    mock_requests_get = mocker.patch("requests.get")
+    mock_id_response = mocker.MagicMock()
     mock_id_response.status_code = 200
     mock_id_response.json.return_value = {"data": [{"id": 1, "symbol": "BTC"}]}
 
-    mock_historical_fail = MagicMock()
+    mock_historical_fail = mocker.MagicMock()
     mock_historical_fail.status_code = 503
     mock_historical_fail.text = "Service Unavailable"
     mock_requests_get.side_effect = [mock_id_response, mock_historical_fail]
 
-    with patch.dict(os.environ, {"X-CMC_PRO_API_KEY": TEST_CMC_API_KEY}, clear=True):
-        tool = CoinMarketCapHistoricalTool()
-        result_json = tool._run(symbol="BTC", time_period="30d")
+    mocker.patch.dict(os.environ, {"X-CMC_PRO_API_KEY": TEST_CMC_API_KEY}, clear=True)
+    tool = CoinMarketCapHistoricalTool()
+    result_json = tool._run(symbol="BTC", time_period="30d")
     result_data = json.loads(result_json)
     assert "error" in result_data
     assert "CoinMarketCap API error retrieving historical data: 503" in result_data["error"]
 
 
-@patch("requests.get")
-def test_run_no_historical_data_found(mock_requests_get):
-    mock_id_response = MagicMock()
+def test_run_no_historical_data_found(mocker):
+    mock_requests_get = mocker.patch("requests.get")
+    mock_id_response = mocker.MagicMock()
     mock_id_response.status_code = 200
     mock_id_response.json.return_value = {"data": [{"id": 1, "symbol": "BTC"}]}
 
-    mock_historical_no_data = MagicMock()
+    mock_historical_no_data = mocker.MagicMock()
     mock_historical_no_data.status_code = 200
     mock_historical_no_data.json.return_value = {"status": {}, "data": {"id": 1}}
     mock_requests_get.side_effect = [mock_id_response, mock_historical_no_data]
 
-    with patch.dict(os.environ, {"X-CMC_PRO_API_KEY": TEST_CMC_API_KEY}, clear=True):
-        tool = CoinMarketCapHistoricalTool()
-        result_json = tool._run(symbol="BTC", time_period="1y")
+    mocker.patch.dict(os.environ, {"X-CMC_PRO_API_KEY": TEST_CMC_API_KEY}, clear=True)
+    tool = CoinMarketCapHistoricalTool()
+    result_json = tool._run(symbol="BTC", time_period="1y")
     result_data = json.loads(result_json)
     assert "error" in result_data
     assert "No historical data found for BTC over 1y" in result_data["error"]
 
 
-@patch("requests.get")
-def test_run_general_exception_during_processing(mock_requests_get):
-    mock_id_response = MagicMock()
+def test_run_general_exception_during_processing(mocker):
+    mock_requests_get = mocker.patch("requests.get")
+    mock_id_response = mocker.MagicMock()
     mock_id_response.status_code = 200
     mock_id_response.json.return_value = {"data": [{"id": 1, "symbol": "BTC"}]}
 
@@ -231,9 +230,9 @@ def test_run_general_exception_during_processing(mock_requests_get):
     # or by the requests.get call itself for the second call.
     mock_requests_get.side_effect = [mock_id_response, Exception("Unexpected general error")]
 
-    with patch.dict(os.environ, {"X-CMC_PRO_API_KEY": TEST_CMC_API_KEY}, clear=True):
-        tool = CoinMarketCapHistoricalTool()
-        result_json = tool._run(symbol="BTC", time_period="30d")
+    mocker.patch.dict(os.environ, {"X-CMC_PRO_API_KEY": TEST_CMC_API_KEY}, clear=True)
+    tool = CoinMarketCapHistoricalTool()
+    result_json = tool._run(symbol="BTC", time_period="30d")
     result_data = json.loads(result_json)
     assert "error" in result_data
     # Check that the error message includes the symbol and the specific exception message

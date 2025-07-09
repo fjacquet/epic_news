@@ -1,6 +1,5 @@
 import json
 from datetime import datetime, timedelta
-from unittest.mock import MagicMock, patch
 
 import pytest
 from freezegun import freeze_time
@@ -15,11 +14,11 @@ def tool():
 
 
 @freeze_time("2024-01-08")
-@patch("src.epic_news.tools.rss_feed_parser_tool.feedparser")
-def test_rss_feed_parser_success(mock_feedparser, tool):
+def test_rss_feed_parser_success(tool, mocker):
     """Test successful parsing and filtering of a recent RSS feed entry."""
     # Mock feedparser to return a feed with one recent entry and one old entry
-    mock_feed = MagicMock()
+    mock_feedparser = mocker.patch("src.epic_news.tools.rss_feed_parser_tool.feedparser")
+    mock_feed = mocker.MagicMock()
     mock_feed.bozo = 0
     mock_feed.status = 200
 
@@ -36,10 +35,10 @@ def test_rss_feed_parser_success(mock_feedparser, tool):
             return "Mon, 05 Jan 2024 00:00:00 GMT"
         return default
 
-    recent_entry = MagicMock(published_parsed=recent_entry_time.timetuple())
+    recent_entry = mocker.MagicMock(published_parsed=recent_entry_time.timetuple())
     recent_entry.get.side_effect = mock_get
 
-    old_entry = MagicMock(published_parsed=old_entry_time.timetuple())
+    old_entry = mocker.MagicMock(published_parsed=old_entry_time.timetuple())
 
     mock_feed.entries = [recent_entry, old_entry]
     mock_feedparser.parse.return_value = mock_feed
@@ -58,9 +57,9 @@ def test_rss_feed_parser_success(mock_feedparser, tool):
     mock_feedparser.parse.assert_called_once_with("http://fake-rss.com/feed")
 
 
-@patch("src.epic_news.tools.rss_feed_parser_tool.feedparser")
-def test_rss_feed_parser_error(mock_feedparser, tool):
+def test_rss_feed_parser_error(tool, mocker):
     """Test that the tool gracefully handles a parsing error."""
+    mock_feedparser = mocker.patch("src.epic_news.tools.rss_feed_parser_tool.feedparser")
     mock_feedparser.parse.side_effect = Exception("Network Error")
 
     result = tool._run(feed_url="http://invalid-url.com/feed")

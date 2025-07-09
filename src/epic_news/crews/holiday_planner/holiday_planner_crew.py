@@ -2,10 +2,8 @@ from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from dotenv import load_dotenv
 
-from epic_news.models.report import ReportHTMLOutput
+from epic_news.models.crews.holiday_planner_report import HolidayPlannerReport
 from epic_news.tools.exchange_rate_tool import ExchangeRateTool
-from epic_news.tools.rag_tools import get_rag_tools
-from epic_news.tools.report_tools import get_report_tools
 from epic_news.tools.web_tools import get_scrape_tools, get_search_tools, get_youtube_tools
 
 # TODO: Consider if get_news_tools might also be relevant for some agents.
@@ -29,23 +27,18 @@ class HolidayPlannerCrew:
         search_tools = get_search_tools()  # Provides SerperDevTool
         scrape_tools = get_scrape_tools()  # Provides ScrapeNinjaTool
         youtube_tools = get_youtube_tools()  # Provides YoutubeVideoSearchTool
-        rag_tools = get_rag_tools()
+
         exchange_rate_tool = ExchangeRateTool()
-        report_tools = get_report_tools()
 
         # Tools for travel research: general search, video, scraping
-        self.travel_research_tools = (
-            search_tools + youtube_tools + scrape_tools + rag_tools + [exchange_rate_tool]
-        )
+        self.travel_research_tools = search_tools + youtube_tools + scrape_tools + [exchange_rate_tool]
 
         # Tools for accommodation: general search, scraping
         # (SerperDevTool for general queries, ScrapeNinjaTool for specific details)
-        self.accommodation_search_tools = search_tools + scrape_tools + rag_tools + [exchange_rate_tool]
+        self.accommodation_search_tools = search_tools + scrape_tools + [exchange_rate_tool]
 
         # Tools for content creation: general search, scraping (for final details, links)
-        self.content_creation_tools = (
-            search_tools + scrape_tools + rag_tools + [exchange_rate_tool] + report_tools
-        )
+        self.content_creation_tools = search_tools + scrape_tools + [exchange_rate_tool]
 
         # General tools: a comprehensive set for versatile agents like the itinerary architect
         combined_tools_list = (
@@ -80,6 +73,7 @@ class HolidayPlannerCrew:
         return Agent(
             config=self.agents_config["travel_researcher"],
             tools=self.travel_research_tools,  # To be populated by _init_tools
+            llm="gpt-4.1-mini",  # Use more powerful model for travel research
             verbose=False,
             reasoning=True,
             allow_delegation=True,
@@ -90,6 +84,7 @@ class HolidayPlannerCrew:
         return Agent(
             config=self.agents_config["accommodation_specialist"],
             tools=self.accommodation_search_tools,  # To be populated by _init_tools
+            llm="gpt-4.1-mini",  # Use more powerful model for accommodation research
             verbose=False,
             reasoning=True,
             allow_delegation=True,
@@ -100,6 +95,7 @@ class HolidayPlannerCrew:
         return Agent(
             config=self.agents_config["itinerary_architect"],
             tools=self.general_tools,  # To be populated by _init_tools (e.g., search + scrape)
+            llm="gpt-4.1-mini",  # Use more powerful model for complex itinerary planning
             verbose=False,
             reasoning=True,
             allow_delegation=True,
@@ -110,6 +106,7 @@ class HolidayPlannerCrew:
         return Agent(
             config=self.agents_config["budget_manager"],
             tools=self.accommodation_search_tools,  # To be populated by _init_tools (e.g., shopping search)
+            llm="gpt-4.1-mini",  # Use more powerful model for budget analysis
             verbose=False,
             allow_delegation=False,
         )
@@ -133,19 +130,24 @@ class HolidayPlannerCrew:
 
     @task
     def plan_itinerary(self) -> Task:
-        return Task(config=self.tasks_config["plan_itinerary"], async_execution=True)
+        return Task(
+            config=self.tasks_config["plan_itinerary"],
+            async_execution=False,
+        )
 
     @task
     def analyze_and_optimize_budget(self) -> Task:
-        return Task(config=self.tasks_config["analyze_and_optimize_budget"], async_execution=True)
+        return Task(
+            config=self.tasks_config["analyze_and_optimize_budget"],
+            async_execution=False,
+        )
 
     @task
     def format_and_translate_guide(self) -> Task:
         return Task(
             config=self.tasks_config["format_and_translate_guide"],
             async_execution=False,
-            output_file="output/travel_guides/itinerary.html",
-            output_pydantic=ReportHTMLOutput,
+            output_pydantic=HolidayPlannerReport,
         )
 
     @crew

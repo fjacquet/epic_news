@@ -1,0 +1,34 @@
+"""Tests for Menu HTML renderer."""
+
+import pytest
+from bs4 import BeautifulSoup
+
+from epic_news.utils.html.template_renderers.menu_renderer import MenuRenderer
+
+
+@pytest.fixture
+def sample_menu_data():
+    """Provide a sample menu data object for testing."""
+    return {
+        "title": "Test Menu",
+        "daily_plans": {
+            "Lundi": {
+                "breakfast": "Test Breakfast",
+                "lunch": "Test Lunch",
+                "dinner": "Test Dinner",
+            }
+        },
+        "shopping_list": {"Test Category": ["Test Item"]},
+    }
+
+
+def test_menu_renderer(sample_menu_data):
+    """Test the MenuRenderer directly."""
+    renderer = MenuRenderer()
+    html = renderer.render(sample_menu_data)
+    soup = BeautifulSoup(html, "html.parser")
+
+    assert "Test Menu" in soup.body.text
+    assert "Test Breakfast" in soup.body.text
+    assert "Test Category" in soup.body.text
+    assert "Test Item" in soup.body.text

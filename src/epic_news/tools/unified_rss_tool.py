@@ -1,5 +1,4 @@
 import json
-import logging
 import os
 import sys
 import xml.etree.ElementTree as ET
@@ -9,14 +8,13 @@ from pathlib import Path
 import feedparser
 from crewai.tools import BaseTool
 from dateutil import parser
+from loguru import logger
 from newspaper import Article as NewspaperArticle
 from pydantic import BaseModel, Field
 
 from epic_news.models.rss_models import Article, FeedWithArticles, RssFeeds
 from epic_news.tools.scrape_ninja_tool import ScrapeNinjaTool
-
-# Set up logging
-logger = logging.getLogger(__name__)
+from epic_news.utils.directory_utils import ensure_output_directory
 
 
 class UnifiedRssToolInput(BaseModel):
@@ -55,8 +53,6 @@ class UnifiedRssTool(BaseTool):
         output_file_path: str = None,
         invalid_sources_file_path: str = None,
     ) -> str:
-        # Set up logger
-        logger = logging.getLogger(__name__)
         """
         Execute the entire RSS processing pipeline.
 
@@ -78,7 +74,13 @@ class UnifiedRssTool(BaseTool):
             logger.info(f"Found {len(feed_urls)} feeds in OPML file")
 
             # Calculate cutoff date for filtering articles
-            cutoff_date = datetime.now() - timedelta(days=days_to_look_back)
+            # Calculate an inclusive cutoff date by day. Articles published on the
+            # *same calendar day* exactly ``days_to_look_back`` days ago should be
+            # kept.  We therefore normalise the cutoff timestamp to 00:00 so that
+            # any hour within that day is accepted.
+            cutoff_date = (datetime.now() - timedelta(days=days_to_look_back)).replace(
+                hour=0, minute=0, second=0, microsecond=0
+            )
 
             # Process each feed to get articles
             all_feeds = []
@@ -98,16 +100,35 @@ class UnifiedRssTool(BaseTool):
                 for article in feed.articles:
                     try:
                         logger.info(f"Scraping content for: {article.link}")
-                        article.content = self._scrape_article_content(article.link)
+                        scraped_content = self._scrape_article_content(article.link)
+                        if scraped_content:
+                            article.content = scraped_content
+                        else:
+                            # Fallback to summary if scraping fails or returns empty
+                            if article.summary:
+                                logger.warning(
+                                    f"Scraping failed for {article.link}. Falling back to RSS summary."
+                                )
+                                article.content = article.summary
+                            else:
+                                logger.warning(
+                                    f"Scraping failed for {article.link} and no RSS summary available."
+                                )
                     except Exception as e:
-                        logger.error(f"Error scraping content for {article.link}: {str(e)}")
+                        logger.error(f"Error during scraping for {article.link}: {str(e)}")
+                        # Also fallback to summary on exception
+                        if article.summary:
+                            logger.warning("Falling back to RSS summary due to exception.")
+                            article.content = article.summary
 
             # Save results to a JSON file
-            rss_feeds = RssFeeds(feeds=all_feeds)
+            rss_feeds = RssFeeds(rss_feeds=all_feeds)
 
             if output_file_path:
                 # Ensure the directory exists
-                os.makedirs(os.path.dirname(output_file_path), exist_ok=True)
+                output_dir = os.path.dirname(output_file_path)
+                if output_dir:
+                    ensure_output_directory(output_dir)
 
                 # Write results to JSON file
                 with open(output_file_path, "w", encoding="utf-8") as f:
@@ -116,12 +137,17 @@ class UnifiedRssTool(BaseTool):
                 logger.info(f"Results saved to {output_file_path}")
 
             # Write invalid sources to a separate file
-            if invalid_sources:
+            if invalid_sources and invalid_sources_file_path:
                 invalid_sources_data = {
                     "invalid_sources": list(invalid_sources),
                     "timestamp": datetime.now().isoformat(),
                     "total_invalid": len(invalid_sources),
                 }
+                # Ensure the directory exists
+                invalid_sources_dir = os.path.dirname(invalid_sources_file_path)
+                if invalid_sources_dir:
+                    ensure_output_directory(invalid_sources_dir)
+
                 with open(invalid_sources_file_path, "w", encoding="utf-8") as f:
                     json.dump(invalid_sources_data, f, ensure_ascii=False, indent=2)
                 logger.info(
@@ -159,11 +185,9 @@ class UnifiedRssTool(BaseTool):
 
             return urls
         except ET.ParseError as e:
-            logger = logging.getLogger(__name__)
             logger.error(f"Error parsing XML file: {e}")
             raise
         except FileNotFoundError:
-            logger = logging.getLogger(__name__)
             logger.error(f"File not found: {opml_file_path}")
             raise
 
@@ -172,7 +196,6 @@ class UnifiedRssTool(BaseTool):
     ) -> list[Article]:
         """Fetch articles from a feed URL and filter by date."""
         try:
-            logger = logging.getLogger(__name__)
             logger.info(f"Fetching and parsing feed: {feed_url}")
             feed = feedparser.parse(feed_url)
 
@@ -214,19 +237,15 @@ class UnifiedRssTool(BaseTool):
                 # Try multiple date fields that might be available
                 if hasattr(entry, "published_parsed") and entry.published_parsed:
                     try:
-                        # Handle both real tuples and mock objects
-                        if hasattr(entry.published_parsed, "__getitem__"):
-                            pub_date = datetime(*entry.published_parsed[:6])
-                            date_source = "published_parsed"
+                        pub_date = datetime(*entry.published_parsed[:6])
+                        date_source = "published_parsed"
                     except (TypeError, ValueError):
                         pass
 
                 if not pub_date and hasattr(entry, "updated_parsed") and entry.updated_parsed:
                     try:
-                        # Handle both real tuples and mock objects
-                        if hasattr(entry.updated_parsed, "__getitem__"):
-                            pub_date = datetime(*entry.updated_parsed[:6])
-                            date_source = "updated_parsed"
+                        pub_date = datetime(*entry.updated_parsed[:6])
+                        date_source = "updated_parsed"
                     except (TypeError, ValueError):
                         pass
 
@@ -260,6 +279,7 @@ class UnifiedRssTool(BaseTool):
                     title=entry.title,
                     link=entry.link,
                     published=pub_date.isoformat(),
+                    summary=entry.summary if hasattr(entry, "summary") else None,
                     content=None,  # Will be populated later
                 )
                 articles.append(article)
@@ -294,24 +314,38 @@ class UnifiedRssTool(BaseTool):
         """
         # First try with Newspaper3k (faster and doesn't require API key)
         try:
+            logger.info(f"Attempting to scrape with Newspaper3k: {url}")
             article = NewspaperArticle(url)
             article.download()
             article.parse()
 
             if article.text and len(article.text.strip()) > 100:  # Ensure we got meaningful content
+                logger.info(f"Successfully scraped with Newspaper3k: {url}")
                 return article.text
+            logger.warning(f"Newspaper3k extracted no/short content from: {url}")
         except Exception as e:
-            logger = logging.getLogger(__name__)
             logger.warning(f"Newspaper3k failed for {url}: {str(e)}")
 
-        # Fall back to ScrapeNinjaTool if Newspaper3k fails
+        # Fall back to ScrapeNinjaTool if Newspaper3k fails or returns insufficient content
         try:
-            content = self.scrape_ninja_tool._run(url)
-            if isinstance(content, dict) and "content" in content:
+            logger.info(f"Falling back to ScrapeNinja for: {url}")
+            content = self.scrape_ninja_tool._run(url=url)
+
+            # If ScrapeNinja returns its raw JSON response, it means it failed to extract clean text.
+            if content and isinstance(content, str) and content.strip().startswith('{"info":'):
+                logger.warning(f"ScrapeNinja returned raw JSON for {url}. Discarding.")
+                return None  # Treat as failure to trigger summary fallback
+
+            if content and isinstance(content, dict) and "content" in content:
+                logger.info(f"Successfully scraped with ScrapeNinja: {url}")
                 return content["content"]
-            return content
+            if content:
+                logger.info(f"Successfully scraped with ScrapeNinja: {url}")
+                return content
+            logger.warning(f"ScrapeNinja returned no content for: {url}")
+            return None
+
         except Exception as e:
-            logger = logging.getLogger(__name__)
             logger.error(f"ScrapeNinjaTool failed for {url}: {str(e)}")
             return None
 
@@ -321,7 +355,7 @@ def get_default_paths():
     # Set default output paths if not provided
     project_root = Path(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))))
     output_dir = project_root / "output" / "rss_weekly"
-    os.makedirs(output_dir, exist_ok=True)
+    ensure_output_directory(str(output_dir))
 
     opml_path = str(project_root / "data" / "feedly.opml")
     output_file_path = str(output_dir / "content.json")
@@ -353,7 +387,8 @@ def main():
 
     # Set log level based on verbose flag
     if args.verbose:
-        logging.getLogger().setLevel(logging.DEBUG)
+        logger.remove()
+        logger.add(sys.stderr, level="DEBUG")
 
     # Run the tool
     tool = UnifiedRssTool()

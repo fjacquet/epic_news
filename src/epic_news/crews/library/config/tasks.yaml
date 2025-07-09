@@ -1,53 +1,34 @@
+---
 research_task:
   description: >
     Conduct comprehensive research on the given topic: {topic}.
     Gather detailed information on its origin, key facts, historical context,
-    controversies, and latest developments. Synthesize the findings into a
-    structured markdown document, ensuring all claims are backed by credible
-    sources.
+    controversies, and latest developments. 
   expected_output: >
     A markdown file containing a detailed and well-structured research report
     on the specified topic, with citations and references.
-
   agent: researcher
-
+  output_file: output/library/research.md
 reporting_task:
-  description: >
-    CRITICAL: Use the ReportingTool to generate a comprehensive, professional HTML report 
-    about the topic: {topic}. The ReportingTool will ensure proper template usage and 
-    complete, non-truncated output that follows project standards.
-    
-    Review all research findings and create a complete, well-structured HTML report with:
-    - Full content (never truncated or incomplete)
-    - Professional formatting using proper templates
-    - Clear headings, bullet points, and structure
-    - Table of contents and emojis for section headings
-    - UTF-8 encoding for emoji support
-    - All project design standards for HTML reports
-    
-    IMPORTANT: Use ONLY the ReportingTool to generate the final HTML output. 
-    Do not write HTML directly - let the ReportingTool handle template application.
-  expected_output: >
-    A single, complete, valid HTML file containing the full professional report 
-    generated using the ReportingTool. The HTML must be complete (not truncated), 
-    well-formatted, styled according to project templates, and ready for publication 
-    or PDF conversion. No placeholder text or incomplete sections allowed.
-
+  description: |
+    CRITICAL: Generate a comprehensive, professional book report in pure JSON format
+    about the topic: {topic}.
+    The report must be in french and must match the BookSummaryReport Pydantic schema exactly.
+    Required fields:
+      - topic (string)
+      - publication_date (string, ISO format preferred)
+      - title (string)
+      - summary (optional string)
+      - table_of_contents (list of {{id, title}})
+      - sections (list of {{id, title, content}})
+      - chapter_summaries (optional list of {{chapter, title, focus}})
+      - references (list of strings)
+      - author (string)
+    The JSON must be parseable and match the schema exactly. 
+    Do not include any explanations or formatting outside of the JSON object.
+  expected_output: |
+    A valid and pure JSON object matching the BookSummaryReport Pydantic model. 
+    Output must be directly parseable as JSON and include all required fields.
   agent: reporting_analyst
-
-reporting_task_pdf:
-  description: >
-    Convert the HTML document to a PDF document using the HtmlToPdfTool.
-
-    Look for the following lines in this task description:
-    HTML_FILE_PATH=<absolute_path_to_html_file>
-    PDF_OUTPUT_PATH=<absolute_path_to_pdf_file>
-
-    Extract these exact file paths from the description and use them with the
-    HtmlToPdfTool. Do not attempt to construct the paths yourself. Use ONLY
-    the paths provided in this description.
-  expected_output: >
-    The complete PDF document with all required tags, styles, and content
-    sections.  Must be valid PDF that can be directly rendered in a browser,
-    not a description.
-  agent: reporting_analyst
+  context: [research_task]
+  output_file: '{output_file}'

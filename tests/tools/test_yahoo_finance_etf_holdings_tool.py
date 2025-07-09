@@ -1,5 +1,4 @@
 import json
-from unittest.mock import MagicMock, patch
 
 import pandas as pd
 import pytest
@@ -13,8 +12,8 @@ def tool_instance():
 
 
 @pytest.fixture
-def mock_etf_data_all_present():
-    mock_ticker_instance = MagicMock()
+def mock_etf_data_all_present(mocker):
+    mock_ticker_instance = mocker.MagicMock()
     mock_ticker_instance.info = {
         "shortName": "Good ETF Full",
         "categoryName": "Large Cap Blend",
@@ -54,8 +53,8 @@ def test_instantiation(tool_instance):
 
 
 # --- _run Method Tests ---
-@patch("yfinance.Ticker")
-def test_run_successful_all_data(mock_yf_ticker, tool_instance, mock_etf_data_all_present):
+def test_run_successful_all_data(tool_instance, mock_etf_data_all_present, mocker):
+    mock_yf_ticker = mocker.patch("yfinance.Ticker")
     ticker_symbol = "GOODETF"
     mock_yf_ticker.return_value = mock_etf_data_all_present
 
@@ -79,10 +78,10 @@ def test_run_successful_all_data(mock_yf_ticker, tool_instance, mock_etf_data_al
     }
 
 
-@patch("yfinance.Ticker")
-def test_run_missing_data_empty_collections(mock_yf_ticker, tool_instance):
+def test_run_missing_data_empty_collections(tool_instance, mocker):
+    mock_yf_ticker = mocker.patch("yfinance.Ticker")
     ticker_symbol = "EMPTYETF"
-    mock_ticker_instance = MagicMock()
+    mock_ticker_instance = mocker.MagicMock()
     mock_yf_ticker.return_value = mock_ticker_instance
 
     mock_ticker_instance.info = {
@@ -110,8 +109,8 @@ def test_run_missing_data_empty_collections(mock_yf_ticker, tool_instance):
     assert "top_holdings" not in result_data  # Was []
 
 
-@patch("yfinance.Ticker")
-def test_run_get_holdings_fails(mock_yf_ticker, tool_instance, mock_etf_data_all_present):
+def test_run_get_holdings_fails(tool_instance, mock_etf_data_all_present, mocker):
+    mock_yf_ticker = mocker.patch("yfinance.Ticker")
     ticker_symbol = "FAILHOLDETF"
     # Use the all_present mock but override get_holdings
     mock_ticker_instance = mock_etf_data_all_present
@@ -130,8 +129,8 @@ def test_run_get_holdings_fails(mock_yf_ticker, tool_instance, mock_etf_data_all
     assert "sector_breakdown" in result_data
 
 
-@patch("yfinance.Ticker")
-def test_run_get_sector_data_fails(mock_yf_ticker, tool_instance, mock_etf_data_all_present):
+def test_run_get_sector_data_fails(tool_instance, mock_etf_data_all_present, mocker):
+    mock_yf_ticker = mocker.patch("yfinance.Ticker")
     ticker_symbol = "FAILSECTETF"
     mock_ticker_instance = mock_etf_data_all_present
     mock_yf_ticker.return_value = mock_ticker_instance
@@ -147,10 +146,10 @@ def test_run_get_sector_data_fails(mock_yf_ticker, tool_instance, mock_etf_data_
     assert "top_holdings" in result_data  # Holdings should be there
 
 
-@patch("yfinance.Ticker")
-def test_run_holdings_df_missing_internal_fields(mock_yf_ticker, tool_instance):
+def test_run_holdings_df_missing_internal_fields(tool_instance, mocker):
+    mock_yf_ticker = mocker.patch("yfinance.Ticker")
     ticker_symbol = "PARTIALHOLDETF"
-    mock_ticker_instance = MagicMock()
+    mock_ticker_instance = mocker.MagicMock()
     mock_yf_ticker.return_value = mock_ticker_instance
     mock_ticker_instance.info = {"shortName": "Partial Holdings ETF"}
 
@@ -189,8 +188,8 @@ def test_run_holdings_df_missing_internal_fields(mock_yf_ticker, tool_instance):
     assert holdings_by_symbol["SYM4"]["shares"] == "N/A"
 
 
-@patch("yfinance.Ticker")
-def test_run_yfinance_ticker_instantiation_fails(mock_yf_ticker, tool_instance):
+def test_run_yfinance_ticker_instantiation_fails(tool_instance, mocker):
+    mock_yf_ticker = mocker.patch("yfinance.Ticker")
     ticker_symbol = "BADETF"
     error_message = "Failed to create Ticker"
     mock_yf_ticker.side_effect = Exception(error_message)

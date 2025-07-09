@@ -33,6 +33,13 @@ class RetryLLMWrapper(BaseLLM):
     logic to handle transient errors in API calls.
     """
 
+    llm: BaseLLM
+    max_retries: int = 3
+    min_seconds: float = 1
+    max_seconds: float = 60
+    factor: float = 2
+    verbose: bool = False
+
     def __init__(
         self,
         llm: BaseLLM,
@@ -53,7 +60,14 @@ class RetryLLMWrapper(BaseLLM):
             factor: Backoff factor for exponential delay
             verbose: Whether to log detailed retry information
         """
-        super().__init__()
+        super().__init__(
+            llm=llm,
+            max_retries=max_retries,
+            min_seconds=min_seconds,
+            max_seconds=max_seconds,
+            factor=factor,
+            verbose=verbose,
+        )
         self.llm = llm
         self.max_retries = max_retries
         self.min_seconds = min_seconds

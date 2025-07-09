@@ -1,5 +1,4 @@
 import json
-from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -30,9 +29,9 @@ def test_delegating_tool_instantiation(router_tool_instance):
 # --- _run Method Tests (Delegation Logic) ---
 
 
-@patch("epic_news.tools.email_search.HunterIOTool")  # Patch where HunterIOTool is imported/used
-def test_run_delegates_to_hunter_success(mock_hunter_tool_class, router_tool_instance):
-    mock_hunter_instance = MagicMock()
+def test_run_delegates_to_hunter_success(router_tool_instance, mocker):
+    mock_hunter_tool_class = mocker.patch("epic_news.tools.email_search.HunterIOTool")
+    mock_hunter_instance = mocker.MagicMock()
     mock_hunter_instance._run.return_value = json.dumps({"hunter_data": "success"})
     mock_hunter_tool_class.return_value = mock_hunter_instance
 
@@ -45,11 +44,11 @@ def test_run_delegates_to_hunter_success(mock_hunter_tool_class, router_tool_ins
     assert result_data == {"hunter_data": "success"}
 
 
-@patch(
-    "epic_news.tools.email_search.SerperEmailSearchTool"
-)  # Patch where SerperEmailSearchTool is imported/used
-def test_run_delegates_to_serper_success(mock_serper_tool_class, router_tool_instance):
-    mock_serper_instance = MagicMock()
+def test_run_delegates_to_serper_success(router_tool_instance, mocker):
+    mock_serper_tool_class = mocker.patch(
+        "epic_news.tools.email_search.SerperEmailSearchTool"
+    )  # Patch where SerperEmailSearchTool is imported/used
+    mock_serper_instance = mocker.MagicMock()
     mock_serper_instance._run.return_value = json.dumps({"serper_data": "success"})
     mock_serper_tool_class.return_value = mock_serper_instance
 
@@ -71,8 +70,8 @@ def test_run_invalid_provider(router_tool_instance):
     assert "Invalid provider: 'invalid_provider'. Must be 'hunter' or 'serper'." in result_data["error"]
 
 
-@patch("epic_news.tools.email_search.HunterIOTool")
-def test_run_hunter_init_error(mock_hunter_tool_class, router_tool_instance):
+def test_run_hunter_init_error(router_tool_instance, mocker):
+    mock_hunter_tool_class = mocker.patch("epic_news.tools.email_search.HunterIOTool")
     error_message = "Mocked Hunter API Key Error"
     mock_hunter_tool_class.side_effect = ValueError(error_message)  # Error on instantiation
 
@@ -83,8 +82,8 @@ def test_run_hunter_init_error(mock_hunter_tool_class, router_tool_instance):
     assert f"Configuration error for hunter: {error_message}" in result_data["error"]
 
 
-@patch("epic_news.tools.email_search.SerperEmailSearchTool")
-def test_run_serper_init_error(mock_serper_tool_class, router_tool_instance):
+def test_run_serper_init_error(router_tool_instance, mocker):
+    mock_serper_tool_class = mocker.patch("epic_news.tools.email_search.SerperEmailSearchTool")
     error_message = "Mocked Serper API Key Error"
     mock_serper_tool_class.side_effect = ValueError(error_message)  # Error on instantiation
 
@@ -95,9 +94,9 @@ def test_run_serper_init_error(mock_serper_tool_class, router_tool_instance):
     assert f"Configuration error for serper: {error_message}" in result_data["error"]
 
 
-@patch("epic_news.tools.email_search.HunterIOTool")
-def test_run_hunter_runtime_error(mock_hunter_tool_class, router_tool_instance):
-    mock_hunter_instance = MagicMock()
+def test_run_hunter_runtime_error(router_tool_instance, mocker):
+    mock_hunter_tool_class = mocker.patch("epic_news.tools.email_search.HunterIOTool")
+    mock_hunter_instance = mocker.MagicMock()
     error_message = "Mocked Hunter Runtime Error"
     mock_hunter_instance._run.side_effect = Exception(error_message)
     mock_hunter_tool_class.return_value = mock_hunter_instance
@@ -109,9 +108,9 @@ def test_run_hunter_runtime_error(mock_hunter_tool_class, router_tool_instance):
     assert f"Failed to execute search with hunter: {error_message}" in result_data["error"]
 
 
-@patch("epic_news.tools.email_search.SerperEmailSearchTool")
-def test_run_serper_runtime_error(mock_serper_tool_class, router_tool_instance):
-    mock_serper_instance = MagicMock()
+def test_run_serper_runtime_error(router_tool_instance, mocker):
+    mock_serper_tool_class = mocker.patch("epic_news.tools.email_search.SerperEmailSearchTool")
+    mock_serper_instance = mocker.MagicMock()
     error_message = "Mocked Serper Runtime Error"
     mock_serper_instance._run.side_effect = Exception(error_message)
     mock_serper_tool_class.return_value = mock_serper_instance

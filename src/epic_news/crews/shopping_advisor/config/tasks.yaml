@@ -1,11 +1,14 @@
+---
 product_research_task:
   description: >
     Conduct comprehensive research on the product: **{topic}** in {current_year}.
+    Additional context: {context}.
     Your primary objective is: **{objective}**.
-    Focus on gathering detailed information about its features, technical specifications,
-    user reviews (both positive and negative), expert opinions, and any known issues or recalls.
-    Compile a detailed summary of your findings, which will serve as the foundation for the other agents.
-    Save all findings to the RAG system for other agents to use.
+    Focus on gathering detailed information about its features, technical specifications,  user
+    reviews (both positive and negative), expert opinions, and any known issues or
+    recalls.
+    Compile a detailed summary of your findings, which will serve as the foundation
+    for the other agents.
     Make sure you find the most current and relevant information for {current_year}.
   expected_output: >
     A comprehensive research report containing:
@@ -15,13 +18,14 @@ product_research_task:
     - Common issues and their solutions
     - Target audience and best use cases
     All information should be well-sourced and current.
-  async_execution: true
+  async_execution: false
   agent: product_researcher
-  output_file: "output/shopping_advisor/product_research.md"
-
+  output_file: output/shopping_advisor/product_research.md
 price_analysis_task:
   description: >
-    Based on the research for **{topic}**, analyze its pricing in the Swiss and French markets in {current_year}. 
+    Based on the research for **{topic}**, analyze its pricing in the Swiss and French
+    markets
+    in {current_year}. Consider the context provided: {context}.
     Your analysis should include:
     - Current prices from major retailers in both countries
     - Direct purchase links for the best offers
@@ -29,13 +33,11 @@ price_analysis_task:
     - Warranty and return policy information
     - Seasonal price trends and potential discounts
     - Total cost comparison including taxes and shipping
-
     Focus on these major retailers:
     - Switzerland: Digitec, Galaxus, Manor, Microspot, Interdiscount
-    - France: Amazon.fr, Fnac, Cdiscount, Darty, Boulanger    
+    - France: Amazon.fr, Fnac, Cdiscount, Darty, Boulanger
     Note any significant price differences, promotions, or bundle deals.
     Your objective is to provide a clear price comparison.
-    Save all pricing information to the RAG system.
   expected_output: >
     A detailed price analysis report containing:
     - Current prices from at least 5 retailers per country
@@ -44,12 +46,12 @@ price_analysis_task:
     - Best value recommendations for each country
     - Price trend analysis and buying recommendations
   agent: price_analyst
-  async_execution: true
-  output_file: "output/shopping_advisor/price_analysis.md"
-
+  async_execution: false
+  output_file: output/shopping_advisor/price_analysis.md
 competitor_analysis_task:
   description: >
-    Identify and analyze the main competitors to **{topic}** in {current_year}.
+    Identify and analyze the main competitors to **{topic}** in {current_year},
+    considering the context: {context}.
     Your analysis should include:
     - 3-5 main competing products with similar features
     - Feature-by-feature comparison
@@ -57,9 +59,7 @@ competitor_analysis_task:
     - Pros and cons of each alternative
     - Market positioning and target audience differences
     - Unique selling points of each competitor
-    
     Focus on direct competitors and alternative solutions that solve similar problems.
-    Save all competitor information to the RAG system.
   expected_output: >
     A comprehensive competitor analysis containing:
     - List of 3-5 main competitors with detailed descriptions
@@ -68,46 +68,37 @@ competitor_analysis_task:
     - Strengths and weaknesses of each alternative
     - Market positioning analysis
     - Recommendations for different user needs
-  async_execution: true
+  async_execution: false
   agent: competitor_analyst
-  output_file: "output/shopping_advisor/product_research.md"
-
-shopping_advice_task:
+  output_file: output/shopping_advisor/product_research.md
+shopping_data_task:
   description: >
-    Synthesize all the gathered information—product research, price analysis, and competitor analysis—for **{topic}**
-    Create a comprehensive shopping advice report for {topic} that consolidates all research findings.
-    Use the ReportingTool to generate a professional HTML report that includes:
-    
-    **Report Structure:**
-    1. Executive Summary with key recommendations
-    2. Product Overview and Specifications
-    3. Detailed Pros and Cons Analysis
-    4. Price Comparison (Switzerland vs France)
-    5. Competitor Analysis with Comparison Table
-    6. Final Recommendations and Purchase Links
-    
-    **Key Requirements:**
-    - Use the knowledge base to retrieve all gathered information from previous tasks
-    - Create professional comparison tables for features and prices
-    - Include direct purchase links for best offers in both countries
-    - Provide clear, actionable buying recommendations
-    - Use proper HTML formatting with emojis for visual appeal
-    - Ensure the report is comprehensive yet easy to read
-    
-    IMPORTANT: When calling the Professional Report Generator tool, you MUST use the exact output file path: "output/shopping_advisor/shopping_advice.html"
-    DO NOT use any other filename or path. The tool requires three parameters:
-    - report_title: "Shopping Advice Report"
-    - report_body: [your complete HTML content]
-    - output_file_path: "output/shopping_advisor/shopping_advice.html"
-
-    The report should help users make an informed purchasing decision with all necessary information in one place.
+    Based on all the research, price analysis, and competitor analysis for {topic},
+    create a comprehensive structured shopping advice report in French.
+    You MUST provide ALL of the following required fields:
+    1. **product_info**: Complete product information with specifications, pros, and
+    cons
+    2. **switzerland_prices**: Detailed price information from Swiss retailers with
+    direct links
+    3. **france_prices**: Detailed price information from French retailers with direct
+    links
+    4. **competitors**: Comprehensive competitor analysis with feature comparisons
+    5. **executive_summary**: Executive summary with clear recommendations (required
+    field)
+    6. **final_recommendations**: Final purchase recommendations with reasoning (required
+    field)
+    7. **best_deals**: Best deals and value propositions as a list of strings (required
+    field)
+    8. **user_preferences_context**: Summary of user preferences and constraints considered
+    (required field)
+    Consider the context: {context} and ensure all recommendations are practical
+    and actionable for French-speaking users.
+    Focus on providing complete, accurate, and well-structured data that matches
+    the ShoppingAdviceOutput Pydantic model exactly.
   expected_output: >
-    A complete, professional HTML shopping advice report in french generated using the ReportingTool containing:
-    - Executive summary with clear recommendations
-    - Comprehensive product analysis with pros/cons
-    - Detailed price comparison tables for Switzerland and France
-    - Competitor comparison matrix with features and pricing
-    - Final recommendations with direct purchase links
-    - Professional formatting with proper HTML structure and emojis
+    A comprehensive ShoppingAdviceOutput data structure containing ALL required fields:
+    product_info, switzerland_prices, france_prices, competitors, executive_summary,
+    final_recommendations, best_deals, and user_preferences_context.
+    All data must be complete, accurate, and ready for HTML report generation.
   agent: shopping_advisor
-  output_file: "output/shopping_advisor/shopping_advice.html"
+  output_file: '{output_file}'

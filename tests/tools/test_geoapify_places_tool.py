@@ -5,7 +5,6 @@ These tests use mocking to avoid making real API calls.
 """
 
 import json
-from unittest.mock import MagicMock, patch
 
 import pytest
 from pydantic import ValidationError
@@ -84,77 +83,77 @@ class TestGeoapifyPlacesTool:
         monkeypatch.setenv("GEOAPIFY_API_KEY", "test_api_key_123")
 
     @pytest.fixture
-    def mock_successful_response(self):
+    def mock_successful_response(self, mocker):
         """Create a mock successful API response."""
-        mock_response = MagicMock()
+        mock_response = mocker.MagicMock()
         mock_response.status_code = 200
         mock_response.json.return_value = SAMPLE_RESPONSE
         return mock_response
 
     @pytest.fixture
-    def mock_error_response(self):
+    def mock_error_response(self, mocker):
         """Create a mock error API response."""
-        mock_response = MagicMock()
+        mock_response = mocker.MagicMock()
         mock_response.status_code = 400
         mock_response.json.return_value = {"error": "Invalid parameters"}
         mock_response.raise_for_status.side_effect = Exception("API Error")
         return mock_response
 
-    def test_search_with_circle_filter(self, mock_env_geoapify_key, mock_successful_response):
+    def test_search_with_circle_filter(self, mock_env_geoapify_key, mock_successful_response, mocker):
         """Test search with circle filter."""
-        with patch("requests.get", return_value=mock_successful_response) as mock_get:
-            tool = GeoapifyPlacesTool()
-            result = tool._run(
-                categories=["catering.restaurant"],
-                filter_type="circle",
-                filter_value="-0.1,51.5,1000",  # lon,lat,radiusM
-                limit=5,
-            )
+        mock_get = mocker.patch("requests.get", return_value=mock_successful_response)
+        tool = GeoapifyPlacesTool()
+        result = tool._run(
+            categories=["catering.restaurant"],
+            filter_type="circle",
+            filter_value="-0.1,51.5,1000",  # lon,lat,radiusM
+            limit=5,
+        )
 
-            # Verify the result
-            assert "Test Restaurant" in result
+        # Verify the result
+        assert "Test Restaurant" in result
 
-            # Verify the API call was made with correct parameters
-            mock_get.assert_called_once()
-            args, kwargs = mock_get.call_args
-            assert args[0] == "https://api.geoapify.com/v2/places"
-            assert kwargs["params"]["apiKey"] == "test_api_key_123"
-            assert kwargs["params"]["categories"] == "catering.restaurant"
-            assert kwargs["params"]["filter"] == "circle:-0.1,51.5,1000"
-            assert kwargs["params"]["limit"] == 5
-            assert kwargs["params"]["lang"] == "en"
+        # Verify the API call was made with correct parameters
+        mock_get.assert_called_once()
+        args, kwargs = mock_get.call_args
+        assert args[0] == "https://api.geoapify.com/v2/places"
+        assert kwargs["params"]["apiKey"] == "test_api_key_123"
+        assert kwargs["params"]["categories"] == "catering.restaurant"
+        assert kwargs["params"]["filter"] == "circle:-0.1,51.5,1000"
+        assert kwargs["params"]["limit"] == 5
+        assert kwargs["params"]["lang"] == "en"
 
-    def test_search_with_bias(self, mock_env_geoapify_key, mock_successful_response):
+    def test_search_with_bias(self, mock_env_geoapify_key, mock_successful_response, mocker):
         """Test search with proximity bias."""
-        with patch("requests.get", return_value=mock_successful_response) as mock_get:
-            tool = GeoapifyPlacesTool()
-            tool._run(categories=["commercial.supermarket"], bias="-0.1,51.5", limit=3)
+        mock_get = mocker.patch("requests.get", return_value=mock_successful_response)
+        tool = GeoapifyPlacesTool()
+        tool._run(categories=["commercial.supermarket"], bias="-0.1,51.5", limit=3)
 
-            # Verify the API call was made with bias parameter
-            mock_get.assert_called_once()
-            args, kwargs = mock_get.call_args
-            assert args[0] == "https://api.geoapify.com/v2/places"
-            assert kwargs["params"]["apiKey"] == "test_api_key_123"
-            assert kwargs["params"]["categories"] == "commercial.supermarket"
-            assert kwargs["params"]["bias"] == "proximity:-0.1,51.5"
-            assert kwargs["params"]["limit"] == 3
-            assert kwargs["params"]["lang"] == "en"
+        # Verify the API call was made with bias parameter
+        mock_get.assert_called_once()
+        args, kwargs = mock_get.call_args
+        assert args[0] == "https://api.geoapify.com/v2/places"
+        assert kwargs["params"]["apiKey"] == "test_api_key_123"
+        assert kwargs["params"]["categories"] == "commercial.supermarket"
+        assert kwargs["params"]["bias"] == "proximity:-0.1,51.5"
+        assert kwargs["params"]["limit"] == 3
+        assert kwargs["params"]["lang"] == "en"
 
-    def test_search_with_conditions(self, mock_env_geoapify_key, mock_successful_response):
+    def test_search_with_conditions(self, mock_env_geoapify_key, mock_successful_response, mocker):
         """Test search with conditions."""
-        with patch("requests.get", return_value=mock_successful_response) as mock_get:
-            tool = GeoapifyPlacesTool()
-            tool._run(categories=["catering.restaurant"], conditions=["vegetarian", "wheelchair"], limit=5)
+        mock_get = mocker.patch("requests.get", return_value=mock_successful_response)
+        tool = GeoapifyPlacesTool()
+        tool._run(categories=["catering.restaurant"], conditions=["vegetarian", "wheelchair"], limit=5)
 
-            # Verify the API call was made with conditions
-            mock_get.assert_called_once()
-            args, kwargs = mock_get.call_args
-            assert args[0] == "https://api.geoapify.com/v2/places"
-            assert kwargs["params"]["apiKey"] == "test_api_key_123"
-            assert kwargs["params"]["categories"] == "catering.restaurant"
-            assert kwargs["params"]["conditions"] == "vegetarian,wheelchair"
-            assert kwargs["params"]["limit"] == 5
-            assert kwargs["params"]["lang"] == "en"
+        # Verify the API call was made with conditions
+        mock_get.assert_called_once()
+        args, kwargs = mock_get.call_args
+        assert args[0] == "https://api.geoapify.com/v2/places"
+        assert kwargs["params"]["apiKey"] == "test_api_key_123"
+        assert kwargs["params"]["categories"] == "catering.restaurant"
+        assert kwargs["params"]["conditions"] == "vegetarian,wheelchair"
+        assert kwargs["params"]["limit"] == 5
+        assert kwargs["params"]["lang"] == "en"
 
     def test_missing_api_key(self, monkeypatch):
         """Test behavior when API key is missing."""
@@ -166,24 +165,24 @@ class TestGeoapifyPlacesTool:
 
         assert "GEOAPIFY_API_KEY environment variable not set" in result
 
-    def test_api_error_handling(self, mock_env_geoapify_key, mock_error_response):
+    def test_api_error_handling(self, mock_env_geoapify_key, mock_error_response, mocker):
         """Test error handling for API errors."""
-        with patch("requests.get", return_value=mock_error_response) as mock_get:
-            tool = GeoapifyPlacesTool()
-            with pytest.raises(Exception) as exc_info:
-                tool._run(categories=["catering.restaurant"], limit=1)
+        mock_get = mocker.patch("requests.get", return_value=mock_error_response)
+        tool = GeoapifyPlacesTool()
+        with pytest.raises(Exception) as exc_info:
+            tool._run(categories=["catering.restaurant"], limit=1)
 
-            # Verify the exception was raised
-            assert "API Error" in str(exc_info.value)
+        # Verify the exception was raised
+        assert "API Error" in str(exc_info.value)
 
-            # Verify the API was called with correct parameters
-            mock_get.assert_called_once()
-            args, kwargs = mock_get.call_args
-            assert args[0] == "https://api.geoapify.com/v2/places"
-            assert kwargs["params"]["apiKey"] == "test_api_key_123"
-            assert kwargs["params"]["categories"] == "catering.restaurant"
-            assert kwargs["params"]["limit"] == 1
-            assert kwargs["params"]["lang"] == "en"
+        # Verify the API was called with correct parameters
+        mock_get.assert_called_once()
+        args, kwargs = mock_get.call_args
+        assert args[0] == "https://api.geoapify.com/v2/places"
+        assert kwargs["params"]["apiKey"] == "test_api_key_123"
+        assert kwargs["params"]["categories"] == "catering.restaurant"
+        assert kwargs["params"]["limit"] == 1
+        assert kwargs["params"]["lang"] == "en"
 
     def test_invalid_parameters(self, mock_env_geoapify_key):
         """Test validation of input parameters."""

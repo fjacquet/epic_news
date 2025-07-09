@@ -1,0 +1,56 @@
+"""Tests for Shopping Advice HTML factory and renderer."""
+
+import pytest
+from bs4 import BeautifulSoup
+
+from epic_news.models.shopping_advice_models import ProductInfo, ShoppingAdviceOutput
+from epic_news.utils.html.shopping_advice_html_factory import shopping_advice_to_html
+from epic_news.utils.html.template_renderers.shopping_renderer import ShoppingRenderer
+
+
+@pytest.fixture
+def sample_shopping_advice_data():
+    """Provide a sample ShoppingAdviceOutput object for testing."""
+    return ShoppingAdviceOutput(
+        product_info=ProductInfo(
+            name="Test Product",
+            overview="An amazing test product.",
+            key_specifications=["Test spec"],
+            pros=["Test pro"],
+            cons=["Test con"],
+            target_audience="Testers",
+        ),
+        switzerland_prices=[],
+        france_prices=[],
+        competitors=[],
+        executive_summary="This is a test summary.",
+        final_recommendations="Buy it!",
+        best_deals=[],
+        user_preferences_context="Testing",
+    )
+
+
+def test_shopping_advice_to_html(sample_shopping_advice_data, tmp_path):
+    """Test that shopping_advice_to_html creates a valid HTML file."""
+    html_file = tmp_path / "shopping_advice_report.html"
+    html_content = shopping_advice_to_html(
+        sample_shopping_advice_data, html_file=str(html_file)
+    )
+
+    assert html_file.exists()
+    assert "Test Product" in html_content
+    assert "An amazing test product." in html_content
+    assert "Buy it!" in html_content
+
+
+def test_shopping_renderer(sample_shopping_advice_data):
+    """Test the ShoppingRenderer directly."""
+    renderer = ShoppingRenderer()
+    html = renderer.render(sample_shopping_advice_data.model_dump())
+    soup = BeautifulSoup(html, "html.parser")
+
+    assert "Test Product" in html
+    assert (
+        "An amazing test product."
+        in html
+    )

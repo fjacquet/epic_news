@@ -13,7 +13,16 @@ load_dotenv()
 
 
 class ScrapeNinjaTool(BaseTool):
-    """Tool for scraping website content using the ScrapeNinja API."""
+    """
+    A tool for scraping website content using the ScrapeNinja API.
+
+    This tool allows for advanced web scraping of HTML content. It can handle
+    JavaScript-rendered pages and provides options for geo-targeting, custom
+    headers, and more.
+
+    Note: This tool is designed for scraping web pages (HTML) and does not
+    support PDF content extraction.
+    """
 
     name: str = "ScrapeNinja"
     description: str = "Scrapes website content using the ScrapeNinja API with advanced options"
@@ -36,7 +45,7 @@ class ScrapeNinjaTool(BaseTool):
 
         headers = {
             "Content-Type": "application/json",
-            "Accept": "application/json",
+            "Accept": "*/*",
             "X-RapidAPI-Key": self.api_key,
             "X-RapidAPI-Host": "scrapeninja.p.rapidapi.com",
         }
@@ -65,6 +74,7 @@ class ScrapeNinjaTool(BaseTool):
         try:
             response = requests.post(api_url, headers=headers, data=json.dumps(payload))
             response.raise_for_status()
+
             content = response.text
             try:
                 # Check if content is valid JSON, if so, return as is (it's already a string)

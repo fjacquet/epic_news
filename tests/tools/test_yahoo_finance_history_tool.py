@@ -1,6 +1,5 @@
 import datetime
 import json
-from unittest.mock import MagicMock, patch
 
 import pandas as pd
 import pytest
@@ -46,12 +45,12 @@ def test_instantiation(tool_instance):
 
 
 # --- _run Method Tests ---
-@patch("yfinance.Ticker")
-def test_run_successful_history_retrieval(mock_yf_ticker, tool_instance, mock_history_dataframe_generator):
+def test_run_successful_history_retrieval(tool_instance, mock_history_dataframe_generator, mocker):
+    mock_yf_ticker = mocker.patch("yfinance.Ticker")
     ticker_symbol = "GOODHIST"
     period = "1mo"
     interval = "1d"
-    mock_ticker_instance = MagicMock()
+    mock_ticker_instance = mocker.MagicMock()
     mock_yf_ticker.return_value = mock_ticker_instance
 
     df = mock_history_dataframe_generator(num_rows=15)
@@ -81,10 +80,10 @@ def test_run_successful_history_retrieval(mock_yf_ticker, tool_instance, mock_hi
     assert isinstance(last_hist_item["volume"], int)
 
 
-@patch("yfinance.Ticker")
-def test_run_fewer_than_10_data_points(mock_yf_ticker, tool_instance, mock_history_dataframe_generator):
+def test_run_fewer_than_10_data_points(tool_instance, mock_history_dataframe_generator, mocker):
+    mock_yf_ticker = mocker.patch("yfinance.Ticker")
     ticker_symbol = "FEWHIST"
-    mock_ticker_instance = MagicMock()
+    mock_ticker_instance = mocker.MagicMock()
     mock_yf_ticker.return_value = mock_ticker_instance
     df = mock_history_dataframe_generator(num_rows=5)
     mock_ticker_instance.history.return_value = df
@@ -96,10 +95,10 @@ def test_run_fewer_than_10_data_points(mock_yf_ticker, tool_instance, mock_histo
     assert result_data["summary"]["data_points"] == 5
 
 
-@patch("yfinance.Ticker")
-def test_run_history_df_missing_ohlcv_fields(mock_yf_ticker, tool_instance, mock_history_dataframe_generator):
+def test_run_history_df_missing_ohlcv_fields(tool_instance, mock_history_dataframe_generator, mocker):
+    mock_yf_ticker = mocker.patch("yfinance.Ticker")
     ticker_symbol = "PARTIALHIST"
-    mock_ticker_instance = MagicMock()
+    mock_ticker_instance = mocker.MagicMock()
     mock_yf_ticker.return_value = mock_ticker_instance
     # Generate a DataFrame where some OHLCV might be NaN due to all_fields_present=False
     df = mock_history_dataframe_generator(num_rows=3, all_fields_present=False)
@@ -117,10 +116,10 @@ def test_run_history_df_missing_ohlcv_fields(mock_yf_ticker, tool_instance, mock
     assert isinstance(first_hist_item["volume"], int)  # Will be 0 if Volume was NA
 
 
-@patch("yfinance.Ticker")
-def test_run_no_historical_data_empty_df(mock_yf_ticker, tool_instance):
+def test_run_no_historical_data_empty_df(tool_instance, mocker):
+    mock_yf_ticker = mocker.patch("yfinance.Ticker")
     ticker_symbol = "NOHIST"
-    mock_ticker_instance = MagicMock()
+    mock_ticker_instance = mocker.MagicMock()
     mock_yf_ticker.return_value = mock_ticker_instance
     mock_ticker_instance.history.return_value = pd.DataFrame()  # Empty DataFrame
 
@@ -129,8 +128,8 @@ def test_run_no_historical_data_empty_df(mock_yf_ticker, tool_instance):
     assert result_data == {"error": f"No historical data available for {ticker_symbol}"}
 
 
-@patch("yfinance.Ticker")
-def test_run_yfinance_exception(mock_yf_ticker, tool_instance):
+def test_run_yfinance_exception(tool_instance, mocker):
+    mock_yf_ticker = mocker.patch("yfinance.Ticker")
     ticker_symbol = "ERRORHIST"
     error_message = "Test yfinance history error"
     mock_yf_ticker.side_effect = Exception(error_message)
@@ -140,12 +139,12 @@ def test_run_yfinance_exception(mock_yf_ticker, tool_instance):
     assert result_data == {"error": f"Failed to get history for {ticker_symbol}: {error_message}"}
 
 
-@patch("yfinance.Ticker")
 def test_run_price_change_percent_earliest_close_zero(
-    mock_yf_ticker, tool_instance, mock_history_dataframe_generator
+    tool_instance, mock_history_dataframe_generator, mocker
 ):
+    mock_yf_ticker = mocker.patch("yfinance.Ticker")
     ticker_symbol = "ZEROCLOSEHIST"
-    mock_ticker_instance = MagicMock()
+    mock_ticker_instance = mocker.MagicMock()
     mock_yf_ticker.return_value = mock_ticker_instance
     df = mock_history_dataframe_generator(num_rows=2)
     df.loc[df.index[0], "Close"] = 0.0  # First day close is 0

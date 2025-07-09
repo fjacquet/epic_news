@@ -1,14 +1,9 @@
 """Base classes and common functionality for GitHub-related tools."""
 
-import logging
-
 import requests
+from loguru import logger
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
-
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 
 class GitHubBaseTool:

@@ -1,0 +1,42 @@
+"""Tests for Recipe HTML factory and renderer."""
+
+import pytest
+from bs4 import BeautifulSoup
+
+from epic_news.models.paprika_recipe import PaprikaRecipe
+from epic_news.utils.html.recipe_html_factory import recipe_to_html
+from epic_news.utils.html.template_renderers.cooking_renderer import CookingRenderer
+
+
+@pytest.fixture
+def sample_recipe_data():
+    """Provide a sample PaprikaRecipe object for testing."""
+    return PaprikaRecipe(
+        name="Test Recipe",
+        ingredients="1 cup of test ingredient",
+        directions="1. Test direction.",
+        notes="Test note.",
+        nutritional_info="Test nutritional info.",
+    )
+
+
+def test_recipe_to_html(sample_recipe_data, tmp_path):
+    """Test that recipe_to_html creates a valid HTML file."""
+    html_file = tmp_path / "recipe_report.html"
+    html_content = recipe_to_html(sample_recipe_data, html_file=str(html_file))
+
+    assert html_file.exists()
+    assert "Test Recipe" in html_content
+    assert "1 cup of test ingredient" in html_content
+    assert "1. Test direction." in html_content
+
+
+def test_recipe_renderer(sample_recipe_data):
+    """Test the CookingRenderer directly."""
+    renderer = CookingRenderer()
+    html = renderer.render(sample_recipe_data.to_template_data())
+    soup = BeautifulSoup(html, "html.parser")
+
+    assert "Test Recipe" in soup.body.text
+    assert "1 cup of test ingredient" in soup.body.text
+    assert "1. Test direction." in soup.body.text

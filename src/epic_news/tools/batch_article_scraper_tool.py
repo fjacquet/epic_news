@@ -1,14 +1,11 @@
 import json
-import logging
 
 from crewai.tools import BaseTool
+from loguru import logger
 from pydantic import BaseModel
 
 from src.epic_news.models.rss_models import Article, FeedWithArticles, RssFeeds
 from src.epic_news.tools.scrape_ninja_tool import ScrapeNinjaTool
-
-# Set up logging
-logger = logging.getLogger(__name__)
 
 
 class BatchArticleScraperTool(BaseTool):
@@ -40,7 +37,7 @@ class BatchArticleScraperTool(BaseTool):
         feeds_obj = self._ensure_rss_feeds_object(rss_feeds)
 
         # Process each feed and article
-        for feed in feeds_obj.feeds:
+        for feed in feeds_obj.rss_feeds:
             logger.info(f"Processing feed: {feed.feed_url}")
             for article in feed.articles:
                 url = article.link
@@ -138,13 +135,13 @@ def test_batch_article_scraper():
 
     # Create and test the tool
     tool = BatchArticleScraperTool()
-    print("Testing BatchArticleScraperTool with sample data...")
+    logger.info("Testing BatchArticleScraperTool with sample data...")
     try:
         result = tool._run(feeds)
-        print(f"Result: {result[:200]}..." if len(result) > 200 else f"Result: {result}")
+        logger.info(f"Result: {result[:200]}..." if len(result) > 200 else f"Result: {result}")
         return True
     except Exception as e:
-        print(f"Test failed: {e}")
+        logger.error(f"Test failed: {e}")
         return False
 
 

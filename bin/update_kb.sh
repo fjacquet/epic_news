@@ -12,11 +12,11 @@ echo "======================================================================"
 echo " EpicNews Knowledge Base Updater"
 echo "======================================================================"
 echo "Project Root: $(pwd)"
-echo "Running script: src/epic_news/bin/update_knowledge_base.py"
+echo "Running script: scripts/update_knowledge_base.py"
 echo "Arguments: $@"
 echo "----------------------------------------------------------------------"
 
-uv run python src/epic_news/bin/update_knowledge_base.py "$@"
+uv run python scripts/update_knowledge_base.py "$@"
 
 EXIT_CODE=$?
 

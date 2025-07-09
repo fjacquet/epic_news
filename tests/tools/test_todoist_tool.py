@@ -1,7 +1,6 @@
 import os
 import sys
 from pathlib import Path
-from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -16,25 +15,25 @@ def tool():
     return TodoistTool()
 
 
-@patch.dict(os.environ, {"TODOIST_API_KEY": "fake_api_token"})
-def test_initialization(tool):
+def test_initialization(tool, mocker):
     """Test that the tool initializes correctly."""
+    mocker.patch.dict(os.environ, {"TODOIST_API_KEY": "fake_api_token"})
     assert tool.name == "todoist_tool"
     assert tool.base_url == "https://api.todoist.com/rest/v2"
 
 
-@patch.dict(os.environ, {}, clear=True)
-def test_missing_api_key(tool):
+def test_missing_api_key(tool, mocker):
     """Test that an error is raised if the API key is missing."""
+    mocker.patch.dict(os.environ, {}, clear=True)
     result = tool._run(action="get_tasks")
     assert "TODOIST_API_KEY environment variable not set" in result
 
 
-@patch.dict(os.environ, {"TODOIST_API_KEY": "fake_api_token"})
-@patch("epic_news.tools.todoist_tool.requests.get")
-def test_get_tasks(mock_get, tool):
+def test_get_tasks(tool, mocker):
     """Test getting tasks from Todoist."""
-    mock_response = MagicMock()
+    mocker.patch.dict(os.environ, {"TODOIST_API_KEY": "fake_api_token"})
+    mock_get = mocker.patch("epic_news.tools.todoist_tool.requests.get")
+    mock_response = mocker.MagicMock()
     mock_response.status_code = 200
     mock_response.json.return_value = [{"id": "1", "content": "Task 1"}, {"id": "2", "content": "Task 2"}]
     mock_get.return_value = mock_response
@@ -48,11 +47,11 @@ def test_get_tasks(mock_get, tool):
     )
 
 
-@patch.dict(os.environ, {"TODOIST_API_KEY": "fake_api_token"})
-@patch("epic_news.tools.todoist_tool.requests.get")
-def test_get_tasks_with_project(mock_get, tool):
+def test_get_tasks_with_project(tool, mocker):
     """Test getting tasks from a specific project."""
-    mock_response = MagicMock()
+    mocker.patch.dict(os.environ, {"TODOIST_API_KEY": "fake_api_token"})
+    mock_get = mocker.patch("epic_news.tools.todoist_tool.requests.get")
+    mock_response = mocker.MagicMock()
     mock_response.status_code = 200
     mock_response.json.return_value = [{"id": "1", "content": "Project Task"}]
     mock_get.return_value = mock_response
@@ -66,11 +65,11 @@ def test_get_tasks_with_project(mock_get, tool):
     )
 
 
-@patch.dict(os.environ, {"TODOIST_API_KEY": "fake_api_token"})
-@patch("epic_news.tools.todoist_tool.requests.post")
-def test_create_task(mock_post, tool):
+def test_create_task(tool, mocker):
     """Test creating a task in Todoist."""
-    mock_response = MagicMock()
+    mocker.patch.dict(os.environ, {"TODOIST_API_KEY": "fake_api_token"})
+    mock_post = mocker.patch("epic_news.tools.todoist_tool.requests.post")
+    mock_response = mocker.MagicMock()
     mock_response.status_code = 200
     mock_response.json.return_value = {"id": "new_task", "content": "New Task"}
     mock_post.return_value = mock_response
@@ -86,11 +85,11 @@ def test_create_task(mock_post, tool):
     )
 
 
-@patch.dict(os.environ, {"TODOIST_API_KEY": "fake_api_token"})
-@patch("epic_news.tools.todoist_tool.requests.post")
-def test_complete_task(mock_post, tool):
+def test_complete_task(tool, mocker):
     """Test completing a task in Todoist."""
-    mock_response = MagicMock()
+    mocker.patch.dict(os.environ, {"TODOIST_API_KEY": "fake_api_token"})
+    mock_post = mocker.patch("epic_news.tools.todoist_tool.requests.post")
+    mock_response = mocker.MagicMock()
     mock_response.status_code = 204
     mock_post.return_value = mock_response
 
@@ -103,11 +102,11 @@ def test_complete_task(mock_post, tool):
     )
 
 
-@patch.dict(os.environ, {"TODOIST_API_KEY": "fake_api_token"})
-@patch("epic_news.tools.todoist_tool.requests.get")
-def test_get_projects(mock_get, tool):
+def test_get_projects(tool, mocker):
     """Test getting projects from Todoist."""
-    mock_response = MagicMock()
+    mocker.patch.dict(os.environ, {"TODOIST_API_KEY": "fake_api_token"})
+    mock_get = mocker.patch("epic_news.tools.todoist_tool.requests.get")
+    mock_response = mocker.MagicMock()
     mock_response.status_code = 200
     mock_response.json.return_value = [{"id": "1", "name": "Project 1"}, {"id": "2", "name": "Project 2"}]
     mock_get.return_value = mock_response
@@ -119,16 +118,16 @@ def test_get_projects(mock_get, tool):
     mock_get.assert_called_once_with("https://api.todoist.com/rest/v2/projects", headers=expected_headers)
 
 
-@patch.dict(os.environ, {"TODOIST_API_KEY": "fake_api_token"})
-def test_invalid_action(tool):
+def test_invalid_action(tool, mocker):
     """Test handling of invalid actions."""
+    mocker.patch.dict(os.environ, {"TODOIST_API_KEY": "fake_api_token"})
     result = tool._run(action="invalid_action")
     assert "Error: Unknown action" in result
 
 
-@patch.dict(os.environ, {"TODOIST_API_KEY": "fake_api_token"})
-def test_missing_required_params(tool):
+def test_missing_required_params(tool, mocker):
     """Test handling of missing required parameters."""
+    mocker.patch.dict(os.environ, {"TODOIST_API_KEY": "fake_api_token"})
     result = tool._run(action="create_task")
     assert "Error: task_content is required" in result
 

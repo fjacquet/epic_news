@@ -1,14 +1,11 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
-from crewai_tools import DirectoryReadTool, FileReadTool
+from crewai_tools import DirectoryReadTool, FileReadTool, ScrapeWebsiteTool, SerperDevTool
 from dotenv import load_dotenv
 
-from epic_news.models.data_metrics import StructuredDataReport
-from epic_news.models.report import ReportHTMLOutput
+from epic_news.models.crews.sales_prospecting_report import SalesProspectingReport
 from epic_news.tools.data_centric_tools import get_data_centric_tools
-from epic_news.tools.email_search import get_email_search_tools
 from epic_news.tools.report_tools import get_report_tools
-from epic_news.tools.web_tools import get_search_tools
 
 load_dotenv()
 
@@ -21,32 +18,24 @@ class SalesProspectingCrew:
     tasks_config = "config/tasks.yaml"
 
     def __init__(self) -> None:
-        self._init_tools()
-
-    def _init_tools(self) -> None:
-        """Initialize tools for the crew."""
-        # It's crucial to have a variety of tools. General search is good for context,
-        # but specialized tools are essential for finding specific information like emails.
-        self.search_tools = get_search_tools()
-        self.email_search_tools = get_email_search_tools()
         self.read_tools = [FileReadTool(), DirectoryReadTool("output/sales_prospecting")]
         self.report_tools = get_report_tools()
         self.data_centric_tools = get_data_centric_tools()
+        self.serper_tool = SerperDevTool()
+        self.scrape_tool = ScrapeWebsiteTool()
 
     @agent
     def company_researcher(self) -> Agent:
         return Agent(
             config=self.agents_config["company_researcher"],
             tools=[
-                *self.search_tools,
-                *self.email_search_tools,
+                self.serper_tool,
+                self.scrape_tool,
                 *self.read_tools,
                 *self.report_tools,
                 *self.data_centric_tools,
             ],
             verbose=True,
-            llm_timeout=300,
-            reasoning=True,
             max_reasoning_attempts=5,
             respect_context_window=True,
         )
@@ -56,16 +45,14 @@ class SalesProspectingCrew:
         return Agent(
             config=self.agents_config["org_structure_analyst"],
             tools=[
-                *self.search_tools,
-                *self.email_search_tools,
+                self.serper_tool,
+                self.scrape_tool,
                 *self.read_tools,
                 *self.report_tools,
                 *self.data_centric_tools,
             ],
             verbose=True,
-            reasoning=True,
             max_reasoning_attempts=5,
-            llm_timeout=300,
             respect_context_window=True,
         )
 
@@ -74,16 +61,14 @@ class SalesProspectingCrew:
         return Agent(
             config=self.agents_config["contact_finder"],
             tools=[
-                *self.search_tools,
-                *self.email_search_tools,
+                self.serper_tool,
+                self.scrape_tool,
                 *self.read_tools,
                 *self.report_tools,
                 *self.data_centric_tools,
             ],
             verbose=True,
-            reasoning=True,
             max_reasoning_attempts=5,
-            llm_timeout=300,
             respect_context_window=True,
         )
 
@@ -91,17 +76,10 @@ class SalesProspectingCrew:
     def sales_strategist(self) -> Agent:
         return Agent(
             config=self.agents_config["sales_strategist"],
-            tools=[
-                *self.search_tools,
-                *self.email_search_tools,
-                *self.read_tools,
-                *self.report_tools,
-                *self.data_centric_tools,
-            ],
+            tools=[],
             verbose=True,
             reasoning=True,
             max_reasoning_attempts=5,
-            llm_timeout=300,
             respect_context_window=True,
         )
 
@@ -127,28 +105,24 @@ class SalesProspectingCrew:
         )
 
     @task
-    def develop_approach_strategy_task(self) -> Task:
-        return Task(
-            config=self.tasks_config["develop_approach_strategy_task"],
-            async_execution=False,
-            output_pydantic=ReportHTMLOutput,
-        )
-
-    @task
     def generate_sales_metrics_task(self) -> Task:
         return Task(
-            config=self.tasks_config["generate_sales_metrics_task"],
-            async_execution=False,
-            output_pydantic=StructuredDataReport,
+            config=self.tasks_config["develop_approach_strategy_task"],
+            context=[
+                self.research_company_task(),
+                self.analyze_org_structure_task(),
+                self.find_key_contacts_task(),
+            ],
+            output_pydantic=SalesProspectingReport,
         )
 
     @crew
     def crew(self) -> Crew:
         """Creates the Sales Prospecting crew"""
         return Crew(
-            agents=self.agents,  # Automatically created by the @agent decorator
-            tasks=self.tasks,  # Automatically created by the @task decorator
-            process=Process.hierarchical,  # Changed from sequential to hierarchical for parallel execution
+            agents=self.agents,
+            tasks=self.tasks,
+            process=Process.sequential,
             verbose=True,
             reasoning=True,
             max_reasoning_attempts=5,

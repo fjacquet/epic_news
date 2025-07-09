@@ -1,5 +1,4 @@
 import json
-from unittest.mock import MagicMock, patch
 
 import pytest
 import requests
@@ -25,8 +24,8 @@ def test_instantiation():
 
 
 # --- _run Method Tests ---
-@patch("src.epic_news.tools.kraken_api_tool.requests.get")
-def test_run_success(mock_requests_get):
+def test_run_success(mocker):
+    mock_requests_get = mocker.patch("src.epic_news.tools.kraken_api_tool.requests.get")
     tool = KrakenTickerInfoTool()
     pair_to_search = "XXBTZUSD"
     mock_response_data = {
@@ -39,10 +38,10 @@ def test_run_success(mock_requests_get):
             }
         },
     }
-    mock_response = MagicMock()
+    mock_response = mocker.MagicMock()
     mock_response.json.return_value = mock_response_data
     mock_response.status_code = 200
-    mock_response.raise_for_status = MagicMock()
+    mock_response.raise_for_status = mocker.MagicMock()
     mock_requests_get.return_value = mock_response
 
     result_str = tool._run(pair=pair_to_search)
@@ -50,15 +49,15 @@ def test_run_success(mock_requests_get):
     assert result_str == expected_output
 
 
-@patch("src.epic_news.tools.kraken_api_tool.requests.get")
-def test_run_api_returns_error_in_json(mock_requests_get):
+def test_run_api_returns_error_in_json(mocker):
+    mock_requests_get = mocker.patch("src.epic_news.tools.kraken_api_tool.requests.get")
     tool = KrakenTickerInfoTool()
     pair_to_search = "INVALIDPAIR"
     mock_response_data = {"error": ["EQuery:Unknown asset pair"]}
-    mock_response = MagicMock()
+    mock_response = mocker.MagicMock()
     mock_response.json.return_value = mock_response_data
     mock_response.status_code = 200
-    mock_response.raise_for_status = MagicMock()
+    mock_response.raise_for_status = mocker.MagicMock()
     mock_requests_get.return_value = mock_response
 
     result_str = tool._run(pair=pair_to_search)
@@ -66,15 +65,15 @@ def test_run_api_returns_error_in_json(mock_requests_get):
     assert result_str == expected_error_message
 
 
-@patch("src.epic_news.tools.kraken_api_tool.requests.get")
-def test_run_api_returns_empty_result(mock_requests_get):
+def test_run_api_returns_empty_result(mocker):
+    mock_requests_get = mocker.patch("src.epic_news.tools.kraken_api_tool.requests.get")
     tool = KrakenTickerInfoTool()
     pair_to_search = "UNKNOWNPAIR"
     mock_response_data = {"error": [], "result": {}}
-    mock_response = MagicMock()
+    mock_response = mocker.MagicMock()
     mock_response.json.return_value = mock_response_data
     mock_response.status_code = 200
-    mock_response.raise_for_status = MagicMock()
+    mock_response.raise_for_status = mocker.MagicMock()
     mock_requests_get.return_value = mock_response
 
     result_str = tool._run(pair=pair_to_search)
@@ -82,8 +81,8 @@ def test_run_api_returns_empty_result(mock_requests_get):
     assert result_str == expected_message
 
 
-@patch("src.epic_news.tools.kraken_api_tool.requests.get")
-def test_run_requests_exception(mock_requests_get):
+def test_run_requests_exception(mocker):
+    mock_requests_get = mocker.patch("src.epic_news.tools.kraken_api_tool.requests.get")
     tool = KrakenTickerInfoTool()
     pair_to_search = "XXBTZUSD"
     error_message = "Network error"
@@ -94,12 +93,12 @@ def test_run_requests_exception(mock_requests_get):
     assert result_str == expected_message
 
 
-@patch("src.epic_news.tools.kraken_api_tool.requests.get")
-def test_run_http_error(mock_requests_get):
+def test_run_http_error(mocker):
+    mock_requests_get = mocker.patch("src.epic_news.tools.kraken_api_tool.requests.get")
     tool = KrakenTickerInfoTool()
     pair_to_search = "XXBTZUSD"
     error_message = "404 Client Error"
-    mock_response = MagicMock()
+    mock_response = mocker.MagicMock()
     mock_response.status_code = 404
     mock_response.raise_for_status.side_effect = requests.exceptions.HTTPError(error_message)
     mock_requests_get.return_value = mock_response
@@ -109,13 +108,13 @@ def test_run_http_error(mock_requests_get):
     assert result_str == expected_message
 
 
-@patch("src.epic_news.tools.kraken_api_tool.requests.get")
-def test_run_json_decode_error(mock_requests_get):
+def test_run_json_decode_error(mocker):
+    mock_requests_get = mocker.patch("src.epic_news.tools.kraken_api_tool.requests.get")
     tool = KrakenTickerInfoTool()
     pair_to_search = "XXBTZUSD"
-    mock_response = MagicMock()
+    mock_response = mocker.MagicMock()
     mock_response.status_code = 200
-    mock_response.raise_for_status = MagicMock()
+    mock_response.raise_for_status = mocker.MagicMock()
     mock_response.json.side_effect = json.JSONDecodeError("Expecting value", "", 0)
     mock_requests_get.return_value = mock_response
 

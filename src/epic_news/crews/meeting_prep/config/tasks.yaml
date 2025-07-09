@@ -1,85 +1,132 @@
+---
 research_task:
   description: >
     Conduct thorough research on {company}, their position in the sector, and
     recent industry trends. Focus on news from the last year, as the current
-    year is 2024.
-
+    year is 2024. Pay special attention to their IT infrastructure needs,
+    technology adoption patterns, and any information related to their data center
+    or cloud strategy.
+    Specifically research their potential needs for {our_product} deployment
+    for their OpenShift clusters. Identify key decision makers in their IT department,
+    especially focusing on the {participants} who will attend the meeting.
     Take into account any information from prior interactions:
     {prior_interactions}
-
-    Participants {participants} Meeting Context {context}
-
+    Meeting Context: {context}
   expected_output: >
     A comprehensive report on {company}'s background, their status in the
     sector, and relevant industry insights. Include a list of 10 bullet points
     highlighting the most crucial information for our meeting and a detailed
     report summarizing key findings about each participant
   agent: lead_researcher_agent
-
+  output_file: output/meeting/{company}_research_report.md
 product_alignment_task:
   description: >
-    Analyze the current industry trends, challenges, and opportunities
-    relevant to the meeting's context. Consider market reports, recent
-    developments, and expert opinions to provide a comprehensive overview of
-     the industry landscape.
-    Also provide a list of 10 bullet points highlighting the most crucial
-    information for our meeting. We need if possible supporting documents to
-    justify your analysis.
-
-    Consider any insights from prior interactions - {prior_interactions}
-
-    Participants {participants} Meeting Context {context}
-
+    Analyze how {our_product} aligns with {company}'s needs for their OpenShift cluster
+    deployment.
+    Focus on the technical requirements, scalability, and performance
+    benefits for containerized workloads, particularly with OpenShift.
+    Research the current trends in storage solutions for OpenShift environments, challenges
+    in
+    deploying containerized applications at scale, and opportunities for optimization.
+    Identify specific features that would benefit {company}'s IT infrastructure.
+    Prepare a list of 10 bullet points highlighting the most crucial technical advantages
+    for OpenShift deployments. Include supporting documentation and case studies
+    if possible.
+    Consider any insights from prior interactions: {prior_interactions}
+    Participants: {participants}  Meeting Context: {context}
   expected_output: >
     An insightful analysis that identifies major trends, potential challenges,
     and strategic opportunities
   agent: product_specialist_agent
-
+  output_file: output/meeting/{company}_product_alignment_report.md
 sales_strategy_task:
   description: >
-    Develop a tailored sales approach for {company}. Consider their position
-    in the  sector, company size, and potential objections. Prepare strategies
-    for handling these objections and identify potential upselling or
-    cross-selling opportunities. Develop strategic talking points, questions,
-    and discussion angles for the meeting based on the research and industry
-    analysis conducted.
-
-    Factor in any insights from {prior_interactions} Meeting Context:
-    {context} Meeting Objective: {objective}
+    Develop a tailored sales approach for {company} focused on {our_product} deployment
+    for their
+    OpenShift clusters. Consider their position in the sector,
+    their IT infrastructure needs, and potential technical and business objections.
+    Prepare strategies for addressing concerns about integration with OpenShift,
+    performance guarantees, scalability, and total cost of ownership. Identify potential
+    upselling opportunities for additional features, services, or support packages.
+    Develop strategic talking points specifically for meeting with their {participants},
+    focusing on technical benefits, ROI, and competitive advantages compared to alternative
+    solutions for OpenShift. Prepare questions to better understand their specific
+    cluster requirements, performance needs, and deployment timeline.
+    Factor in any insights from prior interactions: {prior_interactions}
+    Meeting Context: {context}
+    Meeting Objective: {objective}
   agent: sales_strategist_agent
   expected_output: >
     A comprehensive sales strategy document including approach, objection
     handling techniques, and additional sales opportunities tailored for the
     meeting with from {company}.
-
+  output_file: output/meeting/{company}_sales_strategy.md
 meeting_preparation_task:
   description: >
-    Compile all the research findings, industry analysis, and strategic
-    talking points into a concise, comprehensive briefing document for the
-    meeting with {company}. Ensure the briefing is easy to digest and equips
-    the meeting participants with all necessary information and strategies.
-
-    Meeting Context {context} Meeting Objective {objective} Incorporate any
-    relevant points from prior interactions {prior_interactions}
-
-    IMPORTANT: Format the output as HTML to ensure it displays properly in
-    email.  Use proper HTML structure with: - <h1>, <h2>, <h3> tags for
-    headings - <p> tags for paragraphs - <ul> and <li> tags for bullet points
-    - <table> for any tabular data - Proper spacing and formatting for
-    readability - Include a title and summary at the top
-
-    The document will be sent via email, so ensure it's properly formatted for
-    email viewing.
-
+    Compile all the research findings, technical analysis, and strategic talking points
+    into a concise, comprehensive briefing document for the meeting with {company}
+    about
+    {our_product} deployment for their OpenShift clusters.
+    Focus on technical specifications, deployment architecture, performance benchmarks,
+    and integration details relevant to OpenShift environments. Include competitive
+    differentiators against alternative solutions for containerized workloads.
+    Ensure the briefing equips our team with all necessary information to effectively
+    communicate with their {participants} about both technical and business aspects
+    of
+    the solution.
+    Meeting Context: {context}
+    Meeting Objective: {objective}
+    Incorporate any relevant points from prior interactions: {prior_interactions}
+    IMPORTANT: Format the output as a structured JSON document to ensure it can be
+    processed programmatically. The JSON should have the following key sections:
+    - "title": The title of the meeting briefing
+    - "summary": Brief overview of the meeting purpose
+    - "company_profile": Key information about the company
+    - "participants": List of participant bios
+    - "industry_overview": Industry analysis and context
+    - "talking_points": Key topics for discussion
+    - "strategic_recommendations": Action items and strategic suggestions
+    - "additional_resources": Any reference materials or links
   expected_output: >
-    A professionally styled, HTML-formatted briefing document in French for
-    the meeting with {company}. The output MUST be ONLY the raw HTML content,
-    starting with '<html>' and ending with '</html>'. Do NOT include any
-    markdown, introductory text, or explanations outside of the HTML tags. The
-    document should include sections for: meeting participant bios, industry
-    overview, talking points, and strategic recommendations. Use relevant
-    emojis where appropriate to enhance readability. The structure should be
-    logical, engaging, and polished for a professional audience, suitable for
-    direct email delivery.
+    A comprehensive, well-structured JSON document in French for the meeting with
+    {company}.
+    The output MUST be valid, properly formatted JSON only. Do NOT include any markdown,
+    introductory text, explanations, or backticks outside of the actual JSON content.
+    Example structure:
+    {
+      "title": "Réunion Stratégique avec {company}",
+      "summary": "Aperçu de la réunion et objectifs principaux",
+      "company_profile": {
+        "name": "Nom de l'entreprise",
+        "industry": "Secteur d'activité",
+        "key_products": ["Produit 1", "Produit 2"],
+        "market_position": "Description de la position sur le marché"
+      },
+      "participants": [
+        {
+          "name": "Nom du participant",
+          "role": "Fonction",
+          "background": "Informations pertinentes"
+        }
+      ],
+      "industry_overview": "Analyse détaillée du secteur",
+      "talking_points": [
+        {
+          "topic": "Sujet 1",
+          "key_points": ["Point 1", "Point 2"],
+          "questions": ["Question 1?", "Question 2?"]
+        }
+      ],
+      "strategic_recommendations": [
+        {
+          "area": "Domaine d'action",
+          "suggestion": "Suggestion détaillée",
+          "expected_outcome": "Résultat attendu"
+        }
+      ],
+      "additional_resources": [
+        {"title": "Titre de la ressource", "description": "Description", "link": "URL"}
+      ]
+    }
   agent: briefing_coordinator_agent
-  output_file: "output/meeting/meeting_preparation.html"
+  output_file: '{output_file}'

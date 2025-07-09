@@ -97,7 +97,7 @@ class RenderReportTool(BaseTool):
         }
         html: str = template.render(**context)
         # Validate HTML; raise ValueError if invalid
-        from epic_news.utils.validate_html import validate_html
+        from epic_news.utils.html.validator import validate_html
 
         validate_html(html)
         return html

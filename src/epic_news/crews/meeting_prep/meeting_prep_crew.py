@@ -1,18 +1,11 @@
-import logging
-from typing import Any
-
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from dotenv import load_dotenv
+from loguru import logger
 
-from epic_news.models.report import ReportHTMLOutput
 from epic_news.tools.finance_tools import get_yahoo_finance_tools
-from epic_news.tools.rag_tools import get_rag_tools
 from epic_news.tools.report_tools import get_report_tools
 from epic_news.tools.web_tools import get_scrape_tools, get_search_tools
-
-# Set up logging
-logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
@@ -75,14 +68,11 @@ class MeetingPrepCrew:
             # Get tools from centralized tool providers
             self.search_tools = get_search_tools()
             self.scrape_tools = get_scrape_tools()
-            self.rag_tools = get_rag_tools()
             self.finance_tools = get_yahoo_finance_tools()
             self.report_tools = get_report_tools()
 
             # Combine tools for agents that need all capabilities
-            self.all_research_tools = (
-                self.search_tools + self.scrape_tools + self.rag_tools + self.finance_tools
-            )
+            self.all_research_tools = self.search_tools + self.scrape_tools + self.finance_tools
 
             logger.info("Successfully initialized all tools for MeetingPrepCrew")
         except Exception as e:
@@ -90,7 +80,6 @@ class MeetingPrepCrew:
             # Provide fallback empty lists to prevent crew from failing completely
             self.search_tools = []
             self.scrape_tools = []
-            self.rag_tools = []
             self.finance_tools = []
             self.all_research_tools = []
             raise
@@ -186,7 +175,7 @@ class MeetingPrepCrew:
             config=self.tasks_config["research_task"],
             agent=self.lead_researcher_agent(),
             async_execution=True,  # Enable async for I/O-bound research task
-            context=self._get_task_context(),
+            # context=self._get_task_context(),
         )
 
     @task
@@ -224,8 +213,11 @@ class MeetingPrepCrew:
         """Define the meeting preparation task for creating the final briefing.
 
         This task is assigned to the briefing coordinator agent and produces a
-        comprehensive HTML document with the complete meeting briefing.
+        comprehensive JSON document with the complete meeting briefing.
         This is the final task and must be synchronous per CrewAI framework requirements.
+
+        The task uses the outputs from the research_task, product_alignment_task,
+        and sales_strategy_task to create a comprehensive briefing.
 
         Returns:
             Task: Configured meeting preparation task from YAML configuration
@@ -233,30 +225,12 @@ class MeetingPrepCrew:
 
         return Task(
             config=self.tasks_config["meeting_preparation_task"],
-            output_pydantic=ReportHTMLOutput,
+            context=[
+                self.research_task(),
+                self.product_alignment_task(),
+                self.sales_strategy_task(),
+            ],  # Add all previous tasks as context
         )
-
-    def _get_task_context(self) -> list[dict[str, Any]]:
-        """Prepare context data for tasks.
-
-        This helper method centralizes the creation of context data for tasks,
-        following the DRY principle and ensuring consistent data across all tasks.
-
-        Returns:
-            List[Dict[str, Any]]: List of context dictionaries for task execution
-        """
-        # Create context items with all necessary information for the tasks
-        context = [
-            {"topic": self.topic},
-            {"company": self.company},
-            {"participants": ", ".join(self.participants) if self.participants else ""},
-            {"objective": self.objective},
-            {"prior_interactions": self.prior_interactions},
-            {"context": self.context},
-        ]
-
-        # Filter out empty context items
-        return [item for item in context if list(item.values())[0]]
 
     @crew
     def crew(self) -> Crew:

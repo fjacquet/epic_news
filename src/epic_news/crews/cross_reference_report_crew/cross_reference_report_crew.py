@@ -1,13 +1,13 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.agents.agent_builder.base_agent import BaseAgent
 from crewai.project import CrewBase, agent, crew, task
-from crewai_tools import DirectoryReadTool, FileReadTool
+from crewai_tools import DirectoryReadTool, FileReadTool, PDFSearchTool
 
-from epic_news.models.report import ReportHTMLOutput
+from epic_news.models.crews.cross_reference_report import CrossReferenceReport
 from epic_news.tools.html_to_pdf_tool import HtmlToPdfTool
-from epic_news.tools.rag_tools import get_rag_tools
 from epic_news.tools.report_tools import get_report_tools
 from epic_news.tools.web_tools import get_scrape_tools, get_search_tools
+from epic_news.utils.directory_utils import ensure_output_directory
 
 # If you want to run a snippet of code before or after the crew starts,
 # you can use the @before_kickoff and @after_kickoff decorators
@@ -28,35 +28,44 @@ class CrossReferenceReportCrew:
     # If you would like to add tools to your agents, you can learn more about it here:
     # https://docs.crewai.com/concepts/agents#agent-tools
     @agent
-    def osint_coordinator(self) -> Agent:
-        """Creates the OSINT coordinator agent"""
+    def osint_researcher(self) -> Agent:
+        """Creates the OSINT researcher agent with tools for data gathering"""
         # Get all tools
         search_tools = get_search_tools()
         scrape_tools = get_scrape_tools()
-        rag_tools = get_rag_tools()
         html_to_pdf_tool = HtmlToPdfTool()
         directory_read_tool = DirectoryReadTool("output/osint")
         file_read_tool = FileReadTool()
+        pdf_search_tool = PDFSearchTool()
 
         all_tools = (
             search_tools
             + scrape_tools
-            + rag_tools
-            + [html_to_pdf_tool, directory_read_tool, file_read_tool]
+            + [html_to_pdf_tool, directory_read_tool, file_read_tool, pdf_search_tool]
             + get_report_tools()
         )
 
         return Agent(
-            config=self.agents_config["osint_coordinator"],
+            config=self.agents_config["osint_researcher"],
             verbose=True,
             tools=all_tools,
+            llm="gpt-4.1-mini",  # Use more powerful model for complex cross-referencing
             allow_delegation=True,
             respect_context_window=True,
             reasoning=True,
             max_reasoning_attempts=5,
-            max_iter=5,
-            max_retry_limit=3,
-            max_rpm=10,
+        )
+
+    @agent
+    def osint_reporter(self) -> Agent:
+        """Creates the OSINT reporter agent without tools for clean output generation"""
+        return Agent(
+            config=self.agents_config["osint_reporter"],
+            verbose=True,
+            tools=[],  # No tools for reporter to ensure clean output
+            allow_delegation=False,
+            respect_context_window=True,
+            reasoning=True,
         )
 
     @task
@@ -65,6 +74,7 @@ class CrossReferenceReportCrew:
         return Task(
             config=self.tasks_config["intelligence_requirements_planning"],
             async_execution=True,
+            verbose=True,
         )
 
     @task
@@ -73,6 +83,7 @@ class CrossReferenceReportCrew:
         return Task(
             config=self.tasks_config["intelligence_collection_coordination"],
             async_execution=True,
+            verbose=True,
         )
 
     @task
@@ -81,6 +92,7 @@ class CrossReferenceReportCrew:
         return Task(
             config=self.tasks_config["intelligence_analysis_integration"],
             async_execution=True,
+            verbose=True,
         )
 
     @task
@@ -89,6 +101,7 @@ class CrossReferenceReportCrew:
         return Task(
             config=self.tasks_config["intelligence_product_development"],
             async_execution=True,
+            verbose=True,
         )
 
     # @task
@@ -105,19 +118,36 @@ class CrossReferenceReportCrew:
         return Task(
             config=self.tasks_config["global_reporting"],
             async_execution=False,
-            output_pydantic=ReportHTMLOutput,
+            context=[
+                self.intelligence_requirements_planning(),
+                self.intelligence_collection_coordination(),
+                self.intelligence_analysis_integration(),
+                self.intelligence_product_development(),
+            ],
+            output_pydantic=CrossReferenceReport,
+        )
+
+    @task
+    def html_report_generation(self) -> Task:
+        """Generate an HTML report from the cross-reference report."""
+        return Task(
+            config=self.tasks_config["html_report_generation"],
+            agent=self.osint_reporter(),
+            context=[self.global_reporting()],
+            async_execution=False,
         )
 
     @crew
     def crew(self) -> Crew:
         """Creates the CrossReferenceReportCrew crew"""
-        # To learn how to add knowledge sources to your crew, check out the documentation:
-        # https://docs.crewai.com/concepts/knowledge#what-is-knowledge
+        # Ensure output directory exists for final reports
+        ensure_output_directory("output/osint")
 
+        # Implement the Two-Agent Pattern: researcher gathers data, reporter creates clean output
+        # Research tasks are executed first, then the final report is generated by the reporter
         return Crew(
             agents=self.agents,  # Automatically created by the @agent decorator
             tasks=self.tasks,  # Automatically created by the @task decorator
-            process=Process.sequential,
+            process=Process.sequential,  # Sequential to avoid needing a manager
             verbose=True,
-            # process=Process.hierarchical, # In case you wanna use that instead https://docs.crewai.com/how-to/Hierarchical/
         )

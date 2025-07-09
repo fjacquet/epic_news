@@ -1,5 +1,7 @@
 """Pydantic models for the Todoist tool."""
 
+from typing import Union
+
 from pydantic import BaseModel, Field, model_validator
 
 
@@ -9,19 +11,19 @@ class TodoistToolInput(BaseModel):
     action: str = Field(
         ..., description="The action to perform: 'get_tasks', 'create_task', 'complete_task', 'get_projects'."
     )
-    project_id: str | None = Field(
+    project_id: Union[str, None] = Field(
         None, description="The ID of the project to interact with (optional for some actions)."
     )
-    task_id: str | None = Field(
+    task_id: Union[str, None] = Field(
         None, description="The ID of the task to interact with (required for complete_task)."
     )
-    task_content: str | None = Field(
+    task_content: Union[str, None] = Field(
         None, description="The content of the task to create (required for create_task)."
     )
-    due_string: str | None = Field(
+    due_string: Union[str, None] = Field(
         None, description="Due date as a string (e.g., 'today', 'tomorrow', 'next Monday')."
     )
-    priority: int | None = Field(None, description="Task priority (1-4, where 4 is highest).")
+    priority: Union[int, None] = Field(None, description="Task priority (1-4, where 4 is highest).")
 
     @model_validator(mode="after")
     def check_action_requirements(self) -> "TodoistToolInput":

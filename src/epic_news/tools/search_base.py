@@ -1,15 +1,11 @@
 """Base classes and common functionality for search tools."""
 
-import logging
 from typing import Any, TypeVar
 
 import requests
+from loguru import logger
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
-
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
 

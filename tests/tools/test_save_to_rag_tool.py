@@ -1,5 +1,4 @@
 import json
-from unittest.mock import MagicMock, patch
 
 import pytest
 from crewai_tools import RagTool  # For type hinting and potentially mocking its instantiation
@@ -17,10 +16,10 @@ MOCK_DEFAULT_RAG_CONFIG = {
 
 
 @pytest.fixture
-def mock_rag_tool_instance():
+def mock_rag_tool_instance(mocker):
     """Fixture to create a MagicMock instance of RagTool."""
-    mock_rag = MagicMock(spec=RagTool)
-    mock_rag.add = MagicMock()  # Mock the 'add' method specifically
+    mock_rag = mocker.MagicMock(spec=RagTool)
+    mock_rag.add = mocker.MagicMock()  # Mock the 'add' method specifically
     return mock_rag
 
 
@@ -33,13 +32,13 @@ def test_save_to_rag_tool_instantiation_with_rag_tool(mock_rag_tool_instance):
     assert tool.args_schema == SaveToRagInput
 
 
-@patch("epic_news.tools.save_to_rag_tool.DEFAULT_RAG_CONFIG", MOCK_DEFAULT_RAG_CONFIG)
-@patch("epic_news.tools.save_to_rag_tool.RagTool")
-def test_save_to_rag_tool_instantiation_without_rag_tool(mock_rag_tool_class):
+def test_save_to_rag_tool_instantiation_without_rag_tool(mocker):
     """Test tool instantiation when no RagTool instance is provided,
     so it creates its own."""
+    mocker.patch("epic_news.tools.save_to_rag_tool.DEFAULT_RAG_CONFIG", MOCK_DEFAULT_RAG_CONFIG)
+    mock_rag_tool_class = mocker.patch("epic_news.tools.save_to_rag_tool.RagTool")
     mock_rag_instance = mock_rag_tool_class.return_value  # The instance RagTool() would return
-    mock_rag_instance.add = MagicMock()
+    mock_rag_instance.add = mocker.MagicMock()
 
     tool = SaveToRagTool()
 

@@ -3,18 +3,14 @@ CoinMarketCap API tool for cryptocurrency news.
 """
 
 import json
-
-# Using standard logging
-import logging
 import os
 
 import requests
 from crewai.tools import BaseTool
+from loguru import logger
 from pydantic import BaseModel
 
 from src.epic_news.models.coinmarketcap_models import CryptocurrencyNewsInput
-
-logger = logging.getLogger(__name__)
 
 CMC_PRO_API_BASE_URL = "https://pro-api.coinmarketcap.com"
 

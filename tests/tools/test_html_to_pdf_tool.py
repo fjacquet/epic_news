@@ -1,6 +1,7 @@
 import os
 
 from epic_news.tools.html_to_pdf_tool import HtmlToPdfTool
+from epic_news.utils.directory_utils import ensure_output_directory
 
 
 # Helper function to create a dummy HTML file for testing
@@ -8,7 +9,7 @@ def create_dummy_html(
     filepath, content="<html><body><h1>Test PDF Content</h1><p>This is a test.</p></body></html>"
 ):
     # Ensure the directory for the dummy HTML file exists
-    os.makedirs(os.path.dirname(filepath), exist_ok=True)
+    ensure_output_directory(os.path.dirname(filepath))
     with open(filepath, "w", encoding="utf-8") as f:
         f.write(content)
     return filepath

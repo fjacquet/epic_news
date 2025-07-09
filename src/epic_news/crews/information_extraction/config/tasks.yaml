@@ -1,20 +1,18 @@
+---
 comprehensive_information_extraction_task:
   description: >
     Analyze the user's request to identify key pieces of information. Your
     primary goal is to extract the main subject/activity and any specific
     entities like a company name. You must also extract other details if
     present, such as locations, dates, and traveler info.
-
     Here is the user request you need to analyze: "{user_request}"
   expected_output: >
     A perfectly structured Pydantic object of type 'ExtractedInfo'. You MUST
     extract any relevant information from the user's request and populate the
     corresponding fields. The 'main_subject_or_activity' is the most critical
     field. It is perfectly acceptable for most fields to be null if the
-    information is not present.
-
+    information is not present.-
     Here are some examples to guide you:
-
     Example 1: - Request: "I want to plan a 2-week holiday to Greece for 2
     adults. We are looking for something relaxing and on a budget." - Correct
     Output Fields:
@@ -25,29 +23,32 @@ comprehensive_information_extraction_task:
       - main_subject_or_activity: "holiday planning"
       - user_preferences_and_constraints: "relaxing"
       - budget_notes: "on a budget"
-
     Example 2: - Request: "Give me an OSINT report on the company 'Tesla
     Inc.'" - Correct Output Fields:
       - target_company: "Tesla Inc."
       - company: "Tesla Inc."
       - main_subject_or_activity: "OSINT report"
-
     Example 3: - Request: "Write me a poem about the fall of Rome" - Correct
     Output Fields:
       - main_subject_or_activity: "poem about the fall of Rome"
-
     Example 4: - Request: "I need a recipe for a classic French ratatouille."
     - Correct Output Fields:
       - main_subject_or_activity: "recipe for classic French ratatouille"
-
-    Example 5: - Request: "Prepare for a meeting with ACME Corp. Participants will be John Doe (CEO of ACME) and Jane Smith (our Head of Sales). It's a follow-up to our call last week where we discussed the new X-Series product. The main goal is to finalize the contract terms."
+    Example 5: - Request: "Trouve la recette du cassoulet traditionnel"
+    - Correct Output Fields:
+      - main_subject_or_activity: "recette du cassoulet traditionnel"
+    Example 6: - Request: "Prepare for a meeting with ACME Corp. Participants will
+    be John Doe (CEO of ACME) and Jane Smith (our Head of Sales). It's a follow-up
+    to our call last week where we discussed the new X-Series product. The main goal
+    is to finalize the contract terms."
     - Correct Output Fields:
       - target_company: "ACME Corp"
       - company: "ACME Corp"
       - participants:
         - "John Doe (CEO of ACME)"
         - "Jane Smith (our Head of Sales)"
-      - meeting_context: "Follow-up to our call last week where we discussed the new X-Series product"
+      - meeting_context: "Follow-up to our call last week where we discussed the new
+    X-Series product"
       - prior_interactions: "Call last week, discussed X-Series product"
       - meeting_objective: "Finalize the contract terms"
       - main_subject_or_activity: "meeting preparation"

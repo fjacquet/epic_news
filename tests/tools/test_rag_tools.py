@@ -1,5 +1,4 @@
 import copy
-from unittest.mock import patch
 
 from crewai_tools import RagTool
 
@@ -40,11 +39,11 @@ TEST_DEFAULT_RAG_CONFIG = {
 }
 
 
-@patch(
-    "epic_news.tools.rag_tools.DEFAULT_RAG_CONFIG",
-    new_callable=lambda: copy.deepcopy(TEST_DEFAULT_RAG_CONFIG),
-)
-def test_get_rag_tools_no_suffix(mock_default_config):
+def test_get_rag_tools_no_suffix(mocker):
+    mocker.patch(
+        "epic_news.tools.rag_tools.DEFAULT_RAG_CONFIG",
+        new_callable=lambda: copy.deepcopy(TEST_DEFAULT_RAG_CONFIG),
+    )
     tools = get_rag_tools()
 
     assert len(tools) == 2
@@ -62,11 +61,11 @@ def test_get_rag_tools_no_suffix(mock_default_config):
     assert save_tool._rag_tool == retrieval_tool  # Check if it's the same instance
 
 
-@patch(
-    "epic_news.tools.rag_tools.DEFAULT_RAG_CONFIG",
-    new_callable=lambda: copy.deepcopy(TEST_DEFAULT_RAG_CONFIG),
-)
-def test_get_rag_tools_with_suffix(mock_default_config):
+def test_get_rag_tools_with_suffix(mocker):
+    mocker.patch(
+        "epic_news.tools.rag_tools.DEFAULT_RAG_CONFIG",
+        new_callable=lambda: copy.deepcopy(TEST_DEFAULT_RAG_CONFIG),
+    )
     suffix = "test_crew"
     tools = get_rag_tools(collection_suffix=suffix)
 
@@ -84,11 +83,11 @@ def test_get_rag_tools_with_suffix(mock_default_config):
     assert save_tool._rag_tool == retrieval_tool
 
 
-@patch(
-    "epic_news.tools.rag_tools.DEFAULT_RAG_CONFIG",
-    new_callable=lambda: copy.deepcopy(TEST_DEFAULT_RAG_CONFIG),
-)
-def test_default_rag_config_immutability(mock_default_config):
+def test_default_rag_config_immutability(mocker):
+    mocker.patch(
+        "epic_news.tools.rag_tools.DEFAULT_RAG_CONFIG",
+        new_callable=lambda: copy.deepcopy(TEST_DEFAULT_RAG_CONFIG),
+    )
     original_collection_name = TEST_DEFAULT_RAG_CONFIG["vectordb"]["config"]["collection_name"]
 
     # Call with a suffix, which should modify a copy

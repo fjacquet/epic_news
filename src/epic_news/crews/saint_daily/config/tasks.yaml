@@ -1,57 +1,56 @@
+---
 saint_research_task:
   agent: saint_researcher
   description: >
-    MANDATORY: Research the saint of the day in Switzerland for today's date (2025-06-23).
-    
-    STEP 1: Use WikipediaSearchTool to search for "saint of the day June 23", "calendrier liturgique 23 juin",
-    "saint 23 juin", and related terms to identify today's saint.
-    
-    STEP 2: Once you identify the saint(s) for today, use WikipediaArticleTool to get detailed information
-    about their life, significance, feast day, miracles, and any connection to Switzerland or the Catholic Church.
-    
-    STEP 3: Use SerperDevTool to search for additional information about today's saint, particularly
-    any Swiss connections, local traditions, or celebrations.
-    
-    STEP 4: Use SaveToRagTool to store all your research findings for future reference.
-    
-    Focus on finding comprehensive information about the saint celebrated on June 23rd in the Catholic calendar.
-  expected_output: >
-    A detailed research report in French containing:
-    - The name of the saint(s) celebrated on June 23rd
-    - Complete biographical information
+    Research comprehensive information about today's saint ({current_date}) using
+    Wikipedia
+    and web search tools.
+    Find detailed information about:
+    - The name of the saint(s) celebrated on {current_date}
+    - Complete biographical information (birth, death, life events)
     - Significance and feast day details
-    - Any miracles or notable events
+    - Any miracles or notable events associated with the saint
     - Connection to Switzerland or Swiss Catholic traditions
-    - Sources and references used
-    Format as structured text with clear sections.
-  async_execution: true
-  output_file: output/saint_daily/research.md
-
-saint_report_generation_task:
-  agent: reporting_specialist
-  description: >
-    CRITICAL: Create a comprehensive HTML report in French about today's saint using the ReportingTool.
-    
-    STEP 1: Review all the research findings from the context about today's saint.
-    
-    STEP 2: Use the ReportingTool to generate a professional HTML report in French with the title
-    "Saint du Jour - 23 Juin 2025" and comprehensive content about the saint.
-    
-    STEP 3: The report must include:
-    - Title and introduction in French
-    - Biography of the saint (Biographie)
-    - Significance and feast day (Signification et Fête)
-    - Miracles and notable events (Miracles et Événements Notables)
-    - Connection to Switzerland (Lien avec la Suisse)
-    - Prayer or reflection (Prière ou Réflexion)
-    - Sources (Sources)
-    
-    STEP 4: Ensure the report is entirely in French, well-formatted, and uses appropriate religious terminology.
-    
-    The final output must be a complete HTML document generated using the ReportingTool.
+    - Historical context and importance
+    - Sources and references
+    Provide thorough, accurate research that will be used to create a comprehensive
+    HTML report.
+    Include specific dates, places, and historical details when available.
   expected_output: >
-    A complete, professional HTML report in French about today's saint, generated using the ReportingTool.
-    The report must be comprehensive, well-structured, and entirely in French with proper Catholic terminology.
-    NO raw data, NO placeholder text, ONLY a complete HTML document.
+    Comprehensive research report with detailed information about today's saint,
+    including biographical details, significance, miracles, Swiss connections,
+    and reliable sources. Format as structured text with clear sections.
   async_execution: false
-  output_file: output/saint_daily/report.html
+saint_data_task:
+  agent: saint_reporter
+  description: >
+    Génère des données structurées en JSON pour le rapport quotidien du saint.
+    Utilise les informations de recherche du contexte pour créer un objet JSON avec
+    la structure suivante :
+    {
+      "saint_name": "[Nom du saint]",
+      "feast_date": "[Date de la fête]",
+      "biography": "[Biographie détaillée du saint]",
+      "significance": "[Signification et importance de ce saint]",
+      "miracles": "[Miracles et événements notables]",
+      "swiss_connection": "[Lien avec la Suisse si applicable]",
+      "prayer_reflection": "[Prière ou réflexion spirituelle]",
+      "sources": ["[Source 1]", "[Source 2]"],
+      "birth_year": "[Année de naissance si connue]",
+      "death_year": "[Année de décès si connue]",
+      "patron_of": "[Patron de quoi/qui]"
+    }
+    IMPORTANT :
+    - Utilise un français correct et respectueux
+    - Inclus des informations historiques précises
+    - Génère UNIQUEMENT le JSON, pas de texte supplémentaire
+    - Les données seront utilisées par HtmlDesignerCrew pour générer le HTML final
+  expected_output: >
+    Objet JSON structuré contenant toutes les données du saint :
+    - Nom, date de fête, biographie complète
+    - Signification, miracles, lien avec la Suisse
+    - Prière/réflexion et sources fiables
+    - Format JSON pur, prêt pour le rendu HTML unifié
+  context: [saint_research_task]
+  output_file: '{output_file}'
+  async_execution: false

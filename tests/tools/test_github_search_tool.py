@@ -1,6 +1,6 @@
 import json
 import os
-from unittest.mock import ANY, MagicMock, patch
+from unittest.mock import ANY
 
 import pytest
 
@@ -12,15 +12,15 @@ GITHUB_SEARCH_URL_BASE = "https://api.github.com/search/"
 
 # --- Fixtures ---
 @pytest.fixture
-def mock_env_github_token():
-    with patch.dict(os.environ, {"GITHUB_TOKEN": TEST_GITHUB_TOKEN}, clear=True):
-        yield
+def mock_env_github_token(mocker):
+    mocker.patch.dict(os.environ, {"GITHUB_TOKEN": TEST_GITHUB_TOKEN}, clear=True)
+    yield
 
 
 @pytest.fixture
-def mock_env_no_github_token():
-    with patch.dict(os.environ, {"GITHUB_TOKEN": ""}, clear=True):
-        yield
+def mock_env_no_github_token(mocker):
+    mocker.patch.dict(os.environ, {"GITHUB_TOKEN": ""}, clear=True)
+    yield
 
 
 # --- Instantiation Tests ---
@@ -43,8 +43,8 @@ def test_instantiation_no_token(mock_env_no_github_token):
 # --- _run Method Tests ---
 
 
-@patch("epic_news.tools.github_base.GitHubBaseTool._make_request")
-def test_run_invalid_search_type(mock_make_request, mock_env_github_token):
+def test_run_invalid_search_type(mock_env_github_token, mocker):
+    mock_make_request = mocker.patch("epic_news.tools.github_base.GitHubBaseTool._make_request")
     tool = GitHubSearchTool()
     result_json = tool._run(query="test", search_type="invalid_type")
     result = json.loads(result_json)
@@ -53,8 +53,8 @@ def test_run_invalid_search_type(mock_make_request, mock_env_github_token):
     mock_make_request.assert_not_called()
 
 
-@patch("epic_news.tools.github_base.GitHubBaseTool._make_request")
-def test_run_api_request_fails(mock_make_request, mock_env_github_token):
+def test_run_api_request_fails(mock_env_github_token, mocker):
+    mock_make_request = mocker.patch("epic_news.tools.github_base.GitHubBaseTool._make_request")
     mock_make_request.return_value = None
     tool = GitHubSearchTool()
     result_json = tool._run(query="test", search_type="repositories")
@@ -63,9 +63,9 @@ def test_run_api_request_fails(mock_make_request, mock_env_github_token):
     assert "Failed to search GitHub repositories" in result["error"]
 
 
-@patch("epic_news.tools.github_base.GitHubBaseTool._make_request")
-def test_run_search_repositories_success(mock_make_request, mock_env_github_token):
-    mock_response = MagicMock()
+def test_run_search_repositories_success(mock_env_github_token, mocker):
+    mock_make_request = mocker.patch("epic_news.tools.github_base.GitHubBaseTool._make_request")
+    mock_response = mocker.MagicMock()
     mock_response.json.return_value = {
         "total_count": 1,
         "items": [
@@ -96,9 +96,9 @@ def test_run_search_repositories_success(mock_make_request, mock_env_github_toke
     assert result["results"][0]["name"] == "test/repo1"
 
 
-@patch("epic_news.tools.github_base.GitHubBaseTool._make_request")
-def test_run_search_code_success(mock_make_request, mock_env_github_token):
-    mock_response = MagicMock()
+def test_run_search_code_success(mock_env_github_token, mocker):
+    mock_make_request = mocker.patch("epic_news.tools.github_base.GitHubBaseTool._make_request")
+    mock_response = mocker.MagicMock()
     mock_response.json.return_value = {
         "total_count": 1,
         "items": [
@@ -122,9 +122,9 @@ def test_run_search_code_success(mock_make_request, mock_env_github_token):
     assert result["results"][0]["repository"] == "test/repo"
 
 
-@patch("epic_news.tools.github_base.GitHubBaseTool._make_request")
-def test_run_search_issues_success(mock_make_request, mock_env_github_token):
-    mock_response = MagicMock()
+def test_run_search_issues_success(mock_env_github_token, mocker):
+    mock_make_request = mocker.patch("epic_news.tools.github_base.GitHubBaseTool._make_request")
+    mock_response = mocker.MagicMock()
     mock_response.json.return_value = {
         "total_count": 1,
         "items": [
@@ -152,9 +152,9 @@ def test_run_search_issues_success(mock_make_request, mock_env_github_token):
     assert result["results"][0]["state"] == "open"
 
 
-@patch("epic_news.tools.github_base.GitHubBaseTool._make_request")
-def test_run_search_users_success(mock_make_request, mock_env_github_token):
-    mock_response = MagicMock()
+def test_run_search_users_success(mock_env_github_token, mocker):
+    mock_make_request = mocker.patch("epic_news.tools.github_base.GitHubBaseTool._make_request")
+    mock_response = mocker.MagicMock()
     mock_response.json.return_value = {
         "total_count": 1,
         "items": [{"login": "testuser", "html_url": "user_url", "type": "User", "score": 1.0}],
@@ -171,9 +171,9 @@ def test_run_search_users_success(mock_make_request, mock_env_github_token):
     assert result["results"][0]["type"] == "User"
 
 
-@patch("epic_news.tools.github_base.GitHubBaseTool._make_request")
-def test_run_max_results_respected(mock_make_request, mock_env_github_token):
-    mock_response = MagicMock()
+def test_run_max_results_respected(mock_env_github_token, mocker):
+    mock_make_request = mocker.patch("epic_news.tools.github_base.GitHubBaseTool._make_request")
+    mock_response = mocker.MagicMock()
     # Simulate API returning more items than requested to check truncation logic (though API should handle per_page)
     mock_response.json.return_value = {
         "total_count": 10,
@@ -190,9 +190,9 @@ def test_run_max_results_respected(mock_make_request, mock_env_github_token):
     # The formatting loop will process whatever 'items' contains.
 
 
-@patch("epic_news.tools.github_base.GitHubBaseTool._make_request")
-def test_run_empty_query(mock_make_request, mock_env_github_token):
-    mock_response = MagicMock()
+def test_run_empty_query(mock_env_github_token, mocker):
+    mock_make_request = mocker.patch("epic_news.tools.github_base.GitHubBaseTool._make_request")
+    mock_response = mocker.MagicMock()
     mock_response.json.return_value = {"total_count": 0, "items": []}
     mock_make_request.return_value = mock_response
     tool = GitHubSearchTool()

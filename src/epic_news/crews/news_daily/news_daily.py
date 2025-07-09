@@ -35,14 +35,6 @@ class NewsDailyCrew:
             verbose=True,
         )
 
-    @agent
-    def reporting_specialist(self) -> Agent:
-        return Agent(
-            config=self.agents_config["reporting_specialist"],
-            tools=self.reporting_tools,
-            verbose=True,
-        )
-
     @task
     def suisse_romande_news_task(self) -> Task:
         return Task(

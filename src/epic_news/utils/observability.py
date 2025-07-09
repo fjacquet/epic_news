@@ -7,7 +7,6 @@ guardrails against hallucinations in AI agent outputs.
 
 import hashlib
 import json
-import logging
 import os
 import re
 import time
@@ -15,17 +14,20 @@ from datetime import datetime
 from functools import wraps
 from typing import Any
 
+from loguru import logger
+
+from epic_news.utils.directory_utils import ensure_output_directory
+
 # Configure logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-logger = logging.getLogger("observability")
+# logger = logging.getLogger("observability")
 
 # Constants
-TRACE_DIR = os.path.join("output", "traces")
+TRACE_DIR = "traces"
 DASHBOARD_DATA_DIR = os.path.join("output", "dashboard_data")
 
 # Ensure directories exist
-os.makedirs(TRACE_DIR, exist_ok=True)
-os.makedirs(DASHBOARD_DATA_DIR, exist_ok=True)
+ensure_output_directory(TRACE_DIR)
+ensure_output_directory(DASHBOARD_DATA_DIR)
 
 
 class TraceEvent:

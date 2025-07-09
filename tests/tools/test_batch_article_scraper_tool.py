@@ -1,5 +1,4 @@
 import json
-from unittest.mock import MagicMock
 
 import pytest
 
@@ -8,7 +7,7 @@ from src.epic_news.tools.batch_article_scraper_tool import BatchArticleScraperTo
 
 
 @pytest.fixture
-def setup_tool_and_data():
+def setup_tool_and_data(mocker):
     """Set up test fixtures."""
     tool = BatchArticleScraperTool()
 
@@ -25,10 +24,10 @@ def setup_tool_and_data():
         feed_url="https://example.com/feed.xml", articles=[test_article1, test_article2]
     )
 
-    test_feeds = RssFeeds(feeds=[test_feed])
+    test_feeds = RssFeeds(rss_feeds=[test_feed])
 
     # Mock the scrape_ninja_tool
-    tool.scrape_ninja_tool = MagicMock()
+    tool.scrape_ninja_tool = mocker.MagicMock()
     tool.scrape_ninja_tool._run.return_value = json.dumps({"content": "Test content"})
 
     # Return all test objects
@@ -53,19 +52,19 @@ def test_run_with_pydantic_model(setup_tool_and_data):
     # Verify the result is a valid JSON string
     result_dict = json.loads(result)
     assert isinstance(result_dict, dict)
-    assert "feeds" in result_dict
+    assert "rss_feeds" in result_dict
 
     # Verify the ScrapeNinjaTool was called for each article
     assert tool.scrape_ninja_tool._run.call_count == 2
 
 
-def test_run_with_dict(setup_tool_and_data):
+def test_run_with_dict(setup_tool_and_data, mocker):
     """Test _run method with a dictionary input."""
     data = setup_tool_and_data
     tool = data["tool"]
     test_feeds = data["test_feeds"]
     # Create a direct mock of the scrape_ninja_tool instance
-    tool.scrape_ninja_tool = MagicMock()
+    tool.scrape_ninja_tool = mocker.MagicMock()
     tool.scrape_ninja_tool._run.return_value = json.dumps({"content": "Test content"})
 
     # Convert Pydantic model to dict
@@ -80,19 +79,19 @@ def test_run_with_dict(setup_tool_and_data):
     # Verify the result is a valid JSON string
     result_dict = json.loads(result)
     assert isinstance(result_dict, dict)
-    assert "feeds" in result_dict
+    assert "rss_feeds" in result_dict
 
     # Verify the ScrapeNinjaTool was called for each article
     assert tool.scrape_ninja_tool._run.call_count == 2
 
 
-def test_run_with_json_string(setup_tool_and_data):
+def test_run_with_json_string(setup_tool_and_data, mocker):
     """Test _run method with a JSON string input."""
     data = setup_tool_and_data
     tool = data["tool"]
     test_feeds = data["test_feeds"]
     # Create a direct mock of the scrape_ninja_tool instance
-    tool.scrape_ninja_tool = MagicMock()
+    tool.scrape_ninja_tool = mocker.MagicMock()
     tool.scrape_ninja_tool._run.return_value = json.dumps({"content": "Test content"})
 
     # Convert Pydantic model to JSON string
@@ -104,19 +103,19 @@ def test_run_with_json_string(setup_tool_and_data):
     # Verify the result is a valid JSON string
     result_dict = json.loads(result)
     assert isinstance(result_dict, dict)
-    assert "feeds" in result_dict
+    assert "rss_feeds" in result_dict
 
     # Verify the ScrapeNinjaTool was called for each article
     assert tool.scrape_ninja_tool._run.call_count == 2
 
 
-def test_error_handling(setup_tool_and_data):
+def test_error_handling(setup_tool_and_data, mocker):
     """Test error handling in _run method."""
     data = setup_tool_and_data
     tool = data["tool"]
     test_feeds = data["test_feeds"]
     # Create a direct mock of the scrape_ninja_tool instance
-    tool.scrape_ninja_tool = MagicMock()
+    tool.scrape_ninja_tool = mocker.MagicMock()
     tool.scrape_ninja_tool._run.side_effect = Exception("Test error")
 
     # Run the tool
@@ -127,7 +126,7 @@ def test_error_handling(setup_tool_and_data):
     assert isinstance(result_dict, dict)
 
     # Verify the content is still None (error case)
-    feeds = result_dict.get("feeds", [])
+    feeds = result_dict.get("rss_feeds", [])
     assert len(feeds) > 0
     articles = feeds[0].get("articles", [])
     assert len(articles) > 0
