@@ -19,7 +19,7 @@ except ImportError:  # pragma: no cover
     HtmlToPdfTool = None  # type: ignore
 
 
-def get_report_tools() -> list:  # noqa: D401
+def get_report_tools() -> list:
     """Return list of report-related tools available in this environment."""
     tools: list = [RenderReportTool(), ReportingTool()]
     if HtmlToPdfTool is not None:

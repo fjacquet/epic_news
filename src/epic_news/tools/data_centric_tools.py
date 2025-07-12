@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 from datetime import datetime
-from typing import Any
+from typing import Any, Optional, Union
 
 from crewai.tools import BaseTool
 from jinja2 import Environment, FileSystemLoader
@@ -62,10 +62,10 @@ class MetricsCalculatorTool(BaseTool):
         description: str,
         value: Any,
         type: str,
-        previous_value: Any | None = None,
-        unit: str | None = None,
-        source: str | None = None,
-        target: Any | None = None,
+        previous_value: Optional[Any] = None,
+        unit: Optional[str] = None,
+        source: Optional[str] = None,
+        target: Optional[Any] = None,
         is_key_metric: bool = False,
         **kwargs,
     ) -> dict[str, Any]:
@@ -136,10 +136,10 @@ class KPITrackerTool(BaseTool):
         value: Any,
         type: str,
         target: Any,
-        previous_value: Any | None = None,
-        unit: str | None = None,
-        source: str | None = None,
-        target_date: str | None = None,
+        previous_value: Optional[Any] = None,
+        unit: Optional[str] = None,
+        source: Optional[str] = None,
+        target_date: Optional[str] = None,
         **kwargs,
     ) -> dict[str, Any]:
         """Run the KPI tracker tool."""
@@ -416,7 +416,7 @@ class StructuredReportTool(BaseTool):
             return {"error": f"Failed to generate structured report: {str(e)}"}
 
 
-def get_data_centric_tools() -> list[BaseTool | LangchainBaseTool]:
+def get_data_centric_tools() -> list[Union[BaseTool, LangchainBaseTool]]:
     """Get a list of all data-centric tools."""
     return [
         MetricsCalculatorTool(),

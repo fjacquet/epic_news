@@ -46,7 +46,3 @@ class UniversalReportTool(BaseTool):
             return render_universal_report(title=title, content=content)
         except Exception as e:
             return f"Error generating report: {str(e)}"
-
-
-# Create tool instance for easy import
-universal_report_tool = UniversalReportTool()

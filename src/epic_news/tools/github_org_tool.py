@@ -2,6 +2,7 @@
 
 import json
 import os
+from typing import Optional
 
 from crewai.tools import BaseTool
 from dotenv import load_dotenv
@@ -21,7 +22,7 @@ class GitHubOrgSearchInput(BaseModel):
 
 
 class GitHubOrgSearchTool(BaseTool, GitHubBaseTool):
-    serper_api_key: str | None = None
+    serper_api_key: Optional[str] = None
     """Tool for searching GitHub organizations."""
     name: str = "github_org_search"
     description: str = "Search for a GitHub organization and retrieve basic information"

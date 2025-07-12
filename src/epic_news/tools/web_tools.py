@@ -24,7 +24,6 @@ def get_search_tools():
     """
     return [
         SerperDevTool(n_results=25, search_type="search"),
-        # FirecrawlSearchTool(limit=25, save_file=True),
     ]
 
 
@@ -52,7 +51,6 @@ def get_scrape_tools():
     return [
         ScrapeNinjaTool(),  # Primary scraping tool - fast and powerful
         ScrapeWebsiteTool(),  # Official CrewAI scraping tool as backup
-        # FirecrawlScrapeWebsiteTool(limit=25, save_file=True),
     ]
 
 

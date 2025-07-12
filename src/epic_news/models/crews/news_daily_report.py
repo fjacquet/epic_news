@@ -50,7 +50,7 @@ class NewsDailyReport(BaseModel):
     world: Union[list[NewsItem], str] = Field(default_factory=list, description="World news")
     wars: Union[list[NewsItem], str] = Field(default_factory=list, description="Conflict news")
     economy: Union[list[NewsItem], list[str], str] = Field(default_factory=list, description="Economic news")
-    methodology: Union[str, dict] | None = Field(None, description="Collection methodology and statistics")
+    methodology: Optional[Union[str, dict]] = Field(None, description="Collection methodology and statistics")
 
     @field_validator("methodology")
     @classmethod

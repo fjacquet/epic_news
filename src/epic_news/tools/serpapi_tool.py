@@ -21,14 +21,16 @@ class SerpApiTool(BaseTool):
     name: str = "serpapi_search"
     description: str = "Perform a web search to find information on the internet"
     args_schema: type[BaseModel] = SerpApiInput
-    api_key: str | None = None
+    api_key: str
 
     def __init__(self, **data):
         """Initialize with API key from environment."""
+        if "api_key" not in data:
+            api_key_from_env = os.getenv("SERPAPI_API_KEY")
+            if not api_key_from_env:
+                raise ValueError("SERPAPI_API_KEY environment variable not set")
+            data["api_key"] = api_key_from_env
         super().__init__(**data)
-        self.api_key = os.getenv("SERPAPI_API_KEY")
-        if not self.api_key:
-            raise ValueError("SERPAPI_API_KEY environment variable not set")
 
     def _run(self, **kwargs) -> str:
         """
@@ -147,58 +149,3 @@ class SerpApiTool(BaseTool):
             return json.dumps(
                 {"error": f"Unexpected error: {str(e)}", "query": query, "type": type(e).__name__}
             )
-
-
-def test_web_search():
-    """Test function for web search tool."""
-    try:
-        # Check if API key is set
-        api_key = os.getenv("SERPAPI_API_KEY")
-        if not api_key:
-            print("❌ ERROR: SERPAPI_API_KEY environment variable is not set!")
-            print("Please set this variable in your .env file and try again.")
-            return
-
-        print(f"🔍 SERPAPI_API_KEY is set: {api_key[:4]}...{api_key[-4:]}")
-
-        tool = SerpApiTool()
-        print("🔍 Testing web search functionality...")
-
-        # Test with a simple query
-        print("\n1. Testing basic search...")
-        query = "Sicpa company information"
-        print(f"Query: {query}")
-        result = tool._run(query=query, num_results=3, country="us", language="en")
-
-        # Parse the result to check for errors
-        try:
-            result_json = json.loads(result)
-            if "error" in result_json:
-                print(f"❌ Search failed: {result_json['error']}")
-                print("Suggestions:")
-                print("1. Check your API key and quota")
-                print("2. Verify network connectivity")
-                print("3. Try a different search query")
-            else:
-                print(f"✅ Search successful! Found {result_json.get('count', 0)} results.")
-                if result_json.get("results"):
-                    for i, res in enumerate(result_json["results"], 1):
-                        print(f"  Result {i}: {res.get('title', 'No title')}")
-                        print(f"    Link: {res.get('link', 'No link')}")
-                        print(
-                            f"    Snippet: {res.get('snippet', 'No snippet')[:100]}..."
-                            if len(res.get("snippet", "")) > 100
-                            else f"    Snippet: {res.get('snippet', 'No snippet')}"
-                        )
-        except json.JSONDecodeError:
-            print(f"❌ Could not parse result as JSON: {result[:200]}...")
-
-    except Exception as e:
-        print(f"❌ Test failed: {str(e)}")
-        import traceback
-
-        traceback.print_exc()
-
-
-if __name__ == "__main__":
-    test_web_search()

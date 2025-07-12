@@ -8,7 +8,7 @@ to avoid repeated requests and respect rate limits.
 import json
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 from loguru import logger
 
@@ -34,7 +34,7 @@ class CacheManager:
         safe_key = "".join(c for c in key if c.isalnum() or c in ("-", "_", ".")).rstrip()
         return self.cache_dir / f"{safe_key}.json"
 
-    def get(self, key: str, ttl: int | None = None) -> Any | None:
+    def get(self, key: str, ttl: Optional[int] = None) -> Optional[Any]:
         """
         Get a value from cache if it exists and hasn't expired.
 
@@ -94,7 +94,7 @@ class CacheManager:
         for cache_file in self.cache_dir.glob("*.json"):
             cache_file.unlink()
 
-    def clear_expired(self, ttl: int | None = None) -> int:
+    def clear_expired(self, ttl: Optional[int] = None) -> int:
         """
         Clear expired cache entries.
 

@@ -6,11 +6,11 @@ without bypassing the agent-task architecture.
 """
 
 import json
+from pathlib import Path
 
 from crewai.tools import BaseTool
 from pydantic import BaseModel, Field
 
-from epic_news.utils.directory_utils import ensure_output_directories
 from epic_news.utils.html.template_manager import TemplateManager
 
 
@@ -54,7 +54,8 @@ class HtmlGeneratorTool(BaseTool):
             parsed_state_data["selected_crew"] = selected_crew
 
             # Use the output file path provided by the flow
-            output_file_path = output_file
+            output_file_path = Path(output_file)
+            output_file_path.parent.mkdir(parents=True, exist_ok=True)
 
             # Extract content data using the factory pattern
             from epic_news.utils.content_extractors import ContentExtractorFactory
@@ -63,9 +64,6 @@ class HtmlGeneratorTool(BaseTool):
 
             # Use template manager to render the report
             html_content = self.template_manager.render_report(selected_crew, content_data)
-
-            # Ensure output directories exist using proper utility
-            ensure_output_directories()
 
             # Write the HTML content to the output file
             with open(output_file_path, "w", encoding="utf-8") as f:

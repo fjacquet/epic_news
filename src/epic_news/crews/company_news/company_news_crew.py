@@ -1,5 +1,3 @@
-import pathlib
-
 from composio_crewai import ComposioToolSet
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
@@ -8,9 +6,6 @@ from loguru import logger
 
 from epic_news.models.crews.company_news_report import CompanyNewsReport
 from epic_news.utils.observability import get_observability_tools, trace_task
-
-# fact_checking_tools module doesn't exist, using alternative approach
-
 
 # Load environment variables
 load_dotenv()
@@ -25,7 +20,7 @@ hallucination_guard = observability_tools["hallucination_guard"]
 @CrewBase
 class CompanyNewsCrew:
     """
-    Company news monitoring, analysis, fact-checking and editor crew.
+    Company news monitoring, analysis, and editor crew.
 
     This crew follows the epic_news design principles of being configuration-driven,
     simple, and elegant. It leverages YAML configuration files for agents and tasks,
@@ -34,20 +29,12 @@ class CompanyNewsCrew:
     The crew uses a hierarchical process with multiple agents working in coordination:
     - Researcher: Gathers news and information about the specified topic
     - Analyst: Analyzes research data for insights, trends, and significance
-    - Fact Checker: Verifies all claims and statements for accuracy
     - Editor: Creates the final formatted HTML report using templates
     """
 
     # Configuration file paths relative to the crew directory
     agents_config = "config/agents.yaml"
     tasks_config = "config/tasks.yaml"
-
-    # Output directory structure - use absolute path for consistency
-    _crew_path = pathlib.Path(__file__).parent
-    project_root = (
-        _crew_path.parent.parent.parent.parent.parent
-    )  # Go up 5 levels: news -> crews -> epic_news -> src -> project_root
-    output_dir = str(project_root / "output" / "news")
 
     def __init__(self):
         """
@@ -70,11 +57,6 @@ class CompanyNewsCrew:
                 "COMPOSIO_SEARCH_TRENDS_SEARCH",
                 "COMPOSIO_SEARCH_EVENT_SEARCH",
             ],
-        )
-
-        # Use only available tools for fact checking
-        self.fact_checking_tools = toolset.get_tools(
-            actions=["COMPOSIO_SEARCH_DUCK_DUCK_GO_SEARCH"],
         )
 
         # Pass observability tools to instance
@@ -114,21 +96,6 @@ class CompanyNewsCrew:
             reasoning=True,
             respect_context_window=True,
         )
-
-    # @agent
-    # def fact_checker(self) -> Agent:
-    #     """Create a fact checker agent responsible for verifying claims and sources.
-
-    #     Returns:
-    #         Agent: Configured fact checker agent from YAML configuration
-    #     """
-    #     return Agent(
-    #         config=self.agents_config["fact_checker"],
-    #         tools=self.fact_checking_tools,
-    #         verbose=True,
-    #         llm_timeout=300,
-    #         reasoning=True,
-    #         respect_context_window=True,
 
     @agent
     def editor(self) -> Agent:
@@ -189,25 +156,6 @@ class CompanyNewsCrew:
             llm_timeout=300,
         )
 
-    # @task
-    # def verification_task(self) -> Task:
-    #     """Define the verification task for fact checking the research and analysis.
-
-    #     This task is assigned to the fact checker agent and produces a markdown file
-    #     with verification of claims and sources.
-
-    #     Returns:
-    #         Task: Configured verification task from YAML configuration
-    #     """
-    #     # Create task config with dynamic topic
-    #     task_config = dict(self.tasks_config["verification_task"])
-    #     return Task(
-    #         config=task_config,
-    #         context=[self.research_task(), self.analysis_task()],  # This task depends on both previous tasks
-    #         verbose=True,
-    #         llm_timeout=300,
-    #     )
-
     @task
     @trace_task(tracer)
     def editing_task(self) -> Task:
@@ -227,7 +175,6 @@ class CompanyNewsCrew:
             context=[
                 self.research_task(),
                 self.analysis_task(),
-                # self.verification_task(),
             ],  # This task depends on all previous tasks
             verbose=True,
             llm_timeout=300,

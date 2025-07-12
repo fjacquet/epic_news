@@ -1,5 +1,7 @@
 """Pydantic models for the Web Presence crew."""
 
+from typing import Optional
+
 from pydantic import BaseModel, Field
 
 
@@ -15,15 +17,15 @@ class SocialMediaPresence(BaseModel):
     platform: str
     url: str
     followers: int
-    engagement_rate: float | None = None
+    engagement_rate: Optional[float] = None
     notes: str
 
 
 class TechnicalInfrastructure(BaseModel):
-    hosting_provider: str | None = None
-    dns_provider: str | None = None
-    cdn_provider: str | None = None
-    ssl_issuer: str | None = None
+    hosting_provider: Optional[str] = None
+    dns_provider: Optional[str] = None
+    cdn_provider: Optional[str] = None
+    ssl_issuer: Optional[str] = None
 
 
 class DataLeak(BaseModel):

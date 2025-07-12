@@ -1,7 +1,6 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 
-from epic_news.tools.utility_tools import get_reporting_tools
 from epic_news.tools.web_tools import get_news_tools, get_search_tools
 
 
@@ -12,19 +11,11 @@ class NewsDailyCrew:
     agents_config = "config/agents.yaml"
     tasks_config = "config/tasks.yaml"
 
-    def __init__(self) -> None:
-        self._init_tools()
-
-    def _init_tools(self):
-        """Initialize tools for the crew's agents."""
-        self.news_tools = get_news_tools() + get_search_tools()
-        self.reporting_tools = get_reporting_tools()
-
     @agent
     def news_researcher(self) -> Agent:
         return Agent(
             config=self.agents_config["news_researcher"],
-            tools=self.news_tools,
+            tools=get_news_tools() + get_search_tools(),
             verbose=True,
         )
 

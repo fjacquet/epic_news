@@ -8,6 +8,8 @@ PROJECT_ROOT=$(dirname "$SCRIPT_DIR")
 # Navigate to the project root
 cd "$PROJECT_ROOT" || { echo "Failed to navigate to project root: $PROJECT_ROOT"; exit 1; }
 
+export PYTHONPATH=$PYTHONPATH:$(pwd)/src
+
 echo "======================================================================"
 echo " EpicNews Test Suite & Coverage Report Runner"
 echo "======================================================================"

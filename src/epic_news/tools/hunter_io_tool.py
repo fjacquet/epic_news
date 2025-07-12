@@ -5,7 +5,7 @@ import os
 
 from crewai.tools import BaseTool
 from dotenv import load_dotenv
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from src.epic_news.models.email_search_models import HunterIOInput
 
@@ -22,16 +22,18 @@ class HunterIOTool(BaseTool):
     name: str = "hunter_io_search"
     description: str = "Find professional email addresses for a given domain using Hunter.io"
     args_schema: type[BaseModel] = HunterIOInput
-    searcher: EmailSearchTool = None
+    searcher: EmailSearchTool = Field(default=None, exclude=True)
 
-    def __init__(self, **data):
-        """Initialize with API key from environment."""
+    def __init__(self, searcher: EmailSearchTool = None, **data):
+        """Initialize with API key from environment or a searcher instance."""
         super().__init__(**data)
-        if self.searcher is None:
+        if searcher:
+            self.searcher = searcher
+        else:
             api_key = os.getenv("HUNTER_API_KEY")
             if not api_key:
                 raise ValueError("HUNTER_API_KEY environment variable not set")
-            self.searcher = EmailSearchTool(api_key)
+            self.searcher = EmailSearchTool(api_key=api_key)
 
     def _run(self, domain: str) -> str:
         """Search for emails using Hunter.io API."""

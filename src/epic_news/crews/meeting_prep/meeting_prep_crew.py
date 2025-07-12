@@ -7,117 +7,41 @@ from epic_news.tools.finance_tools import get_yahoo_finance_tools
 from epic_news.tools.report_tools import get_report_tools
 from epic_news.tools.web_tools import get_scrape_tools, get_search_tools
 
-# Load environment variables
 load_dotenv()
-
-
-# If you want to run a snippet of code before or after the crew starts,
-# you can use the @before_kickoff and @after_kickoff decorators
-# https://docs.crewai.com/concepts/crews#example-crew-class-with-decorators
 
 
 @CrewBase
 class MeetingPrepCrew:
-    """MeetingPrep crew for preparing comprehensive meeting briefings.
-
-    This crew coordinates multiple agents to research, analyze, and prepare
-    detailed meeting briefings for business meetings. It follows a sequential
-    process of research, product alignment, sales strategy development, and
-    final briefing preparation.
-
-    The crew leverages configuration-driven design with YAML files for agents and tasks,
-    and implements asynchronous execution where appropriate for optimal performance.
+    """
+    MeetingPrep crew for preparing comprehensive meeting briefings.
     """
 
-    # Configuration files for agents and tasks
     agents_config = "config/agents.yaml"
     tasks_config = "config/tasks.yaml"
 
-    # Output directory for meeting preparation documents
-    def __init__(self, meeting_details=None):
-        """
-        Initialize the MeetingPrepCrew and ensure output directory exists.
-
-        Args:
-            meeting_details: Dictionary containing meeting information (participants, topic, agenda, etc.)
-        """
-        # Use centralized path utility for consistent output directory handling
-
-        # Store inputs
-        self.meeting_details = meeting_details or {}
-
-        # Initialize crew inputs
-        self.topic = ""
-        self.sendto = ""
-        self.company = ""
-        self.participants = []  # List of meeting participants
-        self.context = ""
-        self.objective = ""
-        self.prior_interactions = ""
-
-        # Initialize tools
-        self._initialize_tools()
-
-    def _initialize_tools(self):
-        """Initialize all tools needed by the crew's agents.
-
-        This centralizes tool initialization to follow the DRY principle and
-        makes it easier to modify tool configurations in one place.
-        """
-        try:
-            # Get tools from centralized tool providers
-            self.search_tools = get_search_tools()
-            self.scrape_tools = get_scrape_tools()
-            self.finance_tools = get_yahoo_finance_tools()
-            self.report_tools = get_report_tools()
-
-            # Combine tools for agents that need all capabilities
-            self.all_research_tools = self.search_tools + self.scrape_tools + self.finance_tools
-
-            logger.info("Successfully initialized all tools for MeetingPrepCrew")
-        except Exception as e:
-            logger.error(f"Error initializing tools: {str(e)}")
-            # Provide fallback empty lists to prevent crew from failing completely
-            self.search_tools = []
-            self.scrape_tools = []
-            self.finance_tools = []
-            self.all_research_tools = []
-            raise
-
-    # Agent definitions with improved documentation
     @agent
     def lead_researcher_agent(self) -> Agent:
-        """Create a lead researcher agent responsible for gathering information.
-
-        This agent conducts comprehensive research about the meeting topic, company,
-        and participants to provide a solid foundation for the meeting preparation.
-
-        Returns:
-            Agent: Configured lead researcher agent with search and research tools
+        """
+        Create a lead researcher agent responsible for gathering information.
         """
         return Agent(
             config=self.agents_config["lead_researcher_agent"],
-            tools=self.all_research_tools,
+            tools=get_search_tools() + get_scrape_tools() + get_yahoo_finance_tools(),
             allow_delegation=False,
             reasoning=True,
             verbose=True,
             respect_context_window=True,
-            llm_timeout=300,  # Increased timeout for research tasks
+            llm_timeout=300,
         )
 
     @agent
     def product_specialist_agent(self) -> Agent:
-        """Create a product specialist agent for product-related analysis.
-
-        This agent analyzes how the company's products align with the meeting
-        objectives and the potential client's needs, providing valuable product insights.
-
-        Returns:
-            Agent: Configured product specialist agent with necessary tools
+        """
+        Create a product specialist agent for product-related analysis.
         """
         return Agent(
             config=self.agents_config["product_specialist_agent"],
-            tools=self.all_research_tools,
+            tools=get_search_tools() + get_scrape_tools() + get_yahoo_finance_tools(),
             allow_delegation=False,
             verbose=True,
             respect_context_window=True,
@@ -126,17 +50,12 @@ class MeetingPrepCrew:
 
     @agent
     def sales_strategist_agent(self) -> Agent:
-        """Create a sales strategist agent for developing sales approaches.
-
-        This agent develops strategic sales approaches based on the research
-        and product alignment information, focusing on persuasive techniques.
-
-        Returns:
-            Agent: Configured sales strategist agent with research tools
+        """
+        Create a sales strategist agent for developing sales approaches.
         """
         return Agent(
             config=self.agents_config["sales_strategist_agent"],
-            tools=self.all_research_tools,
+            tools=get_search_tools() + get_scrape_tools() + get_yahoo_finance_tools(),
             reasoning=True,
             verbose=True,
             respect_context_window=True,
@@ -145,17 +64,12 @@ class MeetingPrepCrew:
 
     @agent
     def briefing_coordinator_agent(self) -> Agent:
-        """Create a briefing coordinator agent to compile the final briefing.
-
-        This agent synthesizes all information from previous agents to create
-        a comprehensive, well-structured meeting briefing document.
-
-        Returns:
-            Agent: Configured briefing coordinator agent
+        """
+        Create a briefing coordinator agent to compile the final briefing.
         """
         return Agent(
             config=self.agents_config["briefing_coordinator_agent"],
-            tools=self.report_tools,
+            tools=get_report_tools(),
             verbose=True,
             respect_context_window=True,
             llm_timeout=180,
@@ -163,98 +77,63 @@ class MeetingPrepCrew:
 
     @task
     def research_task(self) -> Task:
-        """Define the research task for gathering meeting-related information.
-
-        This task is assigned to the lead researcher agent and is executed asynchronously
-        to efficiently gather information about the meeting topic, company, and participants.
-
-        Returns:
-            Task: Configured research task from YAML configuration
+        """
+        Define the research task for gathering meeting-related information.
         """
         return Task(
             config=self.tasks_config["research_task"],
             agent=self.lead_researcher_agent(),
-            async_execution=True,  # Enable async for I/O-bound research task
-            # context=self._get_task_context(),
+            async_execution=True,
         )
 
     @task
     def product_alignment_task(self) -> Task:
-        """Define the product alignment task for analyzing product fit.
-
-        This task is assigned to the product specialist agent and analyzes how
-        the company's products align with the meeting objectives and client needs.
-
-        Returns:
-            Task: Configured product alignment task from YAML configuration
+        """
+        Define the product alignment task for analyzing product fit.
         """
         return Task(
             config=self.tasks_config["product_alignment_task"],
-            async_execution=True,  # Enable async for parallel processing
+            async_execution=True,
         )
 
     @task
     def sales_strategy_task(self) -> Task:
-        """Define the sales strategy task for developing sales approaches.
-
-        This task is assigned to the sales strategist agent and develops
-        strategic sales approaches based on the research and product information.
-
-        Returns:
-            Task: Configured sales strategy task from YAML configuration
+        """
+        Define the sales strategy task for developing sales approaches.
         """
         return Task(
             config=self.tasks_config["sales_strategy_task"],
-            async_execution=True,  # Enable async for parallel processing
+            async_execution=True,
         )
 
     @task
     def meeting_preparation_task(self) -> Task:
-        """Define the meeting preparation task for creating the final briefing.
-
-        This task is assigned to the briefing coordinator agent and produces a
-        comprehensive JSON document with the complete meeting briefing.
-        This is the final task and must be synchronous per CrewAI framework requirements.
-
-        The task uses the outputs from the research_task, product_alignment_task,
-        and sales_strategy_task to create a comprehensive briefing.
-
-        Returns:
-            Task: Configured meeting preparation task from YAML configuration
         """
-
+        Define the meeting preparation task for creating the final briefing.
+        """
         return Task(
             config=self.tasks_config["meeting_preparation_task"],
             context=[
                 self.research_task(),
                 self.product_alignment_task(),
                 self.sales_strategy_task(),
-            ],  # Add all previous tasks as context
+            ],
         )
 
     @crew
     def crew(self) -> Crew:
-        """Creates the MeetingPrep crew with configured agents and tasks.
-
-        This method sets up the crew with all agents and tasks, configuring
-        the process to be sequential to ensure proper information flow between tasks.
-        Error handling is implemented to gracefully handle failures.
-
-        Returns:
-            Crew: Configured crew ready for execution
+        """
+        Creates the MeetingPrep crew with configured agents and tasks.
         """
         try:
-            logger.info(f"Creating MeetingPrep crew for topic: {self.topic}")
-
             return Crew(
-                agents=self.agents,  # Automatically created by the @agent decorator
-                tasks=self.tasks,  # Automatically created by the @task decorator
-                process=Process.sequential,  # Tasks must execute in order
+                agents=self.agents,
+                tasks=self.tasks,
+                process=Process.sequential,
                 verbose=True,
-                llm_timeout=300,  # Overall timeout for LLM operations
-                memory=True,  # Enable memory to share information between tasks
-                max_rpm=10,  # Rate limit API calls to avoid throttling
-                # process=Process.hierarchical could be used for more complex workflows
+                llm_timeout=300,
+                memory=True,
+                max_rpm=10,
             )
         except Exception as e:
             logger.error(f"Error creating MeetingPrep crew: {str(e)}")

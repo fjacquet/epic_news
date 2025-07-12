@@ -7,7 +7,6 @@ import json
 from pathlib import Path
 
 from epic_news.models.crews.meeting_prep_report import MeetingPrepReport
-from epic_news.utils.directory_utils import ensure_output_directory
 from epic_news.utils.html.meeting_prep_html_factory import meeting_prep_to_html
 
 
@@ -86,7 +85,7 @@ def test_meeting_prep_renderer():
     """Test the MeetingPrepRenderer by generating HTML from a sample report."""
     # Create output directory if it doesn't exist
     output_dir = Path("output/meeting")
-    ensure_output_directory(str(output_dir))
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     # Generate sample data
     meeting_prep_report = generate_sample_meeting_prep_data()

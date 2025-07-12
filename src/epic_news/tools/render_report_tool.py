@@ -19,7 +19,7 @@ from __future__ import annotations
 import datetime as _dt
 import os
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional, Union
 
 from crewai.tools import BaseTool
 from jinja2 import Environment, FileSystemLoader, select_autoescape  # type: ignore
@@ -49,7 +49,7 @@ class RenderReportTool(BaseTool):
     )
     args_schema: type[BaseModel] = RenderReportToolSchema
 
-    def __init__(self, template_dir: str | os.PathLike | None = None):
+    def __init__(self, template_dir: Optional[Union[str, os.PathLike]] = None):
         """Initialize the tool and set up the Jinja2 environment."""
         super().__init__()
         if template_dir:

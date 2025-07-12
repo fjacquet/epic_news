@@ -35,6 +35,7 @@ class SaintDailyCrew:
             config=self.agents_config["saint_researcher"],
             tools=research_tools,
             verbose=True,
+            respect_context_window=True,
         )
 
     @agent
@@ -43,6 +44,7 @@ class SaintDailyCrew:
             config=self.agents_config["saint_reporter"],
             tools=[],  # NO TOOLS = No action traces
             verbose=True,
+            respect_context_window=True,
         )
 
     @task
@@ -71,4 +73,5 @@ class SaintDailyCrew:
             tasks=self.tasks,
             process=Process.sequential,
             verbose=True,
+            respect_context_window=True,
         )

@@ -31,5 +31,4 @@ class ReceptionCrew:
             tasks=self.tasks,
             process=Process.sequential,
             verbose=True,
-            # process=Process.sequential, # In case you wanna use that instead https://docs.crewai.com/how-to/Hierarchical/
         )

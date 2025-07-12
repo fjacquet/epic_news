@@ -17,24 +17,18 @@ class SalesProspectingCrew:
     agents_config = "config/agents.yaml"
     tasks_config = "config/tasks.yaml"
 
-    def __init__(self) -> None:
-        self.read_tools = [FileReadTool(), DirectoryReadTool("output/sales_prospecting")]
-        self.report_tools = get_report_tools()
-        self.data_centric_tools = get_data_centric_tools()
-        self.serper_tool = SerperDevTool()
-        self.scrape_tool = ScrapeWebsiteTool()
-
     @agent
     def company_researcher(self) -> Agent:
         return Agent(
             config=self.agents_config["company_researcher"],
             tools=[
-                self.serper_tool,
-                self.scrape_tool,
-                *self.read_tools,
-                *self.report_tools,
-                *self.data_centric_tools,
-            ],
+                SerperDevTool(),
+                ScrapeWebsiteTool(),
+                FileReadTool(),
+                DirectoryReadTool("output/sales_prospecting"),
+            ]
+            + get_report_tools()
+            + get_data_centric_tools(),
             verbose=True,
             max_reasoning_attempts=5,
             respect_context_window=True,
@@ -45,12 +39,13 @@ class SalesProspectingCrew:
         return Agent(
             config=self.agents_config["org_structure_analyst"],
             tools=[
-                self.serper_tool,
-                self.scrape_tool,
-                *self.read_tools,
-                *self.report_tools,
-                *self.data_centric_tools,
-            ],
+                SerperDevTool(),
+                ScrapeWebsiteTool(),
+                FileReadTool(),
+                DirectoryReadTool("output/sales_prospecting"),
+            ]
+            + get_report_tools()
+            + get_data_centric_tools(),
             verbose=True,
             max_reasoning_attempts=5,
             respect_context_window=True,
@@ -61,12 +56,13 @@ class SalesProspectingCrew:
         return Agent(
             config=self.agents_config["contact_finder"],
             tools=[
-                self.serper_tool,
-                self.scrape_tool,
-                *self.read_tools,
-                *self.report_tools,
-                *self.data_centric_tools,
-            ],
+                SerperDevTool(),
+                ScrapeWebsiteTool(),
+                FileReadTool(),
+                DirectoryReadTool("output/sales_prospecting"),
+            ]
+            + get_report_tools()
+            + get_data_centric_tools(),
             verbose=True,
             max_reasoning_attempts=5,
             respect_context_window=True,
