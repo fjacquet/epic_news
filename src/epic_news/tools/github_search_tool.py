@@ -31,8 +31,11 @@ class GitHubSearchTool(BaseTool, GitHubBaseTool):
             raise ValueError("GITHUB_TOKEN environment variable not set")
 
         # Add headers to the data dict before calling super().__init__
-        if 'headers' not in data:
-            data['headers'] = {"Authorization": f"token {github_token}", "Accept": "application/vnd.github.v3+json"}
+        if "headers" not in data:
+            data["headers"] = {
+                "Authorization": f"token {github_token}",
+                "Accept": "application/vnd.github.v3+json",
+            }
 
         # Initialize the base classes
         super().__init__(**data)

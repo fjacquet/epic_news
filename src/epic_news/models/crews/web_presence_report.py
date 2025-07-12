@@ -1,4 +1,5 @@
 """Pydantic models for the Web Presence crew."""
+
 from typing import Optional
 
 from pydantic import BaseModel, Field

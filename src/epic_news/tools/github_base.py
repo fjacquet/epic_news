@@ -1,4 +1,5 @@
 """Base classes and common functionality for GitHub-related tools."""
+
 import re
 from typing import Optional
 

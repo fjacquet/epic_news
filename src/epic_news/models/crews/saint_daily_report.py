@@ -4,6 +4,7 @@ Pydantic model for Saint Daily data.
 This module defines the data structure for saint information used by
 SaintDailyCrew and consumed by HtmlDesignerCrew for report generation.
 """
+
 import json
 
 from pydantic import BaseModel, Field

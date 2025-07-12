@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 from crewai.tools import BaseTool
 from jinja2 import Environment, FileSystemLoader

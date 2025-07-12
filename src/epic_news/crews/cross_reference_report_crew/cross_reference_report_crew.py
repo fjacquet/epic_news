@@ -126,4 +126,3 @@ class CrossReferenceReportCrew:
             process=Process.sequential,
             verbose=True,
         )
-

@@ -171,6 +171,3 @@ class TechStackTool(BaseTool, BaseSearchTool):
                 analysis[category] = category_techs
 
         return analysis
-
-
-

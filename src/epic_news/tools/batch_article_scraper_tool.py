@@ -1,5 +1,4 @@
 import json
-from typing import Union
 
 from crewai.tools import BaseTool
 from loguru import logger

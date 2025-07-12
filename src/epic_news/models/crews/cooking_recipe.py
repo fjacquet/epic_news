@@ -1,9 +1,10 @@
 """Pydantic model for Paprika recipe format."""
+
 import json
 import re
-import yaml
 from typing import Optional
 
+import yaml
 from pydantic import BaseModel, Field
 
 

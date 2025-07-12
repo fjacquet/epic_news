@@ -109,4 +109,3 @@ def test_invalid_list_format(setup_tool_and_data):
     result_dict = json.loads(result)
     assert "error" in result_dict
     assert "Invalid input format for rss_feeds" in result_dict["error"]
-

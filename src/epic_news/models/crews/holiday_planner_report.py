@@ -4,6 +4,7 @@ Holiday Planner Models
 Pydantic models for holiday planner data structures.
 Based on the format_and_translate_guide task output structure.
 """
+
 import json
 from typing import Any, Optional, Union
 
@@ -111,7 +112,9 @@ class PracticalInformation(BaseModel):
     """Practical travel information."""
 
     packing_checklist: Optional[PackingChecklist] = Field(None, description="Categorized packing list")
-    safety_tips: Optional[list[str]] = Field(default_factory=list, description="Safety tips and local customs")
+    safety_tips: Optional[list[str]] = Field(
+        default_factory=list, description="Safety tips and local customs"
+    )
     emergency_contacts: Optional[list[EmergencyContact]] = Field(
         default_factory=list, description="Emergency contact numbers"
     )
@@ -119,7 +122,9 @@ class PracticalInformation(BaseModel):
         default_factory=list, description="Useful local phrases"
     )
     local_customs: Optional[list[str]] = Field(default_factory=list, description="Important local customs")
-    transportation_tips: Optional[list[str]] = Field(default_factory=list, description="Transportation advice")
+    transportation_tips: Optional[list[str]] = Field(
+        default_factory=list, description="Transportation advice"
+    )
 
 
 class MediaItem(BaseModel):

@@ -7,7 +7,6 @@ from loguru import logger
 from epic_news.models.crews.company_news_report import CompanyNewsReport
 from epic_news.utils.observability import get_observability_tools, trace_task
 
-
 # Load environment variables
 load_dotenv()
 

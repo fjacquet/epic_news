@@ -1,6 +1,5 @@
 import json
 import os
-import sys
 import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -347,6 +346,3 @@ class UnifiedRssTool(BaseTool):
         except Exception as e:
             logger.error(f"ScrapeNinjaTool failed for {url}: {str(e)}")
             return None
-
-
-

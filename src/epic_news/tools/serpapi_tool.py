@@ -149,6 +149,3 @@ class SerpApiTool(BaseTool):
             return json.dumps(
                 {"error": f"Unexpected error: {str(e)}", "query": query, "type": type(e).__name__}
             )
-
-
-
