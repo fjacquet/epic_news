@@ -1,4 +1,5 @@
 import os
+from typing import Optional
 
 import requests
 from crewai.tools import BaseTool
@@ -12,9 +13,9 @@ class GoogleFactCheckTool(BaseTool):
     name: str = "Google Fact Check"
     description: str = "Searches for fact-checked claims on a given query."
     args_schema: type[GoogleFactCheckInput] = GoogleFactCheckInput
-    api_key: str | None = None
+    api_key: Optional[str] = None
 
-    def __init__(self, api_key: str | None = None, **kwargs):
+    def __init__(self, api_key: Optional[str] = None, **kwargs):
         super().__init__(**kwargs)
         self.api_key = api_key or os.getenv("GOOGLE_API_KEY")
         if not self.api_key:

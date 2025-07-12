@@ -40,14 +40,17 @@ def setup_tool_and_data(mocker):
     }
 
 
-def test_run_with_pydantic_model(setup_tool_and_data):
-    """Test _run method with a Pydantic model input."""
+def test_run_with_valid_input(setup_tool_and_data):
+    """Test _run method with a valid list of feed dictionaries."""
     data = setup_tool_and_data
     tool = data["tool"]
     test_feeds = data["test_feeds"]
 
-    # Run the tool with a Pydantic model
-    result = tool._run(test_feeds)
+    # Convert Pydantic model to list of dicts
+    feeds_list = json.loads(test_feeds.model_dump_json())["rss_feeds"]
+
+    # Run the tool
+    result = tool._run(rss_feeds=feeds_list)
 
     # Verify the result is a valid JSON string
     result_dict = json.loads(result)
@@ -56,57 +59,9 @@ def test_run_with_pydantic_model(setup_tool_and_data):
 
     # Verify the ScrapeNinjaTool was called for each article
     assert tool.scrape_ninja_tool._run.call_count == 2
-
-
-def test_run_with_dict(setup_tool_and_data, mocker):
-    """Test _run method with a dictionary input."""
-    data = setup_tool_and_data
-    tool = data["tool"]
-    test_feeds = data["test_feeds"]
-    # Create a direct mock of the scrape_ninja_tool instance
-    tool.scrape_ninja_tool = mocker.MagicMock()
-    tool.scrape_ninja_tool._run.return_value = json.dumps({"content": "Test content"})
-
-    # Convert Pydantic model to dict
-    if hasattr(test_feeds, "model_dump_json"):
-        feeds_dict = json.loads(test_feeds.model_dump_json())
-    else:
-        feeds_dict = json.loads(test_feeds.json())
-
-    # Run the tool with a dictionary
-    result = tool._run(feeds_dict)
-
-    # Verify the result is a valid JSON string
-    result_dict = json.loads(result)
-    assert isinstance(result_dict, dict)
-    assert "rss_feeds" in result_dict
-
-    # Verify the ScrapeNinjaTool was called for each article
-    assert tool.scrape_ninja_tool._run.call_count == 2
-
-
-def test_run_with_json_string(setup_tool_and_data, mocker):
-    """Test _run method with a JSON string input."""
-    data = setup_tool_and_data
-    tool = data["tool"]
-    test_feeds = data["test_feeds"]
-    # Create a direct mock of the scrape_ninja_tool instance
-    tool.scrape_ninja_tool = mocker.MagicMock()
-    tool.scrape_ninja_tool._run.return_value = json.dumps({"content": "Test content"})
-
-    # Convert Pydantic model to JSON string
-    feeds_json = test_feeds.model_dump_json() if hasattr(test_feeds, "model_dump_json") else test_feeds.json()
-
-    # Run the tool with a JSON string
-    result = tool._run(feeds_json)
-
-    # Verify the result is a valid JSON string
-    result_dict = json.loads(result)
-    assert isinstance(result_dict, dict)
-    assert "rss_feeds" in result_dict
-
-    # Verify the ScrapeNinjaTool was called for each article
-    assert tool.scrape_ninja_tool._run.call_count == 2
+    # Verify content is scraped
+    scraped_feeds = RssFeeds.model_validate(result_dict)
+    assert scraped_feeds.rss_feeds[0].articles[0].content == "Test content"
 
 
 def test_error_handling(setup_tool_and_data, mocker):
@@ -118,8 +73,11 @@ def test_error_handling(setup_tool_and_data, mocker):
     tool.scrape_ninja_tool = mocker.MagicMock()
     tool.scrape_ninja_tool._run.side_effect = Exception("Test error")
 
+    # Convert Pydantic model to list of dicts
+    feeds_list = json.loads(test_feeds.model_dump_json())["rss_feeds"]
+
     # Run the tool
-    result = tool._run(test_feeds)
+    result = tool._run(rss_feeds=feeds_list)
 
     # Verify the result is a valid JSON string
     result_dict = json.loads(result)
@@ -133,17 +91,22 @@ def test_error_handling(setup_tool_and_data, mocker):
     assert articles[0].get("content") is None
 
 
-def test_invalid_input(setup_tool_and_data):
+def test_invalid_input_type(setup_tool_and_data):
     """Test handling of invalid input types."""
     data = setup_tool_and_data
     tool = data["tool"]
-    with pytest.raises(TypeError):
-        tool._run(123)  # Integer is not a valid input type
+    result = tool._run(rss_feeds=123)  # Integer is not a valid input type
+    result_dict = json.loads(result)
+    assert "error" in result_dict
+    assert "Invalid input format for rss_feeds" in result_dict["error"]
 
 
-def test_invalid_json(setup_tool_and_data):
-    """Test handling of invalid JSON string."""
+def test_invalid_list_format(setup_tool_and_data):
+    """Test handling of a list with incorrect format."""
     data = setup_tool_and_data
     tool = data["tool"]
-    with pytest.raises(ValueError, match="Invalid JSON input"):
-        tool._run("invalid json")
+    result = tool._run(rss_feeds=[{"invalid_key": "value"}])
+    result_dict = json.loads(result)
+    assert "error" in result_dict
+    assert "Invalid input format for rss_feeds" in result_dict["error"]
+

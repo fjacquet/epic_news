@@ -1164,9 +1164,8 @@ def kickoff(user_input: str | None = None):
     setup_logging()
     # If user_input is not provided, use a default value.
     request = (
-        user_input
-        if user_input
-        else "Generate a complete weekly menu planner with 30 recipes and shopping list for a family of 3 in French"
+        user_input if user_input else "Donne moi le saint du jour en français"
+        # else "Generate a complete weekly menu planner with 30 recipes and shopping list for a family of 3 in French"
         # else "Donne moi le saint du jour en français"
         # else "Generate a complete weekly menu planner with 30 recipes and shopping list for a family of 3 in French"
         # else "let's find a sales prospect at temenos  to sell our product : dell powerflex"

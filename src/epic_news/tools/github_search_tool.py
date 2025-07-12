@@ -21,7 +21,7 @@ class GitHubSearchTool(BaseTool, GitHubBaseTool):
     name: str = "github_search"
     description: str = "Search GitHub for repositories, code, issues, or users"
     args_schema: type[BaseModel] = GitHubSearchInput
-    headers: dict[str, str] = None
+    headers: dict
 
     def __init__(self, **data):
         """Initialize with GitHub token from environment."""
@@ -30,12 +30,13 @@ class GitHubSearchTool(BaseTool, GitHubBaseTool):
         if not github_token:
             raise ValueError("GITHUB_TOKEN environment variable not set")
 
-        # Initialize the base classes
-        BaseTool.__init__(self, **data)
-        GitHubBaseTool.__init__(self, api_key=github_token)
+        # Add headers to the data dict before calling super().__init__
+        if 'headers' not in data:
+            data['headers'] = {"Authorization": f"token {github_token}", "Accept": "application/vnd.github.v3+json"}
 
-        # Set up headers
-        self.headers = {"Authorization": f"token {github_token}", "Accept": "application/vnd.github.v3+json"}
+        # Initialize the base classes
+        super().__init__(**data)
+        GitHubBaseTool.__init__(self, api_key=github_token)
 
     def _run(self, query: str, search_type: str = "repositories", max_results: int = 5) -> str:
         """Search GitHub."""

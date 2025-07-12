@@ -8,7 +8,6 @@ from epic_news.tools.finance_tools import get_yahoo_finance_tools
 from epic_news.tools.html_to_pdf_tool import HtmlToPdfTool
 from epic_news.tools.report_tools import get_report_tools
 from epic_news.tools.scrape_ninja_tool import ScrapeNinjaTool
-from epic_news.utils.directory_utils import ensure_output_directory
 
 load_dotenv()
 
@@ -133,10 +132,6 @@ class CompanyProfilerCrew:
     @crew
     def crew(self) -> Crew:
         """Creates the Company Profiler crew"""
-        # Ensure output directory exists for final reports
-        ensure_output_directory("output/company_profiler")
-        ensure_output_directory("output/osint")
-
         # Implement the Two-Agent Pattern:
         # 1. Research tasks are assigned to company_researcher (with tools)
         # 2. Final output task is assigned to company_reporter (without tools)

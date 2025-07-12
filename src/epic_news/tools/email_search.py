@@ -53,32 +53,3 @@ class DelegatingEmailSearchTool(BaseTool):
 def get_email_search_tools() -> list[BaseTool]:
     """Returns a list of email search tools."""
     return [DelegatingEmailSearchTool()]
-
-
-# Example usage (optional, for testing the router)
-if __name__ == "__main__":
-    # Ensure .env is loaded if you're running this directly and API keys are needed
-    # from dotenv import load_dotenv
-    # load_dotenv() # Already called at the top
-
-    router_tool = DelegatingEmailSearchTool()
-
-    print("--- Testing Hunter.io via Router ---")
-    hunter_query = "hunter.io"  # A domain that should work
-    try:
-        hunter_result = router_tool._run(provider="hunter", query=hunter_query)
-        print(f"Hunter.io results for '{hunter_query}': {hunter_result}")
-    except Exception as e:
-        print(f"Error testing Hunter.io: {e}")
-
-    print("\n--- Testing Serper via Router ---")
-    serper_query = "Serper dev"  # A company name
-    try:
-        serper_result = router_tool._run(provider="serper", query=serper_query)
-        print(f"Serper results for '{serper_query}': {serper_result}")
-    except Exception as e:
-        print(f"Error testing Serper: {e}")
-
-    print("\n--- Testing Invalid Provider via Router ---")
-    invalid_provider_result = router_tool._run(provider="invalid_provider", query="test")
-    print(f"Invalid provider results: {invalid_provider_result}")

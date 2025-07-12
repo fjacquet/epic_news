@@ -48,5 +48,4 @@ class UniversalReportTool(BaseTool):
             return f"Error generating report: {str(e)}"
 
 
-# Create tool instance for easy import
-universal_report_tool = UniversalReportTool()
+

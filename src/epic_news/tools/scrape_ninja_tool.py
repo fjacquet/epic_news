@@ -1,5 +1,6 @@
 import json
 import os
+from typing import Optional
 
 import requests
 from crewai.tools import BaseTool
@@ -27,7 +28,7 @@ class ScrapeNinjaTool(BaseTool):
     name: str = "ScrapeNinja"
     description: str = "Scrapes website content using the ScrapeNinja API with advanced options"
     args_schema: type[BaseModel] = ScrapeNinjaInput
-    api_key: str | None = None
+    api_key: Optional[str] = None
 
     def __init__(self, **data):
         """Initialize with API key from environment."""
@@ -85,17 +86,3 @@ class ScrapeNinjaTool(BaseTool):
                 return json.dumps({"content": content})
         except Exception as e:
             return json.dumps({"error": f"Error scraping {kwargs['url']}: {str(e)}"})
-
-
-def test_scrapeninja():
-    """Test function with basic parameters"""
-    tool = ScrapeNinjaTool()
-    print("Testing basic ScrapeNinja functionality...")
-    result = tool._run(url="https://www.free.fr/freebox/")
-    print(f"Result: {result[:200]}..." if len(result) > 200 else f"Result: {result}")
-
-    print(f"Result: {result}")
-
-
-if __name__ == "__main__":
-    test_scrapeninja()

@@ -15,30 +15,16 @@ class FinDailyCrew:
     agents_config = "config/agents.yaml"
     tasks_config = "config/tasks.yaml"
 
-    def __init__(self) -> None:
-        self._init_tools()
-
-    # If you would like to add tools to your agents, you can learn more about it here:
-    # https://docs.crewai.com/concepts/agents#agent-tools
-
-    def _init_tools(self):
-        """Initialize tools for the crew's agents."""
-        self.stock_tools = get_stock_research_tools() + [
-            FileReadTool(),
-            DirectoryReadTool(),
-            ScrapeNinjaTool(),
-        ]
-        self.crypto_tools = get_crypto_research_tools() + [
-            KrakenAssetListTool(),
-            KrakenTickerInfoTool(),
-            ScrapeNinjaTool(),
-        ]
-
     @agent
     def stock_analyst(self) -> Agent:
         return Agent(
             config=self.agents_config["stock_analyst"],
-            tools=self.stock_tools,
+            tools=get_stock_research_tools()
+            + [
+                FileReadTool(),
+                DirectoryReadTool(),
+                ScrapeNinjaTool(),
+            ],
             llm="gpt-4.1-mini",
             verbose=True,
         )
@@ -47,7 +33,12 @@ class FinDailyCrew:
     def crypto_analyst(self) -> Agent:
         return Agent(
             config=self.agents_config["crypto_analyst"],
-            tools=self.crypto_tools,
+            tools=get_crypto_research_tools()
+            + [
+                KrakenAssetListTool(),
+                KrakenTickerInfoTool(),
+                ScrapeNinjaTool(),
+            ],
             llm="gpt-4.1-mini",
             verbose=True,
         )

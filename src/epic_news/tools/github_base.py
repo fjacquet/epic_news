@@ -1,4 +1,6 @@
 """Base classes and common functionality for GitHub-related tools."""
+import re
+from typing import Optional
 
 import requests
 from loguru import logger
@@ -9,10 +11,10 @@ from urllib3.util.retry import Retry
 class GitHubBaseTool:
     """Base class for GitHub tools with common functionality."""
 
-    api_key: str | None = None
-    session: requests.Session = None
+    api_key: Optional[str] = None
+    session: Optional[requests.Session] = None
 
-    def __init__(self, api_key: str = None, **data):
+    def __init__(self, api_key: Optional[str] = None, **data):
         """Initialize with API key and create a session."""
         # If api_key is not provided, try to get it from data
         if api_key is None and "api_key" in data:
@@ -37,7 +39,7 @@ class GitHubBaseTool:
         session.mount("https://", adapter)
         return session
 
-    def _make_request(self, method: str, url: str, **kwargs) -> requests.Response | None:
+    def _make_request(self, method: str, url: str, **kwargs) -> Optional[requests.Response]:
         """Make an HTTP request with error handling."""
         try:
             response = self.session.request(method, url, timeout=10, **kwargs)
@@ -47,10 +49,8 @@ class GitHubBaseTool:
             logger.error(f"GitHub API request failed: {e}")
             return None
 
-    def _extract_github_org_from_url(self, url: str) -> str | None:
+    def _extract_github_org_from_url(self, url: str) -> Optional[str]:
         """Extract organization name from GitHub URL."""
-        import re
-
         pattern = r"github\.com/(?:orgs/)?([^/]+)/?"
         match = re.search(pattern, url.lower())
         return match.group(1) if match else None

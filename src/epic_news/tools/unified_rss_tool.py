@@ -14,7 +14,6 @@ from pydantic import BaseModel, Field
 
 from epic_news.models.rss_models import Article, FeedWithArticles, RssFeeds
 from epic_news.tools.scrape_ninja_tool import ScrapeNinjaTool
-from epic_news.utils.directory_utils import ensure_output_directory
 
 
 class UnifiedRssToolInput(BaseModel):
@@ -128,7 +127,7 @@ class UnifiedRssTool(BaseTool):
                 # Ensure the directory exists
                 output_dir = os.path.dirname(output_file_path)
                 if output_dir:
-                    ensure_output_directory(output_dir)
+                    Path(output_dir).mkdir(parents=True, exist_ok=True)
 
                 # Write results to JSON file
                 with open(output_file_path, "w", encoding="utf-8") as f:
@@ -146,7 +145,7 @@ class UnifiedRssTool(BaseTool):
                 # Ensure the directory exists
                 invalid_sources_dir = os.path.dirname(invalid_sources_file_path)
                 if invalid_sources_dir:
-                    ensure_output_directory(invalid_sources_dir)
+                    Path(invalid_sources_dir).mkdir(parents=True, exist_ok=True)
 
                 with open(invalid_sources_file_path, "w", encoding="utf-8") as f:
                     json.dump(invalid_sources_data, f, ensure_ascii=False, indent=2)
@@ -350,58 +349,4 @@ class UnifiedRssTool(BaseTool):
             return None
 
 
-def get_default_paths():
-    """Get default paths for OPML input and JSON output."""
-    # Set default output paths if not provided
-    project_root = Path(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))))
-    output_dir = project_root / "output" / "rss_weekly"
-    ensure_output_directory(str(output_dir))
 
-    opml_path = str(project_root / "data" / "feedly.opml")
-    output_file_path = str(output_dir / "content.json")
-    invalid_sources_file_path = str(output_dir / "invalid_sources.json")
-
-    return opml_path, output_file_path, invalid_sources_file_path
-
-
-def main():
-    """Command-line interface for UnifiedRssTool."""
-    import argparse
-
-    # Get default paths
-    default_opml_path, default_output_path, default_invalid_sources_path = get_default_paths()
-
-    # Set up argument parser
-    parser = argparse.ArgumentParser(description="Unified RSS Tool")
-    parser.add_argument("--opml", type=str, default=default_opml_path, help="Path to OPML file")
-    parser.add_argument("--days", type=int, default=7, help="Number of days to look back")
-    parser.add_argument("--output", type=str, default=default_output_path, help="Output file path")
-    parser.add_argument(
-        "--invalid-sources",
-        type=str,
-        default=default_invalid_sources_path,
-        help="Invalid sources output file path",
-    )
-    parser.add_argument("--verbose", action="store_true", help="Enable verbose logging")
-    args = parser.parse_args()
-
-    # Set log level based on verbose flag
-    if args.verbose:
-        logger.remove()
-        logger.add(sys.stderr, level="DEBUG")
-
-    # Run the tool
-    tool = UnifiedRssTool()
-    result = tool._run(
-        opml_file_path=args.opml,
-        days_to_look_back=args.days,
-        output_file_path=args.output,
-        invalid_sources_file_path=args.invalid_sources,
-    )
-
-    logger.info(result)
-    return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())

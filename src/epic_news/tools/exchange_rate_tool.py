@@ -1,4 +1,5 @@
 import os
+from typing import Optional
 
 import requests
 from crewai.tools import BaseTool
@@ -14,14 +15,14 @@ class ExchangeRateTool(BaseTool):
         "Requires an OPENEXCHANGERATES_API_KEY environment variable."
     )
     args_schema: type[BaseModel] = ExchangeRateToolInput
-    api_key: str | None = None
+    api_key: Optional[str] = None
     base_url: str = "https://openexchangerates.org/api/latest.json"
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.api_key = os.getenv("OPENEXCHANGERATES_API_KEY")
 
-    def _run(self, base_currency: str = "USD", target_currencies: list[str] | None = None) -> str:
+    def _run(self, base_currency: str = "USD", target_currencies: Optional[list[str]] = None) -> str:
         if not self.api_key:
             return "Error: OPENEXCHANGERATES_API_KEY environment variable not set. Please get an API key from openexchangerates.org."
 
@@ -60,22 +61,3 @@ class ExchangeRateTool(BaseTool):
             return f"Request error occurred: {req_err}"
         except Exception as e:
             return f"An unexpected error occurred: {e}"
-
-
-if __name__ == "__main__":
-    # This is for basic manual testing.
-    # Ensure OPENEXCHANGERATES_API_KEY is set in your environment.
-    tool = ExchangeRateTool()
-
-    # Example 1: Get all rates for USD (default base)
-    # print(tool.run(target_currencies=None))
-
-    # Example 2: Get specific rates for USD base
-    # print(tool.run(target_currencies=["EUR", "CHF", "GBP"]))
-
-    # Example 3: Get specific rates for EUR base
-    # print(tool.run(base_currency="EUR", target_currencies=["USD", "CHF"]))
-
-    # Example 4: Error case - API key not set (manually unset for testing this)
-    # tool.api_key = None
-    # print(tool.run())

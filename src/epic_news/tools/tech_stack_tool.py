@@ -90,19 +90,13 @@ class TechStackTool(BaseTool, BaseSearchTool):
 
     def __init__(self, **data):
         """Initialize with API key from environment."""
+        super().__init__(**data)
         # Get API key from environment
-        api_key = os.getenv("SERPER_API_KEY")  # Changed to SERPER_API_KEY
-        if not api_key:
-            raise ValueError("SERPER_API_KEY environment variable not set")  # Changed to SERPER_API_KEY
-
-        # Store API key in data for BaseTool initialization
-        data["api_key"] = api_key
-
-        # Initialize BaseTool with the API key in data
-        BaseTool.__init__(self, **data)
-
+        self.api_key = os.getenv("SERPER_API_KEY")
+        if not self.api_key:
+            raise ValueError("SERPER_API_KEY environment variable not set")
         # Initialize BaseSearchTool with the API key
-        BaseSearchTool.__init__(self, api_key=api_key)
+        BaseSearchTool.__init__(self, api_key=self.api_key)
 
     def _run(self, domain: str, detailed: bool = False) -> str:
         """
@@ -179,5 +173,4 @@ class TechStackTool(BaseTool, BaseSearchTool):
         return analysis
 
 
-# For backward compatibility
-SearchStack = TechStackTool
+

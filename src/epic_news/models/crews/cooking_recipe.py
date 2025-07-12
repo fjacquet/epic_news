@@ -1,4 +1,8 @@
 """Pydantic model for Paprika recipe format."""
+import json
+import re
+import yaml
+from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -7,17 +11,17 @@ class PaprikaRecipe(BaseModel):
     """Defines the structure for a recipe compatible with Paprika 3 YAML format."""
 
     name: str = Field(..., description="The name of the recipe.")
-    servings: str | None = Field(None, description="Number of servings the recipe yields.")
-    source: str | None = Field(None, description="The original source of the recipe.")
-    source_url: str | None = Field(None, description="URL for the original recipe source.")
-    prep_time: str | None = Field(None, description="Preparation time.")
-    cook_time: str | None = Field(None, description="Cooking time.")
-    on_favorites: bool | None = Field(False, description="Whether the recipe is marked as a favorite.")
+    servings: Optional[str] = Field(None, description="Number of servings the recipe yields.")
+    source: Optional[str] = Field(None, description="The original source of the recipe.")
+    source_url: Optional[str] = Field(None, description="URL for the original recipe source.")
+    prep_time: Optional[str] = Field(None, description="Preparation time.")
+    cook_time: Optional[str] = Field(None, description="Cooking time.")
+    on_favorites: Optional[bool] = Field(False, description="Whether the recipe is marked as a favorite.")
     categories: list[str] = Field(default_factory=list, description="A list of categories for the recipe.")
-    nutritional_info: str | None = Field(None, description="Nutritional information.")
-    difficulty: str | None = Field(None, description="Difficulty level of the recipe.")
-    rating: int | None = Field(None, description="Rating of the recipe from 1 to 5.")
-    notes: str | None = Field(None, description="Additional notes about the recipe.")
+    nutritional_info: Optional[str] = Field(None, description="Nutritional information.")
+    difficulty: Optional[str] = Field(None, description="Difficulty level of the recipe.")
+    rating: Optional[int] = Field(None, description="Rating of the recipe from 1 to 5.")
+    notes: Optional[str] = Field(None, description="Additional notes about the recipe.")
     ingredients: str = Field(..., description="A block of text listing all ingredients.")
     directions: str = Field(..., description="A block of text with step-by-step directions.")
 
@@ -27,8 +31,6 @@ class PaprikaRecipe(BaseModel):
         ingredients_list = [line.strip() for line in self.ingredients.split("\n") if line.strip()]
 
         # Try to parse directions into numbered steps
-        import re
-
         directions_text = self.directions
         steps = re.split(r"\s*\d+\.\s+", directions_text)
         if steps and not steps[0].strip():
@@ -59,8 +61,6 @@ class PaprikaRecipe(BaseModel):
     @classmethod
     def from_yaml_string(cls, yaml_string: str) -> "PaprikaRecipe":
         """Create PaprikaRecipe instance from YAML string."""
-        import yaml
-
         try:
             data = yaml.safe_load(yaml_string)
             return cls(**data)
@@ -75,8 +75,6 @@ class PaprikaRecipe(BaseModel):
     @classmethod
     def from_json_string(cls, json_string: str) -> "PaprikaRecipe":
         """Create PaprikaRecipe instance from JSON string."""
-        import json
-
         try:
             data = json.loads(json_string)
             return cls(**data)
