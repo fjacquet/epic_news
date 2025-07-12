@@ -26,7 +26,8 @@ menu_planning_task:
     - Chaque recette doit être UNIQUE et clairement spécifiée
     - Noms de recettes précis et attractifs
     IMPORTANT: Ne PAS générer les recettes détaillées - seulement la structure du
-    menu avec les noms et descriptions des plats. Les recettes seront générées séparément.
+    menu avec les noms et descriptions des plats et leur information nutritionnelle.
+    Les recettes seront générées séparément.
   expected_output: >
     Un plan de menu hebdomadaire complet qui respecte SCRUPULEUSEMENT la structure
     du modèle Pydantic `WeeklyMenuPlan`.
