@@ -1,12 +1,13 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
-from crewai_tools import ScrapeWebsiteTool, SerperDevTool
+from crewai_tools import (
+    BraveSearchTool,
+    CodeInterpreterTool,
+    ScrapeWebsiteTool,
+    SerperDevTool,
+)
 
 from epic_news.models.crews.deep_research_report import DeepResearchReport
-
-# If you want to run a snippet of code before or after the crew starts,
-# you can use the @before_kickoff and @after_kickoff decorators
-# https://docs.crewai.com/concepts/crews#example-crew-class-with-decorators
 from epic_news.tools.scrape_ninja_tool import ScrapeNinjaTool
 from epic_news.tools.wikipedia_article_tool import WikipediaArticleTool
 from epic_news.tools.wikipedia_search_tool import WikipediaSearchTool
@@ -14,31 +15,44 @@ from epic_news.tools.wikipedia_search_tool import WikipediaSearchTool
 
 @CrewBase
 class DeepResearchCrew:
-    """DeepResearch crew for comprehensive internet research"""
+    """DeepResearch crew for comprehensive internet research with 6-agent architecture"""
 
     agents_config = "config/agents.yaml"
     tasks_config = "config/tasks.yaml"
 
-    # Learn more about YAML configuration files here:
-    # Agents: https://docs.crewai.com/concepts/agents#yaml-configuration-recommended
-    # Tasks: https://docs.crewai.com/concepts/tasks#yaml-configuration-recommended
+    code_interpreter = CodeInterpreterTool(default_image_tag="fjacquet/code-interpreter:latest")
 
+    # Research Strategist - Planning and methodology
     @agent
-    def primary_researcher(self) -> Agent:
-        """Primary researcher agent with web search and scraping tools."""
+    def research_strategist(self) -> Agent:
+        """Research strategist agent for planning and methodology."""
         return Agent(
-            config=self.agents_config["primary_researcher"],
-            tools=[
-                SerperDevTool(n_results=25, search_type="search"),
-                SerperDevTool(n_results=15, search_type="news"),
-                ScrapeNinjaTool(),
-                ScrapeWebsiteTool(),  # Backup scraping tool
-            ],
-            llm="gpt-4.1",
+            config=self.agents_config["research_strategist"],
+            tools=[],  # Strategic planning, no external tools needed
+            llm="gpt-4.1-mini",
             verbose=True,
             reasoning=True,
         )
 
+    # Information Collector - Web research and data collection
+    @agent
+    def information_collector(self) -> Agent:
+        """Information collector agent with web search and scraping tools."""
+        return Agent(
+            config=self.agents_config["information_collector"],
+            tools=[
+                BraveSearchTool(),
+                SerperDevTool(n_results=25, search_type="search"),
+                SerperDevTool(n_results=25, search_type="news"),
+                ScrapeNinjaTool(),
+                ScrapeWebsiteTool(),  # Backup scraping tool
+            ],
+            llm="gpt-4.1-mini",
+            verbose=True,
+            reasoning=True,
+        )
+
+    # Wikipedia Specialist - Encyclopedic research
     @agent
     def wikipedia_specialist(self) -> Agent:
         """Wikipedia specialist agent for encyclopedic research."""
@@ -48,81 +62,135 @@ class DeepResearchCrew:
                 WikipediaSearchTool(),
                 WikipediaArticleTool(),
             ],
-            llm="gpt-4.1-mini",
+            llm="gpt-4o",
             verbose=True,
             reasoning=True,
         )
 
+    # Data Analyst - Analysis and synthesis with Code Interpreter
     @agent
-    def content_analyst(self) -> Agent:
-        """Content analyst agent for synthesis and validation."""
+    def data_analyst(self) -> Agent:
+        """Data analyst agent for synthesis and quantitative analysis with Code Interpreter."""
         return Agent(
-            config=self.agents_config["content_analyst"],
-            tools=[
-                SerperDevTool(n_results=30, search_type="search"),  # For validation
-            ],
+            config=self.agents_config["data_analyst"],
+            tools=[self.code_interpreter],
             llm="gpt-4.1-mini",
+            verbose=True,
+            reasoning=True,
+            allow_code_execution=True,  # Enable Code Interpreter for real quantitative analysis
+        )
+
+    # Report Writer - Technical writing
+    @agent
+    def report_writer(self) -> Agent:
+        """Report writer agent for technical report creation."""
+        return Agent(
+            config=self.agents_config["report_writer"],
+            tools=[],  # Report writing, no external tools needed
+            llm="gpt-4o",
+            verbose=True,
+        )
+
+    # Quality Assurance - QA and editorial review
+    @agent
+    def quality_assurance(self) -> Agent:
+        """Quality assurance agent for editorial review and fact-checking."""
+        return Agent(
+            config=self.agents_config["quality_assurance"],
+            tools=[],  # QA and editing, no external tools needed
+            llm="gpt-4o",
             verbose=True,
             reasoning=True,
         )
 
-    @agent
-    def report_generator(self) -> Agent:
-        """Report generator agent for final HTML report creation."""
-        return Agent(
-            config=self.agents_config["report_generator"],
-            llm="gpt-4.1-mini",
-            verbose=True,
-        )
-
+    # Task 1: Research Planning
     @task
-    def primary_research_task(self) -> Task:
-        """Primary web research task."""
+    def research_planning_task(self) -> Task:
+        """Research planning and methodology task."""
         return Task(
-            config=self.tasks_config["primary_research_task"],
+            config=self.tasks_config["research_planning_task"],
             verbose=True,
         )
 
+    # Task 2: Information Collection
+    @task
+    def information_collection_task(self) -> Task:
+        """Information collection task."""
+        return Task(
+            config=self.tasks_config["information_collection_task"],
+            verbose=True,
+            context=[
+                self.research_planning_task(),
+            ],
+        )
+
+    # Task 3: Wikipedia Research
     @task
     def wikipedia_research_task(self) -> Task:
         """Wikipedia research task."""
         return Task(
             config=self.tasks_config["wikipedia_research_task"],
             verbose=True,
+            context=[
+                self.research_planning_task(),
+                self.information_collection_task(),
+            ],
         )
 
+    # Task 4: Data Analysis
     @task
-    def content_analysis_task(self) -> Task:
-        """Content analysis and synthesis task."""
+    def data_analysis_task(self) -> Task:
+        """Data analysis and synthesis task."""
         return Task(
-            config=self.tasks_config["content_analysis_task"],
+            config=self.tasks_config["data_analysis_task"],
             verbose=True,
             context=[
-                self.primary_research_task(),
+                self.research_planning_task(),
+                self.information_collection_task(),
                 self.wikipedia_research_task(),
             ],
         )
 
+    # Task 5: Report Writing
     @task
-    def final_report_generation_task(self) -> Task:
-        """Final report generation task with Pydantic output."""
+    def report_writing_task(self) -> Task:
+        """Report writing task."""
         return Task(
-            config=self.tasks_config["final_report_generation_task"],
+            config=self.tasks_config["report_writing_task"],
             verbose=True,
             context=[
-                self.primary_research_task(),
+                self.research_planning_task(),
+                self.information_collection_task(),
                 self.wikipedia_research_task(),
-                self.content_analysis_task(),
+                self.data_analysis_task(),
+            ],
+        )
+
+    # Task 6: Quality Assurance (Final)
+    @task
+    def quality_assurance_task(self) -> Task:
+        """Quality assurance and final validation task."""
+        return Task(
+            config=self.tasks_config["quality_assurance_task"],
+            verbose=True,
+            context=[
+                self.research_planning_task(),
+                self.information_collection_task(),
+                self.wikipedia_research_task(),
+                self.data_analysis_task(),
+                self.report_writing_task(),
             ],
             output_pydantic=DeepResearchReport,
         )
 
     @crew
     def crew(self) -> Crew:
-        """Creates the DeepResearch crew with 4-agent workflow."""
+        """Creates the DeepResearch crew with 6-agent sequential process."""
         return Crew(
-            agents=self.agents,  # Automatically created by the @agent decorator
-            tasks=self.tasks,  # Automatically created by the @task decorator
+            agents=self.agents,
+            tasks=self.tasks,  # Automatically created from the tasks above
             process=Process.sequential,
+            manager_llm="gpt-4.1-nano",
             verbose=True,
+            planning=True,
         )

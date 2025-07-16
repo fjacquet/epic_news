@@ -53,6 +53,7 @@ dependencies = [
     "faker>=37.4.0",
     "pytest-mock>=3.14.1",
     "loguru>=0.7.3",
+    "scipy>=1.15.3",
 ]
 
 [project.scripts]

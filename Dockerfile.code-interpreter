@@ -1,0 +1,36 @@
+
+# Use a specific, lightweight Python runtime as a base image for stability
+FROM python:3.12-slim-bookworm
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Install system dependencies required by some Python packages (e.g., matplotlib, lxml)
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    build-essential \
+    libgl1-mesa-glx \
+    && rm -rf /var/lib/apt/lists/* \
+    && python -m pip install --no-cache-dir uv
+
+# Copy pyproject.toml and (optionally) poetry.lock/uv.lock if you use them
+# Copying these before installing allows Docker's layer caching to optimize builds
+COPY pyproject.toml .
+# If you use 'uv' to manage a lock file (uv.lock), copy that too for exact reproducibility
+# COPY uv.lock .
+
+# Install the required Python packages based on pyproject.toml
+# 'uv sync' installs dependencies based on pyproject.toml (and optionally a lock file)
+RUN uv sync  
+
+# Copy your application code into the container
+COPY src/ ./src/
+# Or if all your code is in the root, just:
+# COPY . .
+# Add the alias to .bashrc for interactive sessions
+# Ensure that the alias is available for interactive shells
+RUN echo "alias python='uv run python'" >> /root/.bashrc && \
+    echo "alias python='uv run python'" >> /etc/bash.bashrc # for system-wide applicability if needed
+
+# Command to run when the container starts
+CMD ["/bin/bash"]

@@ -66,9 +66,10 @@ from epic_news.models.crews.meeting_prep_report import MeetingPrepReport
 from epic_news.models.crews.poem_report import PoemJSONOutput
 from epic_news.models.crews.saint_daily_report import SaintData
 from epic_news.models.crews.sales_prospecting_report import SalesProspectingReport
-from epic_news.utils.data_normalization import normalize_sales_prospecting_report
+from epic_news.utils.content_extractors import ContentExtractorFactory
 
 # Import the normalization utility
+from epic_news.utils.data_normalization import normalize_sales_prospecting_report
 from epic_news.utils.debug_utils import (
     dump_crewai_state,
     parse_crewai_output,
@@ -91,6 +92,7 @@ from epic_news.utils.html.recipe_html_factory import recipe_to_html
 from epic_news.utils.html.saint_html_factory import saint_to_html
 from epic_news.utils.html.sales_prospecting_html_factory import sales_prospecting_report_to_html
 from epic_news.utils.html.shopping_advice_html_factory import shopping_advice_to_html
+from epic_news.utils.html.template_manager import TemplateManager
 from epic_news.utils.logger import setup_logging
 from epic_news.utils.menu_generator import MenuGenerator
 from epic_news.utils.observability import get_observability_tools, trace_task
@@ -921,29 +923,47 @@ class ReceptionFlow(Flow[ContentState]):
         Sets `output_file` to `output/deep_research/report.html` and stores the report
         in `self.state.deep_research_report`.
         """
-        self.state.output_file = "output/deep_research/report.json"
+        output_file = "output/deep_research/report.json"
+        html_file = "output/deep_research/report.html"
+        self.state.output_file = output_file
         topic = self.state.to_crew_inputs().get("topic", "N/A")
         self.logger.info(f"🔍 Generating deep research report for: {topic}")
 
         # Prepare inputs for the crew
         inputs = self.state.to_crew_inputs()
         inputs["current_date"] = datetime.datetime.now().strftime("%Y-%m-%d")
-        inputs["output_file"] = "output/deep_research/report.json"
+        inputs["output_file"] = output_file
 
         # Kick off the crew
         report_content = DeepResearchCrew().crew().kickoff(inputs=inputs)
         dump_crewai_state(report_content, "DEEP_RESEARCH")
-        html_file = "output/deep_research/report.html"
 
         # Parse the Pydantic output and store in state
-
         research_report_model = parse_crewai_output(report_content, DeepResearchReport, inputs)
         self.state.deep_research_report = research_report_model
 
-        # Generate HTML report
-        from epic_news.utils.html.deep_research_html_factory import deep_research_to_html
+        # Use modern ContentExtractorFactory and TemplateManager architecture
+        state_data = {
+            "deep_research_report": research_report_model,
+            "final_report": str(report_content),
+            "user_request": self.state.user_request,
+            "current_date": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        }
 
-        deep_research_to_html(research_report_model, html_file)
+        # Extract structured content using ContentExtractorFactory
+        extracted_content = ContentExtractorFactory.extract_content(state_data, "DEEPRESEARCH")
+
+        # Generate HTML using TemplateManager
+        template_manager = TemplateManager()
+        html_content = template_manager.render_report(
+            selected_crew="DEEPRESEARCH", content_data=extracted_content
+        )
+
+        # Write HTML to file
+        os.makedirs(os.path.dirname(html_file), exist_ok=True)
+        with open(html_file, "w", encoding="utf-8") as f:
+            f.write(html_content)
+
         self.logger.info(f"✅ Deep research report generated and HTML written to {html_file}")
 
     @listen("go_generate_osint")
@@ -1204,7 +1224,9 @@ def kickoff(user_input: str | None = None):
     setup_logging()
     # If user_input is not provided, use a default value.
     request = (
-        user_input if user_input else "conduct a deep research on apache tomcat state and roadmap"
+        user_input
+        if user_input
+        else "conduct a deep research on apache tomcat life cycle, development state and roadmap"
         # else "conduct a deep research on nutanix technologies for the cloud native"
         # else "Generate a complete weekly menu planner with 30 recipes and shopping list for a family of 3 in French"
         # else "Donne moi le saint du jour en français"

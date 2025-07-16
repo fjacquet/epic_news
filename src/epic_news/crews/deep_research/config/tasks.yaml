@@ -1,90 +1,126 @@
-primary_research_task:
+research_planning_task:
   description: >
-    Effectuer une recherche web approfondie sur {topic} en utilisant les outils de recherche
-    et de scraping disponibles. Rechercher les informations les plus récentes et pertinentes,
-    en tenant compte que nous sommes en {current_date}.
-    
-    Concentrez-vous sur :
-    - Les développements récents et actualités
-    - Les tendances actuelles
-    - Les sources fiables et officielles
-    - Les données factuelles vérifiables
+    Élaborer un protocole de recherche de niveau doctoral pour une analyse approfondie de {topic}.
+    Définir la problématique, formuler des hypothèses de recherche claires, et concevoir
+    une méthodologie robuste incluant les cadres théoriques et analytiques. Anticiper
+    les biais potentiels et définir des stratégies de mitigation.
   expected_output: >
-    Une liste détaillée de 15-20 points clés avec les sources web les plus pertinentes
-    sur {topic}, incluant les URLs et un résumé de chaque source.
-  agent: primary_researcher
-  async_execution: true 
+    Un protocole de recherche détaillé et rigoureux (format académique) :
+    - Problématique, questions de recherche et hypothèses.
+    - Revue de la littérature existante (cadre théorique).
+    - Méthodologie détaillée (approche qualitative, quantitative ou mixte).
+    - Stratégie d'échantillonnage et de collecte de données.
+    - Plan d'analyse des données.
+    - Analyse des risques et des limitations méthodologiques.
+    - Bibliographie préliminaire.
+  agent: research_strategist
+  async_execution: false
+
+information_collection_task:
+  description: >
+    Exécuter le protocole de recherche en collectant de manière exhaustive les données
+    primaires et secondaires sur {topic}. Prioriser les sources académiques, les
+    publications évaluées par les pairs, les rapports d'experts et les bases de données
+    statistiques. Documenter chaque source de manière méticuleuse.
+  expected_output: >
+    Un corpus de recherche structuré et une bibliographie annotée :
+    - Un ensemble complet de données brutes (articles, statistiques, etc.).
+    - Une bibliographie annotée détaillée pour chaque source, incluant un résumé,
+      une évaluation de la crédibilité et sa pertinence par rapport aux hypothèses.
+    - Une synthèse des données collectées, identifiant les convergences, les
+      divergences et les lacunes informationnelles.
+  agent: information_collector
+  context:
+    - research_planning_task
+  async_execution: false
 
 wikipedia_research_task:
   description: >
-    Effectuer une recherche encyclopédique complète sur {topic} en utilisant Wikipedia.
-    Extraire les informations factuelles, historiques et contextuelles essentielles
-    en tenant compte que nous sommes en {current_date}
-    
-    Concentrez-vous sur :
-    - Les définitions et concepts fondamentaux
-    - L'historique et l'évolution
-    - Les données factuelles et statistiques
-    - Les liens et références vers des sujets connexes
+    Synthétiser les connaissances encyclopédiques sur {topic} à partir de Wikipedia
+    pour établir un socle factuel et contextuel. Analyser l'historique, les concepts
+    clés et l'état de l'art pour enrichir l'analyse principale. Identifier les controverses
+    et les guerres d'édition pour évaluer la stabilité du consensus.
   expected_output: >
-    Un résumé encyclopédique structuré de {topic} avec les informations factuelles
-    clés, les dates importantes, et les concepts connexes, avec références Wikipedia.
+    Une synthèse encyclopédique critique :
+    - Résumé approfondi des connaissances factuelles établies.
+    - Analyse chronologique et contextuelle de l'évolution du sujet.
+    - Identification des concepts fondamentaux et des théories associées.
+    - Évaluation des lacunes et des controverses présentes dans la littérature
+      encyclopédique.
   agent: wikipedia_specialist
+  context:
+    - research_planning_task
+    - information_collection_task
   async_execution: false
 
-content_analysis_task:
+data_analysis_task:
   description: >
-    Analyser et synthétiser toutes les informations collectées par les équipes de recherche
-    web et Wikipedia sur {topic}. Identifier les thèmes principaux, valider la cohérence
-    des informations, et structurer le contenu de manière logique.
-    
-    Effectuer :
-    - Validation croisée des sources
-    - Identification des thèmes principaux
-    - Structuration logique du contenu
-    - Évaluation de la fiabilité des informations
+    Mener une analyse critique et approfondie du corpus de données sur {topic}.
+    Appliquer les méthodes d'analyse définies dans le protocole pour tester les
+    hypothèses. Utiliser l'interpréteur de code pour des analyses quantitatives,
+    des modélisations statistiques et des visualisations de données complexes.
+    IMPORTANT: Le code Python généré doit être propre, sans indentation superflue, 
+    et directement exécutable. Ne pas inclure le code dans des blocs de démarques.
+    le code python peut etre lancé avec uv run python "python_script.py"
   expected_output: >
-    Une analyse structurée des informations sur {topic} organisée par thèmes principaux,
-    avec évaluation de la fiabilité et recommandations pour le rapport final.
-  agent: content_analyst
+    Une analyse de données de niveau recherche avec interprétations :
+    - Validation ou réfutation des hypothèses avec preuves à l'appui.
+    - Analyse statistique détaillée avec tests de significativité (p-values, etc.).
+    - Visualisations de données (graphiques, cartes) pour illustrer les résultats.
+    - Identification de corrélations non triviales et de relations de causalité potentielles.
+    - Scripts d'analyse reproductibles (Python/R) générés via l'interpréteur de code.
+    - Interprétation des résultats à la lumière du cadre théorique.
+  agent: data_analyst
   context:
-    - primary_research_task
+    - research_planning_task
+    - information_collection_task
     - wikipedia_research_task
   async_execution: false
 
-final_report_generation_task:
+report_writing_task:
   description: >
-    Créer un rapport de recherche approfondie professionnel et complet en français sur {topic}.
-    Le rapport doit être structuré, informatif et visuellement attrayant avec des émojis appropriés.
-    
-    IMPORTANT: Votre sortie doit être un JSON valide qui correspond exactement au modèle DeepResearchReport.
-    
-    Le JSON doit contenir :
-    - "title": Un titre accrocheur pour le rapport
-    - "topic": Le sujet de recherche
-    - "executive_summary": Un résumé exécutif détaillé
-    - "key_findings": Une liste de 5-7 découvertes clés (array de strings)
-    - "research_sections": Une liste de sections thématiques détaillées (array d'objets)
-    - "methodology": La méthodologie de recherche utilisée
-    - "sources_count": Le nombre total de sources consultées (integer)
-    - "report_date": La date de génération du rapport
-    - "confidence_level": Le niveau de confiance global ("High", "Medium", ou "Low")
-    
-    Chaque section dans "research_sections" doit avoir :
-    - "section_title": Titre de la section
-    - "content": Contenu détaillé de la section
-    - "sources": Liste des sources (array d'objets avec title, url, source_type, summary, relevance_score)
-    
-    Utilisez un ton professionnel mais accessible, avec des émojis pour améliorer
-    la lisibilité. Toutes les informations doivent être en français.
+    Rédiger un rapport de recherche de niveau publication sur {topic}, en suivant
+    la structure IMRaD (Introduction, Méthodes, Résultats et Discussion). Intégrer
+    les analyses de manière fluide et argumentée. Le rapport doit être clair,
+    logique et apporter une contribution originale à la compréhension du sujet.
   expected_output: >
-    Un JSON valide et complet correspondant exactement au modèle DeepResearchReport,
-    contenant un rapport de recherche approfondie professionnel en français sur {topic}.
-    Le JSON doit être bien formé, sans erreurs de syntaxe, et prêt à être parsé.
-  agent: report_generator
+    Une ébauche de rapport de recherche de type article scientifique (HTML) :
+    - Résumé (Abstract) : Problématique, méthodes, résultats clés, conclusion.
+    - Introduction : Contexte, revue de littérature, problématique, hypothèses.
+    - Méthodologie : Description détaillée des méthodes de collecte et d'analyse.
+    - Résultats : Présentation neutre des découvertes, avec figures et tableaux.
+    - Discussion : Interprétation des résultats, comparaison avec la littérature,
+      implications, limites de l'étude.
+    - Conclusion : Résumé des contributions, pistes de recherche futures.
+    - Bibliographie exhaustive au format académique (ex: APA, MLA).
+  agent: report_writer
   context:
-    - primary_research_task
+    - research_planning_task
+    - information_collection_task
     - wikipedia_research_task
-    - content_analysis_task
+    - data_analysis_task
+  async_execution: false
+
+quality_assurance_task:
+  description: >
+    Effectuer une relecture critique du rapport de recherche, simulant un processus
+    d'évaluation par les pairs. Vérifier la validité scientifique, la rigueur
+    méthodologique, la cohérence de l'argumentation et la clarté de l'expression.
+    Assurer que le rapport final est exempt d'erreurs et prêt pour publication.
+  expected_output: >
+    Un rapport final validé, prêt pour publication, et un rapport de relecture :
+    - Rapport HTML final poli, sans erreurs factuelles ou typographiques.
+    - Vérification de la robustesse des preuves et de la logique argumentative.
+    - Validation de la conformité aux normes de citation et de formatage.
+    - Critique constructive sur la clarté, l'impact et l'originalité.
+    - Rapport de validation listant toutes les modifications et justifications,
+      similaire à une réponse aux évaluateurs.
+  agent: quality_assurance
+  context:
+    - research_planning_task
+    - information_collection_task
+    - wikipedia_research_task
+    - data_analysis_task
+    - report_writing_task
   async_execution: false
   output_file: "{output_file}"

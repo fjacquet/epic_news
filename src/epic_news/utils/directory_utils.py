@@ -30,26 +30,27 @@ def ensure_output_directories():
 
     # Crew-specific output directories - comprehensive list based on codebase analysis
     output_subdirs = [
-        "meeting",
-        "lead_scoring",
+        "company_profiler",
         "contact_finder",
         "cooking",
-        "library",
-        "poem",
+        "deep_research",
         "email",
-        "holiday",
-        "marketing",
-        "shopping_advisor",
-        "menu_designer",
-        "tech_stack",
-        "legal_analysis",
-        "hr_intelligence",
-        "web_presence",
-        "company_profiler",
         "geospatial_analysis",
-        "osint",
-        "travel_guides",  # For holiday planner
+        "holiday",
+        "hr_intelligence",
         "html_designer",  # For professional HTML report generation
+        "lead_scoring",
+        "legal_analysis",
+        "library",
+        "marketing",
+        "meeting",
+        "menu_designer",
+        "osint",
+        "poem",
+        "shopping_advisor",
+        "tech_stack",
+        "travel_guides",  # For holiday planner
+        "web_presence",
     ]
 
     # Create all output subdirectories

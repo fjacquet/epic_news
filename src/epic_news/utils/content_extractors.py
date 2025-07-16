@@ -12,6 +12,7 @@ from typing import Any
 from loguru import logger
 
 from epic_news.models.crews.cooking_recipe import PaprikaRecipe
+from epic_news.models.crews.deep_research import DeepResearchReport
 from epic_news.models.crews.financial_report import FinancialReport
 from epic_news.models.crews.rss_weekly_report import RssWeeklyReport
 from epic_news.models.crews.saint_daily_report import SaintData
@@ -358,15 +359,60 @@ class RssWeeklyExtractor(ContentExtractor):
             }
 
 
+class DeepResearchExtractor(ContentExtractor):
+    """Extractor for DEEPRESEARCH crew content."""
+
+    def extract(self, state_data: dict[str, Any]) -> dict[str, Any]:
+        """Extract deep research report data using DeepResearchReport Pydantic model."""
+        logger.info("Extracting deep research report data")
+
+        # Get the deep research report from state data
+        deep_research_report = state_data.get("deep_research_report")
+
+        if isinstance(deep_research_report, DeepResearchReport):
+            logger.info("Found DeepResearchReport Pydantic model in state data")
+            return {"deep_research_model": deep_research_report}
+
+        # Fallback: try to parse from raw output if available
+        raw_output = state_data.get("final_report", "")
+        if raw_output:
+            try:
+                # Try to parse as JSON if it's structured data
+                import json
+
+                if raw_output.strip().startswith("{"):
+                    parsed_data = json.loads(raw_output)
+                    deep_research_model = DeepResearchReport(**parsed_data)
+                    logger.info("Successfully parsed DeepResearchReport from JSON")
+                    return {"deep_research_model": deep_research_model}
+            except (json.JSONDecodeError, ValueError, TypeError) as e:
+                logger.warning(f"Failed to parse deep research report as JSON: {e}")
+
+        # Final fallback: create minimal report structure
+        logger.warning("Creating minimal DeepResearchReport from available data")
+        minimal_report = DeepResearchReport(
+            title=state_data.get("user_request", "Recherche Approfondie"),
+            executive_summary="Rapport de recherche généré automatiquement.",
+            methodology="Recherche documentaire et analyse multi-sources.",
+            conclusions=raw_output[:500] if raw_output else "Aucune conclusion disponible.",
+            research_sections=[],
+            key_findings=["Données en cours de traitement"],
+            recommendations=["Analyse approfondie recommandée"],
+            sources=[],
+        )
+
+        return {"deep_research_model": minimal_report}
+
+
 class GenericExtractor(ContentExtractor):
     """Generic extractor for unknown crew types."""
 
     def extract(self, state_data: dict[str, Any]) -> dict[str, Any]:
         """Extract generic content data."""
         return {
-            "content": state_data.get("content", str(state_data)),
-            "summary": state_data.get("summary", ""),
-            "title": state_data.get("title", ""),
+            "content": state_data.get("final_report", ""),
+            "topic": state_data.get("user_request", ""),
+            "generation_date": state_data.get("current_date", ""),
         }
 
 
@@ -382,6 +428,7 @@ class ContentExtractorFactory:
         "SHOPPING": ShoppingExtractor,
         "FINDAILY": FinancialExtractor,
         "RSS_WEEKLY": RssWeeklyExtractor,
+        "DEEPRESEARCH": DeepResearchExtractor,
     }
 
     @classmethod
