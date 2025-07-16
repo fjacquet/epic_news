@@ -29,6 +29,15 @@ This document outlines the development roadmap, current tasks, and a history of 
 
 ### Q3 2025
 
+- **DeepResearchCrew Integration (July 2025):**
+  - **Complete 4-Agent Architecture:** Implemented comprehensive DeepResearchCrew with primary_researcher, wikipedia_specialist, content_analyst, and report_generator agents.
+  - **Tool Integration:** Integrated SerperDevTool, ScrapeNinjaTool, WikipediaSearchTool, and WikipediaArticleTool for comprehensive internet research.
+  - **Pydantic Models:** Created DeepResearchReport with nested ResearchSource and ResearchSection models for structured output.
+  - **Main Flow Integration:** Added DEEPRESEARCH classification and routing in main.py with proper state management.
+  - **HTML Rendering:** Implemented DeepResearchRenderer and HTML factory for professional French report generation.
+  - **Configuration-Driven:** Updated agents.yaml and tasks.yaml with French language roles, goals, and async execution support.
+  - **Template System:** Integrated with universal template system and RendererFactory for consistent HTML output.
+
 - **Menu Designer Integration & Recipe Generation (July 2025):**
   - **End-to-End Workflow:** Successfully implemented complete menu planning to recipe generation integration with 30 recipes generated from weekly menu plans.
   - **Menu Parser Fix:** Updated `MenuGenerator.parse_menu_structure()` to handle new 'dishes' array format while maintaining backward compatibility with old starter/main_course/dessert structure.

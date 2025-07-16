@@ -62,6 +62,7 @@ class TemplateManager:
             "RSS": "📡 Synthèse RSS Hebdomadaire",
             "SALES_PROSPECTING": "💼 Prospection Commerciale",
             "OPEN_SOURCE_INTELLIGENCE": "🔍 Intelligence Open Source",
+            "DEEPRESEARCH": "🔬 Recherche Approfondie",
         }
 
         base_title = crew_titles.get(selected_crew, f"📄 Rapport {selected_crew}")

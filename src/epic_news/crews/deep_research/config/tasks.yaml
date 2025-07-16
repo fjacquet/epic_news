@@ -1,0 +1,90 @@
+primary_research_task:
+  description: >
+    Effectuer une recherche web approfondie sur {topic} en utilisant les outils de recherche
+    et de scraping disponibles. Rechercher les informations les plus récentes et pertinentes,
+    en tenant compte que nous sommes en {current_date}.
+    
+    Concentrez-vous sur :
+    - Les développements récents et actualités
+    - Les tendances actuelles
+    - Les sources fiables et officielles
+    - Les données factuelles vérifiables
+  expected_output: >
+    Une liste détaillée de 15-20 points clés avec les sources web les plus pertinentes
+    sur {topic}, incluant les URLs et un résumé de chaque source.
+  agent: primary_researcher
+  async_execution: true 
+
+wikipedia_research_task:
+  description: >
+    Effectuer une recherche encyclopédique complète sur {topic} en utilisant Wikipedia.
+    Extraire les informations factuelles, historiques et contextuelles essentielles
+    en tenant compte que nous sommes en {current_date}
+    
+    Concentrez-vous sur :
+    - Les définitions et concepts fondamentaux
+    - L'historique et l'évolution
+    - Les données factuelles et statistiques
+    - Les liens et références vers des sujets connexes
+  expected_output: >
+    Un résumé encyclopédique structuré de {topic} avec les informations factuelles
+    clés, les dates importantes, et les concepts connexes, avec références Wikipedia.
+  agent: wikipedia_specialist
+  async_execution: false
+
+content_analysis_task:
+  description: >
+    Analyser et synthétiser toutes les informations collectées par les équipes de recherche
+    web et Wikipedia sur {topic}. Identifier les thèmes principaux, valider la cohérence
+    des informations, et structurer le contenu de manière logique.
+    
+    Effectuer :
+    - Validation croisée des sources
+    - Identification des thèmes principaux
+    - Structuration logique du contenu
+    - Évaluation de la fiabilité des informations
+  expected_output: >
+    Une analyse structurée des informations sur {topic} organisée par thèmes principaux,
+    avec évaluation de la fiabilité et recommandations pour le rapport final.
+  agent: content_analyst
+  context:
+    - primary_research_task
+    - wikipedia_research_task
+  async_execution: false
+
+final_report_generation_task:
+  description: >
+    Créer un rapport de recherche approfondie professionnel et complet en français sur {topic}.
+    Le rapport doit être structuré, informatif et visuellement attrayant avec des émojis appropriés.
+    
+    IMPORTANT: Votre sortie doit être un JSON valide qui correspond exactement au modèle DeepResearchReport.
+    
+    Le JSON doit contenir :
+    - "title": Un titre accrocheur pour le rapport
+    - "topic": Le sujet de recherche
+    - "executive_summary": Un résumé exécutif détaillé
+    - "key_findings": Une liste de 5-7 découvertes clés (array de strings)
+    - "research_sections": Une liste de sections thématiques détaillées (array d'objets)
+    - "methodology": La méthodologie de recherche utilisée
+    - "sources_count": Le nombre total de sources consultées (integer)
+    - "report_date": La date de génération du rapport
+    - "confidence_level": Le niveau de confiance global ("High", "Medium", ou "Low")
+    
+    Chaque section dans "research_sections" doit avoir :
+    - "section_title": Titre de la section
+    - "content": Contenu détaillé de la section
+    - "sources": Liste des sources (array d'objets avec title, url, source_type, summary, relevance_score)
+    
+    Utilisez un ton professionnel mais accessible, avec des émojis pour améliorer
+    la lisibilité. Toutes les informations doivent être en français.
+  expected_output: >
+    Un JSON valide et complet correspondant exactement au modèle DeepResearchReport,
+    contenant un rapport de recherche approfondie professionnel en français sur {topic}.
+    Le JSON doit être bien formé, sans erreurs de syntaxe, et prêt à être parsé.
+  agent: report_generator
+  context:
+    - primary_research_task
+    - wikipedia_research_task
+    - content_analysis_task
+  async_execution: false
+  output_file: "{output_file}"

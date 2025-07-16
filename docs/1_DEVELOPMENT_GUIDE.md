@@ -83,17 +83,17 @@ Epic News uses **Loguru** for all logging. It provides a more powerful and flexi
 
 Well-crafted commit messages are crucial for maintaining a clean and understandable project history. They should be clear, concise, and follow a consistent style.
 
-**Multiline Commit Messages**
+##### Multiline Commit Messages
 
 When writing multiline commit messages, avoid passing the message directly via the command line, as it can be complex and error-prone with quoting. Instead, use a temporary file.
 
-**Workflow:**
+##### Workflow
 
-1.  **Create a temporary file** (e.g., `commit_message.tmp`) with your detailed commit message.
-2.  **Use the `-F` or `--file` flag** with `git commit` to read the message from the file.
-3.  **Delete the temporary file** after the commit is successful.
+1. **Create a temporary file** with your detailed commit message.
+2. **Use the `-F` or `--file` flag** with `git commit` to read the message from the file.
+3. **Delete the temporary file** after the commit is successful.
 
-**Example:**
+##### Example
 
 ```bash
 # 1. Write the commit message to a temporary file
@@ -113,6 +113,7 @@ rm commit_message.tmp
 This approach ensures that your commit messages are well-formatted and easy to write, especially for more complex changes.
 
 #### Testing & Quality Assurance
+
 - **Testing**: Always run tests with `uv run pytest`
 - **Linting**: Use `ruff` for code quality (integrated with uv)
 - **Type Checking**: Leverage Pydantic models and type hints
@@ -126,7 +127,7 @@ To enhance our testing capabilities, Epic News integrates the following librarie
 - **`pytest-mock`**: A wrapper around the standard `unittest.mock` library, providing a more convenient and pytest-friendly interface for mocking objects and functions.
 - **`pendulum`**: For precise control over date and time in tests. This is crucial for testing time-sensitive logic, allowing you to "freeze" time or travel to specific points in time.
 
-**Example Usage:**
+##### Example Usage
 
 ```python
 import pendulum
@@ -165,13 +166,13 @@ def test_mocking_with_pytest_mock(mocker):
 
 To further improve the readability and maintainability of our tests, we use Python's built-in `contextlib` library to create reusable context managers for mocking dependencies. This is particularly useful when multiple tests require the same set of mocks.
 
-**Benefits:**
+##### Benefits
 
 - **Encapsulation:** Bundles related setup and teardown logic into a single, reusable function.
 - **Readability:** Replaces repetitive `mocker.patch()` calls with a clean `with` statement, making the test's intent clearer.
 - **Maintainability:** Allows you to update mocking logic in one central place, rather than in every test.
 
-**Example:**
+##### Example
 
 Instead of this:
 
@@ -208,30 +209,31 @@ def test_some_function_with_many_mocks(mocker):
     with mock_app_dependencies(mocker) as mocks:
         # ... test logic using mocks['dep1'], etc.
 ```
+
 This approach is highly encouraged for complex test setups.
 
 #### Development Workflow
 
-1. **Environment Setup**:
+1. Environment Setup:
    - Run `uv sync` to install dependencies
    - Install the package in editable mode: `uv pip install -e .`
    - This creates a special link to your source code and prevents import errors like `ModuleNotFoundError: No module named 'epic_news'`
 
-2. **Make Changes**: Edit code, add features, fix bugs
+2. Make Changes: Edit code, add features, fix bugs
 
-3. **Test Changes**:
+3. Test Changes:
    - Run `uv run pytest` to ensure tests pass
    - For specific components: `uv run python tests/bin/regenerate_holiday_plan.py`
 
-4. **Quality Checks**: Run `uv run yamlfix src ; uv run ruff check --fix` to ensure code quality
+4. Quality Checks: Run `uv run yamlfix src ; uv run ruff check --fix` to ensure code quality
 
-5. **Execute Crews**:
+5. Execute Crews:
    - Use `crewai flow kickoff` to run CrewAI flows
    - This validates the complete pipeline including Pydantic model validation
 
-## 2. CrewAI Flow: Engagement Rules & Best Practices
+## CrewAI Flow: Engagement Rules & Best Practices
 
-### 2.1. Execution Method (CRITICAL)
+### Execution Method (CRITICAL)
 
 **ALWAYS** use the CrewAI Flow command to run crews. This is the single most important rule for maintaining a consistent and manageable architecture.
 
@@ -244,7 +246,7 @@ crewai flow kickoff
 # python src/epic_news/main.py
 ```
 
-**Why this matters:**
+##### Why this matters
 
 - CrewAI Flow manages the complete execution lifecycle.
 - It ensures proper state management and context injection.
@@ -433,7 +435,7 @@ def researcher(self) -> Agent:
 
 ### 5.4. Project Structure
 
-```
+```bash
 epic_news/
 ├── src/epic_news/
 │   ├── crews/           # Crew implementations

@@ -10,6 +10,7 @@ from .book_summary_renderer import BookSummaryRenderer
 from .company_news_renderer import CompanyNewsRenderer
 from .cooking_renderer import CookingRenderer
 from .cross_reference_report_renderer import CrossReferenceReportRenderer
+from .deep_research_renderer import DeepResearchRenderer
 from .financial_renderer import FinancialRenderer
 from .generic_renderer import GenericRenderer
 from .holiday_renderer import HolidayRenderer
@@ -30,6 +31,7 @@ class RendererFactory:
     _RENDERER_MAP: dict[str, type[BaseRenderer]] = {
         "BOOK_SUMMARY": BookSummaryRenderer,
         "COOKING": CookingRenderer,
+        "DEEPRESEARCH": DeepResearchRenderer,
         "FINDAILY": FinancialRenderer,
         "GENERIC": GenericRenderer,
         "HOLIDAY_PLANNER": HolidayRenderer,
