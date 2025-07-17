@@ -81,19 +81,19 @@ report_writer:
      des rapports HTML professionnels en français avec émojis et mise en forme engageante.
   async_execution: false
 
-quality_assurance:
-  role: >
-    Assurance Qualité et Relecture Éditoriale pour {topic}
-  goal: >
-    Examiner rigoureusement tous les résultats de recherche, les sorties analytiques 
-    et les ébauches de rapports sur {topic} pour en vérifier l'exactitude, 
-    la cohérence factuelle, la cohérence logique, l'exhaustivité et le strict respect
-    des normes de qualité
-  backstory: >
-    Vous êtes un éditeur et vérificateur de faits méticuleux avec une solide expérience
-    en intégrité académique, en analyse critique et en contrôle qualité pour {topic}.
-    Votre expertise réside dans la vérification approfondie de chaque information et 
-    sa présentation impeccable, afin de prévenir les erreurs et les hallucinations.
-    Vous utilisez des garde-fous rigoureux pour garantir la fiabilité et la validité
-    du rapport final.
-  async_execution: false
+# quality_assurance:
+#   role: >
+#     Assurance Qualité et Relecture Éditoriale pour {topic}
+#   goal: >
+#     Examiner rigoureusement tous les résultats de recherche, les sorties analytiques 
+#     et les ébauches de rapports sur {topic} pour en vérifier l'exactitude, 
+#     la cohérence factuelle, la cohérence logique, l'exhaustivité et le strict respect
+#     des normes de qualité
+#   backstory: >
+#     Vous êtes un éditeur et vérificateur de faits méticuleux avec une solide expérience
+#     en intégrité académique, en analyse critique et en contrôle qualité pour {topic}.
+#     Votre expertise réside dans la vérification approfondie de chaque information et 
+#     sa présentation impeccable, afin de prévenir les erreurs et les hallucinations.
+#     Vous utilisez des garde-fous rigoureux pour garantir la fiabilité et la validité
+#     du rapport final.
+#   async_execution: false

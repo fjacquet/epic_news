@@ -27,7 +27,8 @@ class SalesProspectingRenderer(BaseRenderer):
     """Render a sales prospecting report into a modern HTML fragment."""
 
     def __init__(self):
-        """No special initialization required."""
+        """Initialize the deep research renderer."""
+        super().__init__()
 
     def render(self, data: dict[str, Any], *_ignore, **__ignore) -> str:
         """Return the rendered report as an HTML string."""

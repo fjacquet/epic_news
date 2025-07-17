@@ -15,6 +15,10 @@ from .base_renderer import BaseRenderer
 class RssWeeklyRenderer(BaseRenderer):
     """Renders RSS weekly content with structured formatting."""
 
+    def __init__(self):
+        """Initialize the deep research renderer."""
+        super().__init__()
+
     def render(self, data: dict[str, Any]) -> str:
         """
         Render RSS weekly data to HTML.

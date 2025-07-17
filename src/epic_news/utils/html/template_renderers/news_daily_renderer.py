@@ -15,6 +15,10 @@ from .base_renderer import BaseRenderer
 class NewsDailyRenderer(BaseRenderer):
     """Renders news daily content with structured sections."""
 
+    def __init__(self):
+        """Initialize the deep research renderer."""
+        super().__init__()
+
     def render(self, data: dict[str, Any]) -> str:
         """
         Render news daily data to HTML.

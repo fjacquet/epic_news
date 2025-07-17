@@ -16,7 +16,8 @@ class BookSummaryRenderer(BaseRenderer):
     """Renders book summary content with rich formatting and structure."""
 
     def __init__(self):
-        """Initialize the renderer."""
+        """Initialize the deep research renderer."""
+        super().__init__()
 
     def render(self, data: dict[str, Any]) -> str:
         """

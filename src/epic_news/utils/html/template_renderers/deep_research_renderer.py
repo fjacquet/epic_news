@@ -5,11 +5,14 @@ Renders deep research report data to structured HTML using BeautifulSoup.
 Handles research sections, sources, and comprehensive analysis.
 """
 
+import logging
 from typing import Any
 
 from bs4 import BeautifulSoup
 
 from .base_renderer import BaseRenderer
+
+logger = logging.getLogger(__name__)
 
 
 class DeepResearchRenderer(BaseRenderer):
@@ -29,6 +32,27 @@ class DeepResearchRenderer(BaseRenderer):
         Returns:
             HTML string for deep research report content
         """
+        # Handle different input data formats to ensure we always have a proper dictionary
+        
+        # Check if data is wrapped in any dictionary keys
+        if isinstance(data, dict):
+            if "deep_research_model" in data:
+                data = data["deep_research_model"]
+
+            if "deep_research_report" in data:
+                data = data["deep_research_report"]
+
+        # Convert Pydantic model to dict if needed
+        if hasattr(data, "model_dump"):
+            data = data.model_dump()
+        elif hasattr(data, "dict"):
+            data = data.dict()
+
+        # Ensure we have a dictionary to work with
+        if not isinstance(data, dict):
+            logger.error(f"Expected dict or Pydantic model, got {type(data)}. Using empty dict.")
+            data = {}
+
         # Create main container
         soup = self.create_soup("div", class_="deep-research-report")
         container = soup.find("div")

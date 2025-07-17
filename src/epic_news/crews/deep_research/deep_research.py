@@ -3,12 +3,12 @@ from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import (
     BraveSearchTool,
     CodeInterpreterTool,
+    FileReadTool,
     ScrapeWebsiteTool,
     SerperDevTool,
 )
 
 from epic_news.models.crews.deep_research_report import DeepResearchReport
-from epic_news.tools.scrape_ninja_tool import ScrapeNinjaTool
 from epic_news.tools.wikipedia_article_tool import WikipediaArticleTool
 from epic_news.tools.wikipedia_search_tool import WikipediaSearchTool
 
@@ -29,9 +29,7 @@ class DeepResearchCrew:
         return Agent(
             config=self.agents_config["research_strategist"],
             tools=[],  # Strategic planning, no external tools needed
-            llm="gpt-4.1-mini",
             verbose=True,
-            reasoning=True,
         )
 
     # Information Collector - Web research and data collection
@@ -44,8 +42,9 @@ class DeepResearchCrew:
                 BraveSearchTool(),
                 SerperDevTool(n_results=25, search_type="search"),
                 SerperDevTool(n_results=25, search_type="news"),
-                ScrapeNinjaTool(),
-                ScrapeWebsiteTool(),  # Backup scraping tool
+                # ScrapeNinjaTool(),
+                ScrapeWebsiteTool(),
+                FileReadTool(),  # Backup scraping tool
             ],
             llm="gpt-4.1-mini",
             verbose=True,
@@ -62,9 +61,8 @@ class DeepResearchCrew:
                 WikipediaSearchTool(),
                 WikipediaArticleTool(),
             ],
-            llm="gpt-4o",
             verbose=True,
-            reasoning=True,
+            respect_context_window=True,
         )
 
     # Data Analyst - Analysis and synthesis with Code Interpreter
@@ -73,10 +71,9 @@ class DeepResearchCrew:
         """Data analyst agent for synthesis and quantitative analysis with Code Interpreter."""
         return Agent(
             config=self.agents_config["data_analyst"],
-            tools=[self.code_interpreter],
+            tools=[self.code_interpreter, FileReadTool()],
             llm="gpt-4.1-mini",
             verbose=True,
-            reasoning=True,
             allow_code_execution=True,  # Enable Code Interpreter for real quantitative analysis
         )
 
@@ -87,23 +84,30 @@ class DeepResearchCrew:
         return Agent(
             config=self.agents_config["report_writer"],
             tools=[],  # Report writing, no external tools needed
-            llm="gpt-4o",
+            llm="gpt-4.1-mini",
             verbose=True,
         )
 
-    # Quality Assurance - QA and editorial review
-    @agent
-    def quality_assurance(self) -> Agent:
-        """Quality assurance agent for editorial review and fact-checking."""
-        return Agent(
-            config=self.agents_config["quality_assurance"],
-            tools=[],  # QA and editing, no external tools needed
-            llm="gpt-4o",
-            verbose=True,
-            reasoning=True,
-        )
+    # # Quality Assurance - QA and editorial review
+    # @agent
+    # def quality_assurance(self) -> Agent:
+    #     """Quality assurance agent for editorial review and fact-checking."""
+    #     return Agent(
+    #         config=self.agents_config["quality_assurance"],
+    #         tools=[],  # QA and editing, no external tools needed
+    #         llm="gpt-4.1-mini",
+    #         verbose=True,
+    #     )
 
     # Task 1: Research Planning
+    @task
+    def reformulate_task(self) -> Task:
+        """Reformulate task."""
+        return Task(
+            config=self.tasks_config["reformulate_task"],
+            verbose=True,
+        )
+
     @task
     def research_planning_task(self) -> Task:
         """Research planning and methodology task."""
@@ -164,24 +168,28 @@ class DeepResearchCrew:
                 self.wikipedia_research_task(),
                 self.data_analysis_task(),
             ],
-        )
-
-    # Task 6: Quality Assurance (Final)
-    @task
-    def quality_assurance_task(self) -> Task:
-        """Quality assurance and final validation task."""
-        return Task(
-            config=self.tasks_config["quality_assurance_task"],
-            verbose=True,
-            context=[
-                self.research_planning_task(),
-                self.information_collection_task(),
-                self.wikipedia_research_task(),
-                self.data_analysis_task(),
-                self.report_writing_task(),
-            ],
             output_pydantic=DeepResearchReport,
         )
+
+    # # Task 6: Quality Assurance (Final)
+    # @task
+    # def quality_assurance_task(self) -> Task:
+    #     """Quality assurance and final validation task."""
+    #     # Import at the method level to avoid circular imports
+    #     from epic_news.models.crews.deep_research_report import DeepResearchReport
+
+    #     return Task(
+    #         config=self.tasks_config["quality_assurance_task"],
+    #         verbose=True,
+    #         context=[
+    #             self.research_planning_task(),
+    #             self.information_collection_task(),
+    #             self.wikipedia_research_task(),
+    #             self.data_analysis_task(),
+    #             self.report_writing_task(),
+    #         ],
+    #         output_pydantic=DeepResearchReport,
+    #     )
 
     @crew
     def crew(self) -> Crew:
@@ -190,7 +198,7 @@ class DeepResearchCrew:
             agents=self.agents,
             tasks=self.tasks,  # Automatically created from the tasks above
             process=Process.sequential,
-            manager_llm="gpt-4.1-nano",
+            # manager_llm="gpt-4.1-nano",
             verbose=True,
-            planning=True,
+            # planning=True,
         )

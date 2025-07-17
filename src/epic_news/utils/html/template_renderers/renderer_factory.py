@@ -27,6 +27,10 @@ from .shopping_renderer import ShoppingRenderer
 class RendererFactory:
     """Factory for creating crew-specific HTML renderers."""
 
+    def __init__(self):
+        """Initialize the deep research renderer."""
+        super().__init__()
+
     # Mapping of crew types to their specific renderers
     _RENDERER_MAP: dict[str, type[BaseRenderer]] = {
         "BOOK_SUMMARY": BookSummaryRenderer,

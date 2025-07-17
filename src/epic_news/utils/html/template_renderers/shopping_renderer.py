@@ -15,6 +15,10 @@ from .base_renderer import BaseRenderer
 class ShoppingRenderer(BaseRenderer):
     """Renders shopping advice with structured formatting."""
 
+    def __init__(self):
+        """Initialize the deep research renderer."""
+        super().__init__()
+
     def render(self, data: dict[str, Any]) -> str:
         """
         Render shopping data to HTML.

@@ -16,6 +16,10 @@ from .base_renderer import BaseRenderer
 class MeetingPrepRenderer(BaseRenderer):
     """Renders meeting preparation content with structured formatting."""
 
+    def __init__(self):
+        """Initialize the deep research renderer."""
+        super().__init__()
+
     def render(self, data: dict[str, Any]) -> str:
         """
         Render meeting preparation data to HTML.
