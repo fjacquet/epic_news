@@ -1,4 +1,4 @@
-name: Publish Streamlit Docker Image
+name: Publish Code Interpreter Docker Image
 
 on:
   push:
