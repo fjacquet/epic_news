@@ -13,6 +13,10 @@ from .base_renderer import BaseRenderer
 class CompanyNewsRenderer(BaseRenderer):
     """Renders company news content with business-style formatting."""
 
+    def __init__(self):
+        """Initialize the deep research renderer."""
+        super().__init__()
+
     def render(self, data: dict[str, Any], selected_crew: str = None) -> str:
         """
         Render company news data to HTML, removing all internal/raw CrewAI data.

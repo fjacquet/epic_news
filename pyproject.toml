@@ -53,6 +53,9 @@ dependencies = [
     "faker>=37.4.0",
     "pytest-mock>=3.14.1",
     "loguru>=0.7.3",
+    "scipy>=1.15.3",
+    "seaborn>=0.13.2",
+    "scikit-learn>=1.7.0",
 ]
 
 [project.scripts]

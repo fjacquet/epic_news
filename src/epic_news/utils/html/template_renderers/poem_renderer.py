@@ -15,6 +15,10 @@ from .base_renderer import BaseRenderer
 class PoemRenderer(BaseRenderer):
     """Renders poem content with artistic formatting."""
 
+    def __init__(self):
+        """Initialize the deep research renderer."""
+        super().__init__()
+
     def render(self, data: dict[str, Any]) -> str:
         """
         Render poem data to HTML.

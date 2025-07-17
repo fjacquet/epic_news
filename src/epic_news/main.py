@@ -37,6 +37,7 @@ from epic_news.crews.company_news.company_news_crew import CompanyNewsCrew
 from epic_news.crews.company_profiler.company_profiler_crew import CompanyProfilerCrew
 from epic_news.crews.cooking.cooking_crew import CookingCrew
 from epic_news.crews.cross_reference_report_crew.cross_reference_report_crew import CrossReferenceReportCrew
+from epic_news.crews.deep_research.deep_research import DeepResearchCrew
 from epic_news.crews.fin_daily.fin_daily import FinDailyCrew
 from epic_news.crews.geospatial_analysis.geospatial_analysis_crew import GeospatialAnalysisCrew
 from epic_news.crews.holiday_planner.holiday_planner_crew import HolidayPlannerCrew
@@ -59,19 +60,22 @@ from epic_news.models.content_state import ContentState
 from epic_news.models.crews.book_summary_report import BookSummaryReport
 from epic_news.models.crews.cooking_recipe import PaprikaRecipe
 from epic_news.models.crews.cross_reference_report import CrossReferenceReport
+from epic_news.models.crews.deep_research_report import DeepResearchReport
 from epic_news.models.crews.financial_report import FinancialReport
 from epic_news.models.crews.meeting_prep_report import MeetingPrepReport
 from epic_news.models.crews.poem_report import PoemJSONOutput
 from epic_news.models.crews.saint_daily_report import SaintData
 from epic_news.models.crews.sales_prospecting_report import SalesProspectingReport
-from epic_news.utils.data_normalization import normalize_sales_prospecting_report
 
 # Import the normalization utility
+from epic_news.utils.data_normalization import normalize_sales_prospecting_report
 from epic_news.utils.debug_utils import (
     dump_crewai_state,
     parse_crewai_output,
 )
 from epic_news.utils.directory_utils import ensure_output_directories
+from epic_news.utils.extractors.deep_research import DeepResearchExtractor
+from epic_news.utils.extractors.factory import ContentExtractorFactory
 from epic_news.utils.html.book_summary_html_factory import (
     book_summary_to_html,
 )
@@ -89,6 +93,7 @@ from epic_news.utils.html.recipe_html_factory import recipe_to_html
 from epic_news.utils.html.saint_html_factory import saint_to_html
 from epic_news.utils.html.sales_prospecting_html_factory import sales_prospecting_report_to_html
 from epic_news.utils.html.shopping_advice_html_factory import shopping_advice_to_html
+from epic_news.utils.html.template_manager import TemplateManager
 from epic_news.utils.logger import setup_logging
 from epic_news.utils.menu_generator import MenuGenerator
 from epic_news.utils.observability import get_observability_tools, trace_task
@@ -276,6 +281,8 @@ class ReceptionFlow(Flow[ContentState]):
             return "go_generate_saint_daily"
         if self.state.selected_crew == "SALES_PROSPECTING":
             return "go_generate_sales_prospecting_report"
+        if self.state.selected_crew == "DEEPRESEARCH":
+            return "go_generate_deep_research"
         # Fallback for unhandled or unknown crew types.
         # Consider logging this event for monitoring.
         self.logger.warning(f"⚠️ Unknown crew type: {self.state.selected_crew}. Routing to 'go_unknown'.")
@@ -906,6 +913,76 @@ class ReceptionFlow(Flow[ContentState]):
         sales_prospecting_report_to_html(report_model, html_file)
         self.logger.info(f"✅ Sales prospecting report generated and HTML written to {html_file}")
 
+    @listen("go_generate_deep_research")
+    @trace_task(tracer)
+    def generate_deep_research(self):
+        """
+        Handles requests classified for the 'DeepResearchCrew'.
+
+        Invokes the `DeepResearchCrew` to generate a comprehensive research report
+        on the specified topic using web search, Wikipedia, and content analysis.
+        Sets `output_file` to `output/deep_research/report.html` and stores the report
+        in `self.state.deep_research_report`.
+        """
+        output_file = "output/deep_research/report.json"
+        html_file = "output/deep_research/report.html"
+        self.state.output_file = output_file
+        topic = self.state.to_crew_inputs().get("topic", "N/A")
+        self.logger.info(f"🔍 Generating deep research report for: {topic}")
+
+        # Prepare inputs for the crew
+        inputs = self.state.to_crew_inputs()
+        inputs["current_date"] = datetime.datetime.now().strftime("%Y-%m-%d")
+        inputs["output_file"] = output_file
+
+        # Kick off the crew
+        report_content = DeepResearchCrew().crew().kickoff(inputs=inputs)
+        dump_crewai_state(report_content, "DEEP_RESEARCH")
+
+        # Attempt to load the JSON file written by the crew (preferred, authoritative source)
+        research_report_model: DeepResearchReport | None = None
+        if os.path.exists(output_file):
+            try:
+                with open(output_file, encoding="utf-8") as json_f:
+                    json_str = json_f.read()
+                # Re-use the DeepResearchExtractor to benefit from its robust adaptation logic
+                extractor = DeepResearchExtractor()
+                research_report_model = extractor.extract({"raw_output": json_str})
+                self.logger.info("✅ Loaded DeepResearchReport from JSON file generated by the crew")
+            except Exception as json_err:
+                self.logger.warning(f"Could not parse JSON file {output_file}: {json_err}")
+
+        # Fallback: parse the direct CrewAI output (legacy path)
+        if research_report_model is None:
+            research_report_model = parse_crewai_output(report_content, DeepResearchReport, inputs)
+            self.logger.info("ℹ️ Using DeepResearchReport built from CrewAI raw output (fallback path)")
+
+        self.state.deep_research_report = research_report_model
+
+        # Use modern ContentExtractorFactory and TemplateManager architecture
+        state_data = {
+            "deep_research_report": research_report_model,
+            "final_report": str(report_content),
+            "user_request": self.state.user_request,
+            "current_date": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        }
+
+        # Extract structured content using ContentExtractorFactory
+        extracted_content = ContentExtractorFactory.extract_content(state_data, "DEEPRESEARCH")
+
+        # Generate HTML using TemplateManager
+        template_manager = TemplateManager()
+        html_content = template_manager.render_report(
+            selected_crew="DEEPRESEARCH", content_data=extracted_content
+        )
+
+        # Write HTML to file
+        os.makedirs(os.path.dirname(html_file), exist_ok=True)
+        with open(html_file, "w", encoding="utf-8") as f:
+            f.write(html_content)
+
+        self.logger.info(f"✅ Deep research report generated and HTML written to {html_file}")
+
     @listen("go_generate_osint")
     @trace_task(tracer)
     def generate_osint(self):
@@ -1164,7 +1241,12 @@ def kickoff(user_input: str | None = None):
     setup_logging()
     # If user_input is not provided, use a default value.
     request = (
-        user_input if user_input else "Donne moi le saint du jour en français"
+        user_input
+        if user_input
+        else "conduct a deep research study on a travel on the north of the italy between san remo and Genova. Give me the best hotel and restaurant options."
+        + "How to book italian train, electrical bicylce and cultural events. I will be alone for 1 week in end of july "
+        # else "conduct a deep research study on the the progress of quantum computing and the possible application in cryptography, genetics and generative AI "
+        # else "conduct a deep research on nutanix technologies for the cloud native"
         # else "Generate a complete weekly menu planner with 30 recipes and shopping list for a family of 3 in French"
         # else "Donne moi le saint du jour en français"
         # else "Generate a complete weekly menu planner with 30 recipes and shopping list for a family of 3 in French"

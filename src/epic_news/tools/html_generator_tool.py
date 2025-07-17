@@ -58,7 +58,7 @@ class HtmlGeneratorTool(BaseTool):
             output_file_path.parent.mkdir(parents=True, exist_ok=True)
 
             # Extract content data using the factory pattern
-            from epic_news.utils.content_extractors import ContentExtractorFactory
+            from epic_news.utils.extractors.factory import ContentExtractorFactory
 
             content_data = ContentExtractorFactory.extract_content(parsed_state_data, selected_crew)
 
