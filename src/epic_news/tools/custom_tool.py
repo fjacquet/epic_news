@@ -1,7 +1,7 @@
 from crewai.tools import BaseTool
 from pydantic import BaseModel
 
-from src.epic_news.models.custom_tool_models import MyCustomToolInput
+from epic_news.models.custom_tool_models import MyCustomToolInput
 
 
 class MyCustomTool(BaseTool):

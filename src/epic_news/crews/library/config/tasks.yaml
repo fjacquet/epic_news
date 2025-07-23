@@ -1,34 +1,56 @@
----
 research_task:
   description: >
-    Conduct comprehensive research on the given topic: {topic}.
-    Gather detailed information on its origin, key facts, historical context,
-    controversies, and latest developments. 
+    Menez une recherche académique approfondie sur le sujet suivant : {topic}.
+    Suivez une méthodologie rigoureuse en plusieurs étapes :
+      1. Définissez la problématique et les questions de recherche.
+      2. Collectez des sources variées et crédibles (livres, articles scientifiques, rapports, etc.).
+      3. Analysez l'origine, le contexte historique, les faits clés, les controverses majeures, et les développements récents.
+      4. Intégrez des données quantitatives, des comparaisons internationales, et des perspectives critiques.
+      5. Dégagez au moins 20 points essentiels, avec des métriques et des citations précises.
+    Toutes les notes et analyses doivent être rédigées en français.
   expected_output: >
     A markdown file containing a detailed and well-structured research report
     on the specified topic, with citations and references.
   agent: researcher
-  output_file: output/library/research.md
+
 reporting_task:
   description: |
-    CRITICAL: Generate a comprehensive, professional book report in pure JSON format
-    about the topic: {topic}.
-    The report must be in french and must match the BookSummaryReport Pydantic schema exactly.
-    Required fields:
-      - topic (string)
-      - publication_date (string, ISO format preferred)
-      - title (string)
-      - summary (optional string)
-      - table_of_contents (list of {{id, title}})
-      - sections (list of {{id, title, content}})
-      - chapter_summaries (optional list of {{chapter, title, focus}})
-      - references (list of strings)
-      - author (string)
-    The JSON must be parseable and match the schema exactly. 
-    Do not include any explanations or formatting outside of the JSON object.
+    CRITIQUE : Compilez les résultats de la recherche sur {topic} dans un objet JSON unique,
+    strictement conforme au modèle Pydantic BookSummaryReport, en français.
+    
+    STRUCTURE REQUISE :
+    Le rapport doit comporter :
+      - Une introduction détaillée du sujet (minimum 300 mots)
+      - Un développement structuré en plusieurs sections (minimum 500 mots chacune)
+      - Une synthèse et une conclusion critique (minimum 300 mots)
+      - Des citations précises et une bibliographie complète
+      - L'utilisation de tableaux et de listes à puces pour structurer l'information si pertinent
+    
+    RÈGLES JSON CRITIQUES :
+    - Sortie UNIQUEMENT en JSON valide, aucun texte explicatif
+    - Tous les champs string doivent être entre guillemets doubles
+    - Tous les tableaux doivent être formatés avec des crochets []
+    - Tous les objets doivent être formatés avec des accolades {}
+    - Utiliser la séparation par virgules entre les champs et éléments de tableau
+    - Le champ 'author' est OBLIGATOIRE et doit être une string
+    - Chaque section dans 'sections' doit avoir 'id' (string), 'title' (string), 'content' (string)
+    - Le champ 'table_of_contents' doit être un tableau d'objets avec 'id' et 'title'
+    - Le champ 'references' doit être un tableau de strings
+    - Le champ 'chapter_summaries' doit être un tableau d'objets avec 'chapter', 'title', 'focus'
+    
+    VALIDATION :
+    - Vérifiez que votre JSON est syntaxiquement correct
+    - Testez mentalement la structure avant de l'envoyer
+    - Assurez-vous que tous les champs requis sont présents
+    - Chaque section doit avoir un identifiant ('id') descriptif et unique
+    
+    La sortie finale doit être un objet JSON pur, sans texte additionnel.
   expected_output: |
-    A valid and pure JSON object matching the BookSummaryReport Pydantic model. 
-    Output must be directly parseable as JSON and include all required fields.
+    A valid and pure JSON object matching the BookSummaryReport Pydantic model.
+    The output must be in french, syntactically correct JSON, and directly parseable.
+    Include all required fields: 'topic', 'publication_date', 'title', 'summary', 'author',
+    'table_of_contents', 'sections', 'chapter_summaries', 'references'.
+    Each section must have string-based 'id', 'title', and 'content' fields.
   agent: reporting_analyst
   context: [research_task]
-  output_file: '{output_file}'
+  output_file: "{output_file}"

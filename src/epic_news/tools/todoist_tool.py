@@ -5,7 +5,7 @@ import requests
 from crewai.tools import BaseTool
 from pydantic import BaseModel
 
-from src.epic_news.models.todoist_models import TodoistToolInput
+from epic_news.models.todoist_models import TodoistToolInput
 
 
 class TodoistTool(BaseTool):

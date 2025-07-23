@@ -64,6 +64,44 @@ def parse_flexible_menu_structure(self, menu_data: dict) -> List[Dict[str, str]]
 - Provides clear migration path
 - Reduces integration breakage
 
+## 🧠 Agent Memory Patterns
+
+### Pattern: Persistent Memory with mem0
+
+**Use Case:** Equip agents with long-term memory to enable personalized and context-aware interactions over multiple sessions.
+
+**Implementation:**
+
+To enable memory for a `crewAI` agent, simply set `memory=True` in the agent's configuration. This will allow the agent to leverage `mem0` to store and retrieve information.
+
+```python
+from crewai import Agent
+from mem0 import MemoryClient
+
+# Initialize the memory client
+# Make sure to set the MEM0_API_KEY environment variable
+client = MemoryClient()
+
+# Create an agent with memory enabled
+financial_analyst = Agent(
+    role="Financial Analyst",
+    goal="Provide insightful financial analysis",
+    backstory="An expert financial analyst with a knack for spotting trends.",
+    memory=True,
+    verbose=True
+)
+```
+
+**Key Benefits:**
+
+- **Personalization:** Agents can remember user preferences, such as investment goals or dietary restrictions.
+- **Context-Awareness:** Agents can maintain context across multiple conversations, leading to more natural and efficient interactions.
+- **Improved Efficiency:** Agents can avoid asking for the same information repeatedly, saving time and reducing user frustration.
+
+**Reference Implementation:**
+
+- **`fin_daily` crew:** See `src/epic_news/crews/fin_daily/fin_daily.py` for an example of how to enable memory for agents in a crew.
+
 ## 🎯 CrewAI Template Variable Patterns
 
 ### Pattern: Complete Template Variable Provisioning

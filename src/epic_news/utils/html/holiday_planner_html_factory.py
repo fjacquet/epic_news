@@ -6,9 +6,9 @@ Follows the deterministic pattern documented in docs/html_rendering_pattern.md.
 import os
 
 from epic_news.models.crews.holiday_planner_report import HolidayPlannerReport
-from src.epic_news.utils.debug_utils import parse_crewai_output
-from src.epic_news.utils.directory_utils import ensure_output_directory
-from src.epic_news.utils.html.template_manager import TemplateManager
+from epic_news.utils.debug_utils import parse_crewai_output
+from epic_news.utils.directory_utils import ensure_output_directory
+from epic_news.utils.html.template_manager import TemplateManager
 
 
 def holiday_planner_to_html(holiday_report, html_file=None):

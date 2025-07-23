@@ -1,8 +1,8 @@
-version: '3.8'
-
 services:
   api:
-    image: fjacquet/epic-news-api:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.api
     container_name: epic-news-api
     restart: unless-stopped
     ports:

@@ -1138,7 +1138,7 @@ wheels = [
 [[package]]
 name = "epic-news"
 version = "0.1.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "beautifulsoup4" },
     { name = "chromadb" },
@@ -1161,6 +1161,7 @@ dependencies = [
     { name = "lxml" },
     { name = "lxml-html-clean" },
     { name = "matplotlib" },
+    { name = "mem0ai" },
     { name = "newspaper3k" },
     { name = "pandas" },
     { name = "pathlib" },
@@ -1243,6 +1244,7 @@ requires-dist = [
     { name = "lxml", specifier = ">=5.2.1" },
     { name = "lxml-html-clean", specifier = ">=0.4.2" },
     { name = "matplotlib", specifier = ">=3.10.3" },
+    { name = "mem0ai", specifier = ">=0.1.114" },
     { name = "newspaper3k", specifier = ">=0.2.8" },
     { name = "pandas", specifier = ">=2.3.0" },
     { name = "pathlib", specifier = ">=1.0.1" },

@@ -33,7 +33,7 @@ class DeepResearchRenderer(BaseRenderer):
             HTML string for deep research report content
         """
         # Handle different input data formats to ensure we always have a proper dictionary
-        
+
         # Check if data is wrapped in any dictionary keys
         if isinstance(data, dict):
             if "deep_research_model" in data:

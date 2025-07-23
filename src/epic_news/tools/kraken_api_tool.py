@@ -18,8 +18,8 @@ import requests
 from crewai.tools import BaseTool
 from pydantic import BaseModel
 
-from src.epic_news.models.finance_models import KrakenAssetListInput, KrakenTickerInfoInput
-from src.epic_news.tools.cache_manager import get_cache_manager
+from epic_news.models.finance_models import KrakenAssetListInput, KrakenTickerInfoInput
+from epic_news.tools.cache_manager import get_cache_manager
 
 
 class KrakenTickerInfoTool(BaseTool):

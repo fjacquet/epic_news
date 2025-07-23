@@ -1,4 +1,3 @@
-from composio_crewai import ComposioToolSet
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import FileReadTool
@@ -6,9 +5,6 @@ from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()
-
-toolset = ComposioToolSet()
-send_tools = toolset.get_tools(actions=["GMAIL_SEND_EMAIL"])
 
 
 @CrewBase
@@ -25,7 +21,7 @@ class PostCrew:
         return Task(
             config=self.tasks_config["distribution_task"],
             agent=self.distributor(),
-            tools=send_tools + [FileReadTool()],
+            tools=self._get_send_tools() + [FileReadTool()],
             verbose=True,
             llm_timeout=300,
         )
@@ -42,3 +38,12 @@ class PostCrew:
             manager_llm_timeout=300,
             task_timeout=600,
         )
+
+    def _get_composio_toolset(self):
+        from composio_crewai import ComposioToolSet
+
+        return ComposioToolSet()
+
+    def _get_send_tools(self):
+        toolset = self._get_composio_toolset()
+        return toolset.get_tools(actions=["GMAIL_SEND_EMAIL"])

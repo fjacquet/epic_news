@@ -7,7 +7,7 @@ from crewai.tools import BaseTool
 from dotenv import load_dotenv
 from pydantic import BaseModel
 
-from src.epic_news.models.web_search_models import ScrapeNinjaInput
+from epic_news.models.web_search_models import ScrapeNinjaInput
 
 # Load environment variables from .env file
 load_dotenv()

@@ -6,7 +6,7 @@ from crewai.tools import BaseTool
 from pyairtable import Table
 from pydantic import BaseModel
 
-from src.epic_news.models.airtable_models import AirtableReaderToolInput, AirtableToolInput
+from epic_news.models.airtable_models import AirtableReaderToolInput, AirtableToolInput
 
 
 class AirtableReaderTool(BaseTool):

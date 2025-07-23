@@ -2,7 +2,7 @@
 """
 Simple script to test the DeepResearchExtractor in isolation.
 
-This avoids import issues with other extractors by directly importing only 
+This avoids import issues with other extractors by directly importing only
 what we need for testing the DeepResearchExtractor.
 """
 
@@ -25,42 +25,44 @@ try:
 except FileNotFoundError:
     print("⚠️ No report.json found, creating sample data instead")
     # Create sample data if no file exists
-    raw_data = json.dumps({
-        "title": "Recherche approfondie: Exemple de sujet",
-        "topic": "Exemple de sujet",
-        "executive_summary": "Voici un résumé exécutif d'exemple.",
-        "key_findings": ["Point clé 1", "Point clé 2"],
-        "methodology": "Méthodologie de recherche rigoureuse",
-        "sources_count": 2,
-        "report_date": datetime.now().strftime("%Y-%m-%d"),
-        "confidence_level": "High",
-        "conclusions": "Conclusions basées sur les recherches.",
-        "research_sections": [
-            {
-                "title": "Section 1",
-                "content": "Contenu détaillé de la section 1.",
-                "conclusions": "Conclusions de la section 1.",
-                "sources": [
-                    {
-                        "title": "Source 1",
-                        "url": "https://example.com/1",
-                        "source_type": "web",
-                        "summary": "Résumé de la source 1",
-                        "relevance_score": 8,
-                        "credibility_score": 7,
-                        "extraction_date": datetime.now().strftime("%Y-%m-%d")
-                    }
-                ]
-            }
-        ]
-    })
+    raw_data = json.dumps(
+        {
+            "title": "Recherche approfondie: Exemple de sujet",
+            "topic": "Exemple de sujet",
+            "executive_summary": "Voici un résumé exécutif d'exemple.",
+            "key_findings": ["Point clé 1", "Point clé 2"],
+            "methodology": "Méthodologie de recherche rigoureuse",
+            "sources_count": 2,
+            "report_date": datetime.now().strftime("%Y-%m-%d"),
+            "confidence_level": "High",
+            "conclusions": "Conclusions basées sur les recherches.",
+            "research_sections": [
+                {
+                    "title": "Section 1",
+                    "content": "Contenu détaillé de la section 1.",
+                    "conclusions": "Conclusions de la section 1.",
+                    "sources": [
+                        {
+                            "title": "Source 1",
+                            "url": "https://example.com/1",
+                            "source_type": "web",
+                            "summary": "Résumé de la source 1",
+                            "relevance_score": 8,
+                            "credibility_score": 7,
+                            "extraction_date": datetime.now().strftime("%Y-%m-%d"),
+                        }
+                    ],
+                }
+            ],
+        }
+    )
 
 # Create state data structure as expected by the extractor
 state_data = {
     "raw_output": raw_data,
     "crew_type": "DEEPRESEARCH",
     "topic": "Exemple de sujet",  # Fallback topic
-    "current_date": datetime.now().strftime("%Y-%m-%d")
+    "current_date": datetime.now().strftime("%Y-%m-%d"),
 }
 
 # Use the extractor to parse the data

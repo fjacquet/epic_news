@@ -25,7 +25,7 @@ from crewai.tools import BaseTool
 from jinja2 import Environment, FileSystemLoader, select_autoescape  # type: ignore
 from pydantic import BaseModel, PrivateAttr
 
-from src.epic_news.models.report_models import RenderReportToolSchema
+from epic_news.models.report_models import RenderReportToolSchema
 
 # Try both possible template directories
 _TEMPLATES_ROOT = Path(__file__).resolve().parent.parent.parent.parent.parent / "templates"
@@ -56,6 +56,7 @@ class RenderReportTool(BaseTool):
             self._template_dir = Path(template_dir)
         else:
             # Robustly determine the project root and then the templates directory
+            # Correctly determine the project root, which is two levels up from the tools directory.
             project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
             self._template_dir = Path(os.path.join(project_root, "templates"))
 

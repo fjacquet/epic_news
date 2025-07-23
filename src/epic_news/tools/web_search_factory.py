@@ -2,8 +2,8 @@ from typing import Literal
 
 from crewai.tools import BaseTool
 
-from src.epic_news.tools.serpapi_tool import SerpApiTool
-from src.epic_news.tools.tavily_tool import TavilyTool
+from epic_news.tools.serpapi_tool import SerpApiTool
+from epic_news.tools.tavily_tool import TavilyTool
 
 
 class WebSearchFactory:

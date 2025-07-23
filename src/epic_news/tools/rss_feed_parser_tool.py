@@ -5,7 +5,7 @@ import feedparser
 from crewai.tools import BaseTool
 from pydantic import BaseModel
 
-from src.epic_news.models.rss_models import RssFeedParserToolInput
+from epic_news.models.rss_models import RssFeedParserToolInput
 
 
 class RssFeedParserTool(BaseTool):

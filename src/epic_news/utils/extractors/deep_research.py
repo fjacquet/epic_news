@@ -160,16 +160,16 @@ class DeepResearchExtractor(ContentExtractor):
         if "research_sections" in adapted and isinstance(adapted["research_sections"], list):
             # Make a new list to ensure we fully process each item
             processed_sections = []
-            
+
             for i, section in enumerate(adapted["research_sections"]):
                 if isinstance(section, dict):
                     # Make a deep copy to avoid modifying references
                     processed_section = section.copy()
-                    
+
                     # Convert section_title to title (the required field name in the model)
                     if "section_title" in processed_section:
                         processed_section["title"] = processed_section["section_title"]
-                    
+
                     # Ensure title is present (critical field)
                     if "title" not in processed_section:
                         if i == 0:
@@ -192,12 +192,12 @@ class DeepResearchExtractor(ContentExtractor):
                     # Ensure sources have the right structure
                     if "sources" in processed_section and isinstance(processed_section["sources"], list):
                         processed_sources = []
-                        
+
                         for j, source in enumerate(processed_section["sources"]):
                             if isinstance(source, dict):
                                 # Make a deep copy
                                 processed_source = source.copy()
-                                
+
                                 # Ensure required fields
                                 if "title" not in processed_source:
                                     processed_source["title"] = f"Source {j + 1}"
@@ -207,13 +207,15 @@ class DeepResearchExtractor(ContentExtractor):
 
                                 if "summary" not in processed_source:
                                     if "title" in processed_source:
-                                        processed_source["summary"] = f"Information extraite de {processed_source['title']}"
+                                        processed_source["summary"] = (
+                                            f"Information extraite de {processed_source['title']}"
+                                        )
                                     else:
                                         processed_source["summary"] = "Information pertinente à la recherche"
 
                                 # Handle None values for URL (convert to string)
                                 if "url" not in processed_source or processed_source["url"] is None:
-                                    processed_source["url"] = f"https://example.com/source-{j+1}"
+                                    processed_source["url"] = f"https://example.com/source-{j + 1}"
 
                                 # Handle relevance score (use default if missing)
                                 if "relevance_score" not in processed_source:
@@ -223,25 +225,32 @@ class DeepResearchExtractor(ContentExtractor):
                                 if "credibility_score" not in processed_source:
                                     # Default high credibility since these are research sources
                                     processed_source["credibility_score"] = 0.85
-                                elif isinstance(processed_source["credibility_score"], (int, float)) and processed_source["credibility_score"] > 1:
+                                elif (
+                                    isinstance(processed_source["credibility_score"], (int, float))
+                                    and processed_source["credibility_score"] > 1
+                                ):
                                     # Scale down if score is on a different scale (e.g. 1-10)
-                                    processed_source["credibility_score"] = min(processed_source["credibility_score"] / 10.0, 0.99)
+                                    processed_source["credibility_score"] = min(
+                                        processed_source["credibility_score"] / 10.0, 0.99
+                                    )
 
                                 # Always add extraction_date (required field)
                                 if "extraction_date" not in processed_source:
                                     # Use report date or current date
-                                    processed_source["extraction_date"] = adapted.get("report_date", "2023-01-01")
-                                    
+                                    processed_source["extraction_date"] = adapted.get(
+                                        "report_date", "2023-01-01"
+                                    )
+
                                 processed_sources.append(processed_source)
-                                
+
                         # Replace original sources with processed ones
                         processed_section["sources"] = processed_sources
                     else:
                         # Ensure at least empty sources list
                         processed_section["sources"] = []
-                    
+
                     processed_sections.append(processed_section)
-                    
+
             # Replace original sections with fully processed ones
             adapted["research_sections"] = processed_sections
 

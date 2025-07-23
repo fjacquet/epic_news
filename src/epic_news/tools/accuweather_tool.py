@@ -4,7 +4,7 @@ import requests
 from crewai.tools import BaseTool
 from pydantic import BaseModel
 
-from src.epic_news.models.accuweather_models import AccuWeatherToolInput
+from epic_news.models.accuweather_models import AccuWeatherToolInput
 
 
 class AccuWeatherTool(BaseTool):

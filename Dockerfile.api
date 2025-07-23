@@ -1,28 +1,46 @@
-# Use an official Python runtime as a parent image
-FROM python:3.11-slim
+# 1. Use the official uv image for Python 3.11
+FROM ghcr.io/astral-sh/uv:python3.11-bookworm-slim
 
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+# 2. Set environment variables for Python
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
-# Set the working directory in the container
+# 3. Set the working directory
 WORKDIR /app
+VOLUME /app/db
+VOLUME /app/data
+VOLUME /app/output
 
-# Install uv, the package manager used by the project
-RUN pip install uv
+# 4. Install system dependencies required by WeasyPrint
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpango-1.0-0 \
+    libpangoft2-1.0-0 \
+    libharfbuzz0b \
+    libgdk-pixbuf-2.0-0 \
+    shared-mime-info \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy the dependency files
+# 5. Copy dependency definitions
 COPY pyproject.toml uv.lock ./
 
-# Install dependencies using uv
-RUN uv sync --no-cache
-
-# Copy the application code
+# 6. Copy the application source code first
 COPY src/ ./src
+COPY templates/ ./templates
 
-# Expose the port the app runs on
+# 7. Install dependencies into a virtual environment using uv
+# This creates a venv at /app/.venv and installs the project
+RUN uv sync --locked
+
+# 8. Create and switch to a non-root user for security
+RUN useradd -m myuser && chown -R myuser:myuser /app
+USER myuser
+
+# 9. Expose the port the app runs on
 EXPOSE 8000
 
-# Define the command to run the application
-# Note: --host 0.0.0.0 is important to make the server accessible from outside the container
-CMD ["uvicorn", "src.epic_news.api:app", "--host", "0.0.0.0", "--port", "8000"]
+# 10. Healthcheck to verify the API is responsive
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+    CMD uv run curl -f http://localhost:8000/health || exit 1
+
+# 11. Command to run the application using the virtual environment
+CMD ["uv", "run", "uvicorn", "epic_news.api:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers"]

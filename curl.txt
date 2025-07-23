@@ -1,0 +1,7 @@
+curl -X 'POST' \
+  'http://localhost:8000/kickoff' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "user_request": "comment aller visiter les cinq terres italiennes en bateau sur une journée ? "
+}'

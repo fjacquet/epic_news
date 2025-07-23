@@ -4,7 +4,7 @@ from crewai.tools import BaseTool
 from pydantic import BaseModel
 from tavily import TavilyClient
 
-from src.epic_news.models.tavily_models import TavilyToolInput
+from epic_news.models.tavily_models import TavilyToolInput
 
 
 class TavilyTool(BaseTool):

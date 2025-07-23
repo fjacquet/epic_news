@@ -10,7 +10,7 @@ from crewai.tools import BaseTool
 from loguru import logger
 from pydantic import BaseModel
 
-from src.epic_news.models.coinmarketcap_models import CryptocurrencyHistoricalInput
+from epic_news.models.coinmarketcap_models import CryptocurrencyHistoricalInput
 
 # Base URL for CoinMarketCap API
 CMC_BASE_URL = "https://pro-api.coinmarketcap.com/v1"

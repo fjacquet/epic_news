@@ -5,9 +5,9 @@ from typing import Any, Optional
 
 from crewai import CrewOutput
 
-from src.epic_news.crews.menu_designer.menu_designer import MenuDesignerCrew
-from src.epic_news.models.crews.menu_designer_report import WeeklyMenuPlan
-from src.epic_news.utils.menu_plan_validator import MenuPlanValidator
+from epic_news.crews.menu_designer.menu_designer import MenuDesignerCrew
+from epic_news.models.crews.menu_designer_report import WeeklyMenuPlan
+from epic_news.utils.menu_plan_validator import MenuPlanValidator
 
 logger = logging.getLogger(__name__)
 
