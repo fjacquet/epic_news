@@ -144,8 +144,6 @@ Each “crew” is a team of specialized AI agents. Here’s what they do:
 - **Sample prompt:** "Investigate recent cybersecurity incidents affecting European banks."
 - **Output:** OSINT report.
 
-
-
 - **What:** Improves French marketing messages for persuasion and engagement.
 - **Sample prompt:** "Améliorer ce message marketing: 'Découvrez notre nouveau produit qui vous aide à gagner du temps.'"
 - **Output:** Enhanced marketing copy.
@@ -219,12 +217,12 @@ Each “crew” is a team of specialized AI agents. Here’s what they do:
 
 This project includes comprehensive documentation to help you get started, whether you're a user, developer, or contributor. Here’s a recommended reading order:
 
-1.  **`README.md` (This file)**: Provides a high-level overview of the project, its features, and how to get started quickly.
-2.  **`docs/USE_CASES.md`**: A user-focused guide that showcases all supported use cases with example prompts. It's the best place to discover what you can ask Epic News to do.
-3.  **`docs/DESIGN_PRINCIPLES.md`**: Essential reading for developers. It outlines the core architectural and coding principles that govern the project, including critical patterns for async execution, tool usage, and output generation.
-4.  **`docs/tools_handbook.md`**: The definitive guide to all tools available to the AI agents. It details their functionality, parameters, and any required API keys.
-5.  **`docs/CREWAI_ENGAGEMENT_RULES.md`**: Describes the rules and anti-patterns for using the CrewAI framework within this project, ensuring consistency and adherence to the core architecture.
-6.  **`docs/output_formatting_guide.md`**: Specifies the standards for all generated reports, particularly the HTML output format.
+1. **`README.md` (This file)**: Provides a high-level overview of the project, its features, and how to get started quickly.
+2. **`docs/USE_CASES.md`**: A user-focused guide that showcases all supported use cases with example prompts. It's the best place to discover what you can ask Epic News to do.
+3. **`docs/DESIGN_PRINCIPLES.md`**: Essential reading for developers. It outlines the core architectural and coding principles that govern the project, including critical patterns for async execution, tool usage, and output generation.
+4. **`docs/tools_handbook.md`**: The definitive guide to all tools available to the AI agents. It details their functionality, parameters, and any required API keys.
+5. **`docs/CREWAI_ENGAGEMENT_RULES.md`**: Describes the rules and anti-patterns for using the CrewAI framework within this project, ensuring consistency and adherence to the core architecture.
+6. **`docs/output_formatting_guide.md`**: Specifies the standards for all generated reports, particularly the HTML output format.
 
 ---
 

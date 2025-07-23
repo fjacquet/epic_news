@@ -10,7 +10,7 @@ from epic_news.main import kickoff
 # --- Streamlit UI Configuration ---
 st.set_page_config(page_title="Epic News CrewAI Orchestrator", layout="wide")
 st.title("✨ Epic News CrewAI Orchestrator")
-st.markdown("""Welcome! Enter your request below, and the `ReceptionFlow` will automatically classify it
+st.markdown("""Welcome! Enter your request below, and the flow will automatically classify it
 and dispatch the appropriate crew to handle the job.""")
 
 # --- State Management ---
@@ -26,11 +26,11 @@ if "final_report" not in st.session_state:
 class StreamlitLogSink:
     """A custom logging sink that puts messages into a queue."""
 
-    def __init__(self, queue):
+    def __init__(self, queue: Queue):
         self.queue = queue
 
-    def write(self, message):
-        self.queue.put(message)
+    def __call__(self, message):
+        self.queue.put(message.strip())
 
 
 log_queue = Queue()
@@ -72,18 +72,16 @@ if st.button("🚀 Kickoff Flow", disabled=st.session_state.crew_running):
     st.session_state.crew_running = True
     st.session_state.log_messages = []
     st.session_state.final_report = None
-    st.rerun()
+
+    # Start the crew thread
+    st.session_state.thread = Thread(target=run_crew_thread, args=(user_request, log_queue))
+    st.session_state.thread.start()
 
 # --- Display Logic for Running Crew ---
 if st.session_state.crew_running:
     st.info("ReceptionFlow is running... Logs will appear below.")
     log_placeholder = st.empty()
     report_placeholder = st.empty()
-
-    # Start the crew thread only on the first run
-    if "thread" not in st.session_state or not st.session_state.thread.is_alive():
-        st.session_state.thread = Thread(target=run_crew_thread, args=(user_request, log_queue))
-        st.session_state.thread.start()
 
     # Poll the queue for updates
     while st.session_state.thread.is_alive() or not log_queue.empty():
@@ -116,5 +114,5 @@ if st.session_state.crew_running:
         report_placeholder.error("Crew finished, but no report was generated.")
 
     # Clean up the thread
-    del st.session_state["thread"]
-    st.rerun()  # Rerun to reset the UI to its initial state
+    if "thread" in st.session_state:
+        del st.session_state["thread"]

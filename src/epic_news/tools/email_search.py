@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from loguru import logger
 from pydantic import BaseModel
 
-from src.epic_news.models.email_search_models import DelegatingEmailSearchInput
+from epic_news.models.email_search_models import DelegatingEmailSearchInput
 
 from .hunter_io_tool import HunterIOTool  # Import the actual tool
 from .serper_email_search_tool import SerperEmailSearchTool  # Import the actual tool

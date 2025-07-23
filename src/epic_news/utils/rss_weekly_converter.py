@@ -5,7 +5,7 @@ from datetime import datetime
 
 from bs4 import BeautifulSoup
 
-from src.epic_news.models.rss_weekly_models import RssWeeklyReport
+from epic_news.models.rss_weekly_models import RssWeeklyReport
 
 
 def html_to_rss_weekly_json(html_content: str) -> dict:

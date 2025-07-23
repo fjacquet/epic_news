@@ -1,4 +1,3 @@
-from composio_crewai import ComposioToolSet
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from dotenv import load_dotenv
@@ -43,6 +42,8 @@ class CompanyNewsCrew:
         GOLD STANDARD: This class does not manage output directories or tools. All tool assignment is handled by CrewAI config/factories.
         Output file is passed via context parameter `output_file`.
         """
+
+        from composio_crewai import ComposioToolSet
 
         # Initialize the toolset
         toolset = ComposioToolSet()

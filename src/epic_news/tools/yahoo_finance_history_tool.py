@@ -9,7 +9,7 @@ import yfinance as yf
 from crewai.tools import BaseTool
 from pydantic import BaseModel
 
-from src.epic_news.models.finance_models import GetTickerHistoryInput
+from epic_news.models.finance_models import GetTickerHistoryInput
 
 
 class YahooFinanceHistoryTool(BaseTool):

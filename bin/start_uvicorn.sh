@@ -29,7 +29,7 @@ fi
 
 # Start Uvicorn with the specified port
 echo "⚡ Launching Uvicorn FastAPI server..."
-uv run uvicorn src.epic_news.api:app --host 0.0.0.0 --port "$PORT" --reload
+uv run uvicorn src.epic_news.api:app --host 0.0.0.0 --port "$PORT"
 
 echo ""
 echo "🏁 Uvicorn server stopped."

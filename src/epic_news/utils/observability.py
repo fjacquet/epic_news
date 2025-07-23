@@ -404,6 +404,7 @@ def trace_task(tracer: Tracer):
             # Execute the task
             start_time = time.time()
             try:
+                success = False  # Initialize success to False
                 result = func(*args, **kwargs)
                 success = True
             except Exception as e:

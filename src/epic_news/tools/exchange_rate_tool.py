@@ -5,7 +5,7 @@ import requests
 from crewai.tools import BaseTool
 from pydantic import BaseModel
 
-from src.epic_news.models.finance_models import ExchangeRateToolInput
+from epic_news.models.finance_models import ExchangeRateToolInput
 
 
 class ExchangeRateTool(BaseTool):

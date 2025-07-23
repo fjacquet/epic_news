@@ -8,7 +8,7 @@ import yfinance as yf
 from crewai.tools import BaseTool
 from pydantic import BaseModel
 
-from src.epic_news.models.finance_models import GetCompanyInfoInput
+from epic_news.models.finance_models import GetCompanyInfoInput
 
 
 class YahooFinanceCompanyInfoTool(BaseTool):

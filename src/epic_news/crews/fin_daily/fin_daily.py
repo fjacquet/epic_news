@@ -27,6 +27,7 @@ class FinDailyCrew:
             ],
             llm="gpt-4.1-mini",
             verbose=True,
+            memory=True,
         )
 
     @agent
@@ -41,6 +42,7 @@ class FinDailyCrew:
             ],
             llm="gpt-4.1-mini",
             verbose=True,
+            memory=True,
         )
 
     @agent
@@ -50,6 +52,7 @@ class FinDailyCrew:
             # No tools - synthesizes from context provided by analyst tasks
             llm="gpt-4.1-mini",
             verbose=True,
+            memory=True,
         )
 
     @task
@@ -119,4 +122,9 @@ class FinDailyCrew:
             tasks=self.tasks,
             process=Process.sequential,
             verbose=True,
+            memory=True,
+            memory_config={
+                "provider": "mem0",
+                "config": {"user_id": "fin_daily"},
+            },
         )

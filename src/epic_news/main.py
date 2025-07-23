@@ -66,6 +66,7 @@ from epic_news.models.crews.meeting_prep_report import MeetingPrepReport
 from epic_news.models.crews.poem_report import PoemJSONOutput
 from epic_news.models.crews.saint_daily_report import SaintData
 from epic_news.models.crews.sales_prospecting_report import SalesProspectingReport
+from epic_news.services.menu_designer_service import MenuDesignerService
 
 # Import the normalization utility
 from epic_news.utils.data_normalization import normalize_sales_prospecting_report
@@ -101,9 +102,8 @@ from epic_news.utils.report_utils import (
     generate_rss_weekly_html_report,
     prepare_email_params,
 )
+from epic_news.utils.rss_utils import fetch_articles_from_opml
 from epic_news.utils.string_utils import create_topic_slug
-from scripts.fetch_rss_articles import fetch_articles_from_opml
-from src.epic_news.services.menu_designer_service import MenuDesignerService
 
 # Import function explicitly to ensure availability during runtime
 
@@ -1156,7 +1156,20 @@ class ReceptionFlow(Flow[ContentState]):
             # TODO: Define an actual 'error' step or handle this more gracefully.
             return "error"  # Or another appropriate error state like 'go_unknown'
 
+        # Ensure all required template variables are provided with defaults
+        required_vars = {
+            "family": current_inputs.get("family", "1 person"),
+            "destination": current_inputs.get("destination", "unknown destination"),
+            "duration": current_inputs.get("duration", "1 day"),
+            "origin": current_inputs.get("origin", "Switzerland"),
+            "user_preferences_and_constraints": current_inputs.get(
+                "user_preferences_and_constraints", "No specific preferences"
+            ),
+        }
+        current_inputs.update(required_vars)
+
         self.logger.info(f"Starting HolidayPlannerCrew with inputs: {current_inputs}")
+        self.logger.info(f"Required variables: {required_vars}")
 
         # Run the crew
         holiday_plan = HolidayPlannerCrew().crew().kickoff(inputs=current_inputs)
@@ -1241,10 +1254,9 @@ def kickoff(user_input: str | None = None):
     setup_logging()
     # If user_input is not provided, use a default value.
     request = (
-        user_input
-        if user_input
-        else "conduct a deep research study on a travel on the north of the italy between san remo and Genova. Give me the best hotel and restaurant options."
-        + "How to book italian train, electrical bicylce and cultural events. I will be alone for 1 week in end of july "
+        user_input if user_input else "get the daily  news report"
+        # else "conduct a deep research study on a travel on the north of the italy between san remo and Genova. Give me the best hotel and restaurant options."
+        # + "How to book italian train, electrical bicylce and cultural events. I will be alone for 1 week in end of july "
         # else "conduct a deep research study on the the progress of quantum computing and the possible application in cryptography, genetics and generative AI "
         # else "conduct a deep research on nutanix technologies for the cloud native"
         # else "Generate a complete weekly menu planner with 30 recipes and shopping list for a family of 3 in French"
@@ -1297,7 +1309,7 @@ if __name__ == "__main__":
     # 📋 For a complete list of supported use cases and example prompts,
     # see USE_CASES.md in the project root directory.
     # Examples: "Analyze my portfolio", "Recipe for cookies", "News about AI"
-    kickoff(user_input="Generate the weekly RSS report")
+    kickoff(user_input="What stocks are in my portfolio?")
 
     # To generate a plot of the flow, uncomment the following line:
     # plot()

@@ -7,7 +7,7 @@ from crewai.tools import BaseTool
 from dotenv import load_dotenv
 from pydantic import BaseModel
 
-from src.epic_news.models.github_models import GitHubSearchInput
+from epic_news.models.github_models import GitHubSearchInput
 
 from .github_base import GitHubBaseTool
 

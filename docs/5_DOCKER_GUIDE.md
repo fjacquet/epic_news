@@ -1,105 +1,107 @@
 # Epic News Docker Deployment Guide
 
-This document provides instructions for deploying the Epic News application using Docker containers.
+This guide outlines the best practices and key lessons learned for building and running Docker containers for the Epic News project, with a focus on using `uv` for dependency management.
 
-## Container Images
+## Key Principles for `uv` in Docker
 
-Epic News consists of two main services:
+Based on the official `uv` documentation and our experience, the following principles should be applied to create efficient, secure, and reliable Docker images.
 
-1. **API Service**: Provides the backend API functionality
-   - Image: `fjacquet/epic-news-api:latest`
-   - Port: 8000
+1.  **Use Official `uv` Base Images**: Start with `ghcr.io/astral-sh/uv:python3.11-bookworm-slim` instead of a generic Python image.
+2.  **Use `uv sync --locked`**: This is the fastest and most reliable way to install dependencies from a `uv.lock` file.
+3.  **Leverage Docker Layer Caching**: Install system and Python dependencies *before* copying your application source code to avoid reinstalling them on every code change.
+4.  **Run as a Non-Root User**: Always create and switch to a non-root user for security.
+5.  **Use `uv run`**: Execute commands like `uvicorn` with `uv run` to ensure they run within the correct virtual environment.
 
-2. **Streamlit UI**: Provides the web interface
-   - Image: `fjacquet/epic-news-streamlit:latest`
-   - Port: 8501
+## Final `Dockerfile.api` Example
 
-## Required Volumes and Files
+Here is the final, optimized `Dockerfile.api` that incorporates all these lessons:
 
-For proper functioning of the containers, you need to mount the following volumes:
+```dockerfile
+# 1. Use the official uv image for Python 3.11
+FROM ghcr.io/astral-sh/uv:python3.11-bookworm-slim
 
-### Environment Variables (.env)
+# 2. Set environment variables for Python
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
-Create a `.env` file with the following variables (adjust values as needed):
+# 3. Set the working directory
+WORKDIR /app
 
-```
-# API Configuration
-API_HOST=0.0.0.0
-API_PORT=8000
+# 4. Install system dependencies required by WeasyPrint
+# Note: libpangoft2-1.0-0 was a critical missing dependency.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpango-1.0-0 \
+    libpangoft2-1.0-0 \
+    libharfbuzz0b \
+    libgdk-pixbuf-2.0-0 \
+    shared-mime-info \
+    && rm -rf /var/lib/apt/lists/*
 
-# Database Configuration
-DB_PATH=/app/db
+# 5. Copy dependency definitions
+COPY pyproject.toml uv.lock ./
 
-# Data Paths
-DATA_PATH=/app/data
-OUTPUT_PATH=/app/output
+# 6. Install dependencies into a virtual environment using uv
+RUN uv sync --locked
 
-# Add any other required environment variables here
-# Such as API keys, credentials, etc.
-```
+# 7. Copy the application source code
+# We copy the contents of 'src/' into the WORKDIR to make 'epic_news' a top-level package.
+COPY src/ .
 
-### Data Directory
+# 8. Create and switch to a non-root user for security
+RUN useradd -m myuser && chown -R myuser:myuser /app
+USER myuser
 
-The `/data` directory should contain:
+# 9. Expose the port the app runs on
+EXPOSE 8000
 
-- `feedly.opml`: OPML file with RSS feed subscriptions
+# 10. Healthcheck to verify the API is responsive
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+    CMD uv run curl -f http://localhost:8000/health || exit 1
 
-### Database Directory
-
-The `/db` directory contains:
-
-- `chroma.sqlite3`: SQLite database file for vector storage
-- Various UUID-named directories for database-related storage
-
-### Output Directory
-
-The `/output/dashboard_data` directory is used for storing generated dashboard data.
-
-## Docker Compose Deployment
-
-We provide three docker-compose configurations:
-
-1. **Full Deployment**: Runs both API and Streamlit services
-2. **API Only**: Runs only the API service
-3. **Streamlit Only**: Runs only the Streamlit service
-
-### Prerequisites
-
-- Docker and Docker Compose installed
-- `.env` file created with required variables
-- Data directories prepared with necessary files
-
-## Usage Instructions
-
-### Full Deployment
-
-```bash
-docker-compose up -d
+# 11. Command to run the application
+CMD ["uv", "run", "uvicorn", "epic_news.api:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers"]
 ```
 
-### API Only Deployment
+## Troubleshooting and Lessons Learned
 
-```bash
-docker-compose -f docker-compose.api.yml up -d
-```
+### Python Import Errors
 
-### Streamlit Only Deployment
+-   **`ModuleNotFoundError: No module named 'epic_news'`**: This error occurs when the `uvicorn` command can't find the application. It was solved by copying the source code via `COPY src/ .` and using `epic_news.api:app` as the application target.
+-   **`ModuleNotFoundError: No module named 'src'`**: This error was caused by incorrect absolute imports within the application code (e.g., `from src.epic_news...`). The fix was to remove the `src.` prefix from all imports, as `epic_news` is the top-level package inside the container, not `src`.
 
-```bash
-docker-compose -f docker-compose.streamlit.yml up -d
-```
+### WeasyPrint System Dependencies
 
-## Accessing the Services
+-   **`ImportError: ... no library called "pangoft2-1.0" was found`**: WeasyPrint has several system dependencies that must be installed with `apt-get`. The key was to ensure the complete list was present, including the often-missed `libpangoft2-1.0-0`.
 
-- API: <http://localhost:8000>
-- Streamlit UI: <http://localhost:8501>
+### Application Hangs at Startup
 
-## Troubleshooting
+-   **Symptom**: The container starts, but the logs stop at a certain point and `uvicorn` never reports that it's running. In our case, the last log message was `Actions cache is outdated, refreshing cache...`.
+-   **Cause**: A third-party library (`composio_crewai`) was performing a long-running, blocking operation as soon as it was imported. Because it was imported at the top level of a module, it blocked the entire application startup process.
+-   **Solution (Lazy Loading)**: The import was moved from the top of the file into the specific method where the library was actually used. This defers the expensive import until it's needed, allowing the server to start without delay.
 
-### Common Issues
+    **Before (Problem):**
+    ```python
+    from composio_crewai import ComposioToolSet # <-- This blocks at startup
 
-1. **Database Connection Errors**
-   - Ensure the db volume is properly mounted
+    @CrewBase
+    class CompanyNewsCrew:
+        def __init__(self):
+            self.toolset = ComposioToolSet()
+            # ...
+    ```
+
+    **After (Solution):**
+    ```python
+    from crewai.project import CrewBase
+
+    @CrewBase
+    class CompanyNewsCrew:
+        def __init__(self):
+            from composio_crewai import ComposioToolSet # <-- Now imported only when needed
+
+            self.toolset = ComposioToolSet()
+            # ...
+    ```
    - Check file permissions on the db directory
 
 2. **Missing Data Files**

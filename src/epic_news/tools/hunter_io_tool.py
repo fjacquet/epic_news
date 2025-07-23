@@ -7,7 +7,7 @@ from crewai.tools import BaseTool
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 
-from src.epic_news.models.email_search_models import HunterIOInput
+from epic_news.models.email_search_models import HunterIOInput
 
 from .email_base import EmailSearchTool
 

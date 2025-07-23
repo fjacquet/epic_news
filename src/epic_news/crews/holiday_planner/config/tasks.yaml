@@ -2,11 +2,15 @@
 research_destination:
   description: >
     Research all aspects of {destination} for a {duration} trip for {family},
-    including:    - Suitability for {duration}    - Attractions, activities, local
-    culture, customs    - Transportation from {origin} and within {destination}    -
-    Seasonal/weather considerations    - Special needs: {user_preferences_and_constraints}    -
-    Local events during travel dates    - Safety considerations and travel advisories    -
-    Packing recommendations based on season/activities
+    including:
+    - Suitability for {duration}
+    - Attractions, activities, local culture, customs
+    - Transportation from {origin} and within {destination}
+    - Seasonal/weather considerations
+    - Special needs: {user_preferences_and_constraints}
+    - Local events during travel dates
+    - Safety considerations and travel advisories
+    - Packing recommendations based on season/activities
   agent: travel_researcher
   expected_output: >
     A comprehensive JSON object containing a destination guide. It should cover all
@@ -15,11 +19,12 @@ research_destination:
   output_file: output/holiday/research_destination.json
 recommend_accommodation_and_dining:
   description: >
-    Using the Research aon {destination} for a {duration}  recommend:     - 3-5 accommodations
-    with details (amenities, photos, exact locations, cancellation policies)     -
-    Dining options for each day (including dietary accommodations)     - Nearby grocery
-    stores and markets     - Kid-friendly options where applicable     - Accessibility
-    information for all recommendations
+    Using the research on {destination} for a {duration} trip, recommend:
+    - 3-5 accommodations with details (amenities, photos, exact locations, cancellation policies)
+    - Dining options for each day (including dietary accommodations)
+    - Nearby grocery stores and markets
+    - Kid-friendly options where applicable
+    - Accessibility information for all recommendations
   agent: accommodation_specialist
   expected_output: >
     A JSON object with a detailed accommodation and dining plan, including booking
@@ -27,10 +32,13 @@ recommend_accommodation_and_dining:
   output_file: output/holiday/recommend_accommodation_and_dining.json
 plan_itinerary:
   description: >
-    Create a detailed day-by-day itinerary including:    - Morning, afternoon, evening
-    activities with time allocations     - Travel times between locations     - Restaurant
-    reservations needed     - Downtime and relaxation periods     - Alternative options
-    for bad weather     - Estimated costs for each day
+    Create a detailed day-by-day itinerary including:
+    - Morning, afternoon, evening activities with time allocations
+    - Travel times between locations
+    - Restaurant reservations needed
+    - Downtime and relaxation periods
+    - Alternative options for bad weather
+    - Estimated costs for each day
   agent: itinerary_architect
   expected_output: >
     A JSON object representing an hour-by-hour itinerary with maps, transportation
@@ -38,10 +46,12 @@ plan_itinerary:
   output_file: output/holiday/plan_itinerary.json
 analyze_and_optimize_budget:
   description: >
-    Analyze the proposed itinerary and accommodations to:    - Provide total cost
-    breakdown     - Suggest cost-saving alternatives     - Highlight splurge-worthy
-    experiences     - Calculate potential savings from packages/deals
-    - ensure all amount are in the same currency (swiss franc ideally)
+    Analyze the proposed itinerary and accommodations to:
+    - Provide total cost breakdown
+    - Suggest cost-saving alternatives
+    - Highlight splurge-worthy experiences
+    - Calculate potential savings from packages/deals
+    - Ensure all amounts are in the same currency (Swiss franc ideally)
   agent: budget_manager
   expected_output: >
     A JSON object with a detailed budget analysis, including cost breakdowns and
@@ -49,12 +59,17 @@ analyze_and_optimize_budget:
   output_file: output/holiday/analyze_and_optimize_budget.json
 format_and_translate_guide:
   description: >
-    Compile all information into a beautifully formatted guide including:     - Table
-    of contents     - Key information summary     - Day-by-day itinerary with maps     -
-    Accommodation and dining details     - Budget summary     - Emergency contacts
-    and local phrases     - Packing checklist     - Translated sections if needed
-    - ensure all amount are in the same currency (swiss franc ideally)
-    - ensure all prices are up to date
+    Compile all information into a beautifully formatted guide including:
+    - Table of contents
+    - Key information summary
+    - Day-by-day itinerary with maps
+    - Accommodation and dining details
+    - Budget summary
+    - Emergency contacts and local phrases
+    - Packing checklist
+    - Translated sections if needed
+    - Ensure all amounts are in the same currency (Swiss franc ideally)
+    - Ensure all prices are up to date
   agent: content_formatter
   expected_output: >
     A comprehensive, richly detailed, and visually structured travel guide in a single

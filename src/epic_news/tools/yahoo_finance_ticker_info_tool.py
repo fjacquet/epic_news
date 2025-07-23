@@ -8,8 +8,8 @@ import yfinance as yf
 from crewai.tools import BaseTool
 from pydantic import BaseModel
 
-from src.epic_news.models.finance_models import GetTickerInfoInput
-from src.epic_news.tools.cache_manager import get_cache_manager
+from epic_news.models.finance_models import GetTickerInfoInput
+from epic_news.tools.cache_manager import get_cache_manager
 
 
 class YahooFinanceTickerInfoTool(BaseTool):

@@ -6,7 +6,7 @@ from typing import Any, Optional
 
 from pydantic import ValidationError
 
-from src.epic_news.models.crews.menu_designer_report import (
+from epic_news.models.crews.menu_designer_report import (
     DailyMeal,
     DailyMenu,
     DishInfo,

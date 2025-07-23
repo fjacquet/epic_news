@@ -1,29 +1,46 @@
-# Use an official Python runtime as a parent image
-FROM python:3.11-slim
+# 1. Use the official uv image for Python 3.11
+FROM ghcr.io/astral-sh/uv:python3.11-bookworm-slim
 
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+# 2. Set environment variables for Python
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
-# Set the working directory in the container
+# 3. Set the working directory and Python path
+ENV PYTHONPATH=/app
 WORKDIR /app
 
-# Install uv, the package manager used by the project
-RUN pip install uv
+# 4. Install system dependencies that might be needed (e.g., for WeasyPrint)
+# This is a preventative measure; adjust if not needed.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpango-1.0-0 \
+    libpangoft2-1.0-0 \
+    libharfbuzz0b \
+    libgdk-pixbuf-2.0-0 \
+    shared-mime-info \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy the dependency files
+# 5. Copy dependency definitions
 COPY pyproject.toml uv.lock ./
 
-# Install dependencies using uv
-RUN uv sync --no-cache
+# 6. Install dependencies into a virtual environment using uv
+RUN uv sync --locked
 
-# Copy the application code
-COPY src/ ./src
+# 7. Copy the templates directory
+COPY templates/ ./templates/
 
-# Expose the port the app runs on
+# 7. Copy the application source code
+COPY src/ .
+
+# 8. Create and switch to a non-root user for security
+RUN useradd -m myuser && chown -R myuser:myuser /app
+USER myuser
+
+# 9. Expose the port the app runs on
 EXPOSE 8501
 
-# Define the command to run the application
-# Note: --server.headless=true is important for running in a container
-# Note: --server.port is set to the exposed port
-CMD ["streamlit", "run", "src/epic_news/app.py", "--server.port=8501", "--server.headless=true", "--server.address=0.0.0.0"]
+# 10. Healthcheck to verify the Streamlit app is responsive
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+    CMD curl -f http://localhost:8501/healthz || exit 1
+
+# 11. Command to run the application using uv
+CMD ["uv", "run", "streamlit", "run", "epic_news/app.py", "--server.port=8501", "--server.headless=true", "--server.address=0.0.0.0"]

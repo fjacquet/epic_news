@@ -1,8 +1,8 @@
-version: '3.8'
-
 services:
   streamlit:
-    image: fjacquet/epic-news-streamlit:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.streamlit
     container_name: epic-news-streamlit
     restart: unless-stopped
     ports:

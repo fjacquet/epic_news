@@ -4,8 +4,8 @@ from crewai.tools import BaseTool
 from loguru import logger
 from pydantic import BaseModel
 
-from src.epic_news.models.rss_models import RssFeeds
-from src.epic_news.tools.scrape_ninja_tool import ScrapeNinjaTool
+from epic_news.models.rss_models import RssFeeds
+from epic_news.tools.scrape_ninja_tool import ScrapeNinjaTool
 
 
 class BatchArticleScraperTool(BaseTool):

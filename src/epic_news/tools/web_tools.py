@@ -14,28 +14,34 @@ from crewai_tools import (
     YoutubeVideoSearchTool,
 )
 
+from epic_news.tools.hybrid_search_tool import HybridSearchTool
+from epic_news.tools.rss_feed_tool import RSSFeedTool
+
 
 def get_search_tools():
     """
-    Get web search tools.
+    Get web search tools with hybrid approach (Brave Search + SerperDev fallback).
 
     Returns:
         list: A list of web search tool instances.
     """
     return [
-        SerperDevTool(n_results=25, search_type="search"),
+        HybridSearchTool(),  # Primary: Brave Search + SerperDev fallback
+        SerperDevTool(n_results=25, search_type="search"),  # Backup
     ]
 
 
 def get_news_tools():
     """
-    Get news search tools.
+    Get news search tools with RSS feeds and hybrid search for maximum reliability.
 
     Returns:
         list: A list of news search tool instances.
     """
     return [
-        SerperDevTool(n_results=25, search_type="news"),
+        RSSFeedTool(),  # Primary: Direct RSS feeds from reliable sources
+        HybridSearchTool(),  # Secondary: Brave Search + SerperDev fallback
+        SerperDevTool(n_results=25, search_type="news"),  # Backup news-specific
     ]
 
 
