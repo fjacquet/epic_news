@@ -8,6 +8,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # 3. Set the working directory and Python path
 ENV PYTHONPATH=/app
 WORKDIR /app
+VOLUME /app/db
+VOLUME /app/data
+VOLUME /app/output
+
 
 # 4. Install system dependencies that might be needed (e.g., for WeasyPrint)
 # This is a preventative measure; adjust if not needed.
@@ -22,14 +26,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # 5. Copy dependency definitions
 COPY pyproject.toml uv.lock ./
 
-# 6. Install dependencies into a virtual environment using uv
-RUN uv sync --locked
-
-# 7. Copy the templates directory
+# 6. Copy the application source code and templates
+COPY src/ ./src
 COPY templates/ ./templates/
 
-# 7. Copy the application source code
-COPY src/ .
+# 7. Install dependencies into a virtual environment using uv
+RUN uv sync --all-extras --locked
 
 # 8. Create and switch to a non-root user for security
 RUN useradd -m myuser && chown -R myuser:myuser /app
@@ -43,4 +45,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
     CMD curl -f http://localhost:8501/healthz || exit 1
 
 # 11. Command to run the application using uv
-CMD ["uv", "run", "streamlit", "run", "epic_news/app.py", "--server.port=8501", "--server.headless=true", "--server.address=0.0.0.0"]
+CMD ["uv", "run", "streamlit", "run", "src/epic_news/app.py", "--server.port=8501", "--server.headless=true", "--server.address=0.0.0.0"]
