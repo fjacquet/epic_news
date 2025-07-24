@@ -1162,6 +1162,7 @@ dependencies = [
     { name = "lxml-html-clean" },
     { name = "matplotlib" },
     { name = "mem0ai" },
+    { name = "minds-sdk" },
     { name = "newspaper3k" },
     { name = "pandas" },
     { name = "pathlib" },
@@ -1245,6 +1246,7 @@ requires-dist = [
     { name = "lxml-html-clean", specifier = ">=0.4.2" },
     { name = "matplotlib", specifier = ">=3.10.3" },
     { name = "mem0ai", specifier = ">=0.1.114" },
+    { name = "minds-sdk", specifier = ">=1.3.3" },
     { name = "newspaper3k", specifier = ">=0.2.8" },
     { name = "pandas", specifier = ">=2.3.0" },
     { name = "pathlib", specifier = ">=1.0.1" },
@@ -2796,6 +2798,17 @@ sdist = { url = "https://files.pythonhosted.org/packages/3a/41/580bb4006e3ed0361
 wheels = [
     { url = "https://files.pythonhosted.org/packages/2c/19/04f9b178c2d8a15b076c8b5140708fa6ffc5601fb6f1e975537072df5b2a/mergedeep-1.3.4-py3-none-any.whl", hash = "sha256:70775750742b25c0d8f36c55aed03d24c3384d17c951b3175d898bd778ef0307", size = 6354, upload-time = "2021-02-05T18:55:29.583Z" },
 ]
+
+[[package]]
+name = "minds-sdk"
+version = "1.3.3"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "openai" },
+    { name = "pydantic" },
+    { name = "requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/41/c1/eb918cfe9ab7af22743a269a1f77796f020eb33fae523454ca3a5d8b4403/minds_sdk-1.3.3.tar.gz", hash = "sha256:f791fb6bd31b02e85b4349f8e642bfcb86df16a885b2e65558bdf49236e7590b", size = 12048, upload-time = "2025-04-30T23:26:00.305Z" }
 
 [[package]]
 name = "mkdocs"

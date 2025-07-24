@@ -1,0 +1,49 @@
+# 1. Use the official uv image for Python 3.11
+FROM ghcr.io/astral-sh/uv:python3.11-bookworm-slim
+
+# 2. Set environment variables for Python
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+# 3. Set the working directory and Python path
+ENV PYTHONPATH=/app
+WORKDIR /app
+
+# 4. Define mount points for persistent data
+VOLUME /app/db
+VOLUME /app/data
+VOLUME /app/output
+
+# 5. Install system dependencies, including supervisor
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpango-1.0-0 \
+    libpangoft2-1.0-0 \
+    libharfbuzz0b \
+    libgdk-pixbuf-2.0-0 \
+    shared-mime-info \
+    supervisor \
+    && rm -rf /var/lib/apt/lists/*
+
+# 6. Copy dependency definitions
+COPY pyproject.toml uv.lock ./
+
+# 7. Copy the application source code and templates
+COPY src/ ./src
+COPY templates/ ./templates/
+
+# 8. Install dependencies into a virtual environment using uv
+RUN uv sync --all-extras --locked
+
+# 9. Copy the supervisor configuration
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# 10. Create and switch to a non-root user for security
+RUN useradd -m myuser && chown -R myuser:myuser /app
+# We don't switch user here because supervisor needs to run as root
+
+# 11. Expose the ports for both apps
+EXPOSE 8000
+EXPOSE 8501
+
+# 12. Command to run supervisor
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
