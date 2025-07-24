@@ -1,0 +1,18 @@
+services:
+  combined-app:
+    build:
+      context: .
+      dockerfile: Dockerfile.combined
+    container_name: epic-news-combined
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+      - "8501:8501"
+    volumes:
+      - ./.env:/app/.env
+      - ./db:/app/db
+      - ./data:/app/data
+      - ./output:/app/output
+    environment:
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1

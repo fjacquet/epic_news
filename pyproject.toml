@@ -58,6 +58,7 @@ dependencies = [
     "seaborn>=0.13.2",
     "scikit-learn>=1.7.0",
     "mem0ai>=0.1.114",
+    "minds-sdk>=1.3.3",
 ]
 
 [project.scripts]
