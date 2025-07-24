@@ -1,6 +1,7 @@
 name: Publish Code Interpreter Docker Image
 
 on:
+  workflow_dispatch:
   push:
     branches: [ "main" ]
     # Publish semver tags as releases
