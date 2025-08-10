@@ -8,7 +8,7 @@ from epic_news.tools.html_to_pdf_tool import HtmlToPdfTool
 
 # Import RAG tools
 from epic_news.tools.report_tools import get_report_tools
-from epic_news.tools.scrape_ninja_tool import ScrapeNinjaTool
+from epic_news.tools.scraper_factory import get_scraper
 
 load_dotenv()
 
@@ -22,7 +22,7 @@ class HRIntelligenceCrew:
     def hr_researcher(self) -> Agent:
         """Creates the HR researcher agent with tools for data gathering"""
         # Get all tools
-        search_tools = [SerperDevTool(), ScrapeNinjaTool(), PDFSearchTool()]
+        search_tools = [SerperDevTool(), get_scraper(), PDFSearchTool()]
         html_to_pdf_tool = HtmlToPdfTool()
 
         all_tools = search_tools + [html_to_pdf_tool] + get_report_tools()
@@ -31,7 +31,7 @@ class HRIntelligenceCrew:
             config=self.agents_config["hr_researcher"],
             verbose=True,
             tools=all_tools,
-            llm="gpt-4.1-mini",  # Use more powerful model for HR intelligence analysis
+            llm="gpt-5-mini",  # Use more powerful model for HR intelligence analysis
             allow_delegation=False,
             respect_context_window=True,
             reasoning=True,

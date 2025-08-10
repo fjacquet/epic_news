@@ -46,7 +46,7 @@ class DeepResearchCrew:
                 ScrapeWebsiteTool(),
                 FileReadTool(),  # Backup scraping tool
             ],
-            llm="gpt-4.1-mini",
+            llm="gpt-5-mini",
             verbose=True,
             reasoning=True,
         )
@@ -72,7 +72,7 @@ class DeepResearchCrew:
         return Agent(
             config=self.agents_config["data_analyst"],
             tools=[self.code_interpreter, FileReadTool()],
-            llm="gpt-4.1-mini",
+            llm="gpt-5-mini",
             verbose=True,
             allow_code_execution=True,  # Enable Code Interpreter for real quantitative analysis
         )
@@ -84,7 +84,7 @@ class DeepResearchCrew:
         return Agent(
             config=self.agents_config["report_writer"],
             tools=[],  # Report writing, no external tools needed
-            llm="gpt-4.1-mini",
+            llm="gpt-5-mini",
             verbose=True,
         )
 
@@ -95,7 +95,7 @@ class DeepResearchCrew:
     #     return Agent(
     #         config=self.agents_config["quality_assurance"],
     #         tools=[],  # QA and editing, no external tools needed
-    #         llm="gpt-4.1-mini",
+    #         llm="gpt-5-mini",
     #         verbose=True,
     #     )
 

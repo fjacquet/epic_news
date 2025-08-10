@@ -2,16 +2,17 @@
 RSS Feed Tool for reliable news source ingestion.
 """
 
-import json
 import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta
 from typing import Any, ClassVar, Optional
 from urllib.parse import urljoin, urlparse
 
-import requests
+import httpx
 from crewai.tools import BaseTool
 from pydantic import BaseModel, Field
 
+from epic_news.tools._json_utils import ensure_json_str
+from epic_news.utils.http import http_get
 from epic_news.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -150,7 +151,7 @@ class RSSFeedTool(BaseTool):
             sources = self.RSS_SOURCES.get(region, [])
             if not sources:
                 logger.warning(f"No RSS sources configured for region: {region}")
-                return json.dumps(
+                return ensure_json_str(
                     {
                         "error": f"No RSS sources for region {region}",
                         "region": region,
@@ -177,7 +178,7 @@ class RSSFeedTool(BaseTool):
 
             logger.info(f"RSS feed fetch completed: {len(limited_articles)} articles from {region}")
 
-            return json.dumps(
+            return ensure_json_str(
                 {
                     "region": region,
                     "source": "rss_feeds",
@@ -190,7 +191,7 @@ class RSSFeedTool(BaseTool):
 
         except Exception as e:
             logger.error(f"Error in RSS feed tool: {str(e)}")
-            return json.dumps(
+            return ensure_json_str(
                 {
                     "error": f"RSS feed fetch failed: {str(e)}",
                     "region": region,
@@ -213,10 +214,9 @@ class RSSFeedTool(BaseTool):
         articles = []
 
         try:
-            # Fetch RSS feed with timeout
+            # Fetch RSS feed with timeout using resilient httpx client
             headers = {"User-Agent": "Mozilla/5.0 (compatible; EpicNews/1.0; RSS Reader)"}
-            response = requests.get(source["url"], headers=headers, timeout=10)
-            response.raise_for_status()
+            response = http_get(source["url"], headers=headers, timeout=10.0)
 
             # Parse XML
             root = ET.fromstring(response.content)
@@ -244,7 +244,7 @@ class RSSFeedTool(BaseTool):
                     logger.warning(f"Error parsing RSS item from {source['name']}: {str(e)}")
                     continue
 
-        except requests.RequestException as e:
+        except httpx.HTTPError as e:
             logger.error(f"HTTP error fetching {source['url']}: {str(e)}")
             raise
         except ET.ParseError as e:

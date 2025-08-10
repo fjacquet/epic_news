@@ -35,6 +35,7 @@ def get_github_tools():
 TAVILY_API_KEY=tvly-xxxxxx
 SERPER_API_KEY=xxxxxx
 FIRECRAWL_API_KEY=fc-xxxxxx
+RAPIDAPI_KEY=rapi-xxxxxx
 ```
 
 ### 1.3. Performance & Testing
@@ -42,6 +43,36 @@ FIRECRAWL_API_KEY=fc-xxxxxx
 - **Asynchronous Execution**: Enable async for independent, I/O-bound tasks.
 - **Caching**: Implement caching for expensive or frequently repeated API calls.
 - **Testing**: Write unit tests for tool factories and integration tests for tool combinations. Mock external APIs to avoid costs and dependencies during testing.
+
+#### 1.3.1. Testing Policy (PR-001)
+
+- **JSON outputs only**: Tool `_run()` results MUST be JSON strings. See `src/epic_news/tools/_json_utils.py::ensure_json_str()`.
+- **HTTP resilience**: External calls should use `httpx` with retries (`tenacity`) and avoid live network in tests via stubs/mocks.
+- **Run tests**:
+
+  ```bash
+  uv run pytest -q tests/tools/test_json_outputs.py tests/tools/test_http_resilience.py
+  ```
+
+- See also README section “Testing” for full-suite commands and linting.
+
+### 1.4. Scraper Factory (PR-002)
+
+- **What it does**: Centralizes selection of the web scraper provider via `src/epic_news/tools/scraper_factory.py::get_scraper()`.
+- **Default**: `ScrapeNinjaTool`.
+- **Switching providers**: Set `WEB_SCRAPER_PROVIDER` in your `.env` to `scrapeninja` (default) or `firecrawl`.
+- **Required keys**:
+  - `RAPIDAPI_KEY` for ScrapeNinja
+  - `FIRECRAWL_API_KEY` for Firecrawl
+
+Usage example:
+
+```python
+from epic_news.tools.scraper_factory import get_scraper
+
+scraper = get_scraper()  # selected by WEB_SCRAPER_PROVIDER
+result_json = scraper.run({"url": "https://example.com"})
+```
 
 ## 2. Available Tools by Category
 

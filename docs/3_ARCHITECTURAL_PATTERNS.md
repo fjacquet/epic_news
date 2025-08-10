@@ -109,7 +109,7 @@ Financial markets are highly dynamic. To provide accurate and timely analysis, a
 ### 2.2. Key Retrieval Tools
 
 - **`SerperDevTool` / `TavilyTool`**: For broad, general-purpose web searches to gather initial information.
-- **`FirecrawlScrapeWebsiteTool`**: For extracting the complete content from a specific URL (e.g., news article, report).
+- **ScraperFactory-selected scraper (`get_scraper()`)**: Centralized website scraping; defaults to `ScrapeNinjaTool`. Override via `WEB_SCRAPER_PROVIDER` (`scrapeninja`, `firecrawl`). Direct Firecrawl usage is deprecated in crews.
 - **`YahooFinanceNewsTool`**: For fetching the latest financial news for a specific ticker, providing timely market-moving information.
 
 ### 2.3. Why Not a Traditional RAG?
@@ -133,21 +133,21 @@ The first version of the `SalesProspectingReport` relied on a highly complex, ne
 
 Instead of forcing the agents to conform to an overly complex model, the architecture was adapted to the data.
 
-1.  **Model Simplification**: The `SalesProspectingReport` Pydantic model was completely redesigned to match the actual data being produced. The dependency on `StructuredDataReport` was removed, and a new, simpler structure was implemented:
-    *   `company_overview: str`
-    *   `key_contacts: List[KeyContact]` (with a new `KeyContact` sub-model)
-    *   `approach_strategy: str`
-    *   `remaining_information: str`
+1. **Model Simplification**: The `SalesProspectingReport` Pydantic model was completely redesigned to match the actual data being produced. The dependency on `StructuredDataReport` was removed, and a new, simpler structure was implemented:
+    - `company_overview: str`
+    - `key_contacts: List[KeyContact]` (with a new `KeyContact` sub-model)
+    - `approach_strategy: str`
+    - `remaining_information: str`
 
-2.  **Renderer and Factory Update**: The `SalesProspectingRenderer` and `sales_prospecting_html_factory` were rewritten to work with the new, simpler model. This involved:
-    *   Removing the logic for rendering metrics and KPIs.
-    *   Adding new sections for `company_overview`, `key_contacts`, and `remaining_information`.
-    *   Updating the CSS to create a modern, professional layout with cards for key contacts.
+2. **Renderer and Factory Update**: The `SalesProspectingRenderer` and `sales_prospecting_html_factory` were rewritten to work with the new, simpler model. This involved:
+    - Removing the logic for rendering metrics and KPIs.
+    - Adding new sections for `company_overview`, `key_contacts`, and `remaining_information`.
+    - Updating the CSS to create a modern, professional layout with cards for key contacts.
 
-3.  **Data File Correction**: The `debug/repair_attempt...json` file was updated to conform to the new, simpler Pydantic model, ensuring that tests and local development would work correctly.
+3. **Data File Correction**: The `debug/repair_attempt...json` file was updated to conform to the new, simpler Pydantic model, ensuring that tests and local development would work correctly.
 
 ### 3.3. Architectural Lessons
 
-*   **Model the Data You Have**: Design Pydantic models that reflect the actual data being generated, not an idealized version.
-*   **Simplicity Over Complexity**: A simpler, flatter data structure is often more robust and easier to work with than a deeply nested one.
-*   **Decouple Rendering from Data Structure**: While the renderer needs to understand the data, the refactoring was made easier because the rendering logic was contained within the `SalesProspectingRenderer` and not scattered across the application.
+- **Model the Data You Have**: Design Pydantic models that reflect the actual data being generated, not an idealized version.
+- **Simplicity Over Complexity**: A simpler, flatter data structure is often more robust and easier to work with than a deeply nested one.
+- **Decouple Rendering from Data Structure**: While the renderer needs to understand the data, the refactoring was made easier because the rendering logic was contained within the `SalesProspectingRenderer` and not scattered across the application.

@@ -7,7 +7,7 @@ from epic_news.models.crews.company_profiler_report import CompanyProfileReport
 from epic_news.tools.finance_tools import get_yahoo_finance_tools
 from epic_news.tools.html_to_pdf_tool import HtmlToPdfTool
 from epic_news.tools.report_tools import get_report_tools
-from epic_news.tools.scrape_ninja_tool import ScrapeNinjaTool
+from epic_news.tools.scraper_factory import get_scraper
 
 load_dotenv()
 
@@ -21,7 +21,7 @@ class CompanyProfilerCrew:
     def company_researcher(self) -> Agent:
         """Creates the company researcher agent with tools for data gathering"""
         # Get all tools
-        search_tools = [SerperDevTool(), ScrapeNinjaTool(), PDFSearchTool()]
+        search_tools = [SerperDevTool(), get_scraper(), PDFSearchTool()]
         finance_tools = get_yahoo_finance_tools()
         html_to_pdf_tool = HtmlToPdfTool()
 

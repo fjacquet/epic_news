@@ -197,8 +197,46 @@ Each “crew” is a team of specialized AI agents. Here’s what they do:
   - Add new tools in `src/epic_news/tools/` and wire them up in your crew’s config.
 - **Environment variables:**
   - Keep all secrets in `.env` (never commit real API keys!).
+  - Web scraper provider selection via `WEB_SCRAPER_PROVIDER` (default: `scrapeninja`; options: `scrapeninja`, `firecrawl`). The app uses `src/epic_news/tools/scraper_factory.py::get_scraper()` to select the provider at runtime.
+
+    Example `.env`:
+
+    ```bash
+    # Scraper provider (default is scrapeninja)
+    WEB_SCRAPER_PROVIDER=scrapeninja
+
+    # API keys for providers
+    RAPIDAPI_KEY=your-rapidapi-key          # required for ScrapeNinja
+    FIRECRAWL_API_KEY=your-firecrawl-key    # required if using Firecrawl
+    ```
 
 ---
+
+## 🧪 Testing
+
+- **Run the full test suite:**
+
+  ```bash
+  uv run pytest -q
+  ```
+
+- **Run PR-001 tests only (JSON outputs and HTTP resilience):**
+
+  ```bash
+  uv run pytest -q tests/tools/test_json_outputs.py tests/tools/test_http_resilience.py
+  ```
+
+- **Lint and format:**
+
+  ```bash
+  uv run ruff check .
+  uv run ruff format .
+  ```
+
+What these tests cover:
+
+- JSON output standardization: all tool `_run()` results are JSON strings parseable via `json.loads`.
+- HTTP resilience: retries on transient 5xx and no retries on 4xx, using stubbed clients (no live network calls).
 
 ## ❓ Troubleshooting & FAQ
 

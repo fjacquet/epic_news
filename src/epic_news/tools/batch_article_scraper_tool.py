@@ -1,11 +1,12 @@
 import json
+from typing import Any
 
 from crewai.tools import BaseTool
 from loguru import logger
-from pydantic import BaseModel
+from pydantic import BaseModel, PrivateAttr
 
 from epic_news.models.rss_models import RssFeeds
-from epic_news.tools.scrape_ninja_tool import ScrapeNinjaTool
+from epic_news.tools.scraper_factory import get_scraper
 
 
 class BatchArticleScraperTool(BaseTool):
@@ -19,7 +20,17 @@ class BatchArticleScraperTool(BaseTool):
         "scrapes its content using ScrapeNinjaTool, and returns the updated RssFeeds object."
     )
     args_schema: type[BaseModel] = RssFeeds
-    scrape_ninja_tool: ScrapeNinjaTool = ScrapeNinjaTool()
+    # Private attribute to hold the selected scraper tool
+    _scraper: Any = PrivateAttr(default_factory=get_scraper)
+
+    # Compatibility alias for tests and external overrides
+    @property
+    def scrape_ninja_tool(self) -> Any:
+        return self._scraper
+
+    @scrape_ninja_tool.setter
+    def scrape_ninja_tool(self, value: Any) -> None:
+        self._scraper = value
 
     def _run(self, rss_feeds: list) -> str:
         """
@@ -48,9 +59,9 @@ class BatchArticleScraperTool(BaseTool):
                     continue
 
                 try:
-                    # Use the ScrapeNinjaTool to scrape the content
+                    # Use the selected scraper to scrape the content
                     logger.info(f"Scraping content from: {url}")
-                    scraped_data = self.scrape_ninja_tool._run(url=str(url))
+                    scraped_data = self._scraper._run(url=str(url))
                     scraped_json = json.loads(scraped_data)
 
                     # Extract content, handling potential errors

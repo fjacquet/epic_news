@@ -37,7 +37,7 @@ class CrossReferenceReportCrew:
             config=self.agents_config["osint_researcher"],
             verbose=True,
             tools=all_tools,
-            llm="gpt-4.1-mini",  # Use more powerful model for complex cross-referencing
+            llm="gpt-5-mini",  # Use more powerful model for complex cross-referencing
             allow_delegation=True,
             respect_context_window=True,
             reasoning=True,

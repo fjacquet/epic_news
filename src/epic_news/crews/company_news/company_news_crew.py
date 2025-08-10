@@ -51,7 +51,6 @@ class CompanyNewsCrew:
         # Use only available tools for search
         self.search_tools = toolset.get_tools(
             actions=[
-                "FIRECRAWL_SEARCH",
                 "COMPOSIO_SEARCH_SEARCH",
                 "COMPOSIO_SEARCH_DUCK_DUCK_GO_SEARCH",
                 "COMPOSIO_SEARCH_NEWS_SEARCH",

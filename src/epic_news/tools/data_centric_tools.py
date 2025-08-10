@@ -20,6 +20,7 @@ from epic_news.models.data_metrics import (
     StructuredDataReport,
     TrendDirection,
 )
+from epic_news.tools._json_utils import ensure_json_str
 
 __all__ = [
     "MetricsCalculatorTool",
@@ -68,7 +69,7 @@ class MetricsCalculatorTool(BaseTool):
         target: Optional[Any] = None,
         is_key_metric: bool = False,
         **kwargs,
-    ) -> dict[str, Any]:
+    ) -> str:
         """Run the metrics calculator tool."""
         try:
             # Validate metric type
@@ -96,11 +97,11 @@ class MetricsCalculatorTool(BaseTool):
                 metadata=kwargs.get("metadata", {}),
             )
 
-            # Return as dictionary for easier consumption by LLMs
-            return metric.model_dump()
+            # Return as JSON string for downstream standardization
+            return ensure_json_str(metric.model_dump())
 
         except Exception as e:
-            return {"error": f"Failed to calculate metric: {str(e)}"}
+            return ensure_json_str({"error": f"Failed to calculate metric: {str(e)}"})
 
 
 class KPITrackerTool(BaseTool):
@@ -141,7 +142,7 @@ class KPITrackerTool(BaseTool):
         source: Optional[str] = None,
         target_date: Optional[str] = None,
         **kwargs,
-    ) -> dict[str, Any]:
+    ) -> str:
         """Run the KPI tracker tool."""
         try:
             # Validate metric type
@@ -178,11 +179,11 @@ class KPITrackerTool(BaseTool):
                 # Let the model validators handle progress and status
             )
 
-            # Return as dictionary for easier consumption by LLMs
-            return kpi.model_dump()
+            # Return as JSON string for downstream standardization
+            return ensure_json_str(kpi.model_dump())
 
         except Exception as e:
-            return {"error": f"Failed to track KPI: {str(e)}"}
+            return ensure_json_str({"error": f"Failed to track KPI: {str(e)}"})
 
 
 class DataVisualizationTool(BaseTool):
@@ -212,7 +213,7 @@ class DataVisualizationTool(BaseTool):
     Output will be a properly formatted data structure ready for visualization.
     """
 
-    def _run(self, type: str, name: str, **kwargs) -> dict[str, Any]:
+    def _run(self, type: str, name: str, **kwargs) -> str:
         """Run the data visualization tool."""
         try:
             if type.lower() == "series":
@@ -234,7 +235,7 @@ class DataVisualizationTool(BaseTool):
                     metadata=kwargs.get("metadata", {}),
                 )
 
-                return series.model_dump()
+                return ensure_json_str(series.model_dump())
 
             if type.lower() == "table":
                 # Create a data table
@@ -246,12 +247,12 @@ class DataVisualizationTool(BaseTool):
                     metadata=kwargs.get("metadata", {}),
                 )
 
-                return table.model_dump()
+                return ensure_json_str(table.model_dump())
 
-            return {"error": f"Unknown visualization type: {type}"}
+            return ensure_json_str({"error": f"Unknown visualization type: {type}"})
 
         except Exception as e:
-            return {"error": f"Failed to create data visualization: {str(e)}"}
+            return ensure_json_str({"error": f"Failed to create data visualization: {str(e)}"})
 
 
 class StructuredReportTool(BaseTool):
@@ -275,7 +276,7 @@ class StructuredReportTool(BaseTool):
     Output will be a structured data report with all components properly formatted.
     """
 
-    def _run(self, title: str, description: str, **kwargs) -> dict[str, Any]:
+    def _run(self, title: str, description: str, **kwargs) -> str:
         """Run the structured report tool."""
         try:
             # Process metrics if provided
@@ -409,11 +410,11 @@ class StructuredReportTool(BaseTool):
                 # Add the HTML to the report
                 report.html = html
 
-            # Return as dictionary for easier consumption by LLMs
-            return report.model_dump()
+            # Return as JSON string for downstream standardization
+            return ensure_json_str(report.model_dump())
 
         except Exception as e:
-            return {"error": f"Failed to generate structured report: {str(e)}"}
+            return ensure_json_str({"error": f"Failed to generate structured report: {str(e)}"})
 
 
 def get_data_centric_tools() -> list[Union[BaseTool, LangchainBaseTool]]:
