@@ -3,7 +3,7 @@
 import pytest
 
 from epic_news.models.crews.rss_weekly_report import FeedDigest, RssWeeklyReport
-from epic_news.utils.html.rss_weekly_html_factory import rss_weekly_to_html
+from epic_news.utils.html.template_manager import TemplateManager
 
 
 @pytest.fixture
@@ -17,9 +17,11 @@ def sample_rss_weekly_data():
 
 
 def test_rss_weekly_to_html(sample_rss_weekly_data, tmp_path):
-    """Test that rss_weekly_to_html creates a valid HTML file."""
+    """Test that TemplateManager renders RSS_WEEKLY and we can write it to a file."""
     html_file = tmp_path / "rss_weekly_report.html"
-    html_content = rss_weekly_to_html(sample_rss_weekly_data, html_file=str(html_file))
+    tm = TemplateManager()
+    html_content = tm.render_report("RSS_WEEKLY", sample_rss_weekly_data)
+    html_file.write_text(html_content, encoding="utf-8")
 
     assert html_file.exists()
     assert "Test RSS Report" in html_content

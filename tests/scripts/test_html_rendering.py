@@ -6,15 +6,18 @@ This script loads the fixed JSON file and renders it to HTML using the improved 
 
 import json
 
-from epic_news.utils.html.meeting_prep_html_factory import meeting_prep_to_html
+from epic_news.utils.html.template_manager import TemplateManager
 
 # Load the fixed JSON data
 json_file = "output/meeting/meeting_preparation_fixed.json"
 with open(json_file) as f:
     data = json.load(f)
 
-# Render to a new HTML file
+# Render to a new HTML file using TemplateManager
 output_file = "output/meeting/meeting_preparation_new.html"
-html = meeting_prep_to_html(data, html_file=output_file)
+tm = TemplateManager()
+html = tm.render_report("MEETING_PREP", data)
+with open(output_file, "w", encoding="utf-8") as f:
+    f.write(html)
 
 print(f"Successfully rendered HTML to {output_file}")

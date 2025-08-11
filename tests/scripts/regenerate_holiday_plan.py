@@ -5,7 +5,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 import json
 
-from src.epic_news.utils.html.holiday_planner_html_factory import holiday_planner_to_html
+from src.epic_news.utils.html.template_manager import TemplateManager
 
 input_json_path = Path("output/holiday/itinerary.json")
 output_html_path = Path("output/holiday/regenerated_itinerary.html")
@@ -19,5 +19,8 @@ if not input_json_path.exists():
 with open(input_json_path, encoding="utf-8") as f:
     data = json.load(f)
 
-html = holiday_planner_to_html(data, html_file=str(output_html_path))
+tm = TemplateManager()
+html = tm.render_report("HOLIDAY_PLANNER", data)
+with open(output_html_path, "w", encoding="utf-8") as out:
+    out.write(html)
 print("✅ Holiday itinerary HTML regenerated successfully")

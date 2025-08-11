@@ -2,10 +2,9 @@
 
 import pytest
 from bs4 import BeautifulSoup
-from crewai import CrewOutput
 
 from epic_news.models.crews.holiday_planner_report import HolidayPlannerReport
-from epic_news.utils.html.holiday_planner_html_factory import holiday_planner_to_html
+from epic_news.utils.html.template_manager import TemplateManager
 from epic_news.utils.html.template_renderers.holiday_renderer import HolidayRenderer
 
 
@@ -62,15 +61,11 @@ def sample_holiday_planner_data():
 
 
 def test_holiday_planner_to_html(sample_holiday_planner_data, tmp_path):
-    """Test that holiday_planner_to_html creates a valid HTML file."""
+    """Test that TemplateManager renders HOLIDAY_PLANNER and we can write it to a file."""
     html_file = tmp_path / "holiday_planner_report.html"
-    # Create a mock CrewOutput object
-    crew_output = CrewOutput(
-        raw=sample_holiday_planner_data.model_dump_json(),
-        pydantic_output=sample_holiday_planner_data,
-        tasks_output=[],
-    )
-    html_content = holiday_planner_to_html(crew_output, html_file=str(html_file))
+    tm = TemplateManager()
+    html_content = tm.render_report("HOLIDAY_PLANNER", sample_holiday_planner_data)
+    html_file.write_text(html_content, encoding="utf-8")
 
     assert html_file.exists()
     assert "Test holiday plan for Paris" in html_content

@@ -22,6 +22,7 @@ dependencies = [
     "pygithub>=2.6.1",
     "pytest>=8.4.0",
     "pytest-cov>=6.2.1",
+    "pytest-env>=1.1.5",
     "python-dotenv>=1.1.0",
     "pyyaml>=6.0.2",
     "requests>=2.32.4",
@@ -64,6 +65,8 @@ dependencies = [
     "tenacity>=8.2.3",
     "requests-cache>=1.2.0",
     "langfuse>=3.2.3",
+    "composio-openai>=0.8.7",
+    "suppress>=0.2.0",
 ]
 
 [project.scripts]
@@ -126,6 +129,7 @@ ignore = [
     "B008",   # Do not perform function calls in argument defaults
     "B904",   # Within an `except` clause, raise exceptions with `raise ... from err`
     "UP007",  # Use `X | Y` for type annotations - DISABLED for CrewAI compatibility
+    "RET504", # Unnecessary assignment to `result` before `return` statement
 ]
 
 [tool.ruff.format]

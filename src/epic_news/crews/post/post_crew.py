@@ -1,3 +1,5 @@
+import logging
+
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import FileReadTool
@@ -40,10 +42,32 @@ class PostCrew:
         )
 
     def _get_composio_toolset(self):
-        from composio_crewai import ComposioToolSet
-
-        return ComposioToolSet()
+        try:
+            from composio_crewai import ComposioToolSet
+        except Exception as e:  # ImportError or runtime issues
+            logging.getLogger(__name__).warning(
+                "Composio not available; email sending tools disabled. Reason: %s",
+                e,
+            )
+            return None
+        try:
+            return ComposioToolSet()
+        except Exception as e:
+            logging.getLogger(__name__).warning(
+                "Failed to initialize ComposioToolSet; email sending disabled. Reason: %s",
+                e,
+            )
+            return None
 
     def _get_send_tools(self):
         toolset = self._get_composio_toolset()
-        return toolset.get_tools(actions=["GMAIL_SEND_EMAIL"])
+        if toolset is None:
+            return []
+        try:
+            return toolset.get_tools(actions=["GMAIL_SEND_EMAIL"])
+        except Exception as e:
+            logging.getLogger(__name__).warning(
+                "Composio tool retrieval failed; email sending disabled. Reason: %s",
+                e,
+            )
+            return []

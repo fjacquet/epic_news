@@ -6,7 +6,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 import json
 
 from src.epic_news.utils.data_normalization import normalize_structured_data_report
-from src.epic_news.utils.html.sales_prospecting_html_factory import sales_prospecting_report_to_html
+from src.epic_news.utils.html.template_manager import TemplateManager
 
 input_json_path = Path("output/sales_prospecting/report.json")
 output_html_path = Path("output/sales_prospecting/regenerated_report.html")
@@ -24,6 +24,9 @@ with open(input_json_path, encoding="utf-8") as f:
 if "sales_metrics" in data:
     data["sales_metrics"] = normalize_structured_data_report(data["sales_metrics"])
 
-html = sales_prospecting_report_to_html(data, html_file=str(output_html_path))
+tm = TemplateManager()
+html = tm.render_report("SALES_PROSPECTING", data)
+with open(output_html_path, "w", encoding="utf-8") as out:
+    out.write(html)
 print("✅ Sales prospecting report HTML regenerated successfully")
 print(f"Output saved to: {output_html_path}")

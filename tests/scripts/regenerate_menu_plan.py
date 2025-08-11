@@ -6,7 +6,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 import json
 
-from src.epic_news.utils.html.menu_html_factory import menu_to_html
+from src.epic_news.utils.html.template_manager import TemplateManager
 
 # ---------------------------------------------------------------------------
 # Paths
@@ -27,5 +27,8 @@ with INPUT_JSON.open(encoding="utf-8") as f:
 # Re-generate HTML
 # ---------------------------------------------------------------------------
 
-menu_to_html(data, html_file=str(OUTPUT_HTML), title="Weekly Menu Plan")
+tm = TemplateManager()
+html = tm.render_report("MENU", data)
+with OUTPUT_HTML.open("w", encoding="utf-8") as out:
+    out.write(html)
 print("✅ Menu HTML regenerated successfully →", OUTPUT_HTML)

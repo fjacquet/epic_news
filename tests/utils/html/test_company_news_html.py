@@ -6,7 +6,7 @@ from epic_news.models.crews.company_news_report import (
     ArticleItem,
     CompanyNewsReport,
 )
-from epic_news.utils.html.company_news_html_factory import company_news_to_html
+from epic_news.utils.html.template_manager import TemplateManager
 
 
 @pytest.fixture
@@ -32,9 +32,11 @@ def sample_company_news_data():
 
 
 def test_company_news_to_html(sample_company_news_data, tmp_path):
-    """Test that company_news_to_html creates a valid HTML file."""
+    """Test that TemplateManager renders COMPANY_NEWS and we can write it to a file."""
     html_file = tmp_path / "company_news_report.html"
-    html_content = company_news_to_html(sample_company_news_data, html_file=str(html_file))
+    tm = TemplateManager()
+    html_content = tm.render_report("COMPANY_NEWS", sample_company_news_data.model_dump())
+    html_file.write_text(html_content, encoding="utf-8")
 
     assert html_file.exists()
     assert "This is a test summary." in html_content

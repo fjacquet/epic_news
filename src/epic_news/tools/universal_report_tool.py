@@ -1,13 +1,14 @@
-"""Universal HTML Report Generation Tool for CrewAI agents.
+"""Universal HTML Report Generation Tool for CrewAI agents. (Deprecated)
 
-This tool provides a simple interface for agents to generate standardized HTML reports
-using the universal template system, ensuring consistent styling across all crews.
+This tool is deprecated and will be removed. Prefer using `TemplateManager` with
+`RendererFactory` for crew reports, or use `RenderReportTool` if a generic tool
+is strictly required.
 """
+
+import warnings
 
 from crewai.tools import BaseTool
 from pydantic import BaseModel, Field
-
-from epic_news.utils.html.templates import render_universal_report
 
 
 class UniversalReportInput(BaseModel):
@@ -42,7 +43,12 @@ class UniversalReportTool(BaseTool):
         Returns:
             Complete HTML document with standardized styling
         """
-        try:
-            return render_universal_report(title=title, content=content)
-        except Exception as e:
-            return f"Error generating report: {str(e)}"
+        warnings.warn(
+            "UniversalReportTool is deprecated and will be removed. Use TemplateManager/RendererFactory "
+            "for crew rendering or RenderReportTool for generic templating.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        raise NotImplementedError(
+            "UniversalReportTool is deprecated. Use TemplateManager/RendererFactory or RenderReportTool."
+        )

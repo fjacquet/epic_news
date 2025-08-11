@@ -3,6 +3,7 @@ Tool for fetching Yahoo Finance ETF Holdings.
 """
 
 import json
+from contextlib import suppress
 
 import pandas as pd  # Required for pd.isna()
 import yfinance as yf
@@ -37,7 +38,7 @@ class YahooFinanceETFHoldingsTool(BaseTool):
 
             # Get holdings if available
             holdings = []
-            try:
+            with suppress(Exception):
                 holdings_data = etf_data.get_holdings()
                 if not holdings_data.empty:
                     for symbol, row in holdings_data.iterrows():
@@ -48,17 +49,13 @@ class YahooFinanceETFHoldingsTool(BaseTool):
                             "shares": row.get("Shares") if not pd.isna(row.get("Shares")) else "N/A",
                         }
                         holdings.append(holding)
-            except Exception:
-                pass
 
             # Get sector breakdown if available
             sector_data = {}
-            try:
+            with suppress(Exception):
                 sector_data = etf_data.get_sector_data()
                 if isinstance(sector_data, dict):
                     sector_data = {k: float(v) for k, v in sector_data.items()}
-            except Exception:
-                pass
 
             result = {
                 "symbol": ticker,

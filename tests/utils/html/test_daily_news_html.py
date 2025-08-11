@@ -3,7 +3,7 @@
 import pytest
 
 from epic_news.models.crews.news_daily_report import NewsDailyReport
-from epic_news.utils.html.daily_news_html_factory import daily_news_to_html
+from epic_news.utils.html.template_manager import TemplateManager
 
 
 @pytest.fixture
@@ -16,9 +16,11 @@ def sample_news_daily_data():
 
 
 def test_daily_news_to_html(sample_news_daily_data, tmp_path):
-    """Test that daily_news_to_html creates a valid HTML file."""
+    """Test that TemplateManager renders NEWSDAILY and we can write it to a file."""
     html_file = tmp_path / "daily_news_report.html"
-    html_content = daily_news_to_html(sample_news_daily_data, html_file=str(html_file))
+    tm = TemplateManager()
+    html_content = tm.render_report("NEWSDAILY", sample_news_daily_data.model_dump())
+    html_file.write_text(html_content, encoding="utf-8")
 
     assert html_file.exists()
     assert "This is a test summary." in html_content

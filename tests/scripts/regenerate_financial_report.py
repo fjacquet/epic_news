@@ -3,7 +3,7 @@ import os
 import sys
 
 from src.epic_news.models.crews.financial_report import FinancialReport
-from src.epic_news.utils.html.fin_daily_html_factory import findaily_to_html
+from src.epic_news.utils.html.template_manager import TemplateManager
 
 # Add the project root to the Python path
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -34,7 +34,10 @@ def main():
         return
 
     print(f"Generating HTML report and saving to {html_path}...")
-    findaily_to_html(financial_report, html_file=html_path)
+    tm = TemplateManager()
+    html = tm.render_report("FINDAILY", financial_report)
+    with open(html_path, "w", encoding="utf-8") as f:
+        f.write(html)
 
     print("✅ HTML report regenerated successfully.")
 

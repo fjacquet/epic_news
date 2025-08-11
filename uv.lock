@@ -741,6 +741,19 @@ wheels = [
 ]
 
 [[package]]
+name = "composio-openai"
+version = "0.8.7"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "composio" },
+    { name = "openai" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/cf/f9/18bf0b1c7116f78bdb1731bac751a2170ef83e5833885332940bc1bcd8ef/composio_openai-0.8.7.tar.gz", hash = "sha256:3ed3d1af61d38e1125612239fac9a217df1a2af16685fa746bbad29201816416", size = 2704, upload-time = "2025-08-06T08:48:39.243Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/02/d0/329fe309d3dbd064d82d706183962693feeb23262534f41752967a41224e/composio_openai-0.8.7-py3-none-any.whl", hash = "sha256:a56256c31e6b4a7c9b8d8b44a7b606124bf67aaac9603fbea9db24d82725acee", size = 2957, upload-time = "2025-08-06T08:48:28.856Z" },
+]
+
+[[package]]
 name = "configparser"
 version = "7.2.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1186,6 +1199,7 @@ dependencies = [
     { name = "chromadb" },
     { name = "composio" },
     { name = "composio-crewai" },
+    { name = "composio-openai" },
     { name = "coverage" },
     { name = "crewai" },
     { name = "crewai-tools", extra = ["mcp"] },
@@ -1217,6 +1231,7 @@ dependencies = [
     { name = "pytest" },
     { name = "pytest-asyncio" },
     { name = "pytest-cov" },
+    { name = "pytest-env" },
     { name = "pytest-mock" },
     { name = "python-dotenv" },
     { name = "pyyaml" },
@@ -1230,6 +1245,7 @@ dependencies = [
     { name = "serpapi" },
     { name = "shutils" },
     { name = "streamlit" },
+    { name = "suppress" },
     { name = "tavily-python" },
     { name = "tenacity" },
     { name = "unicode" },
@@ -1275,6 +1291,7 @@ requires-dist = [
     { name = "chromadb", specifier = ">=0.5.23" },
     { name = "composio", specifier = ">=0.1.1" },
     { name = "composio-crewai", specifier = ">=0.7.18" },
+    { name = "composio-openai", specifier = ">=0.8.7" },
     { name = "coverage", specifier = ">=7.9.1" },
     { name = "crewai", specifier = ">=0.130.0" },
     { name = "crewai-tools", extras = ["mcp"], specifier = ">=0.47.1" },
@@ -1314,6 +1331,7 @@ requires-dist = [
     { name = "pytest-cov", specifier = ">=6.2.1" },
     { name = "pytest-cov", marker = "extra == 'test'" },
     { name = "pytest-datadir", marker = "extra == 'test'" },
+    { name = "pytest-env", specifier = ">=1.1.5" },
     { name = "pytest-mock", specifier = ">=3.14.1" },
     { name = "pytest-mock", marker = "extra == 'test'" },
     { name = "pytest-regressions", marker = "extra == 'test'" },
@@ -1329,6 +1347,7 @@ requires-dist = [
     { name = "serpapi", specifier = ">=0.1.5" },
     { name = "shutils", specifier = ">=0.1.0" },
     { name = "streamlit", specifier = ">=1.46.0" },
+    { name = "suppress", specifier = ">=0.2.0" },
     { name = "tavily-python", specifier = ">=0.7.6" },
     { name = "tenacity", specifier = ">=8.2.3" },
     { name = "unicode", specifier = ">=2.9" },
@@ -4331,6 +4350,19 @@ wheels = [
 ]
 
 [[package]]
+name = "pytest-env"
+version = "1.1.5"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pytest" },
+    { name = "tomli", marker = "python_full_version < '3.11'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/1f/31/27f28431a16b83cab7a636dce59cf397517807d247caa38ee67d65e71ef8/pytest_env-1.1.5.tar.gz", hash = "sha256:91209840aa0e43385073ac464a554ad2947cc2fd663a9debf88d03b01e0cc1cf", size = 8911, upload-time = "2024-09-17T22:39:18.566Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/de/b8/87cfb16045c9d4092cfcf526135d73b88101aac83bc1adcf82dfb5fd3833/pytest_env-1.1.5-py3-none-any.whl", hash = "sha256:ce90cf8772878515c24b31cd97c7fa1f4481cd68d588419fd45f10ecaee6bc30", size = 6141, upload-time = "2024-09-17T22:39:16.942Z" },
+]
+
+[[package]]
 name = "pytest-mock"
 version = "3.14.1"
 source = { registry = "https://pypi.org/simple" }
@@ -5114,6 +5146,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/b8/9f/373ba8d9f1190cce0a1b04cd9e77fd933c8238506aa1e3440eefabfc16f3/streamlit-1.48.0.tar.gz", hash = "sha256:64da4819f4b897c8d1e9eb6396f4618b2eb5029d25af61472422d4eb0688bb75", size = 9526680, upload-time = "2025-08-05T23:13:48.852Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/14/92/095c67f3d17b6116c2b1882bb5ac719939154ee5bc7e7610ee325159a101/streamlit-1.48.0-py3-none-any.whl", hash = "sha256:0f2bc697a1a4d2199384d8bb3966aa0b25904c9345e6d6ad6fbb69bd284c03a2", size = 9928889, upload-time = "2025-08-05T23:13:44.285Z" },
+]
+
+[[package]]
+name = "suppress"
+version = "0.2.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/73/6d/e41416d28f13a16f361b201091ffa9da2851706104bddbaa55183bd6aaa6/suppress-0.2.0.tar.gz", hash = "sha256:bc74f87a8f5a43ba868cbd2c8d2a57bfcb9b07043df8cd93c7adb69c88ad65f3", size = 2571, upload-time = "2024-10-02T08:36:32.971Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/7a/b5/66d8b47e99fa6d932cf9e998f5cb03be101b0da4217d4ef270174757db93/suppress-0.2.0-py2.py3-none-any.whl", hash = "sha256:b3ab9df397c6a801d8c7eb4ff5ad8b38a1c0f5c0610bf9768d6b2f61c12477bc", size = 2375, upload-time = "2024-10-02T08:36:30.153Z" },
 ]
 
 [[package]]

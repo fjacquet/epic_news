@@ -169,8 +169,7 @@ class TemplateManager:
 
             if self.state.financial_report_model:
                 # Use FinancialRenderer instead of legacy _generate_financial_report_body
-
-                renderer = RendererFactory.create_renderer("FINANCIAL")
+                renderer = RendererFactory.create_renderer("FINDAILY")
                 data = self.state.financial_report_model.model_dump()
                 return renderer.render(data)
 
@@ -179,15 +178,16 @@ class TemplateManager:
         # Handle SHOPPING_ADVICE (Shopping Advice Reports)
         # All crew types now use modular renderers via RendererFactory
 
-        # Default to generic renderer
-        try:
-            renderer = RendererFactory.create_renderer(selected_crew)
-            return renderer.render(content_data, selected_crew)
-        except Exception as e:
-            print(f"❌ Error using generic renderer: {e}")
-            # Use GenericRenderer instead of legacy _generate_generic_body
-            renderer = RendererFactory.create_renderer("GENERIC")
-            return renderer.render(content_data, selected_crew)
+        # Default to GenericRenderer regardless of crew type for safe fallback
+        renderer = RendererFactory.create_renderer("GENERIC")
+        # Convert models to dicts if needed
+        if hasattr(content_data, "model_dump"):
+            data = content_data.model_dump()
+        elif hasattr(content_data, "dict"):
+            data = content_data.dict()
+        else:
+            data = content_data
+        return renderer.render(data, selected_crew)
 
     # The _generate_poem_body method has been removed and replaced by the PoemRenderer class
     # See src/epic_news/utils/html/template_renderers/poem_renderer.py
