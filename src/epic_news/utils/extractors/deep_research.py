@@ -25,7 +25,7 @@ class DeepResearchExtractor(ContentExtractor):
 
         if isinstance(deep_research_report, DeepResearchReport):
             logger.info("Found DeepResearchReport Pydantic model in state data")
-            return deep_research_report
+            return {"deep_research_model": deep_research_report}
 
         # Try to parse from raw output in various possible state data keys
         raw_output = state_data.get("final_report", state_data.get("raw_output", ""))
@@ -47,7 +47,7 @@ class DeepResearchExtractor(ContentExtractor):
                         logger.info(
                             f"Successfully created DeepResearchReport model with {len(deep_research_model.research_sections)} research sections"
                         )
-                        return deep_research_model
+                        return {"deep_research_model": deep_research_model}
                     except Exception:
                         # Initial validation failed - this is expected with varying JSON formats
                         # Silently proceed to adaptation without logging the initial validation failure
@@ -62,7 +62,7 @@ class DeepResearchExtractor(ContentExtractor):
                             try:
                                 deep_research_model = DeepResearchReport.model_validate(adapted_data)
                                 logger.info("Successfully adapted JSON to DeepResearchReport model")
-                                return deep_research_model
+                                return {"deep_research_model": deep_research_model}
                             except Exception as adapt_error:
                                 logger.warning(f"Failed to adapt JSON to DeepResearchReport: {adapt_error}")
                                 # Only log detailed validation errors if adaptation fails
@@ -140,7 +140,7 @@ class DeepResearchExtractor(ContentExtractor):
                 report_date="2023-01-01",
                 confidence_level="Low",
             )
-        return report
+        return {"deep_research_model": report}
 
     def _adapt_json_to_model(self, parsed_data: dict) -> dict:
         """Adapt JSON structure to match DeepResearchReport model structure."""

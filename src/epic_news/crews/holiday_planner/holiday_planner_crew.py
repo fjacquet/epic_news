@@ -21,7 +21,7 @@ class HolidayPlannerCrew:
         return Agent(
             config=self.agents_config["travel_researcher"],
             tools=get_search_tools() + get_youtube_tools() + get_scrape_tools() + [ExchangeRateTool()],
-            llm="gpt-4.1-mini",
+            llm="gpt-5-mini",
             verbose=False,
             reasoning=True,
             allow_delegation=True,
@@ -32,7 +32,7 @@ class HolidayPlannerCrew:
         return Agent(
             config=self.agents_config["accommodation_specialist"],
             tools=get_search_tools() + get_scrape_tools() + [ExchangeRateTool()],
-            llm="gpt-4.1-mini",
+            llm="gpt-5-mini",
             verbose=False,
             reasoning=True,
             allow_delegation=True,
@@ -43,7 +43,7 @@ class HolidayPlannerCrew:
         return Agent(
             config=self.agents_config["itinerary_architect"],
             tools=get_search_tools() + get_scrape_tools() + get_youtube_tools() + [ExchangeRateTool()],
-            llm="gpt-4.1-mini",
+            llm="gpt-5-mini",
             verbose=False,
             reasoning=True,
             allow_delegation=True,
@@ -54,7 +54,7 @@ class HolidayPlannerCrew:
         return Agent(
             config=self.agents_config["budget_manager"],
             tools=get_search_tools() + get_scrape_tools() + [ExchangeRateTool()],
-            llm="gpt-4.1-mini",
+            llm="gpt-5-mini",
             verbose=False,
             allow_delegation=False,
         )

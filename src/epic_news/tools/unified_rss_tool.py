@@ -3,16 +3,17 @@ import os
 import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta
 from pathlib import Path
+from typing import Any
 
 import feedparser
 from crewai.tools import BaseTool
 from dateutil import parser
 from loguru import logger
 from newspaper import Article as NewspaperArticle
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, PrivateAttr
 
 from epic_news.models.rss_models import Article, FeedWithArticles, RssFeeds
-from epic_news.tools.scrape_ninja_tool import ScrapeNinjaTool
+from epic_news.tools.scraper_factory import get_scraper
 
 
 class UnifiedRssToolInput(BaseModel):
@@ -42,7 +43,17 @@ class UnifiedRssTool(BaseTool):
         "The tool handles the entire pipeline from OPML parsing to content scraping."
     )
     args_schema: type[BaseModel] = UnifiedRssToolInput
-    scrape_ninja_tool: ScrapeNinjaTool = ScrapeNinjaTool()
+    # Use a private attribute to avoid Pydantic treating this as a model field
+    _scraper: Any = PrivateAttr(default_factory=get_scraper)
+
+    # Compatibility alias for tests and external overrides
+    @property
+    def scrape_ninja_tool(self) -> Any:
+        return self._scraper
+
+    @scrape_ninja_tool.setter
+    def scrape_ninja_tool(self, value: Any) -> None:
+        self._scraper = value
 
     def _run(
         self,
@@ -327,7 +338,7 @@ class UnifiedRssTool(BaseTool):
         # Fall back to ScrapeNinjaTool if Newspaper3k fails or returns insufficient content
         try:
             logger.info(f"Falling back to ScrapeNinja for: {url}")
-            content = self.scrape_ninja_tool._run(url=url)
+            content = self._scraper._run(url=url)
 
             # If ScrapeNinja returns its raw JSON response, it means it failed to extract clean text.
             if content and isinstance(content, str) and content.strip().startswith('{"info":'):

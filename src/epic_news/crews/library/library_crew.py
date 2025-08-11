@@ -32,7 +32,7 @@ class LibraryCrew:
             verbose=True,
             respect_context_window=True,
             tools=get_search_tools() + get_scrape_tools() + get_report_tools(),
-            llm="gpt-4.1-mini",
+            llm="gpt-5-mini",
             reasoning=True,
             llm_timeout=300,
         )

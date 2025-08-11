@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>💰 Analyse Financière Quotidienne</title>
+  <script>
+    // Initialize theme on page load
+    (function() {
+      // Check for saved theme preference, then system preference
+      const savedTheme = localStorage.getItem('theme');
+      const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const theme = savedTheme || (systemPrefersDark ? 'dark' : 'light');
+      
+      // Apply theme immediately to prevent flash of unstyled content
+      document.documentElement.setAttribute('data-theme', theme);
+      
+      // Update meta theme-color for mobile browsers
+      const themeColor = theme === 'dark' ? '#1a1a1a' : '#f8f9fa';
+      let metaThemeColor = document.querySelector('meta[name="theme-color"]');
+      if (!metaThemeColor) {
+        metaThemeColor = document.createElement('meta');
+        metaThemeColor.name = 'theme-color';
+        document.head.appendChild(metaThemeColor);
+      }
+      metaThemeColor.content = themeColor;
+    })();
+    
+    // Toggle theme function
+    function toggleTheme() {
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      
+      // Update theme
+      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+      
+      // Update meta theme-color
+      const themeColor = newTheme === 'dark' ? '#1a1a1a' : '#f8f9fa';
+      document.querySelector('meta[name="theme-color"]').content = themeColor;
+    }
+  </script>
+  <style id="theme-styles">
+    /* Theme Variables */
+    :root {
+      --bg-color: #ffffff;
+      --text-color: #343a40;
+      --container-bg: #ffffff;
+      --border-color: #dee2e6;
+      --heading-color: #0056b3;
+      --h2-color: #2980b9;
+      --h3-color: #2c3e50;
+      --highlight-bg: #f8f9fa;
+      --highlight-border: #dee2e6;
+      --shadow-color: rgba(0, 0, 0, 0.1);
+    }
+
+    [data-theme="dark"] {
+      --bg-color: #1a1a1a;
+      --text-color: #e0e0e0;
+      --container-bg: #2d2d2d;
+      --border-color: #444;
+      --heading-color: #64b5f6;
+      --h2-color: #90caf9;
+      --h3-color: #bbdefb;
+      --highlight-bg: #333;
+      --highlight-border: #444;
+      --shadow-color: rgba(0, 0, 0, 0.3);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      margin: 0;
+      padding: 2rem;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      line-height: 1.6;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background-color: var(--container-bg);
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px var(--shadow-color);
+      transition: background-color 0.3s, box-shadow 0.3s;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      color: var(--heading-color);
+      font-weight: 600;
+      margin-top: 1.5em;
+      margin-bottom: 0.5em;
+      transition: color 0.3s;
+    }
+    h1 {
+      font-size: 2.2em;
+      border-bottom: 2px solid var(--border-color);
+      padding-bottom: 0.5rem;
+      margin-top: 0;
+      text-align: center;
+      transition: border-color 0.3s;
+    }
+    h2 {
+      font-size: 1.8em;
+      color: var(--h2-color);
+    }
+    h3 {
+      font-size: 1.4em;
+      color: var(--h3-color);
+    }
+    p {
+      margin-bottom: 1rem;
+    }
+    ul, ol {
+      padding-left: 20px;
+    }
+    li {
+      margin-bottom: 0.5rem;
+    }
+    blockquote {
+      background-color: #e9ecef;
+      border-left: 5px solid #007bff;
+      padding: 1rem;
+      margin: 1.5rem 0;
+      font-style: italic;
+    }
+    .section {
+      background-color: var(--highlight-bg);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      border-left: 4px solid var(--heading-color);
+      transition: background-color 0.3s, border-color 0.3s;
+    }
+    .highlight {
+      background-color: var(--highlight-bg);
+      border: 1px solid var(--highlight-border);
+      border-left-width: 5px;
+      border-left-color: #ffc107;
+      padding: 1rem;
+      margin: 2rem 0;
+      border-radius: 4px;
+      transition: background-color 0.3s, border-color 0.3s;
+    }
+    .recommendation {
+      background-color: #d4edda;
+      border: 1px solid #c3e6cb;
+      border-left-width: 5px;
+      border-left-color: #28a745;
+      padding: 1.5rem;
+      margin: 2rem 0;
+      border-radius: 8px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+      transition: border-color 0.3s;
+    }
+    th, td {
+      border: 1px solid var(--border-color);
+      padding: 12px;
+      text-align: left;
+      transition: border-color 0.3s, background-color 0.3s;
+    }
+    th {
+      background-color: var(--highlight-bg);
+      font-weight: 600;
+      color: var(--text-color);
+    }
+    tr:nth-child(even) {
+      background-color: var(--highlight-bg);
+    }
+    .badge {
+      display: inline-block;
+      padding: 0.3em 0.6em;
+      font-size: 75%;
+      font-weight: 700;
+      line-height: 1;
+      text-align: center;
+      white-space: nowrap;
+      vertical-align: baseline;
+      border-radius: 0.25rem;
+      color: #fff;
+    }
+    .badge-success { background-color: #28a745; }
+    .badge-warning { background-color: #ffc107; color: #212529; }
+    .badge-danger { background-color: #dc3545; }
+    .badge-info { background-color: #17a2b8; }
+    .emoji {
+      font-size: 1.2em;
+      vertical-align: middle;
+    }
+    a {
+      color: #007bff;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: var(--highlight-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 5px 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9em;
+      transition: all 0.3s;
+    }
+
+    .theme-toggle:hover {
+      background: var(--border-color);
+    }
+
+    .theme-icon {
+      width: 16px;
+      height: 16px;
+    }
+
+    .footer {
+      margin-top: 3rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border-color);
+      font-size: 0.9em;
+      color: var(--text-color);
+      text-align: center;
+      opacity: 0.8;
+      transition: border-color 0.3s, color 0.3s;
+    }
+    .date-info {
+      text-align: center;
+      color: #6c757d;
+      font-style: italic;
+      margin-bottom: 2rem;
+    }
+    
+    /* RSS Weekly Specific Styles */
+    .statistics {
+      margin: 2rem 0;
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin: 1rem 0;
+    }
+    
+    .stat-card {
+      background: var(--highlight-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1.5rem;
+      text-align: center;
+      transition: all 0.3s;
+    }
+    
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    .stat-card h3 {
+      margin: 0 0 0.5rem 0;
+      font-size: 1rem;
+      color: var(--text-color);
+    }
+    
+    .stat-number {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #007bff;
+      margin: 0;
+    }
+    
+    .feed-digests {
+      margin: 2rem 0;
+    }
+    
+    .feed-digest {
+      background: var(--container-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      margin: 1.5rem 0;
+      padding: 1.5rem;
+      transition: all 0.3s;
+    }
+    
+    .feed-digest h3 {
+      color: var(--heading-color);
+      margin: 0 0 1rem 0;
+      font-size: 1.3rem;
+    }
+    
+    .feed-url {
+      margin: 0.5rem 0;
+      font-size: 0.9rem;
+    }
+    
+    .feed-url a {
+      color: #6c757d;
+      text-decoration: none;
+      word-break: break-all;
+    }
+    
+    .feed-url a:hover {
+      color: #007bff;
+      text-decoration: underline;
+    }
+    
+    .articles-count {
+      background: var(--highlight-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      padding: 0.5rem 1rem;
+      margin: 1rem 0;
+      font-weight: 600;
+      display: inline-block;
+    }
+    
+    .articles-list {
+      margin: 1rem 0;
+    }
+    
+    .article-summary {
+      background: var(--highlight-bg);
+      border-left: 4px solid #007bff;
+      border-radius: 4px;
+      padding: 1rem;
+      margin: 1rem 0;
+      transition: all 0.3s;
+    }
+    
+    .article-summary:hover {
+      background: var(--border-color);
+      transform: translateX(4px);
+    }
+    
+    .article-summary h4 {
+      margin: 0 0 0.5rem 0;
+      color: var(--heading-color);
+      font-size: 1.1rem;
+    }
+    
+    .article-summary h4 a {
+      color: var(--heading-color);
+      text-decoration: none;
+    }
+    
+    .article-summary h4 a:hover {
+      color: #007bff;
+      text-decoration: underline;
+    }
+    
+    .published-date {
+      color: #6c757d;
+      font-size: 0.9rem;
+      margin: 0.5rem 0;
+    }
+    
+    .article-summary .summary {
+      margin: 0.5rem 0 0 0;
+      line-height: 1.6;
+    }
+    
+    .article-summary .summary p {
+      margin: 0;
+      color: var(--text-color);
+    }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle" onclick="toggleTheme()">
+    <svg class="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+    <span>Toggle Theme</span>
+  </button>
+  
+  <div class="container">
+    <h1>💰 Analyse Financière Quotidienne</h1>
+    
+    <div class="date-info">
+      <p>Généré le 2025-01-01 00:00:00</p>
+    </div>
+    
+    
+    <div class="financial-report"><div class_="financial-header"><h2>💰 Rapport Financier</h2><p class_="report-date">📅 2025-08-10</p></div><div class_="executive-summary"><h3>📋 Résumé Exécutif</h3><p>Les marchés montent légèrement.</p></div><div class_="financial-analysis"><h3>🔍 Analyse Détaillée</h3><div class_="analysis-section"><h4>Stocks</h4><p>Les actions progressent</p><ul><li>S&amp;P 500 +1.0%</li><li>NASDAQ +1.5%</li></ul></div></div><div class_="recommendations"><h3>💡 Recommandations</h3><ul class_="recommendations-list"><li>[Stocks] Acheter QQQ
+→ Momentum fort</li></ul></div></div><style>
+        .financial-report {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .financial-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 2rem;
+            background: var(--container-bg);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+        .financial-header h2 {
+            color: var(--heading-color);
+            margin-bottom: 0.5rem;
+            font-size: 2rem;
+        }
+        .report-date {
+            color: var(--text-color);
+            font-size: 1.1rem;
+            margin: 0;
+        }
+        .executive-summary, .key-metrics, .financial-analysis, .recommendations {
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: var(--container-bg);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+        .executive-summary h3, .key-metrics h3, .financial-analysis h3, .recommendations h3 {
+            color: var(--heading-color);
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .metric-card {
+            padding: 1rem;
+            background: rgba(0, 123, 179, 0.1);
+            border-radius: 6px;
+            text-align: center;
+        }
+        .metric-card h4 {
+            color: var(--heading-color);
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+        .metric-value {
+            color: var(--text-color);
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin: 0;
+        }
+        .analysis-section {
+            margin: 1rem 0;
+            padding: 1rem;
+            background: rgba(108, 117, 125, 0.1);
+            border-radius: 6px;
+            border-left: 4px solid var(--heading-color);
+        }
+        .analysis-section h4 {
+            color: var(--heading-color);
+            margin-bottom: 0.5rem;
+        }
+        .analysis-section p {
+            color: var(--text-color);
+            line-height: 1.5;
+            margin: 0;
+        }
+        .recommendations-list {
+            list-style: none;
+            padding: 0;
+        }
+        .recommendations-list li {
+            margin: 0.5rem 0;
+            padding: 0.75rem;
+            background: rgba(40, 167, 69, 0.1);
+            border-radius: 4px;
+            border-left: 3px solid #28a745;
+            color: var(--text-color);
+        }
+        </style>
+    
+    <div class="footer">
+      <p>Ce rapport a été généré automatiquement par Epic News.</p>
+    </div>
+  </div>
+</body>
+</html>

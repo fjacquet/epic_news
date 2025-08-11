@@ -9,7 +9,7 @@ from epic_news.tools.html_to_pdf_tool import HtmlToPdfTool
 # Import tool factories
 from epic_news.tools.location_tools import get_location_tools
 from epic_news.tools.report_tools import get_report_tools
-from epic_news.tools.scrape_ninja_tool import ScrapeNinjaTool
+from epic_news.tools.scraper_factory import get_scraper
 
 load_dotenv()
 
@@ -23,7 +23,7 @@ class GeospatialAnalysisCrew:
     def geospatial_researcher(self) -> Agent:
         """Creates the geospatial researcher agent with tools for data gathering"""
         # Get all tools
-        search_tools = [SerperDevTool(), ScrapeNinjaTool(), PDFSearchTool()]
+        search_tools = [SerperDevTool(), get_scraper(), PDFSearchTool()]
         location_tools = get_location_tools()
         html_to_pdf_tool = HtmlToPdfTool()
 

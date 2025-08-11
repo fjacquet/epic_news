@@ -7,7 +7,7 @@ from epic_news.models.crews.tech_stack_report import TechStackReport
 from epic_news.tools.github_tools import get_github_tools
 from epic_news.tools.html_to_pdf_tool import HtmlToPdfTool
 from epic_news.tools.report_tools import get_report_tools
-from epic_news.tools.scrape_ninja_tool import ScrapeNinjaTool
+from epic_news.tools.scraper_factory import get_scraper
 
 load_dotenv()
 
@@ -21,7 +21,7 @@ class TechStackCrew:
     def tech_researcher(self) -> Agent:
         """Creates the tech researcher agent with tools for data gathering"""
         # Get all tools
-        search_tools = [SerperDevTool(), ScrapeNinjaTool(), PDFSearchTool()]
+        search_tools = [SerperDevTool(), get_scraper(), PDFSearchTool()]
         tech_tools = get_github_tools()
         html_to_pdf_tool = HtmlToPdfTool()
         all_tools = search_tools + tech_tools + [html_to_pdf_tool] + get_report_tools()

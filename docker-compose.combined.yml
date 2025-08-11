@@ -1,8 +1,6 @@
 services:
-  combined-app:
-    build:
-      context: .
-      dockerfile: Dockerfile.combined
+  epic-news-combined:
+    image: fjacquet/epic-news-combined:master
     container_name: epic-news-combined
     restart: unless-stopped
     ports:

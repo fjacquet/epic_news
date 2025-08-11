@@ -5,7 +5,7 @@ from crewai_tools import DirectoryReadTool, FileReadTool
 from epic_news.models.crews.financial_report import FinancialReport
 from epic_news.tools.finance_tools import get_crypto_research_tools, get_stock_research_tools
 from epic_news.tools.kraken_api_tool import KrakenAssetListTool, KrakenTickerInfoTool
-from epic_news.tools.scrape_ninja_tool import ScrapeNinjaTool
+from epic_news.tools.scraper_factory import get_scraper
 
 
 @CrewBase
@@ -23,9 +23,9 @@ class FinDailyCrew:
             + [
                 FileReadTool(),
                 DirectoryReadTool(),
-                ScrapeNinjaTool(),
+                get_scraper(),
             ],
-            llm="gpt-4.1-mini",
+            llm="gpt-5-mini",
             verbose=True,
             memory=True,
         )
@@ -38,9 +38,9 @@ class FinDailyCrew:
             + [
                 KrakenAssetListTool(),
                 KrakenTickerInfoTool(),
-                ScrapeNinjaTool(),
+                get_scraper(),
             ],
-            llm="gpt-4.1-mini",
+            llm="gpt-5-mini",
             verbose=True,
             memory=True,
         )
@@ -50,7 +50,7 @@ class FinDailyCrew:
         return Agent(
             config=self.agents_config["investment_strategist"],
             # No tools - synthesizes from context provided by analyst tasks
-            llm="gpt-4.1-mini",
+            llm="gpt-5-mini",
             verbose=True,
             memory=True,
         )

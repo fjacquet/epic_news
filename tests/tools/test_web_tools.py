@@ -9,7 +9,7 @@ from crewai_tools import (
     YoutubeVideoSearchTool,
 )
 
-from epic_news.tools.scrape_ninja_tool import ScrapeNinjaTool
+from epic_news.tools.scraper_factory import get_scraper
 from epic_news.tools.web_tools import (
     get_all_web_tools,
     get_github_tools,
@@ -41,8 +41,8 @@ def test_get_news_tools():
 
 def test_get_scrape_tools():
     tools = get_scrape_tools()
-    assert len(tools) == 2  # ScrapeNinjaTool + ScrapeWebsiteTool
-    assert isinstance(tools[0], ScrapeNinjaTool)  # Primary tool
+    assert len(tools) == 2  # Primary scraper (factory) + ScrapeWebsiteTool
+    assert isinstance(tools[0], type(get_scraper()))  # Primary tool from factory
     assert isinstance(tools[1], ScrapeWebsiteTool)  # Backup tool
 
 
@@ -90,9 +90,10 @@ def test_get_all_web_tools():
 
     # Check for presence of different tool types
     tool_types = {type(tool) for tool in all_tools}
+    primary_scraper_type = type(get_scraper())
     expected_types = {
         SerperDevTool,
-        ScrapeNinjaTool,
+        primary_scraper_type,
         ScrapeWebsiteTool,
         WebsiteSearchTool,
         PDFSearchTool,
