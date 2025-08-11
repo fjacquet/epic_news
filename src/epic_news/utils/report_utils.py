@@ -11,7 +11,7 @@ from epic_news.models.crews.rss_weekly_report import (
 )
 from epic_news.models.rss_models import RssFeeds
 from epic_news.utils.directory_utils import ensure_output_directory
-from epic_news.utils.html.rss_weekly_html_factory import rss_weekly_to_html
+from epic_news.utils.html.template_manager import TemplateManager
 
 
 def generate_rss_weekly_html_report(
@@ -63,8 +63,11 @@ def generate_rss_weekly_html_report(
             feeds=report_feeds,
         )
 
-        # Generate the HTML report using the factory
-        rss_weekly_to_html(report_model, html_file=output_html_path)
+        # Generate the HTML report using TemplateManager
+        tm = TemplateManager()
+        html = tm.render_report("RSS_WEEKLY", report_model)
+        with open(output_html_path, "w", encoding="utf-8") as f:
+            f.write(html)
         logger.info(f"✅ HTML report successfully generated at: {output_html_path}")
 
     except FileNotFoundError:

@@ -7,7 +7,7 @@ from epic_news.models.crews.financial_report import (
     AssetSuggestion,
     FinancialReport,
 )
-from epic_news.utils.html.fin_daily_html_factory import findaily_to_html
+from epic_news.utils.html.template_manager import TemplateManager
 
 
 @pytest.fixture
@@ -35,9 +35,11 @@ def sample_financial_report_data():
 
 
 def test_findaily_to_html(sample_financial_report_data, tmp_path):
-    """Test that findaily_to_html creates a valid HTML file."""
+    """Test that TemplateManager renders FINDAILY and we can write it to a file."""
     html_file = tmp_path / "findaily_report.html"
-    html_content = findaily_to_html(sample_financial_report_data, html_file=str(html_file))
+    tm = TemplateManager()
+    html_content = tm.render_report("FINDAILY", sample_financial_report_data.model_dump())
+    html_file.write_text(html_content, encoding="utf-8")
 
     assert html_file.exists()
     assert "This is a test summary." in html_content

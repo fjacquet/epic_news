@@ -2,7 +2,7 @@
 """
 Debug script to test holiday plan JSON to HTML conversion.
 
-This script takes the existing itinerary.json file and uses the holiday_plan_html_factory
+This script takes the existing itinerary.json file and uses TemplateManager.render_report
 to generate HTML, helping us debug parsing and rendering issues.
 """
 
@@ -13,18 +13,7 @@ from pathlib import Path
 # Add the src directory to Python path
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
-from epic_news.utils.html.holiday_planner_html_factory import holiday_planner_to_html
-
-
-class MockCrewOutput:
-    """Mock CrewOutput object to simulate what the factory function expects."""
-
-    def __init__(self, json_data):
-        self.raw = json_data if isinstance(json_data, str) else json.dumps(json_data, ensure_ascii=False)
-        self.json = json_data if isinstance(json_data, dict) else json.loads(json_data)
-
-    def __str__(self):
-        return self.raw
+from epic_news.utils.html.template_manager import TemplateManager
 
 
 def main():
@@ -58,13 +47,11 @@ def main():
         print(f"🔍 JSON keys: {list(json_data.keys())}")
         print(f"🔍 JSON size: {len(json.dumps(json_data))} characters")
 
-        # Create mock CrewOutput
-        print("\n🔧 Creating mock CrewOutput...")
-        mock_crew_output = MockCrewOutput(json_data)
-
-        # Test the holiday_planner_to_html function
-        print("🚀 Testing holiday_planner_to_html function...")
-        html_content = holiday_planner_to_html(mock_crew_output, str(html_file))
+        # Render using TemplateManager
+        print("\n🔧 Rendering with TemplateManager...")
+        tm = TemplateManager()
+        html_content = tm.render_report("HOLIDAY_PLANNER", json_data)
+        html_file.write_text(html_content, encoding="utf-8")
 
         print("✅ HTML generated successfully!")
         print(f"📏 HTML length: {len(html_content)} characters")

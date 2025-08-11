@@ -2,14 +2,12 @@
 
 This exposes:
     - RenderReportTool (standardized HTML rendering)
-    - ReportingTool (professional HTML report generation with templates)
     - HtmlToPdfTool    (existing conversion utility)
 """
 
 from __future__ import annotations
 
 from epic_news.tools.render_report_tool import RenderReportTool
-from epic_news.tools.reporting_tool import ReportingTool
 
 # HtmlToPdfTool already exists in the same package
 try:
@@ -21,7 +19,7 @@ except ImportError:  # pragma: no cover
 
 def get_report_tools() -> list:
     """Return list of report-related tools available in this environment."""
-    tools: list = [RenderReportTool(), ReportingTool()]
+    tools: list = [RenderReportTool()]
     if HtmlToPdfTool is not None:
         tools.append(HtmlToPdfTool())
     return tools

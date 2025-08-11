@@ -1,13 +1,4 @@
-from faker import Faker
-
-from epic_news.utils.html.templates import (
-    get_template_environment,
-    render_menu_report,
-    render_shopping_list,
-    render_template,
-)
-
-fake = Faker()
+from epic_news.utils.html.templates import get_template_environment, render_template
 
 
 def test_get_template_environment():
@@ -23,15 +14,13 @@ def test_render_template(mocker):
     assert html == "<h1>Test</h1>"
 
 
-def test_render_menu_report(mocker):
-    # Test that render_menu_report renders the menu report using the template
-    mocker.patch("epic_news.utils.html.templates.render_template", return_value="<h1>Test</h1>")
-    html = render_menu_report("Test Title", "Test Subtitle", "Test Menu Structure", [], [])
-    assert html == "<h1>Test</h1>"
-
-
-def test_render_shopping_list(mocker):
-    # Test that render_shopping_list renders the shopping list using the template
-    mocker.patch("epic_news.utils.html.templates.render_template", return_value="<h1>Test</h1>")
-    html = render_shopping_list("Test Title", [], 0)
-    assert html == "<h1>Test</h1>"
+def test_render_template_calls_jinja(mocker):
+    # Ensure render_template delegates to Jinja2 Environment.get_template().render()
+    mock_env = mocker.patch("epic_news.utils.html.templates.get_template_environment")
+    mock_template = mocker.MagicMock()
+    mock_template.render.return_value = "<h1>OK</h1>"
+    mock_env.return_value.get_template.return_value = mock_template
+    html = render_template("any.html", {"x": 1})
+    assert html == "<h1>OK</h1>"
+    mock_env.return_value.get_template.assert_called_with("any.html")
+    mock_template.render.assert_called_with(x=1)

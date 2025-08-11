@@ -4,12 +4,16 @@ Temporary script to regenerate company news HTML from JSON data.
 
 import json
 
-from src.epic_news.utils.html.company_news_html_factory import company_news_to_html
+from src.epic_news.utils.html.template_manager import TemplateManager
 
 # Load JSON data
 with open("output/holiday/itinerary.json", encoding="utf-8") as f:
     data = json.load(f)
 
-# Generate HTML
-html = company_news_to_html(data, html_file="output/holiday/regenerated_itinerary.html")
+# Generate HTML via TemplateManager
+tm = TemplateManager()
+output_path = "output/holiday/regenerated_itinerary.html"
+html = tm.render_report("COMPANY_NEWS", data)
+with open(output_path, "w", encoding="utf-8") as out:
+    out.write(html)
 print("✅ Holiday itinerary HTML regenerated successfully")

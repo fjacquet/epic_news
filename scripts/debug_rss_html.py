@@ -5,7 +5,7 @@ from pathlib import Path
 from epic_news.models.crews.rss_weekly_report import ArticleSummary, FeedDigest, RssWeeklyReport
 from epic_news.models.rss_models import RssFeeds
 from epic_news.utils.directory_utils import ensure_output_directory
-from epic_news.utils.html.rss_weekly_html_factory import rss_weekly_to_html
+from epic_news.utils.html.template_manager import TemplateManager
 
 # Add the project root to the Python path to allow for absolute imports
 project_root = Path(__file__).resolve().parents[3]
@@ -81,10 +81,13 @@ def main():
         print(f"❌ Error parsing or validating JSON file: {e}")
         return
 
-    # Generate the HTML report
+    # Generate the HTML report using TemplateManager
     print("🎨 Generating HTML report...")
     try:
-        rss_weekly_to_html(report_model, html_file=str(output_html_path))
+        tm = TemplateManager()
+        html = tm.render_report("RSS_WEEKLY", report_model)
+        with open(output_html_path, "w", encoding="utf-8") as f:
+            f.write(html)
         print(f"✅ HTML report successfully generated at: {output_html_path}")
     except Exception as e:
         print(f"❌ Error during HTML generation: {e}")

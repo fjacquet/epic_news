@@ -7,7 +7,7 @@ from epic_news.models.crews.book_summary_report import (
     ChapterSummary,
     TableOfContentsEntry,
 )
-from epic_news.utils.html.book_summary_html_factory import book_summary_to_html
+from epic_news.utils.html.template_manager import TemplateManager
 
 
 @pytest.fixture
@@ -34,9 +34,11 @@ def sample_book_summary_data():
 
 
 def test_book_summary_to_html(sample_book_summary_data, tmp_path):
-    """Test that book_summary_to_html creates a valid HTML file."""
+    """Test that TemplateManager renders BOOK_SUMMARY and we can write it to a file."""
     html_file = tmp_path / "book_summary_report.html"
-    html_content = book_summary_to_html(sample_book_summary_data, html_file=str(html_file))
+    tm = TemplateManager()
+    html_content = tm.render_report("BOOK_SUMMARY", sample_book_summary_data.model_dump())
+    html_file.write_text(html_content, encoding="utf-8")
 
     assert html_file.exists()
     assert "Test Book" in html_content

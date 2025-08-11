@@ -58,42 +58,26 @@ from epic_news.crews.tech_stack.tech_stack_crew import TechStackCrew
 from epic_news.crews.web_presence.web_presence_crew import WebPresenceCrew
 from epic_news.models.content_state import ContentState
 from epic_news.models.crews.book_summary_report import BookSummaryReport
+from epic_news.models.crews.company_news_report import CompanyNewsReport
+from epic_news.models.crews.company_profiler_report import CompanyProfileReport
 from epic_news.models.crews.cooking_recipe import PaprikaRecipe
 from epic_news.models.crews.cross_reference_report import CrossReferenceReport
 from epic_news.models.crews.deep_research_report import DeepResearchReport
 from epic_news.models.crews.financial_report import FinancialReport
+from epic_news.models.crews.holiday_planner_report import HolidayPlannerReport
 from epic_news.models.crews.meeting_prep_report import MeetingPrepReport
+from epic_news.models.crews.news_daily_report import NewsDailyReport
 from epic_news.models.crews.poem_report import PoemJSONOutput
 from epic_news.models.crews.saint_daily_report import SaintData
 from epic_news.models.crews.sales_prospecting_report import SalesProspectingReport
 from epic_news.services.menu_designer_service import MenuDesignerService
 
 # Import the normalization utility
-from epic_news.utils.data_normalization import normalize_sales_prospecting_report
-from epic_news.utils.debug_utils import (
-    dump_crewai_state,
-    parse_crewai_output,
-)
+from epic_news.utils.diagnostics import dump_crewai_state, parse_crewai_output
 from epic_news.utils.directory_utils import ensure_output_directories
 from epic_news.utils.extractors.deep_research import DeepResearchExtractor
 from epic_news.utils.extractors.factory import ContentExtractorFactory
-from epic_news.utils.html.book_summary_html_factory import (
-    book_summary_to_html,
-)
-from epic_news.utils.html.company_news_html_factory import company_news_to_html
-from epic_news.utils.html.cross_reference_report_html_factory import (
-    cross_reference_report_to_html,
-)
-from epic_news.utils.html.daily_news_html_factory import daily_news_to_html
-from epic_news.utils.html.fin_daily_html_factory import findaily_to_html
-from epic_news.utils.html.holiday_planner_html_factory import holiday_planner_to_html
-from epic_news.utils.html.meeting_prep_html_factory import meeting_prep_to_html
-from epic_news.utils.html.menu_html_factory import menu_to_html
-from epic_news.utils.html.poem_html_factory import poem_to_html
-from epic_news.utils.html.recipe_html_factory import recipe_to_html
-from epic_news.utils.html.saint_html_factory import saint_to_html
-from epic_news.utils.html.sales_prospecting_html_factory import sales_prospecting_report_to_html
-from epic_news.utils.html.shopping_advice_html_factory import shopping_advice_to_html
+from epic_news.utils.flow_enforcement import kickoff_flow
 from epic_news.utils.html.template_manager import TemplateManager
 from epic_news.utils.logger import setup_logging
 from epic_news.utils.menu_generator import MenuGenerator
@@ -180,9 +164,9 @@ class ReceptionFlow(Flow[ContentState]):
         as input for other crews.
         """
         self.logger.info("🤖 Kicking off Information Extraction Crew...")
-        # Instantiate and run the information extraction crew
+        # Instantiate and run the information extraction crew (kickoff-only)
         extraction_crew = InformationExtractionCrew()
-        extracted_data = extraction_crew.crew().kickoff(inputs={"user_request": self.state.user_request})
+        extracted_data = kickoff_flow(extraction_crew, {"user_request": self.state.user_request})
 
         dump_crewai_state(extracted_data, "EXTRACTED_INFO")
         # Update the state with the extracted information
@@ -217,9 +201,9 @@ class ReceptionFlow(Flow[ContentState]):
         # Prepare input data for classification using the centralized method from ContentState.
         inputs = self.state.to_crew_inputs()
 
-        # Instantiate and run the classification crew
+        # Instantiate and run the classification crew (kickoff-only)
         classify_crew = ClassifyCrew()
-        classification_result = classify_crew.crew().kickoff(inputs=inputs)
+        classification_result = kickoff_flow(classify_crew, inputs)
         dump_crewai_state(classification_result, "CLASSIFICATION")
 
         # Parse the result and update the state with the selected crew category.
@@ -320,17 +304,28 @@ class ReceptionFlow(Flow[ContentState]):
         self.state.output_file = "output/poem/poem.json"
         self.logger.info(f"Generating poem about: {self.state.to_crew_inputs().get('topic', 'N/A')}")
 
-        # Generate the poem
-        output = PoemCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
+        # Generate the poem (kickoff-only orchestration)
+        output = kickoff_flow(PoemCrew(), self.state.to_crew_inputs())
         dump_crewai_state(output, "POEM")
 
         html_file = "output/poem/poem.html"
-        # Parse CrewOutput to PoemJSONOutput
-        if hasattr(output, "output") and isinstance(output.output, PoemJSONOutput):
-            poem_model = output.output
-        else:
-            poem_model = PoemJSONOutput.model_validate(json.loads(output.raw))
-        poem_to_html(poem_model, html_file=html_file)
+        # Prefer persisted JSON; fallback to robust parser
+        try:
+            with open(self.state.output_file, encoding="utf-8") as f:
+                data = json.load(f)
+            poem_model = PoemJSONOutput.model_validate(data)
+            self.logger.info("📄 Loaded poem model from saved JSON file")
+        except Exception:
+            poem_model = parse_crewai_output(output, PoemJSONOutput, self.state.to_crew_inputs())
+        # Render via TemplateManager
+        template_manager = TemplateManager()
+        html_content = template_manager.render_report(
+            selected_crew="POEM",
+            content_data=poem_model.model_dump() if hasattr(poem_model, "model_dump") else poem_model,
+        )
+        os.makedirs(os.path.dirname(html_file), exist_ok=True)
+        with open(html_file, "w", encoding="utf-8") as f:
+            f.write(html_content)
 
         # return "generate_poem"
 
@@ -346,11 +341,32 @@ class ReceptionFlow(Flow[ContentState]):
         self.state.output_file = "output/company_news/report.json"
         self.logger.info(f"Generating news about: {self.state.to_crew_inputs().get('topic', 'N/A')}")
 
-        # Generate the news
-        self.state.company_news_report = CompanyNewsCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
-        dump_crewai_state(self.state.company_news_report, "NEWS_COMPANY")
+        # Generate the news via kickoff-only orchestration
+        crew_inputs = self.state.to_crew_inputs()
+        output = kickoff_flow(CompanyNewsCrew(), crew_inputs)
+        dump_crewai_state(output, "NEWS_COMPANY")
+
+        # Prefer persisted JSON; fallback to robust parser
         html_file = "output/company_news/report.html"
-        company_news_to_html(self.state.company_news_report, html_file=html_file)
+        try:
+            with open(self.state.output_file, encoding="utf-8") as f:
+                data = json.load(f)
+            news_model = CompanyNewsReport.model_validate(data)
+            self.logger.info("📄 Loaded company news model from saved JSON file")
+        except Exception:
+            news_model = parse_crewai_output(output, CompanyNewsReport, crew_inputs)
+
+        # Render via TemplateManager
+        template_manager = TemplateManager()
+        html_content = template_manager.render_report(
+            selected_crew="COMPANY_NEWS",
+            content_data=news_model.model_dump() if hasattr(news_model, "model_dump") else news_model,
+        )
+        os.makedirs(os.path.dirname(html_file), exist_ok=True)
+        with open(html_file, "w", encoding="utf-8") as f:
+            f.write(html_content)
+        # Keep raw output in state for compatibility
+        self.state.company_news_report = output
 
         # return "generate_news_company"
 
@@ -384,7 +400,7 @@ class ReceptionFlow(Flow[ContentState]):
             "input_file": str(raw_report_path),
             "output_file": str(translated_report_path),
         }
-        report_output = RssWeeklyCrew().crew().kickoff(inputs=translation_inputs)
+        report_output = kickoff_flow(RssWeeklyCrew(), translation_inputs)
         dump_crewai_state(report_output, "RSS_WEEKLY_TRANSLATION")
 
         # Step 2.5: Save the translated report
@@ -480,15 +496,37 @@ class ReceptionFlow(Flow[ContentState]):
         inputs["stock_csv_path"] = os.path.abspath(stock_csv_file)
         inputs["etf_csv_path"] = os.path.abspath(etf_csv_file)
         inputs["current_date"] = datetime.datetime.now().strftime("%Y-%m-%d")
-        inputs["output_file"] = "output/findaily/report.json"
+        self.state.output_file = "output/findaily/report.json"
+        inputs["output_file"] = self.state.output_file
 
-        # Kick off the crew
-        report_content = FinDailyCrew().crew().kickoff(inputs=inputs)
-        dump_crewai_state(report_content, "FIN_DAILY")
+        # Kickoff-only orchestration
+        output = kickoff_flow(FinDailyCrew(), inputs)
+        dump_crewai_state(output, "FIN_DAILY")
+        self.state.fin_daily_report = output
+
         html_file = "output/findaily/report.html"
 
-        financial_report_model = parse_crewai_output(report_content, FinancialReport, inputs)
-        findaily_to_html(financial_report_model, html_file=html_file)
+        # Prefer persisted JSON; fallback to robust parser
+        try:
+            with open(self.state.output_file, encoding="utf-8") as f:
+                data = json.load(f)
+            financial_report_model = FinancialReport.model_validate(data)
+            self.logger.info("📄 Loaded financial report model from saved JSON file")
+        except Exception:
+            financial_report_model = parse_crewai_output(output, FinancialReport, inputs)
+        # Render via TemplateManager
+        template_manager = TemplateManager()
+        html_content = template_manager.render_report(
+            selected_crew="FINDAILY",
+            content_data=(
+                financial_report_model.model_dump()
+                if hasattr(financial_report_model, "model_dump")
+                else financial_report_model
+            ),
+        )
+        os.makedirs(os.path.dirname(html_file), exist_ok=True)
+        with open(html_file, "w", encoding="utf-8") as f:
+            f.write(html_content)
         self.logger.info(f"✅ Financial content generated and HTML written to {html_file}")
 
     @listen("go_generate_news_daily")
@@ -502,27 +540,47 @@ class ReceptionFlow(Flow[ContentState]):
         World, Wars, and Economy. Sets `output_file` to `output/news_daily/final_report.html`
         and stores the report in `self.state.news_daily_report`.
         """
-
-        self.state.output_file = "output/news_daily/final_report.html"
+        # Persisted JSON for deterministic parsing
+        self.state.output_file = "output/news_daily/news_data.json"
         self.logger.info("📰 Generating daily news report in French...")
 
         # Prepare inputs for the crew
         inputs = self.state.to_crew_inputs()
         inputs["current_date"] = datetime.datetime.now().strftime("%Y-%m-%d")
         inputs["report_language"] = "French"
-        inputs["output_file"] = "output/news_daily/news_data.json"
+        inputs["output_file"] = self.state.output_file
 
-        # Kick off the crew
-        report_content = NewsDailyCrew().crew().kickoff(inputs=inputs)
-        self.state.news_daily_report = report_content
-        dump_crewai_state(report_content, "NEWSDAILY")
+        # Kickoff-only orchestration
+        output = kickoff_flow(NewsDailyCrew(), inputs)
+        self.state.news_daily_report = output
+        dump_crewai_state(output, "NEWSDAILY")
+
         html_file = "output/news_daily/final_report.html"
 
-        daily_news_to_html(report_content, html_file=html_file)
+        # Prefer persisted JSON; fallback to robust parser
+        try:
+            with open(self.state.output_file, encoding="utf-8") as f:
+                data = json.load(f)
+            news_daily_model = NewsDailyReport.model_validate(data)
+            self.logger.info("📄 Loaded news daily model from saved JSON file")
+        except Exception:
+            news_daily_model = parse_crewai_output(output, NewsDailyReport, inputs)
 
-        # Store the news report model data for HTML rendering by generate_html_report
-        if hasattr(report_content, "model_dump"):
-            self.state.news_daily_model = report_content
+        # Render via TemplateManager
+        template_manager = TemplateManager()
+        html_content = template_manager.render_report(
+            selected_crew="NEWSDAILY",
+            content_data=news_daily_model.model_dump()
+            if hasattr(news_daily_model, "model_dump")
+            else news_daily_model,
+        )
+        os.makedirs(os.path.dirname(html_file), exist_ok=True)
+        with open(html_file, "w", encoding="utf-8") as f:
+            f.write(html_content)
+
+        # Store the news report model in state
+        if hasattr(news_daily_model, "model_dump"):
+            self.state.news_daily_model = news_daily_model
 
         self.logger.info(f"✅ News content generated and HTML written to {html_file}")
 
@@ -544,22 +602,33 @@ class ReceptionFlow(Flow[ContentState]):
         # Prepare inputs for the crew
         inputs = self.state.to_crew_inputs()
 
-        # Kick off the crew
-        report_content = SaintDailyCrew().crew().kickoff(inputs=inputs)
-        dump_crewai_state(report_content, "SAINT_DAILY")
-        # Store the saint report data for HTML rendering by generate_html_report
-        self.state.saint_daily_report = report_content
+        # Kick off the crew (kickoff-only orchestration)
+        output = kickoff_flow(SaintDailyCrew(), inputs)
+        dump_crewai_state(output, "SAINT_DAILY")
+        # Store the saint report raw output in state for compatibility
+        self.state.saint_daily_report = output
 
         html_file = "output/saint_daily/report.html"
-        # Store the saint report model data for HTML rendering (consistent with other crews)
 
-        # Minimal, robust CrewAI pattern (like generate_poem)
-        if hasattr(report_content, "output") and isinstance(report_content.output, SaintData):
-            saint_model = report_content.output
-        else:
-            saint_model = SaintData.model_validate(json.loads(report_content.raw))
+        # Prefer persisted JSON; fallback to robust parser
+        try:
+            with open(self.state.output_file, encoding="utf-8") as f:
+                data = json.load(f)
+            saint_model = SaintData.model_validate(data)
+            self.logger.info("📄 Loaded saint model from saved JSON file")
+        except Exception:
+            saint_model = parse_crewai_output(output, SaintData, inputs)
+
         self.state.saint_daily_model = saint_model
-        saint_to_html(saint_model, html_file=html_file)
+        # Render via TemplateManager
+        template_manager = TemplateManager()
+        html_content = template_manager.render_report(
+            selected_crew="SAINT",
+            content_data=saint_model.model_dump() if hasattr(saint_model, "model_dump") else saint_model,
+        )
+        os.makedirs(os.path.dirname(html_file), exist_ok=True)
+        with open(html_file, "w", encoding="utf-8") as f:
+            f.write(html_content)
 
         self.logger.info(
             "✅ Saint content generated - HTML rendering will be handled by generate_html_report"
@@ -602,18 +671,41 @@ class ReceptionFlow(Flow[ContentState]):
         )
         self.logger.info(f"📁 Recipte will be saved to: {self.state.output_dir}/{self.state.topic_slug}.html")
 
-        # Create crew using context-driven approach with automatic topic_slug injection
-        cooking_result = CookingCrew().crew().kickoff(inputs=crew_inputs)
+        # Create crew using kickoff-only orchestration (PR-003 enforcement)
+        cooking_result = kickoff_flow(CookingCrew(), crew_inputs)
         dump_crewai_state(cooking_result, "COOKING")
 
-        # Generate HTML using recipe_to_html factory function
+        # Render HTML via TemplateManager unified renderer
         html_file = f"{self.state.output_dir}/{self.state.topic_slug}.html"
 
-        # Parse CrewAI output using utility function
-        recipe_model = parse_crewai_output(cooking_result, PaprikaRecipe, crew_inputs)
+        # Prefer the JSON saved by the final task to ensure determinism
+        try:
+            with open(self.state.output_file, encoding="utf-8") as f:
+                data = json.load(f)
+            recipe_model = PaprikaRecipe.model_validate(data)
+            self.logger.info("📄 Loaded recipe model from saved JSON file")
+        except Exception:
+            # Try to load from Paprika YAML if available
+            try:
+                import yaml  # type: ignore
 
-        # Generate HTML directly
-        recipe_to_html(recipe_model, html_file=html_file)
+                with open(crew_inputs["patrika_file"], encoding="utf-8") as f:
+                    data = yaml.safe_load(f)
+                recipe_model = PaprikaRecipe.model_validate(data)
+                self.logger.info("📄 Loaded recipe model from saved YAML file")
+            except Exception:
+                # Fallback: attempt to parse the CrewAI output directly
+                recipe_model = parse_crewai_output(cooking_result, PaprikaRecipe, crew_inputs)
+
+        # Render via TemplateManager
+        template_manager = TemplateManager()
+        html_content = template_manager.render_report(
+            selected_crew="COOKING",
+            content_data=recipe_model.model_dump() if hasattr(recipe_model, "model_dump") else recipe_model,
+        )
+        os.makedirs(os.path.dirname(html_file), exist_ok=True)
+        with open(html_file, "w", encoding="utf-8") as f:
+            f.write(html_content)
 
         self.logger.info("✅ Recipe generation complete")
 
@@ -653,9 +745,16 @@ class ReceptionFlow(Flow[ContentState]):
             if menu_plan:
                 self.logger.info("✅ Menu plan validated successfully")
 
-                # Generate HTML using the validated menu plan
+                # Generate HTML using the validated menu plan via TemplateManager
                 html_file = f"{output_dir}/{crew_inputs['menu_slug']}.html"
-                menu_to_html(menu_plan, html_file, "Weekly Menu Plan")
+                template_manager = TemplateManager()
+                html_content = template_manager.render_report(
+                    selected_crew="MENU",
+                    content_data=menu_plan.model_dump() if hasattr(menu_plan, "model_dump") else menu_plan,
+                )
+                os.makedirs(os.path.dirname(html_file), exist_ok=True)
+                with open(html_file, "w", encoding="utf-8") as f:
+                    f.write(html_content)
                 self.logger.info(f"✅ Menu plan HTML written to {html_file}")
 
                 # Store the validated menu plan in state
@@ -676,7 +775,7 @@ class ReceptionFlow(Flow[ContentState]):
             # Fallback to original method if service fails
             self.logger.info("🔄 Falling back to original menu generation method")
 
-            menu_structure_result = MenuDesignerCrew().crew().kickoff(inputs=crew_inputs)
+            menu_structure_result = kickoff_flow(MenuDesignerCrew(), crew_inputs)
             dump_crewai_state(menu_structure_result, "MENU_DESIGNER")
             html_file = f"{output_dir}/{crew_inputs['menu_slug']}.html"
 
@@ -700,7 +799,16 @@ class ReceptionFlow(Flow[ContentState]):
                 self.logger.warning("⚠️ Fallback validation failed, creating emergency fallback")
                 report_model = validator.create_fallback_menu_plan()
 
-            menu_to_html(report_model, html_file, "Weekly Menu Plan")
+            template_manager = TemplateManager()
+            html_content = template_manager.render_report(
+                selected_crew="MENU",
+                content_data=report_model.model_dump()
+                if hasattr(report_model, "model_dump")
+                else report_model,
+            )
+            os.makedirs(os.path.dirname(html_file), exist_ok=True)
+            with open(html_file, "w", encoding="utf-8") as f:
+                f.write(html_content)
             self.logger.info(f"✅ Fallback menu plan generated and HTML written to {html_file}")
 
             final_report = html_file
@@ -759,19 +867,34 @@ class ReceptionFlow(Flow[ContentState]):
         inputs = self.state.to_crew_inputs()
         inputs["output_file"] = "output/library/book_summary.json"
 
-        # Generate the book summary
-        report_content = LibraryCrew().crew().kickoff(inputs=inputs)
-        dump_crewai_state(report_content, "BOOK_SUMMARY")
+        # Generate the book summary via kickoff-only orchestration
+        output = kickoff_flow(LibraryCrew(), inputs)
+        dump_crewai_state(output, "BOOK_SUMMARY")
         html_file = "output/library/book_summary.html"
 
-        # Store the book summary data for HTML rendering by generate_html_report
-        self.state.book_summary = report_content
+        # Store the book summary raw output for compatibility
+        self.state.book_summary = output
 
-        # Parse CrewAI output using utility function
-        book_summary_model = parse_crewai_output(report_content, BookSummaryReport, inputs)
+        # Prefer persisted JSON; fallback to robust parser
+        try:
+            with open(inputs["output_file"], encoding="utf-8") as f:
+                data = json.load(f)
+            book_summary_model = BookSummaryReport.model_validate(data)
+            self.logger.info("📄 Loaded book summary model from saved JSON file")
+        except Exception:
+            book_summary_model = parse_crewai_output(output, BookSummaryReport, inputs)
 
-        # Generate HTML directly (don't store model in state - CrewAI Flow state has predefined schema)
-        book_summary_to_html(book_summary_model, html_file=html_file)
+        # Render via TemplateManager
+        template_manager = TemplateManager()
+        html_content = template_manager.render_report(
+            selected_crew="BOOK_SUMMARY",
+            content_data=book_summary_model.model_dump()
+            if hasattr(book_summary_model, "model_dump")
+            else book_summary_model,
+        )
+        os.makedirs(os.path.dirname(html_file), exist_ok=True)
+        with open(html_file, "w", encoding="utf-8") as f:
+            f.write(html_content)
 
     @listen("go_generate_shopping_advice")
     @trace_task(tracer)
@@ -791,8 +914,8 @@ class ReceptionFlow(Flow[ContentState]):
         crew_inputs = self.state.to_crew_inputs()
         crew_inputs["output_file"] = "output/shopping_advisor/shopping_advice.json"
 
-        # Generate structured shopping advice data
-        shopping_result = ShoppingAdvisorCrew().crew().kickoff(inputs=crew_inputs)
+        # Generate structured shopping advice data (kickoff-only)
+        shopping_result = kickoff_flow(ShoppingAdvisorCrew(), crew_inputs)
         dump_crewai_state(shopping_result, "SHOPPING_ADVISOR")
 
         # Extract ShoppingAdviceOutput from the result
@@ -820,8 +943,17 @@ class ReceptionFlow(Flow[ContentState]):
         html_file = f"output/shopping_advisor/shopping-advice-{topic_slug}.html"
         self.state.output_file = html_file
 
-        # Generate HTML using the factory function
-        shopping_advice_to_html(shopping_advice_obj, topic=topic, html_file=html_file)
+        # Render via TemplateManager
+        template_manager = TemplateManager()
+        html_content = template_manager.render_report(
+            selected_crew="SHOPPING",
+            content_data=shopping_advice_obj.model_dump()
+            if hasattr(shopping_advice_obj, "model_dump")
+            else shopping_advice_obj,
+        )
+        os.makedirs(os.path.dirname(html_file), exist_ok=True)
+        with open(html_file, "w", encoding="utf-8") as f:
+            f.write(html_content)
 
         self.logger.info(
             "✅ Shopping advice content generated - HTML rendering will be handled by generate_html_report"
@@ -850,24 +982,32 @@ class ReceptionFlow(Flow[ContentState]):
         self.logger.info(f"Generating meeting prep for company: {company or 'N/A'}")
 
         current_inputs["output_file"] = "output/meeting/meeting_preparation.json"
-        # Generate the meeting prep
-        meeting_result = MeetingPrepCrew().crew().kickoff(inputs=current_inputs)
-        self.state.meeting_prep_report = meeting_result
+        # Generate the meeting prep (kickoff-only)
+        output = kickoff_flow(MeetingPrepCrew(), current_inputs)
+        dump_crewai_state(output, "MEETING_PREP")
 
-        # Parse CrewAI output using utility function
+        # Prefer persisted JSON; fallback to robust parser
         try:
-            self.state.meeting_prep_report = parse_crewai_output(
-                meeting_result, MeetingPrepReport, current_inputs
-            )
-            self.logger.info("Successfully parsed meeting prep result to MeetingPrepReport model")
-        except Exception as e:
-            self.logger.error(f"Error parsing meeting prep result: {e}")
+            with open(current_inputs["output_file"], encoding="utf-8") as f:
+                data = json.load(f)
+            meeting_model = MeetingPrepReport.model_validate(data)
+            self.logger.info("📄 Loaded meeting prep model from saved JSON file")
+        except Exception:
+            meeting_model = parse_crewai_output(output, MeetingPrepReport, current_inputs)
 
-        # Set the final report to the JSON output
-        self.state.final_report = self.state.meeting_prep_report
-        dump_crewai_state(self.state.meeting_prep_report, "MEETING_PREP")
+        self.state.meeting_prep_report = meeting_model
         html_file = "output/meeting/meeting_preparation.html"
-        meeting_prep_to_html(self.state.meeting_prep_report, html_file=html_file)
+        # Render via TemplateManager
+        template_manager = TemplateManager()
+        html_content = template_manager.render_report(
+            selected_crew="MEETING_PREP",
+            content_data=meeting_model.model_dump()
+            if hasattr(meeting_model, "model_dump")
+            else meeting_model,
+        )
+        os.makedirs(os.path.dirname(html_file), exist_ok=True)
+        with open(html_file, "w", encoding="utf-8") as f:
+            f.write(html_content)
 
         # return "generate_meeting_prep"
 
@@ -891,26 +1031,32 @@ class ReceptionFlow(Flow[ContentState]):
             f"Generating sales prospecting report for: {company or 'N/A'} regarding {our_product}"
         )
 
-        # Get raw report content from the crew
-        raw_report_content = SalesProspectingCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
-
-        # Normalize the report data to fix enum validation issues
-        if isinstance(raw_report_content, dict):
-            normalized_report_content = normalize_sales_prospecting_report(raw_report_content)
-            self.logger.info("Sales prospecting report data normalized for validation")
-        else:
-            normalized_report_content = raw_report_content
-            self.logger.warning("Sales prospecting report data is not a dictionary, skipping normalization")
-
-        # Save the normalized report content
-        report_content = normalized_report_content
-        dump_crewai_state(report_content, "SALES_PROSPECTING")
+        # Kickoff-only orchestration with JSON-first parsing
+        inputs = self.state.to_crew_inputs()
+        self.state.output_file = "output/sales_prospecting/report.json"
+        inputs["output_file"] = self.state.output_file
+        output = kickoff_flow(SalesProspectingCrew(), inputs)
+        dump_crewai_state(output, "SALES_PROSPECTING")
         html_file = "output/sales_prospecting/report.html"
 
-        report_model = parse_crewai_output(
-            report_content, SalesProspectingReport, self.state.to_crew_inputs()
+        # Prefer persisted JSON; fallback to robust parser
+        try:
+            with open(self.state.output_file, encoding="utf-8") as f:
+                data = json.load(f)
+            report_model = SalesProspectingReport.model_validate(data)
+            self.logger.info("📄 Loaded sales prospecting model from saved JSON file")
+        except Exception:
+            report_model = parse_crewai_output(output, SalesProspectingReport, inputs)
+
+        # Render via TemplateManager
+        template_manager = TemplateManager()
+        html_content = template_manager.render_report(
+            selected_crew="SALES_PROSPECTING",
+            content_data=report_model.model_dump() if hasattr(report_model, "model_dump") else report_model,
         )
-        sales_prospecting_report_to_html(report_model, html_file)
+        os.makedirs(os.path.dirname(html_file), exist_ok=True)
+        with open(html_file, "w", encoding="utf-8") as f:
+            f.write(html_content)
         self.logger.info(f"✅ Sales prospecting report generated and HTML written to {html_file}")
 
     @listen("go_generate_deep_research")
@@ -935,9 +1081,9 @@ class ReceptionFlow(Flow[ContentState]):
         inputs["current_date"] = datetime.datetime.now().strftime("%Y-%m-%d")
         inputs["output_file"] = output_file
 
-        # Kick off the crew
-        report_content = DeepResearchCrew().crew().kickoff(inputs=inputs)
-        dump_crewai_state(report_content, "DEEP_RESEARCH")
+        # Kickoff-only orchestration
+        output = kickoff_flow(DeepResearchCrew(), inputs)
+        dump_crewai_state(output, "DEEP_RESEARCH")
 
         # Attempt to load the JSON file written by the crew (preferred, authoritative source)
         research_report_model: DeepResearchReport | None = None
@@ -954,7 +1100,7 @@ class ReceptionFlow(Flow[ContentState]):
 
         # Fallback: parse the direct CrewAI output (legacy path)
         if research_report_model is None:
-            research_report_model = parse_crewai_output(report_content, DeepResearchReport, inputs)
+            research_report_model = parse_crewai_output(output, DeepResearchReport, inputs)
             self.logger.info("ℹ️ Using DeepResearchReport built from CrewAI raw output (fallback path)")
 
         self.state.deep_research_report = research_report_model
@@ -962,7 +1108,7 @@ class ReceptionFlow(Flow[ContentState]):
         # Use modern ContentExtractorFactory and TemplateManager architecture
         state_data = {
             "deep_research_report": research_report_model,
-            "final_report": str(report_content),
+            "final_report": str(output),
             "user_request": self.state.user_request,
             "current_date": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         }
@@ -1012,9 +1158,39 @@ class ReceptionFlow(Flow[ContentState]):
             f"Generating company profile for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}"
         )
 
-        # Get company name from state inputs
+        # Prepare I/O paths
+        self.state.output_file = "output/osint/company_profile.json"
+        html_file = "output/osint/company_profile.html"
 
-        self.state.company_profile = CompanyProfilerCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
+        # Prepare inputs and enforce kickoff-only orchestration
+        inputs = self.state.to_crew_inputs()
+        inputs["output_file"] = self.state.output_file
+        output = kickoff_flow(CompanyProfilerCrew(), inputs)
+        dump_crewai_state(output, "COMPANY_PROFILE")
+
+        # Keep raw output in state for compatibility
+        self.state.company_profile = output
+
+        # Prefer persisted JSON; fallback to robust parser
+        try:
+            with open(self.state.output_file, encoding="utf-8") as f:
+                data = json.load(f)
+            profile_model = CompanyProfileReport.model_validate(data)
+            self.logger.info("📄 Loaded company profile model from saved JSON file")
+        except Exception:
+            profile_model = parse_crewai_output(output, CompanyProfileReport, inputs)
+
+        # Render HTML via TemplateManager (generic path for COMPANY_PROFILE)
+        template_manager = TemplateManager()
+        html_content = template_manager.render_report(
+            selected_crew="COMPANY_PROFILE", content_data=profile_model.model_dump()
+        )
+
+        os.makedirs(os.path.dirname(html_file), exist_ok=True)
+        with open(html_file, "w", encoding="utf-8") as f:
+            f.write(html_content)
+
+        self.logger.info(f"✅ Company profile generated and HTML written to {html_file}")
         # return "generate_company_profile"
 
     @listen("generate_osint")
@@ -1031,8 +1207,8 @@ class ReceptionFlow(Flow[ContentState]):
             f"Generating Tech Stack for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}"
         )
 
-        # Get company name from state inputs
-        self.state.tech_stack = TechStackCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
+        # Get company name from state inputs (kickoff-only)
+        self.state.tech_stack = kickoff_flow(TechStackCrew(), self.state.to_crew_inputs())
         # return "generate_company_profile"
 
     @listen("generate_osint")
@@ -1049,7 +1225,7 @@ class ReceptionFlow(Flow[ContentState]):
             f"Generating Web Presence for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}"
         )
 
-        self.state.web_presence_report = WebPresenceCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
+        self.state.web_presence_report = kickoff_flow(WebPresenceCrew(), self.state.to_crew_inputs())
         # return "generate_company_profile"
 
     @listen("generate_osint")
@@ -1066,9 +1242,7 @@ class ReceptionFlow(Flow[ContentState]):
             f"Generating HR Intelligence for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}"
         )
 
-        self.state.hr_intelligence_report = (
-            HRIntelligenceCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
-        )
+        self.state.hr_intelligence_report = kickoff_flow(HRIntelligenceCrew(), self.state.to_crew_inputs())
         # return "generate_company_profile"
 
     @listen("generate_osint")
@@ -1085,9 +1259,7 @@ class ReceptionFlow(Flow[ContentState]):
             f"Generating Legal Analysis for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}"
         )
 
-        self.state.legal_analysis_report = (
-            LegalAnalysisCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
-        )
+        self.state.legal_analysis_report = kickoff_flow(LegalAnalysisCrew(), self.state.to_crew_inputs())
         # return "generate_company_profile"
 
     @listen("generate_osint")
@@ -1104,9 +1276,7 @@ class ReceptionFlow(Flow[ContentState]):
             f"Generating Geospatial Analysis for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}"
         )
 
-        self.state.geospatial_analysis = (
-            GeospatialAnalysisCrew().crew().kickoff(inputs=self.state.to_crew_inputs())
-        )
+        self.state.geospatial_analysis = kickoff_flow(GeospatialAnalysisCrew(), self.state.to_crew_inputs())
         # return "generate_company_profile"
 
     @listen("generate_osint")
@@ -1126,16 +1296,32 @@ class ReceptionFlow(Flow[ContentState]):
         )
 
         inputs = self.state.to_crew_inputs()
-        report_output = CrossReferenceReportCrew().crew().kickoff(inputs=inputs)
-        self.state.cross_reference_report = report_output
+        inputs["output_file"] = self.state.output_file
+        output = kickoff_flow(CrossReferenceReportCrew(), inputs)
+        self.state.cross_reference_report = output
 
-        dump_crewai_state(report_output, "CROSS_REFERENCE_REPORT")
+        dump_crewai_state(output, "CROSS_REFERENCE_REPORT")
 
         html_file = "output/osint/global_report.html"
 
-        report_model = parse_crewai_output(report_output, CrossReferenceReport, inputs)
+        # Prefer persisted JSON; fallback to robust parser
+        try:
+            with open(self.state.output_file, encoding="utf-8") as f:
+                data = json.load(f)
+            report_model = CrossReferenceReport.model_validate(data)
+            self.logger.info("📄 Loaded cross reference model from saved JSON file")
+        except Exception:
+            report_model = parse_crewai_output(output, CrossReferenceReport, inputs)
 
-        cross_reference_report_to_html(report_model, html_file=html_file)
+        # Render via TemplateManager
+        template_manager = TemplateManager()
+        html_content = template_manager.render_report(
+            selected_crew="CROSS_REFERENCE_REPORT",
+            content_data=report_model.model_dump() if hasattr(report_model, "model_dump") else report_model,
+        )
+        os.makedirs(os.path.dirname(html_file), exist_ok=True)
+        with open(html_file, "w", encoding="utf-8") as f:
+            f.write(html_content)
 
     @listen("go_generate_holiday_plan")
     @trace_task(tracer)
@@ -1171,11 +1357,30 @@ class ReceptionFlow(Flow[ContentState]):
         self.logger.info(f"Starting HolidayPlannerCrew with inputs: {current_inputs}")
         self.logger.info(f"Required variables: {required_vars}")
 
-        # Run the crew
-        holiday_plan = HolidayPlannerCrew().crew().kickoff(inputs=current_inputs)
+        # Run the crew (kickoff-only)
+        holiday_plan = kickoff_flow(HolidayPlannerCrew(), current_inputs)
         dump_crewai_state(holiday_plan, "HOLIDAY_PLANNER")
         html_file = "output/holiday/itinerary.html"
-        holiday_planner_to_html(holiday_plan, html_file=html_file)
+        # Prefer persisted JSON; fallback to robust parser into model
+        try:
+            with open(current_inputs["output_file"], encoding="utf-8") as f:
+                data = json.load(f)
+            holiday_model = HolidayPlannerReport.model_validate(data)
+            self.logger.info("📄 Loaded holiday planner model from saved JSON file")
+        except Exception:
+            holiday_model = parse_crewai_output(holiday_plan, HolidayPlannerReport, current_inputs)
+
+        # Render via TemplateManager
+        template_manager = TemplateManager()
+        html_content = template_manager.render_report(
+            selected_crew="HOLIDAY_PLANNER",
+            content_data=holiday_model.model_dump()
+            if hasattr(holiday_model, "model_dump")
+            else holiday_model,
+        )
+        os.makedirs(os.path.dirname(html_file), exist_ok=True)
+        with open(html_file, "w", encoding="utf-8") as f:
+            f.write(html_content)
         self.state.holiday_plan = holiday_plan
         return "generate_holiday_plan"
 
@@ -1202,19 +1407,24 @@ class ReceptionFlow(Flow[ContentState]):
     @trace_task(tracer)
     def send_email(self):
         """
-        Sends the generated report via email after specific crew completions or general join.
+        Sends an email with the generated report attached, if applicable.
 
-        This method listens to the completion of 'generate_cross_reference_report'
-        or the general 'join' event (indicating completion of other main content-generating crews).
-        It ensures an email is sent only once per flow execution by checking `self.state.email_sent`.
-
-        It uses the prepare_email_params utility function to construct email parameters
-        (recipient, subject, body, attachment) from the application state. The PostCrew
-        is then invoked to handle the actual email dispatch.
+        This is the final step of the flow. It composes an email with the selected
+        content and attaches the generated report HTML file (if available).
         """
-
         if not self.state.email_sent:
             self.logger.info("📬 Preparing to send email...")
+
+            # Respect environment toggle: EPIC_ENABLE_EMAIL
+            flag = os.getenv("EPIC_ENABLE_EMAIL", "false")
+            enable_email = str(flag).strip().lower() in {"1", "true", "yes", "on"}
+            if not enable_email:
+                self.logger.info(
+                    "✉️ Email sending disabled by EPIC_ENABLE_EMAIL=%r; skipping email step.",
+                    flag,
+                )
+                self.state.email_sent = True
+                return "send_email"
 
             # Use utility function to prepare all email parameters
             email_inputs = prepare_email_params(self.state)
@@ -1225,10 +1435,24 @@ class ReceptionFlow(Flow[ContentState]):
             else:
                 print("⚠️ No valid attachment file found. Email will be sent without attachment.")
 
-            # Instantiate and kickoff the PostCrew
+            # If Composio isn't available, skip email sending gracefully
             try:
+                try:
+                    from composio_crewai import ComposioToolSet  # type: ignore
+
+                    # Attempt to initialize to ensure environment is ready
+                    _ = ComposioToolSet()
+                except Exception as e:
+                    self.logger.warning(
+                        "Composio not available; skipping email sending for this run. Reason: %s",
+                        e,
+                    )
+                    self.state.email_sent = True
+                    return "send_email"
+
+                # Instantiate and kickoff the PostCrew (kickoff-only)
                 post_crew = PostCrew()
-                email_result = post_crew.crew().kickoff(inputs=email_inputs)
+                email_result = kickoff_flow(post_crew, email_inputs)
                 print(f"📧 Email sending process initiated. Result: {email_result}")
                 self.state.email_sent = True  # Mark email as sent to prevent duplicates
             except Exception as e:
@@ -1255,6 +1479,7 @@ def kickoff(user_input: str | None = None):
     # If user_input is not provided, use a default value.
     request = (
         user_input if user_input else "get the daily  news report"
+        # else "get the daily  news report"
         # else "conduct a deep research study on a travel on the north of the italy between san remo and Genova. Give me the best hotel and restaurant options."
         # + "How to book italian train, electrical bicylce and cultural events. I will be alone for 1 week in end of july "
         # else "conduct a deep research study on the the progress of quantum computing and the possible application in cryptography, genetics and generative AI "

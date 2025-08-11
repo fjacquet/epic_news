@@ -49,6 +49,16 @@ class CookingCrew:
             reasoning=False,
         )
 
+    @agent
+    def json_exporter(self) -> Agent:
+        """Agent that exports the PaprikaRecipe to JSON for downstream crews."""
+        return Agent(
+            config=self.agents_config["json_exporter"],
+            verbose=True,
+            respect_context_window=True,
+            reasoning=False,
+        )
+
     @task
     def cook_task(self) -> Task:
         """Generate the `PaprikaRecipe`."""
@@ -64,6 +74,14 @@ class CookingCrew:
         """
         return Task(
             config=self.tasks_config["paprika_yaml_task"],
+            verbose=True,
+        )
+
+    @task
+    def recipe_state_task(self) -> Task:
+        """Persist recipe state to JSON for HTML rendering pipeline."""
+        return Task(
+            config=self.tasks_config["recipe_state_task"],
             verbose=True,
         )
 

@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 
 from epic_news.models.crews.meeting_prep_report import MeetingPrepReport
-from epic_news.utils.html.meeting_prep_html_factory import meeting_prep_to_html
+from epic_news.utils.html.template_manager import TemplateManager
 
 
 def generate_sample_meeting_prep_data():
@@ -96,9 +96,12 @@ def test_meeting_prep_renderer():
         f.write(json.dumps(meeting_prep_report.model_dump(), indent=2, ensure_ascii=False))
     print(f"✅ Saved sample JSON to {output_dir / 'sample_meeting_prep.json'}")
 
-    # Generate HTML using our new renderer
+    # Generate HTML using TemplateManager
     html_output_path = output_dir / "meeting_preparation_test.html"
-    meeting_prep_to_html(meeting_prep_report, html_file=str(html_output_path))
+    tm = TemplateManager()
+    html = tm.render_report("MEETING_PREP", meeting_prep_report)
+    with open(html_output_path, "w", encoding="utf-8") as f:
+        f.write(html)
     print("✅ Generated HTML using MeetingPrepRenderer")
     print(f"✅ Saved HTML to {html_output_path}")
 
