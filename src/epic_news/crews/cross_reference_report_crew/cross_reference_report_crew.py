@@ -2,6 +2,7 @@ from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import DirectoryReadTool, FileReadTool, PDFSearchTool
 
+from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.cross_reference_report import CrossReferenceReport
 from epic_news.tools.html_to_pdf_tool import HtmlToPdfTool
 from epic_news.tools.report_tools import get_report_tools
@@ -37,7 +38,8 @@ class CrossReferenceReportCrew:
             config=self.agents_config["osint_researcher"],
             verbose=True,
             tools=all_tools,
-            llm="gpt-5-mini",  # Use more powerful model for complex cross-referencing
+            llm=LLMConfig.get_openrouter_llm(),
+            llm_timeout=LLMConfig.get_timeout("default"),
             allow_delegation=True,
             respect_context_window=True,
             reasoning=True,

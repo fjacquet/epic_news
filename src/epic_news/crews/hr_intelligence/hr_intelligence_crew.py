@@ -3,6 +3,7 @@ from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import PDFSearchTool, SerperDevTool
 from dotenv import load_dotenv
 
+from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.hr_intelligence_report import HRIntelligenceReport
 from epic_news.tools.html_to_pdf_tool import HtmlToPdfTool
 
@@ -31,7 +32,8 @@ class HRIntelligenceCrew:
             config=self.agents_config["hr_researcher"],
             verbose=True,
             tools=all_tools,
-            llm="gpt-5-mini",  # Use more powerful model for HR intelligence analysis
+            llm=LLMConfig.get_openrouter_llm(),
+            llm_timeout=LLMConfig.get_timeout("default"),
             allow_delegation=False,
             respect_context_window=True,
             reasoning=True,

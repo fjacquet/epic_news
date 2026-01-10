@@ -8,6 +8,7 @@ from crewai_tools import (
     SerperDevTool,
 )
 
+from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.deep_research_report import DeepResearchReport
 from epic_news.tools.wikipedia_article_tool import WikipediaArticleTool
 from epic_news.tools.wikipedia_search_tool import WikipediaSearchTool
@@ -46,7 +47,8 @@ class DeepResearchCrew:
                 ScrapeWebsiteTool(),
                 FileReadTool(),  # Backup scraping tool
             ],
-            llm="gpt-5-mini",
+            llm=LLMConfig.get_openrouter_llm(),
+            llm_timeout=LLMConfig.get_timeout("long"),
             verbose=True,
             reasoning=True,
         )
@@ -72,7 +74,8 @@ class DeepResearchCrew:
         return Agent(
             config=self.agents_config["data_analyst"],
             tools=[self.code_interpreter, FileReadTool()],
-            llm="gpt-5-mini",
+            llm=LLMConfig.get_openrouter_llm(),
+            llm_timeout=LLMConfig.get_timeout("long"),
             verbose=True,
             allow_code_execution=True,  # Enable Code Interpreter for real quantitative analysis
         )
@@ -84,7 +87,8 @@ class DeepResearchCrew:
         return Agent(
             config=self.agents_config["report_writer"],
             tools=[],  # Report writing, no external tools needed
-            llm="gpt-5-mini",
+            llm=LLMConfig.get_openrouter_llm(),
+            llm_timeout=LLMConfig.get_timeout("default"),
             verbose=True,
         )
 

@@ -2,6 +2,7 @@ from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import DirectoryReadTool, FileReadTool
 
+from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.financial_report import FinancialReport
 from epic_news.tools.finance_tools import get_crypto_research_tools, get_stock_research_tools
 from epic_news.tools.kraken_api_tool import KrakenAssetListTool, KrakenTickerInfoTool
@@ -25,7 +26,8 @@ class FinDailyCrew:
                 DirectoryReadTool(),
                 get_scraper(),
             ],
-            llm="gpt-5-mini",
+            llm=LLMConfig.get_openrouter_llm(),
+            llm_timeout=LLMConfig.get_timeout("default"),
             verbose=True,
             memory=True,
         )
@@ -40,7 +42,8 @@ class FinDailyCrew:
                 KrakenTickerInfoTool(),
                 get_scraper(),
             ],
-            llm="gpt-5-mini",
+            llm=LLMConfig.get_openrouter_llm(),
+            llm_timeout=LLMConfig.get_timeout("default"),
             verbose=True,
             memory=True,
         )
@@ -50,7 +53,8 @@ class FinDailyCrew:
         return Agent(
             config=self.agents_config["investment_strategist"],
             # No tools - synthesizes from context provided by analyst tasks
-            llm="gpt-5-mini",
+            llm=LLMConfig.get_openrouter_llm(),
+            llm_timeout=LLMConfig.get_timeout("default"),
             verbose=True,
             memory=True,
         )

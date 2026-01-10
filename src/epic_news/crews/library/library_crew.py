@@ -5,6 +5,7 @@ from crewai.project import CrewBase, agent, crew, task
 from dotenv import load_dotenv
 from loguru import logger
 
+from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.book_summary_report import BookSummaryReport
 from epic_news.tools.report_tools import get_report_tools
 from epic_news.tools.web_tools import get_scrape_tools, get_search_tools
@@ -32,9 +33,9 @@ class LibraryCrew:
             verbose=True,
             respect_context_window=True,
             tools=get_search_tools() + get_scrape_tools() + get_report_tools(),
-            llm="gpt-5-mini",
+            llm=LLMConfig.get_openrouter_llm(),
             reasoning=True,
-            llm_timeout=300,
+            llm_timeout=LLMConfig.get_timeout("default"),
         )
 
     @agent
@@ -45,12 +46,12 @@ class LibraryCrew:
             verbose=True,
             respect_context_window=True,
             tools=[],  # No tools for final reporting agent to ensure clean JSON output
-            llm="gpt-4o",
+            llm=LLMConfig.get_openrouter_llm(),
             reasoning=True,
-            llm_timeout=300,
-            system_template="""You are a JSON formatting expert. Your ONLY job is to produce valid, 
+            llm_timeout=LLMConfig.get_timeout("default"),
+            system_template="""You are a JSON formatting expert. Your ONLY job is to produce valid,
             syntactically correct JSON that conforms exactly to the specified Pydantic model.
-            
+
             CRITICAL RULES:
             - Output ONLY JSON, no explanations or additional text
             - Ensure all strings are properly quoted with double quotes
@@ -58,7 +59,7 @@ class LibraryCrew:
             - Ensure all objects use curly braces {}
             - Use proper comma separation between all fields and array elements
             - Validate JSON syntax before outputting
-            
+
             You never include markdown code blocks, explanations, or any text outside the JSON structure.""",
         )
 

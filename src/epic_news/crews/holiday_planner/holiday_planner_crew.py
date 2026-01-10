@@ -2,6 +2,7 @@ from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from dotenv import load_dotenv
 
+from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.holiday_planner_report import HolidayPlannerReport
 from epic_news.tools.exchange_rate_tool import ExchangeRateTool
 from epic_news.tools.web_tools import get_scrape_tools, get_search_tools, get_youtube_tools
@@ -21,7 +22,8 @@ class HolidayPlannerCrew:
         return Agent(
             config=self.agents_config["travel_researcher"],
             tools=get_search_tools() + get_youtube_tools() + get_scrape_tools() + [ExchangeRateTool()],
-            llm="gpt-5-mini",
+            llm=LLMConfig.get_openrouter_llm(),
+            llm_timeout=LLMConfig.get_timeout("default"),
             verbose=False,
             reasoning=True,
             allow_delegation=True,
@@ -32,7 +34,8 @@ class HolidayPlannerCrew:
         return Agent(
             config=self.agents_config["accommodation_specialist"],
             tools=get_search_tools() + get_scrape_tools() + [ExchangeRateTool()],
-            llm="gpt-5-mini",
+            llm=LLMConfig.get_openrouter_llm(),
+            llm_timeout=LLMConfig.get_timeout("default"),
             verbose=False,
             reasoning=True,
             allow_delegation=True,
@@ -43,7 +46,8 @@ class HolidayPlannerCrew:
         return Agent(
             config=self.agents_config["itinerary_architect"],
             tools=get_search_tools() + get_scrape_tools() + get_youtube_tools() + [ExchangeRateTool()],
-            llm="gpt-5-mini",
+            llm=LLMConfig.get_openrouter_llm(),
+            llm_timeout=LLMConfig.get_timeout("default"),
             verbose=False,
             reasoning=True,
             allow_delegation=True,
@@ -54,7 +58,8 @@ class HolidayPlannerCrew:
         return Agent(
             config=self.agents_config["budget_manager"],
             tools=get_search_tools() + get_scrape_tools() + [ExchangeRateTool()],
-            llm="gpt-5-mini",
+            llm=LLMConfig.get_openrouter_llm(),
+            llm_timeout=LLMConfig.get_timeout("default"),
             verbose=False,
             allow_delegation=False,
         )
