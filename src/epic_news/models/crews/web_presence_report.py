@@ -1,6 +1,5 @@
 """Pydantic models for the Web Presence crew."""
 
-
 from pydantic import BaseModel, Field
 
 

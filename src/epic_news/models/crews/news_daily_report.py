@@ -1,6 +1,5 @@
 """Pydantic model for NewsDaily crew output."""
 
-
 from pydantic import BaseModel, Field, field_validator
 
 
@@ -40,9 +39,7 @@ class NewsDailyReport(BaseModel):
     """Complete NewsDaily report structure matching the crew's expected JSON output."""
 
     summary: str | None = Field(None, description="Executive summary")
-    suisse_romande: list[NewsItem] | str = Field(
-        default_factory=list, description="Suisse Romande news"
-    )
+    suisse_romande: list[NewsItem] | str = Field(default_factory=list, description="Suisse Romande news")
     suisse: list[NewsItem] | str = Field(default_factory=list, description="Switzerland news")
     france: list[NewsItem] | str = Field(default_factory=list, description="France news")
     europe: list[NewsItem] | str = Field(default_factory=list, description="Europe news")

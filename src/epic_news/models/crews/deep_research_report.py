@@ -1,6 +1,5 @@
 """Pydantic models for structuring deep research report data."""
 
-
 from pydantic import BaseModel, Field
 
 

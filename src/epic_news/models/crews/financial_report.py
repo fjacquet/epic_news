@@ -1,6 +1,5 @@
 """Pydantic models for structuring financial report data."""
 
-
 from pydantic import BaseModel, Field
 
 

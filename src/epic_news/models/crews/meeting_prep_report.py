@@ -1,6 +1,5 @@
 """Pydantic model for meeting preparation JSON output."""
 
-
 from pydantic import BaseModel, Field
 
 

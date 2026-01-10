@@ -1,6 +1,5 @@
 """Pydantic models for report generation tools."""
 
-
 from pydantic import BaseModel, Field
 
 
@@ -25,6 +24,4 @@ class RenderReportToolSchema(BaseModel):
     title: str = Field(..., description="Report title")
     sections: list[ReportSection] = Field(..., description="List of sections with headings and content")
     images: list[ReportImage] | None = Field(None, description="Optional list of images with metadata")
-    citations: list[str] | None = Field(
-        None, description="Optional list of citation strings or HTML links"
-    )
+    citations: list[str] | None = Field(None, description="Optional list of citation strings or HTML links")

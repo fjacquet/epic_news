@@ -1,6 +1,5 @@
 """Pydantic models for the Tech Stack crew."""
 
-
 from pydantic import BaseModel, Field
 
 

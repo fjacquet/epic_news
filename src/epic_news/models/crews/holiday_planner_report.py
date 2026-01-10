@@ -112,9 +112,7 @@ class PracticalInformation(BaseModel):
     """Practical travel information."""
 
     packing_checklist: PackingChecklist | None = Field(None, description="Categorized packing list")
-    safety_tips: list[str] | None = Field(
-        default_factory=list, description="Safety tips and local customs"
-    )
+    safety_tips: list[str] | None = Field(default_factory=list, description="Safety tips and local customs")
     emergency_contacts: list[EmergencyContact] | None = Field(
         default_factory=list, description="Emergency contact numbers"
     )
@@ -122,9 +120,7 @@ class PracticalInformation(BaseModel):
         default_factory=list, description="Useful local phrases"
     )
     local_customs: list[str] | None = Field(default_factory=list, description="Important local customs")
-    transportation_tips: list[str] | None = Field(
-        default_factory=list, description="Transportation advice"
-    )
+    transportation_tips: list[str] | None = Field(default_factory=list, description="Transportation advice")
 
 
 class MediaItem(BaseModel):

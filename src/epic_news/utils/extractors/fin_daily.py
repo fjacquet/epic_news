@@ -56,7 +56,8 @@ class FinancialExtractor(ContentExtractor):
                     executive_summary=fr_dict.get(  # type: ignore[union-attr]
                         "executive_summary",
                         fr_dict.get("summary", "Financial analysis summary not available"),  # type: ignore[union-attr]
-                    ) or "Financial analysis summary not available",
+                    )
+                    or "Financial analysis summary not available",
                     analyses=[],  # Empty list for now - can be enhanced later
                     suggestions=[],  # Empty list for now - can be enhanced later
                 )

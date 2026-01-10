@@ -1,6 +1,5 @@
 """Pydantic models for CoinMarketCap tools."""
 
-
 from pydantic import BaseModel, Field
 
 

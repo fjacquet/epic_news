@@ -24,7 +24,9 @@ class OrchestrationStrategy(Enum):
     HIERARCHICAL = Process.hierarchical
 
     @staticmethod
-    def determine_optimal_strategy(tasks: list[Task], dependencies: dict[str, list[str]] | None = None) -> Process:
+    def determine_optimal_strategy(
+        tasks: list[Task], dependencies: dict[str, list[str]] | None = None
+    ) -> Process:
         """
         Determines the optimal orchestration strategy based on task characteristics.
         """

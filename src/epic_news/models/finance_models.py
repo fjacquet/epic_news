@@ -1,6 +1,5 @@
 """Pydantic models for finance tools."""
 
-
 from pydantic import BaseModel, Field
 
 

@@ -1,6 +1,5 @@
 """Pydantic models for RSS tools."""
 
-
 from pydantic import BaseModel, Field
 
 

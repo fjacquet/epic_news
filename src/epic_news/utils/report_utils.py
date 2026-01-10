@@ -52,7 +52,8 @@ def generate_rss_weekly_html_report(
             report_feeds.append(
                 FeedDigest(  # type: ignore[call-arg]
                     feed_url=feed_data.feed_url,
-                    feed_name=getattr(feed_data, "feed_title", None) or getattr(feed_data, "feed_name", "Unknown"),
+                    feed_name=getattr(feed_data, "feed_title", None)
+                    or getattr(feed_data, "feed_name", "Unknown"),
                     articles=articles,
                 )
             )
