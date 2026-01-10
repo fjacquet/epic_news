@@ -3,6 +3,7 @@ from crewai.project import CrewBase, agent, crew, task
 from dotenv import load_dotenv
 from loguru import logger
 
+from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.cooking_recipe import PaprikaRecipe
 from epic_news.utils.tool_logging import configure_tool_logging
 
@@ -34,7 +35,7 @@ class CookingCrew:
         return Agent(
             config=self.agents_config["cook"],
             verbose=True,
-            llm_timeout=120,
+            llm_timeout=LLMConfig.get_timeout("quick"),
             respect_context_window=True,
             reasoning=False,
         )
@@ -95,6 +96,8 @@ class CookingCrew:
                 tasks=self.tasks,
                 process=Process.sequential,
                 verbose=True,
+                max_iter=LLMConfig.get_max_iter(),
+                max_rpm=LLMConfig.get_max_rpm(),
             )
         except Exception as e:
             logger.error(f"Error creating CookingCrew: {str(e)}")

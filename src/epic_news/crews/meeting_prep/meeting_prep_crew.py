@@ -3,6 +3,7 @@ from crewai.project import CrewBase, agent, crew, task
 from dotenv import load_dotenv
 from loguru import logger
 
+from epic_news.config.llm_config import LLMConfig
 from epic_news.tools.finance_tools import get_yahoo_finance_tools
 from epic_news.tools.report_tools import get_report_tools
 from epic_news.tools.web_tools import get_scrape_tools, get_search_tools
@@ -31,7 +32,7 @@ class MeetingPrepCrew:
             reasoning=True,
             verbose=True,
             respect_context_window=True,
-            llm_timeout=300,
+            llm_timeout=LLMConfig.get_timeout("default"),
         )
 
     @agent
@@ -45,7 +46,7 @@ class MeetingPrepCrew:
             allow_delegation=False,
             verbose=True,
             respect_context_window=True,
-            llm_timeout=240,
+            llm_timeout=LLMConfig.get_timeout("default"),
         )
 
     @agent
@@ -59,7 +60,7 @@ class MeetingPrepCrew:
             reasoning=True,
             verbose=True,
             respect_context_window=True,
-            llm_timeout=240,
+            llm_timeout=LLMConfig.get_timeout("default"),
         )
 
     @agent
@@ -72,7 +73,7 @@ class MeetingPrepCrew:
             tools=get_report_tools(),
             verbose=True,
             respect_context_window=True,
-            llm_timeout=180,
+            llm_timeout=LLMConfig.get_timeout("default"),
         )
 
     @task
@@ -131,9 +132,10 @@ class MeetingPrepCrew:
                 tasks=self.tasks,
                 process=Process.sequential,
                 verbose=True,
-                llm_timeout=300,
+                llm_timeout=LLMConfig.get_timeout("default"),
+                max_iter=LLMConfig.get_max_iter(),
+                max_rpm=10,  # Keeping existing value (lower than default 20)
                 memory=True,
-                max_rpm=10,
             )
         except Exception as e:
             logger.error(f"Error creating MeetingPrep crew: {str(e)}")

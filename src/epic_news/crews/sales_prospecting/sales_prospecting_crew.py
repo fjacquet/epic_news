@@ -3,6 +3,7 @@ from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import DirectoryReadTool, FileReadTool, ScrapeWebsiteTool, SerperDevTool
 from dotenv import load_dotenv
 
+from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.sales_prospecting_report import SalesProspectingReport
 from epic_news.tools.data_centric_tools import get_data_centric_tools
 from epic_news.tools.report_tools import get_report_tools
@@ -122,7 +123,8 @@ class SalesProspectingCrew:
             verbose=True,
             reasoning=True,
             max_reasoning_attempts=5,
-            max_iter=5,
+            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
             max_retry_limit=3,
-            max_rpm=10,
+            max_rpm=10,  # Keeping existing value (lower than default 20)
         )

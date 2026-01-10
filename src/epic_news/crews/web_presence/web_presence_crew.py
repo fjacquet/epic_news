@@ -3,6 +3,7 @@ from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import PDFSearchTool, SerperDevTool
 from dotenv import load_dotenv
 
+from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.web_presence_report import WebPresenceReport
 from epic_news.tools.html_to_pdf_tool import HtmlToPdfTool
 from epic_news.tools.report_tools import get_report_tools
@@ -33,9 +34,7 @@ class WebPresenceCrew:
             respect_context_window=True,
             reasoning=True,
             max_reasoning_attempts=5,
-            max_iter=5,
             max_retry_limit=3,
-            max_rpm=10,
         )
 
     @agent
@@ -119,4 +118,7 @@ class WebPresenceCrew:
             process=Process.sequential,
             verbose=True,
             reasoning=True,
+            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
+            max_rpm=LLMConfig.get_max_rpm(),
         )

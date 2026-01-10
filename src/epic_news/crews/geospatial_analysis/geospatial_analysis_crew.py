@@ -3,6 +3,7 @@ from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import PDFSearchTool, SerperDevTool
 from dotenv import load_dotenv
 
+from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.geospatial_analysis_report import GeospatialAnalysisReport
 from epic_news.tools.html_to_pdf_tool import HtmlToPdfTool
 
@@ -37,9 +38,7 @@ class GeospatialAnalysisCrew:
             respect_context_window=True,
             reasoning=True,
             max_reasoning_attempts=5,
-            max_iter=5,
             max_retry_limit=3,
-            max_rpm=10,
         )
 
     @agent
@@ -103,4 +102,7 @@ class GeospatialAnalysisCrew:
             tasks=self.tasks,
             process=Process.sequential,
             verbose=True,
+            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
+            max_rpm=LLMConfig.get_max_rpm(),
         )

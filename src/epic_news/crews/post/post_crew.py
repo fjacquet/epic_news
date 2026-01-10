@@ -5,6 +5,8 @@ from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import FileReadTool
 from dotenv import load_dotenv
 
+from epic_news.config.llm_config import LLMConfig
+
 # Load environment variables
 load_dotenv()
 
@@ -16,7 +18,11 @@ class PostCrew:
 
     @agent
     def distributor(self):
-        return Agent(config=self.agents_config["distributor"], verbose=True, llm_timeout=300)
+        return Agent(
+            config=self.agents_config["distributor"],
+            verbose=True,
+            llm_timeout=LLMConfig.get_timeout("default"),
+        )
 
     @task
     def distribution_task(self) -> Task:
@@ -25,7 +31,7 @@ class PostCrew:
             agent=self.distributor(),
             tools=self._get_send_tools() + [FileReadTool()],
             verbose=True,
-            llm_timeout=300,
+            llm_timeout=LLMConfig.get_timeout("default"),
         )
 
     @crew
@@ -37,8 +43,10 @@ class PostCrew:
             verbose=True,
             memory=False,
             cache=False,
-            manager_llm_timeout=300,
-            task_timeout=600,
+            manager_llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
+            max_rpm=LLMConfig.get_max_rpm(),
+            task_timeout=600,  # Keep existing task timeout
         )
 
     def _get_send_tools(self):

@@ -3,6 +3,7 @@ from crewai.project import CrewBase, agent, crew, task
 from dotenv import load_dotenv
 from loguru import logger
 
+from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.company_news_report import CompanyNewsReport
 from epic_news.utils.observability import get_observability_tools, trace_task
 
@@ -70,7 +71,7 @@ class CompanyNewsCrew:
             config=self.agents_config["researcher"],
             tools=self.search_tools,
             verbose=True,
-            llm_timeout=300,
+            llm_timeout=LLMConfig.get_timeout("default"),
             reasoning=True,
             respect_context_window=True,
         )
@@ -86,7 +87,7 @@ class CompanyNewsCrew:
             config=self.agents_config["analyst"],
             tools=self.search_tools,
             verbose=True,
-            llm_timeout=300,
+            llm_timeout=LLMConfig.get_timeout("default"),
             reasoning=True,
             respect_context_window=True,
         )
@@ -102,7 +103,7 @@ class CompanyNewsCrew:
             config=self.agents_config["editor"],
             tools=[],  # Gold standard: no tools for reporting agent
             verbose=True,
-            llm_timeout=300,
+            llm_timeout=LLMConfig.get_timeout("default"),
             reasoning=True,
             respect_context_window=True,
         )
@@ -127,7 +128,7 @@ class CompanyNewsCrew:
             config=task_config,
             verbose=True,
             async_execution=False,  # Parallel execution for better performance
-            llm_timeout=300,
+            llm_timeout=LLMConfig.get_timeout("default"),
         )
 
     @task
@@ -147,7 +148,7 @@ class CompanyNewsCrew:
             config=task_config,
             context=[self.research_task()],  # This task depends on research
             verbose=True,
-            llm_timeout=300,
+            llm_timeout=LLMConfig.get_timeout("default"),
         )
 
     @task
@@ -171,7 +172,7 @@ class CompanyNewsCrew:
                 self.analysis_task(),
             ],  # This task depends on all previous tasks
             verbose=True,
-            llm_timeout=300,
+            llm_timeout=LLMConfig.get_timeout("default"),
             output_pydantic=CompanyNewsReport,
         )
 
@@ -193,7 +194,9 @@ class CompanyNewsCrew:
                 tasks=self.tasks,  # Automatically created by the @task decorator
                 process=Process.sequential,  # Hierarchical process for parallel execution
                 verbose=True,  # Enable verbose output for better debugging
-                llm_timeout=300,  # 5 minute timeout for LLM calls
+                llm_timeout=LLMConfig.get_timeout("default"),
+                max_iter=LLMConfig.get_max_iter(),
+                max_rpm=LLMConfig.get_max_rpm(),
                 max_retries=2,  # Retry up to 2 times on failure
             )
         except Exception as e:
