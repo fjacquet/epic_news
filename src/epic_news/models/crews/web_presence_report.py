@@ -17,15 +17,15 @@ class SocialMediaPresence(BaseModel):
     platform: str
     url: str
     followers: int
-    engagement_rate: Optional[float] = None
+    engagement_rate: float | None = None
     notes: str
 
 
 class TechnicalInfrastructure(BaseModel):
-    hosting_provider: Optional[str] = None
-    dns_provider: Optional[str] = None
-    cdn_provider: Optional[str] = None
-    ssl_issuer: Optional[str] = None
+    hosting_provider: str | None = None
+    dns_provider: str | None = None
+    cdn_provider: str | None = None
+    ssl_issuer: str | None = None
 
 
 class DataLeak(BaseModel):

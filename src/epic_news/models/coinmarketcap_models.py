@@ -34,7 +34,7 @@ class CryptocurrencyListInput(BaseModel):
 class CryptocurrencyNewsInput(BaseModel):
     """Input schema for CoinMarketCapNewsTool."""
 
-    symbol: Union[str, None] = Field(
+    symbol: str | None = Field(
         None,
         description="Cryptocurrency symbol (e.g., BTC) or slug (e.g., bitcoin) to get news for (optional)",
     )

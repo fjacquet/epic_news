@@ -34,8 +34,8 @@ class HtmlToPdfTool(BaseTool):
         "or an error message if the conversion fails or an issue occurs."
     )
     args_schema: type[BaseModel] = HtmlToPdfToolSchema
-    html_file_path: Optional[str] = None
-    output_pdf_path: Optional[str] = None
+    html_file_path: str | None = None
+    output_pdf_path: str | None = None
 
     def _run(
         self,

@@ -28,7 +28,7 @@ class MenuDesignerService:
         season: str = "hiver",
         current_date: str = "2025-01-27",
         menu_slug: str = "menu_hebdomadaire",
-    ) -> Optional[WeeklyMenuPlan]:
+    ) -> WeeklyMenuPlan | None:
         """
         Generate a weekly menu plan with validation and error recovery.
 
@@ -74,7 +74,7 @@ class MenuDesignerService:
             logger.warning("🔄 Creating fallback menu plan...")
             return self.validator.create_fallback_menu_plan()
 
-    def _extract_menu_plan_from_result(self, result: Any) -> Optional[WeeklyMenuPlan]:
+    def _extract_menu_plan_from_result(self, result: Any) -> WeeklyMenuPlan | None:
         """
         Extract and validate menu plan from crew result.
 
@@ -132,7 +132,7 @@ class MenuDesignerService:
             logger.error(f"❌ Error extracting menu plan from result: {e}")
             return None
 
-    def validate_existing_menu_plan(self, menu_data: dict[str, Any]) -> Optional[WeeklyMenuPlan]:
+    def validate_existing_menu_plan(self, menu_data: dict[str, Any]) -> WeeklyMenuPlan | None:
         """
         Validate and fix an existing menu plan data structure.
 

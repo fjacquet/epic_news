@@ -16,7 +16,7 @@ from epic_news.rag_config import DEFAULT_RAG_CONFIG
 from epic_news.tools.save_to_rag_tool import SaveToRagTool
 
 
-def get_rag_tools(collection_suffix: Optional[str] = None) -> list[Tool]:
+def get_rag_tools(collection_suffix: str | None = None) -> list[Tool]:
     """
     Get RAG tools for knowledge retrieval and storage.
 

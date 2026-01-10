@@ -19,19 +19,19 @@ class WikipediaToolInput(BaseModel):
     ] = Field(..., description="The action to perform with the Wikipedia tool.")
 
     # Parameters for various actions
-    title: Union[str, None] = Field(None, description="The title of the Wikipedia article.")
-    query: Union[str, None] = Field(None, description="The search query for Wikipedia.")
-    section_title: Union[str, None] = Field(
+    title: str | None = Field(None, description="The title of the Wikipedia article.")
+    query: str | None = Field(None, description="The search query for Wikipedia.")
+    section_title: str | None = Field(
         None, description="The title of a section within a Wikipedia article."
     )
-    topic_within_article: Union[str, None] = Field(
+    topic_within_article: str | None = Field(
         None, description="A specific topic to focus on within an article for fact extraction."
     )
-    count: Union[int, None] = Field(None, description="The number of facts to extract.")
-    limit: Union[int, None] = Field(
+    count: int | None = Field(None, description="The number of facts to extract.")
+    limit: int | None = Field(
         5, description="The maximum number of results to return for searches or lists."
     )
-    max_length: Union[int, None] = Field(150, description="The maximum length for summaries.")
+    max_length: int | None = Field(150, description="The maximum length for summaries.")
 
     @model_validator(mode="after")
     def check_action_requirements(self) -> "WikipediaToolInput":

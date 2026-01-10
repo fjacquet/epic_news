@@ -109,7 +109,7 @@ class MCPConfig:
         }
 
     @staticmethod
-    def get_custom_tools_mcp(project_root: Optional[str] = None):
+    def get_custom_tools_mcp(project_root: str | None = None):
         """Configure custom tools MCP server for project-specific tools.
 
         This MCP server exposes the epic_news custom tools (62 tools) via the

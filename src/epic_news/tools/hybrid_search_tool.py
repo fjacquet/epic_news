@@ -18,9 +18,9 @@ class HybridSearchInput(BaseModel):
     """Input schema for Hybrid Search Tool."""
 
     search_query: str = Field(..., description="The search query to execute")
-    country: Optional[str] = Field("", description="Country code for localized results")
-    n_results: Optional[int] = Field(10, description="Number of results to return")
-    prefer_brave: Optional[bool] = Field(True, description="Whether to prefer Brave Search over SerperDev")
+    country: str | None = Field("", description="Country code for localized results")
+    n_results: int | None = Field(10, description="Number of results to return")
+    prefer_brave: bool | None = Field(True, description="Whether to prefer Brave Search over SerperDev")
 
 
 class HybridSearchTool(BaseTool):
@@ -45,17 +45,17 @@ class HybridSearchTool(BaseTool):
     def _initialize_tools(self):
         """Initialize search tools."""
         try:
-            self._brave_tool = BraveSearchTool()
+            self._brave_tool: BraveSearchTool | None = BraveSearchTool()
         except Exception as e:
-            logger.warning(f"BraveSearchTool initialization failed: {e}")
+            logger.warning(f"BraveSearchTool initialization failed: {e}")  # type: ignore
             self._brave_tool = None
 
         # Initialize SerperDev tools directly to avoid circular import
         try:
-            self._serper_tool = SerperDevTool(n_results=25, search_type="search")
-            self._serper_news_tool = SerperDevTool(n_results=25, search_type="news")
+            self._serper_tool: SerperDevTool | None = SerperDevTool(n_results=25, search_type="search")
+            self._serper_news_tool: SerperDevTool | None = SerperDevTool(n_results=25, search_type="news")
         except ImportError:
-            logger.warning("SerperDevTool not available")
+            logger.warning("SerperDevTool not available")  # type: ignore
             self._serper_tool = None
             self._serper_news_tool = None
 
@@ -74,7 +74,13 @@ class HybridSearchTool(BaseTool):
         Returns:
             JSON string containing combined search results
         """
-        results = {"query": search_query, "sources_used": [], "results": [], "success": False, "errors": []}
+        results: dict[str, Any] = {
+            "query": search_query,
+            "sources_used": [],
+            "results": [],
+            "success": False,
+            "errors": [],
+        }
 
         # Ensure tools are initialized
         if not hasattr(self, "_brave_tool"):
@@ -83,52 +89,52 @@ class HybridSearchTool(BaseTool):
         # Try Brave Search first if preferred and available
         if prefer_brave and self._brave_tool:
             try:
-                logger.info(f"Attempting Brave Search for: {search_query}")
-                brave_result = self._brave_tool._run(search_query, country, n_results)
+                logger.info(f"Attempting Brave Search for: {search_query}")  # type: ignore
+                brave_result = self._brave_tool._run(search_query)  # type: ignore
                 brave_data = json.loads(brave_result)
 
                 if brave_data.get("success") and not brave_data.get("fallback_needed"):
-                    logger.info("Brave Search successful")
+                    logger.info("Brave Search successful")  # type: ignore
                     results["sources_used"].append("brave_search")
                     results["results"].extend(self._normalize_brave_results(brave_data.get("results", [])))
                     results["success"] = True
                 else:
-                    logger.warning(
+                    logger.warning(  # type: ignore
                         f"Brave Search failed or needs fallback: {brave_data.get('error', 'Unknown error')}"
                     )
                     results["errors"].append(f"Brave Search: {brave_data.get('error', 'Failed')}")
 
             except Exception as e:
-                logger.error(f"Brave Search exception: {str(e)}")
+                logger.error(f"Brave Search exception: {str(e)}")  # type: ignore
                 results["errors"].append(f"Brave Search exception: {str(e)}")
 
         # Use SerperDev as fallback or primary if Brave failed/unavailable
         if not results["success"] and self._serper_tool:
             try:
-                logger.info(f"Using SerperDev search for: {search_query}")
-                serper_result = self._serper_tool._run(search_query)
+                logger.info(f"Using SerperDev search for: {search_query}")  # type: ignore
+                serper_result = self._serper_tool._run(search_query)  # type: ignore
 
                 if serper_result:
-                    logger.info("SerperDev search successful")
+                    logger.info("SerperDev search successful")  # type: ignore
                     results["sources_used"].append("serper_dev")
                     results["results"].extend(self._normalize_serper_results(serper_result))
                     results["success"] = True
                 else:
-                    logger.warning("SerperDev returned empty results")
+                    logger.warning("SerperDev returned empty results")  # type: ignore
                     results["errors"].append("SerperDev: Empty results")
 
             except Exception as e:
-                logger.error(f"SerperDev search exception: {str(e)}")
+                logger.error(f"SerperDev search exception: {str(e)}")  # type: ignore
                 results["errors"].append(f"SerperDev exception: {str(e)}")
 
         # If both failed, try news-specific search
         if not results["success"] and self._serper_news_tool:
             try:
-                logger.info(f"Trying news-specific search for: {search_query}")
-                news_result = self._serper_news_tool._run(search_query)
+                logger.info(f"Trying news-specific search for: {search_query}")  # type: ignore
+                news_result = self._serper_news_tool._run(search_query)  # type: ignore
 
                 if news_result:
-                    logger.info("News search successful")
+                    logger.info("News search successful")  # type: ignore
                     results["sources_used"].append("serper_news")
                     results["results"].extend(self._normalize_serper_results(news_result))
                     results["success"] = True
@@ -136,20 +142,20 @@ class HybridSearchTool(BaseTool):
                     results["errors"].append("SerperNews: Empty results")
 
             except Exception as e:
-                logger.error(f"News search exception: {str(e)}")
+                logger.error(f"News search exception: {str(e)}")  # type: ignore
                 results["errors"].append(f"News search exception: {str(e)}")
 
         # Log final results
         if results["success"]:
-            logger.info(f"Hybrid search successful using: {', '.join(results['sources_used'])}")
+            logger.info(f"Hybrid search successful using: {', '.join(results['sources_used'])}")  # type: ignore
         else:
-            logger.error(f"All search methods failed for query: {search_query}")
+            logger.error(f"All search methods failed for query: {search_query}")  # type: ignore
 
         return json.dumps(results)
 
     def _normalize_brave_results(self, brave_results: Any) -> list[dict[str, Any]]:
         """Normalize Brave Search results to common format."""
-        normalized = []
+        normalized: list[dict[str, Any]] = []
 
         try:
             if isinstance(brave_results, list):
@@ -176,13 +182,13 @@ class HybridSearchTool(BaseTool):
                         }
                     )
         except Exception as e:
-            logger.error(f"Error normalizing Brave results: {str(e)}")
+            logger.error(f"Error normalizing Brave results: {str(e)}")  # type: ignore
 
         return normalized
 
     def _normalize_serper_results(self, serper_results: Any) -> list[dict[str, Any]]:
         """Normalize SerperDev results to common format."""
-        normalized = []
+        normalized: list[dict[str, Any]] = []
 
         try:
             serper_data = json.loads(serper_results) if isinstance(serper_results, str) else serper_results
@@ -213,6 +219,6 @@ class HybridSearchTool(BaseTool):
                 )
 
         except Exception as e:
-            logger.error(f"Error normalizing Serper results: {str(e)}")
+            logger.error(f"Error normalizing Serper results: {str(e)}")  # type: ignore
 
         return normalized

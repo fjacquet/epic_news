@@ -21,8 +21,8 @@ _DEFAULT_HEADERS: dict[str, str] = {
     "User-Agent": "Mozilla/5.0 (compatible; EpicNews/1.0; +https://example.com)"
 }
 
-_client: Optional[httpx.Client] = None
-_async_client: Optional[httpx.AsyncClient] = None
+_client: httpx.Client | None = None
+_async_client: httpx.AsyncClient | None = None
 
 
 def get_httpx_client() -> httpx.Client:
@@ -73,9 +73,9 @@ def _retry_predicate(exc: Exception) -> bool:
 def http_get(
     url: str,
     *,
-    headers: Optional[dict[str, str]] = None,
+    headers: dict[str, str] | None = None,
     timeout: float | httpx.Timeout | None = None,
-    params: Optional[dict[str, Any]] = None,
+    params: dict[str, Any] | None = None,
 ) -> httpx.Response:
     client = get_httpx_client()
     resp = client.get(url, headers=headers, timeout=timeout, params=params)
@@ -85,7 +85,7 @@ def http_get(
 
 
 def configure_requests_cache(
-    cache_name: str = "http_cache", expire_after: int = 900, allowable_methods: Optional[list[str]] = None
+    cache_name: str = "http_cache", expire_after: int = 900, allowable_methods: list[str] | None = None
 ) -> None:
     """Enable requests-cache for legacy `requests` users.
 

@@ -16,7 +16,7 @@ class OpmlParserTool(BaseTool):
     description: str = "Parses an OPML file to extract RSS feed URLs."
     args_schema: type[BaseModel] = OpmlParserToolSchema
 
-    def _run(self, opml_file_path: str) -> Union[list[str], str]:
+    def _run(self, opml_file_path: str) -> list[str] | str:
         """Parses the OPML file and extracts all xmlUrl attributes."""
         try:
             tree = ET.parse(opml_file_path)

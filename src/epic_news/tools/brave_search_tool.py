@@ -19,8 +19,8 @@ class BraveSearchInput(BaseModel):
     """Input schema for Brave Search Tool."""
 
     search_query: str = Field(..., description="The search query to execute")
-    country: Optional[str] = Field("", description="Country code for localized results (e.g., 'CH', 'FR')")
-    n_results: Optional[int] = Field(10, description="Number of results to return")
+    country: str | None = Field("", description="Country code for localized results (e.g., 'CH', 'FR')")
+    n_results: int | None = Field(10, description="Number of results to return")
 
 
 class BraveSearchTool(BaseTool):

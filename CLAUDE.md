@@ -110,23 +110,22 @@ class MyCrew:
 
 **CRITICAL**: Tools must be assigned programmatically in the `@agent` method, never in `agents.yaml`. Hybrid YAML/code tool configuration causes `KeyError` exceptions.
 
-### Pydantic Models: Legacy Union Syntax Required
+### Pydantic Models: Modern Python 3.13 Syntax
 
-CrewAI's internal schema parser **cannot handle** Python 3.10+ Union syntax (`X | Y`).
+CrewAI 1.8.0+ **fully supports** Python 3.13 union syntax (PEP 604: `X | Y`).
 
 ```python
-from typing import Union, Optional
-
-# ✅ CORRECT - Works with CrewAI
-field: Optional[str] = None
-field: Union[str, int] = "default"
-
-# ❌ WRONG - Causes AttributeError
+# ✅ MODERN SYNTAX (Python 3.13+) - RECOMMENDED
 field: str | None = None
 field: str | int = "default"
+
+# ✅ Legacy syntax still works but not required
+from typing import Union, Optional
+field: Optional[str] = None
+field: Union[str, int] = "default"
 ```
 
-**All Pydantic models** used with CrewAI must use legacy `Union` and `Optional` syntax. This is enforced project-wide and disabled in ruff config (UP007, UP035, UP045).
+**Project standard**: Use modern Python 3.13 union syntax (`X | None`, `X | Y`) for all new code. Ruff will auto-upgrade legacy syntax with `UP007`, `UP035`, `UP045` rules enabled.
 
 ### HTML Report Generation: Two-Agent Pattern
 

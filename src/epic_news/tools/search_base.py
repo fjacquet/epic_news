@@ -13,8 +13,8 @@ T = TypeVar("T")
 class BaseSearchTool:
     """Base class for search tools with common functionality."""
 
-    api_key: Optional[str] = None
-    session: Optional[requests.Session] = None
+    api_key: str | None = None
+    session: requests.Session | None = None
 
     def __init__(self, api_key: str, **data):
         """Initialize with API key and create a session."""
@@ -37,7 +37,7 @@ class BaseSearchTool:
         session.mount("https://", adapter)
         return session
 
-    def _make_request(self, method: str, url: str, **kwargs) -> Optional[requests.Response]:
+    def _make_request(self, method: str, url: str, **kwargs) -> requests.Response | None:
         """Make an HTTP request with error handling."""
         try:
             response = self.session.request(method, url, timeout=10, **kwargs)
@@ -47,7 +47,7 @@ class BaseSearchTool:
             logger.error(f"Request failed: {e}")
             return None
 
-    def _search_serper(self, query: str) -> Optional[dict[str, Any]]:
+    def _search_serper(self, query: str) -> dict[str, Any] | None:
         """
         Perform a search using the Serper API.
 

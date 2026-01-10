@@ -112,7 +112,7 @@ type = "flow"
 
 [tool.ruff]
 line-length = 110
-target-version = "py310"
+target-version = "py313"
 
 [tool.ruff.lint]
 # Enable more comprehensive linting rules
@@ -131,11 +131,8 @@ select = [
 ]
 ignore = [
     "E501",   # Line too long (handled by formatter)
-    "UP035",  # Use `X | Y` for type annotations - DISABLED for CrewAI compatibility
-    "UP045",  # Use `X | Y` for type annotations - DISABLED for CrewAI compatibility
     "B008",   # Do not perform function calls in argument defaults
     "B904",   # Within an `except` clause, raise exceptions with `raise ... from err`
-    "UP007",  # Use `X | Y` for type annotations - DISABLED for CrewAI compatibility
     "RET504", # Unnecessary assignment to `result` before `return` statement
 ]
 
@@ -224,6 +221,8 @@ ignore_missing_imports = true
 no_implicit_optional = true
 warn_redundant_casts = true
 warn_unused_ignores = true
+# Suppress external library type stub warnings (not our responsibility)
+disable_error_code = ["import-untyped"]
 exclude = [
     "tests/",
     "build/",

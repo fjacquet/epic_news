@@ -49,7 +49,9 @@ class TraceEvent:
         self.source = source
         self.details = details
         self.timestamp = timestamp or time.time()
-        self.event_id = hashlib.sha256(f"{self.source}:{self.event_type}:{self.timestamp}".encode()).hexdigest()
+        self.event_id = hashlib.sha256(
+            f"{self.source}:{self.event_type}:{self.timestamp}".encode()
+        ).hexdigest()
 
     def to_dict(self) -> dict[str, Any]:
         """

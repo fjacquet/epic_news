@@ -27,7 +27,7 @@ class WebPresenceCrew:
         all_tools = search_tools + [html_to_pdf_tool] + get_report_tools()
 
         return Agent(
-            config=self.agents_config["web_researcher"],
+            config=self.agents_config["web_researcher"],  # type: ignore[index]
             tools=all_tools,
             llm=LLMConfig.get_openrouter_llm(),
             llm_timeout=LLMConfig.get_timeout("default"),
@@ -43,7 +43,7 @@ class WebPresenceCrew:
     def web_reporter(self) -> Agent:
         """Creates the web reporter agent without tools for clean output generation"""
         return Agent(
-            config=self.agents_config["web_reporter"],
+            config=self.agents_config["web_reporter"],  # type: ignore[index]
             tools=[],  # No tools for reporter to ensure clean output
             llm=LLMConfig.get_openrouter_llm(),
             llm_timeout=LLMConfig.get_timeout("default"),
@@ -57,59 +57,55 @@ class WebPresenceCrew:
     @task
     def web_presence_audit(self) -> Task:
         """Conduct a comprehensive audit of the target's web presence"""
-        return Task(
-            config=self.tasks_config["web_presence_audit"],
+        return Task(  # type: ignore[call-arg]
+            config=self.tasks_config["web_presence_audit"],  # type: ignore[index, arg-type]
             async_execution=True,
         )
 
     @task
     def social_media_footprint(self) -> Task:
         """Analyze the target's social media footprint across platforms"""
-        return Task(
-            config=self.tasks_config["social_media_footprint"],
+        return Task(  # type: ignore[call-arg]
+            config=self.tasks_config["social_media_footprint"],  # type: ignore[index, arg-type]
             async_execution=True,
-            verbose=True,
         )
 
     @task
     def domain_infrastructure_analysis(self) -> Task:
         """Analyze the target's domain infrastructure and technical footprint"""
-        return Task(
-            config=self.tasks_config["domain_infrastructure_analysis"],
+        return Task(  # type: ignore[call-arg]
+            config=self.tasks_config["domain_infrastructure_analysis"],  # type: ignore[index, arg-type]
             async_execution=True,
-            verbose=True,
         )
 
     @task
     def data_leak_analysis(self) -> Task:
         """Analyze potential data leaks and breaches related to the target"""
-        return Task(
-            config=self.tasks_config["data_leak_analysis"],
+        return Task(  # type: ignore[call-arg]
+            config=self.tasks_config["data_leak_analysis"],  # type: ignore[index, arg-type]
             async_execution=True,
-            verbose=True,
         )
 
     @task
     def competitive_web_presence_analysis(self) -> Task:
         """Analyze the web presence of competitors to identify best practices"""
-        return Task(
-            config=self.tasks_config["competitive_web_presence_analysis"],
+        return Task(  # type: ignore[call-arg]
+            config=self.tasks_config["competitive_web_presence_analysis"],  # type: ignore[index, arg-type]
             async_execution=True,
-            verbose=True,
         )
 
     @task
     def consolidate_web_presence_report(self) -> Task:
         """Consolidate all web presence findings into a comprehensive report"""
-        return Task(
-            config=self.tasks_config["consolidate_web_presence_report"],
+        return Task(  # type: ignore[call-arg]
+            config=self.tasks_config["consolidate_web_presence_report"],  # type: ignore[index, arg-type]
             async_execution=False,
             context=[
-                self.web_presence_audit(),
-                self.social_media_footprint(),
-                self.domain_infrastructure_analysis(),
-                self.data_leak_analysis(),
-                self.competitive_web_presence_analysis(),
+                self.web_presence_audit(),  # type: ignore[call-arg]
+                self.social_media_footprint(),  # type: ignore[call-arg]
+                self.domain_infrastructure_analysis(),  # type: ignore[call-arg]
+                self.data_leak_analysis(),  # type: ignore[call-arg]
+                self.competitive_web_presence_analysis(),  # type: ignore[call-arg]
             ],
             output_pydantic=WebPresenceReport,
         )
@@ -118,12 +114,9 @@ class WebPresenceCrew:
     def crew(self) -> Crew:
         """Creates the Web Presence Analysis crew"""
         return Crew(
-            agents=self.agents,
-            tasks=self.tasks,
+            agents=self.agents,  # type: ignore[attr-defined]
+            tasks=self.tasks,  # type: ignore[attr-defined]
             process=Process.sequential,
             verbose=True,
-            reasoning=True,
-            llm_timeout=LLMConfig.get_timeout("default"),
-            max_iter=LLMConfig.get_max_iter(),
             max_rpm=LLMConfig.get_max_rpm(),
         )

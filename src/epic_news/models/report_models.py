@@ -17,7 +17,7 @@ class ReportImage(BaseModel):
 
     src: str = Field(..., description="Image source URL or data URI")
     alt: str = Field("", description="Alternative text for accessibility")
-    caption: Union[str, None] = Field(None, description="Optional image caption")
+    caption: str | None = Field(None, description="Optional image caption")
 
 
 class RenderReportToolSchema(BaseModel):
@@ -25,7 +25,7 @@ class RenderReportToolSchema(BaseModel):
 
     title: str = Field(..., description="Report title")
     sections: list[ReportSection] = Field(..., description="List of sections with headings and content")
-    images: Union[list[ReportImage], None] = Field(None, description="Optional list of images with metadata")
-    citations: Union[list[str], None] = Field(
+    images: list[ReportImage] | None = Field(None, description="Optional list of images with metadata")
+    citations: list[str] | None = Field(
         None, description="Optional list of citation strings or HTML links"
     )

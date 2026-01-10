@@ -1103,7 +1103,9 @@ class ReceptionFlow(Flow[ContentState]):
 
         # Fallback: parse the direct CrewAI output (legacy path)
         if research_report_model is None:
-            research_report_model = cast(DeepResearchReport, parse_crewai_output(output, DeepResearchReport, inputs))
+            research_report_model = cast(
+                DeepResearchReport, parse_crewai_output(output, DeepResearchReport, inputs)
+            )
             self.logger.info("ℹ️ Using DeepResearchReport built from CrewAI raw output (fallback path)")
 
         self.state.deep_research_report = research_report_model

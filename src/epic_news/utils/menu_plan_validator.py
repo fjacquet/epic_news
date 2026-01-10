@@ -223,7 +223,7 @@ class MenuPlanValidator:
         return fixed_plan
 
     @staticmethod
-    def parse_and_validate_ai_output(ai_output: str) -> Optional[WeeklyMenuPlan]:
+    def parse_and_validate_ai_output(ai_output: str) -> WeeklyMenuPlan | None:
         """Parse AI output and validate/fix it to create a valid WeeklyMenuPlan."""
         try:
             # Try to parse as JSON

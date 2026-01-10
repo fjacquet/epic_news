@@ -28,7 +28,7 @@ class ScrapeNinjaTool(BaseTool):
     name: str = "ScrapeNinja"
     description: str = "Scrapes website content using the ScrapeNinja API with advanced options"
     args_schema: type[BaseModel] = ScrapeNinjaInput
-    api_key: Optional[str] = None
+    api_key: str | None = None
 
     def __init__(self, **data):
         """Initialize with API key from environment."""

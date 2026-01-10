@@ -175,18 +175,17 @@ def my_agent(self) -> Agent:
 
 ### Pydantic Models
 
-All Pydantic models used with CrewAI must use **legacy Union syntax**:
+All Pydantic models used with CrewAI **support modern Python 3.13 syntax** (CrewAI 1.8.0+):
 
 ```python
-from typing import Union, Optional
-
-# ✅ CORRECT
-field: Optional[str] = None
-field: Union[str, int] = "default"
-
-# ❌ WRONG - Causes AttributeError
+# ✅ RECOMMENDED - Modern Python 3.13 syntax
 field: str | None = None
 field: str | int = "default"
+
+# ✅ Also works - Legacy syntax (not required)
+from typing import Union, Optional
+field: Optional[str] = None
+field: Union[str, int] = "default"
 ```
 
 **Model Location**: `src/epic_news/models/crews/<crew_name>.py`
@@ -360,7 +359,7 @@ See `docs/troubleshooting/COMMON_ERRORS.md` for complete troubleshooting guide.
 
 **Symptom**: `AttributeError: 'UnionType' object has no attribute '__origin__'`
 
-**Solution**: Use legacy syntax `Optional[X]` instead of `X | None`.
+**Solution**: This error occurred in CrewAI < 1.0.0. Since CrewAI 1.8.0+, modern union syntax (`X | None`) is fully supported. If you encounter this error, upgrade CrewAI: `uv add crewai>=1.8.0`
 
 ## Testing Patterns
 

@@ -22,7 +22,7 @@ class GitHubOrgSearchInput(BaseModel):
 
 
 class GitHubOrgSearchTool(BaseTool, GitHubBaseTool):
-    serper_api_key: Optional[str] = None
+    serper_api_key: str | None = None
     """Tool for searching GitHub organizations."""
     name: str = "github_org_search"
     description: str = "Search for a GitHub organization and retrieve basic information"

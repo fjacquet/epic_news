@@ -31,7 +31,7 @@ class FirecrawlTool(BaseTool):
     description: str = "Scrapes website content using the Firecrawl API"
     # We reuse the same args_schema to keep a uniform interface across scrapers
     args_schema: type[BaseModel] = ScrapeNinjaInput
-    api_key: Optional[str] = None
+    api_key: str | None = None
 
     def __init__(self, **data):
         """Initialize with API key from environment."""

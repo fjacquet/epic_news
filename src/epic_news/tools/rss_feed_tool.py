@@ -22,8 +22,8 @@ class RSSFeedInput(BaseModel):
     """Input schema for RSS Feed Tool."""
 
     region: str = Field(..., description="Region to get news for (suisse_romande, france, europe, world)")
-    max_articles: Optional[int] = Field(10, description="Maximum number of articles to retrieve")
-    hours_back: Optional[int] = Field(24, description="How many hours back to look for articles")
+    max_articles: int | None = Field(10, description="Maximum number of articles to retrieve")
+    hours_back: int | None = Field(24, description="How many hours back to look for articles")
 
 
 class RSSFeedTool(BaseTool):

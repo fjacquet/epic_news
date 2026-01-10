@@ -63,10 +63,10 @@ class MetricsCalculatorTool(BaseTool):
         description: str,
         value: Any,
         type: str,
-        previous_value: Optional[Any] = None,
-        unit: Optional[str] = None,
-        source: Optional[str] = None,
-        target: Optional[Any] = None,
+        previous_value: Any | None = None,
+        unit: str | None = None,
+        source: str | None = None,
+        target: Any | None = None,
         is_key_metric: bool = False,
         **kwargs,
     ) -> str:
@@ -137,10 +137,10 @@ class KPITrackerTool(BaseTool):
         value: Any,
         type: str,
         target: Any,
-        previous_value: Optional[Any] = None,
-        unit: Optional[str] = None,
-        source: Optional[str] = None,
-        target_date: Optional[str] = None,
+        previous_value: Any | None = None,
+        unit: str | None = None,
+        source: str | None = None,
+        target_date: str | None = None,
         **kwargs,
     ) -> str:
         """Run the KPI tracker tool."""
@@ -417,7 +417,7 @@ class StructuredReportTool(BaseTool):
             return ensure_json_str({"error": f"Failed to generate structured report: {str(e)}"})
 
 
-def get_data_centric_tools() -> list[Union[BaseTool, LangchainBaseTool]]:
+def get_data_centric_tools() -> list[BaseTool | LangchainBaseTool]:
     """Get a list of all data-centric tools."""
     return [
         MetricsCalculatorTool(),

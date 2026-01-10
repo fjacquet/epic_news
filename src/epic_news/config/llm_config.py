@@ -35,9 +35,9 @@ class LLMConfig:
 
     @staticmethod
     def get_openrouter_llm(
-        model: Optional[str] = None,
-        temperature: Optional[float] = None,
-        max_tokens: Optional[int] = None,
+        model: str | None = None,
+        temperature: float | None = None,
+        max_tokens: int | None = None,
     ) -> ChatOpenAI:
         """Get ChatOpenAI instance configured for OpenRouter.
 

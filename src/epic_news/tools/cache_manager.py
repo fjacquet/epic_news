@@ -34,7 +34,7 @@ class CacheManager:
         safe_key = "".join(c for c in key if c.isalnum() or c in ("-", "_", ".")).rstrip()
         return self.cache_dir / f"{safe_key}.json"
 
-    def get(self, key: str, ttl: Optional[int] = None) -> Optional[Any]:
+    def get(self, key: str, ttl: int | None = None) -> Any | None:
         """
         Get a value from cache if it exists and hasn't expired.
 
@@ -94,7 +94,7 @@ class CacheManager:
         for cache_file in self.cache_dir.glob("*.json"):
             cache_file.unlink()
 
-    def clear_expired(self, ttl: Optional[int] = None) -> int:
+    def clear_expired(self, ttl: int | None = None) -> int:
         """
         Clear expired cache entries.
 

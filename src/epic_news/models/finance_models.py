@@ -8,11 +8,11 @@ from pydantic import BaseModel, Field
 class ExchangeRateToolInput(BaseModel):
     """Input for ExchangeRateTool."""
 
-    base_currency: Union[str, None] = Field(
+    base_currency: str | None = Field(
         default="USD",
         description="The base currency (3-letter ISO code) for exchange rates. Defaults to USD.",
     )
-    target_currencies: Union[list[str], None] = Field(
+    target_currencies: list[str] | None = Field(
         default=None,
         description="A list of target currencies (3-letter ISO codes) to fetch. If None, all available rates for the base currency are returned.",
     )

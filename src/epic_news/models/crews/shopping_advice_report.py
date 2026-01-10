@@ -14,10 +14,10 @@ class PriceInfo(BaseModel):
 
     retailer: str = Field(..., description="Name of the retailer")
     price: str = Field(..., description="Price with currency")
-    url: Optional[str] = Field(None, description="Direct purchase link")
-    shipping_cost: Optional[str] = Field(None, description="Shipping cost if available")
-    total_cost: Optional[str] = Field(None, description="Total cost including shipping and taxes")
-    notes: Optional[str] = Field(None, description="Additional notes about the offer")
+    url: str | None = Field(None, description="Direct purchase link")
+    shipping_cost: str | None = Field(None, description="Shipping cost if available")
+    total_cost: str | None = Field(None, description="Total cost including shipping and taxes")
+    notes: str | None = Field(None, description="Additional notes about the offer")
 
 
 class CompetitorInfo(BaseModel):

@@ -16,7 +16,8 @@ from __future__ import annotations
 import os
 import time
 from contextlib import contextmanager, suppress
-from typing import Any, Callable, Optional, TypeVar, cast
+from typing import Any, Optional, TypeVar, cast
+from collections.abc import Callable
 
 T = TypeVar("T")
 
@@ -38,7 +39,7 @@ except Exception:
 
 
 @contextmanager
-def trace_span(name: str, attrs: Optional[dict[str, Any]] = None):
+def trace_span(name: str, attrs: dict[str, Any] | None = None):
     """
     Context manager to trace spans via Langfuse when available; otherwise no-op.
     """

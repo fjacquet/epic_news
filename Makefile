@@ -78,7 +78,7 @@ test-verbose: ## Run tests with verbose output
 
 lint: ## Check code style (ruff + yamllint)
 	@echo "$(GREEN)Linting Python code...$(RESET)"
-	$(RUFF) check .
+	$(RUFF) check --fix .
 	@echo "$(GREEN)Linting YAML files...$(RESET)"
 	$(YAMLLINT) -s src/epic_news/crews/*/config/*.yaml
 

@@ -54,7 +54,7 @@ class QuantitativeAnalysis(BaseModel):
     """Analyse quantitative avec métriques statistiques"""
 
     analysis_type: str = Field(..., description="Type d'analyse (descriptive, corrélation, etc.)")
-    metrics: dict[str, Union[float, int]] = Field(..., description="Métriques calculées")
+    metrics: dict[str, float | int] = Field(..., description="Métriques calculées")
     statistical_tests: list[str] = Field(..., description="Tests statistiques effectués")
     p_values: dict[str, float] = Field(default_factory=dict, description="Valeurs p des tests")
     confidence_intervals: dict[str, list[float]] = Field(
@@ -87,7 +87,7 @@ class QualityAssessment(BaseModel):
     coherence_score: float = Field(..., ge=0.0, le=1.0, description="Score cohérence logique")
 
     # Seuils qualité PhD
-    quality_thresholds: dict[str, Union[int, float]] = Field(
+    quality_thresholds: dict[str, int | float] = Field(
         default={
             "min_word_count": 15000,
             "min_sources": 25,
@@ -130,10 +130,10 @@ class ResearchState(BaseModel):
     current_phase: str = Field(default="planning", description="Phase actuelle")
 
     # Données des phases
-    research_plan: Optional[ResearchPlan] = None
+    research_plan: ResearchPlan | None = None
     collected_data: list[CollectedData] = Field(default_factory=list)
-    quantitative_analysis: Optional[QuantitativeAnalysis] = None
-    quality_assessment: Optional[QualityAssessment] = None
+    quantitative_analysis: QuantitativeAnalysis | None = None
+    quality_assessment: QualityAssessment | None = None
 
     # Métadonnées d'orchestration
     iteration_count: int = Field(default=1, description="Nombre d'itérations")
@@ -166,7 +166,7 @@ class ResearchState(BaseModel):
         """Vérifie si une nouvelle itération est possible"""
         return self.iteration_count < self.max_iterations
 
-    def get_completion_status(self) -> dict[str, Union[bool, str, int]]:
+    def get_completion_status(self) -> dict[str, bool | str | int]:
         """Retourne le statut de completion"""
         return {
             "is_complete": self.is_complete,

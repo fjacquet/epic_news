@@ -42,7 +42,7 @@ class ComposioConfig:
         >>> social_tools = config.get_social_media_tools()
     """
 
-    def __init__(self, api_key: Optional[str] = None, user_id: str = "default"):
+    def __init__(self, api_key: str | None = None, user_id: str = "default"):
         """Initialize Composio configuration.
 
         Args:
@@ -96,7 +96,7 @@ class ComposioConfig:
 
         return tools
 
-    def get_social_media_tools(self, platforms: Optional[list[str]] = None) -> list[BaseTool]:
+    def get_social_media_tools(self, platforms: list[str] | None = None) -> list[BaseTool]:
         """Get social media tools for content discovery and analysis.
 
         Args:

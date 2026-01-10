@@ -26,7 +26,7 @@ class FinDailyCrew:
     @agent
     def stock_analyst(self) -> Agent:
         return Agent(
-            config=self.agents_config["stock_analyst"],
+            config=self.agents_config["stock_analyst"],  # type: ignore[index]
             tools=get_stock_research_tools()
             + [
                 FileReadTool(),
@@ -42,7 +42,7 @@ class FinDailyCrew:
     @agent
     def crypto_analyst(self) -> Agent:
         return Agent(
-            config=self.agents_config["crypto_analyst"],
+            config=self.agents_config["crypto_analyst"],  # type: ignore[index]
             tools=get_crypto_research_tools()
             + [
                 KrakenAssetListTool(),
@@ -58,7 +58,7 @@ class FinDailyCrew:
     @agent
     def investment_strategist(self) -> Agent:
         return Agent(
-            config=self.agents_config["investment_strategist"],
+            config=self.agents_config["investment_strategist"],  # type: ignore[index]
             # No tools - synthesizes from context provided by analyst tasks
             llm=LLMConfig.get_openrouter_llm(),
             llm_timeout=LLMConfig.get_timeout("default"),
@@ -68,65 +68,58 @@ class FinDailyCrew:
 
     @task
     def stock_portfolio_analysis_task(self) -> Task:
-        return Task(
-            config=self.tasks_config["stock_portfolio_analysis_task"],
-            verbose=True,
+        return Task(  # type: ignore[call-arg]
+            config=self.tasks_config["stock_portfolio_analysis_task"],  # type: ignore[index, arg-type]
             async_execution=True,  # Independent task, can run in parallel
         )
 
     @task
     def crypto_portfolio_analysis_task(self) -> Task:
-        return Task(
-            config=self.tasks_config["crypto_portfolio_analysis_task"],
-            verbose=True,
+        return Task(  # type: ignore[call-arg]
+            config=self.tasks_config["crypto_portfolio_analysis_task"],  # type: ignore[index, arg-type]
             async_execution=True,  # Independent task, can run in parallel
         )
 
     # NEW: ETF portfolio analysis task
     @task
     def etf_portfolio_analysis_task(self) -> Task:
-        return Task(
-            config=self.tasks_config["etf_portfolio_analysis_task"],
-            verbose=True,
+        return Task(  # type: ignore[call-arg]
+            config=self.tasks_config["etf_portfolio_analysis_task"],  # type: ignore[index, arg-type]
             async_execution=True,  # Independent task, can run in parallel
         )
 
     @task
     def stock_suggestion_task(self) -> Task:
-        return Task(
-            config=self.tasks_config["stock_suggestion_task"],
-            verbose=True,
+        return Task(  # type: ignore[call-arg]
+            config=self.tasks_config["stock_suggestion_task"],  # type: ignore[index, arg-type]
             async_execution=True,  # Independent task, can run in parallel
         )
 
     @task
     def etf_suggestion_task(self) -> Task:
-        return Task(
-            config=self.tasks_config["etf_suggestion_task"],
-            verbose=True,
+        return Task(  # type: ignore[call-arg]
+            config=self.tasks_config["etf_suggestion_task"],  # type: ignore[index, arg-type]
             async_execution=True,  # Independent task, can run in parallel
         )
 
     @task
     def crypto_suggestion_task(self) -> Task:
-        return Task(
-            config=self.tasks_config["crypto_suggestion_task"],
-            verbose=True,
+        return Task(  # type: ignore[call-arg]
+            config=self.tasks_config["crypto_suggestion_task"],  # type: ignore[index, arg-type]
             async_execution=True,  # Independent task, can run in parallel
         )
 
     @task
     def final_report_generation_task(self) -> Task:
-        return Task(
-            config=self.tasks_config["final_report_generation_task"],
-            verbose=True,
+        return Task(  # type: ignore[call-arg]
+            config=self.tasks_config["final_report_generation_task"],  # type: ignore[index, arg-type]
             context=[
-                self.stock_portfolio_analysis_task(),
-                self.crypto_portfolio_analysis_task(),
-                self.etf_portfolio_analysis_task(),
-                self.stock_suggestion_task(),
-                self.etf_suggestion_task(),
-                self.crypto_suggestion_task(),
+                self.stock_portfolio_analysis_task(),  # type: ignore[call-arg]
+                self.crypto_portfolio_analysis_task(),  # type: ignore[call-arg]
+                self.etf_portfolio_analysis_task(),  # type: ignore[call-arg]
+                self.stock_suggestion_task(),  # type: ignore[call-arg]
+                self.etf_suggestion_task(),  # type: ignore[call-arg]
+                self.crypto_suggestion_task(),  # type: ignore[call-arg]
             ],
             output_pydantic=FinancialReport,
         )
@@ -135,13 +128,9 @@ class FinDailyCrew:
     def crew(self) -> Crew:
         """Creates the FinDaily crew"""
         return Crew(
-            agents=self.agents,
-            tasks=self.tasks,
+            agents=self.agents,  # type: ignore[attr-defined]
+            tasks=self.tasks,  # type: ignore[attr-defined]
             process=Process.sequential,
             verbose=True,
             memory=True,
-            memory_config={
-                "provider": "mem0",
-                "config": {"user_id": "fin_daily"},
-            },
         )
