@@ -41,58 +41,46 @@ research_planning_task:
 information_collection_task:
   description: >
     Exécuter le protocole de recherche en collectant de manière exhaustive les données
-    primaires et secondaires autour de la problématique formulée dans la premiere tache.
-    Prioriser les sources académiques, les publications évaluées par les pairs, les rapports
-    d'experts et les bases de données statistiques. Documenter chaque source de manière
-    méticuleuse.
+    primaires et secondaires (WEB + WIKIPEDIA) autour de la problématique formulée dans 
+    la premiere tache. Prioriser les sources académiques, les publications évaluées par 
+    les pairs, les rapports d'experts et les bases de données statistiques.
     
-    IMPORTANT: Pour chaque source, vous DEVEZ inclure une URL précise et fonctionnelle.
-    Les sources sans URL ne seront pas considérées comme valides et pourraient compromettre
-    la validité du rapport final.
+    RECHERCHE WEB: Utiliser les outils de recherche web avancés pour découvrir 
+    les développements récents, articles académiques, et analyses expertes.
+    
+    RECHERCHE WIKIPEDIA: Collecter les connaissances encyclopédiques via Wikipedia MCP 
+    pour établir un socle factuel et contextuel. Analyser l'historique, les concepts clés 
+    et l'état de l'art. Identifier les controverses et les guerres d'édition pour évaluer 
+    la stabilité du consensus.
+    
+    Documenter chaque source de manière méticuleuse.
+    
+    IMPORTANT: Pour chaque source (web ET Wikipedia), vous DEVEZ inclure une URL 
+    précise et fonctionnelle. Les sources sans URL ne seront pas considérées comme 
+    valides et pourraient compromettre la validité du rapport final.
   expected_output: >
-    Un corpus de recherche structuré et une bibliographie annotée :
+    Un corpus de recherche structuré combinant sources web et encyclopédiques :
     - Un ensemble complet de données brutes (articles, statistiques, etc.) enregistré
      dans des fichiers markdown dans "output/deep_research/"
-    - Une bibliographie annotée détaillée pour chaque source, incluant OBLIGATOIREMENT:
+    - Une bibliographie annotée détaillée pour CHAQUE source (web et Wikipedia), 
+      incluant OBLIGATOIREMENT:
       * Un titre descriptif
-      * Une URL précise et fonctionnelle
+      * Une URL précise et fonctionnelle (permanente pour Wikipedia)
       * Un résumé substantiel
       * Une évaluation de la crédibilité (échelle 0-1)
       * Sa pertinence par rapport aux hypothèses (échelle 0-10)
       * La date d'extraction
-    - Une synthèse des données collectées, identifiant les convergences, les
+      * Le type de source (web, wikipedia, académique, etc.)
+    - Une synthèse encyclopédique critique incluant:
+      * Résumé approfondi des connaissances factuelles établies
+      * Analyse chronologique et contextuelle de l'évolution du sujet
+      * Identification des concepts fondamentaux et des théories associées
+      * Évaluation des lacunes et des controverses dans la littérature
+    - Une synthèse globale des données collectées, identifiant les convergences, les
       divergences et les lacunes informationnelles.
   agent: information_collector
   context:  
     - research_planning_task
-  async_execution: false
-
-wikipedia_research_task:
-  description: >
-    Collecter les connaissances encyclopédiques à partir de Wikipedia pour établir un
-    socle factuel et contextuel. Analyser l'historique, les concepts clés et l'état de
-    l'art pour enrichir l'analyse principale. Identifier les controverses et les guerres
-    d'édition pour évaluer la stabilité du consensus.
-    
-    IMPORTANT: Pour chaque article Wikipedia consulté, vous DEVEZ inclure l'URL
-    complète et permanente vers l'article. Ne pas se contenter de citer le titre
-    de l'article sans son URL.
-  expected_output: >
-    Une synthèse encyclopédique critique :
-    - Résumé approfondi des connaissances factuelles établies.
-    - Analyse chronologique et contextuelle de l'évolution du sujet.
-    - Identification des concepts fondamentaux et des théories associées.
-    - Évaluation des lacunes et des controverses présentes dans la littérature
-      encyclopédique.
-    - Liste des articles Wikipedia consultés avec pour chacun:
-      * Le titre exact de l'article
-      * L'URL complète et permanente
-      * Un résumé concis de la contribution de cet article à l'analyse
-      * Une évaluation de la qualité de l'article (Bon, Moyen, À améliorer)
-  agent: wikipedia_specialist
-  context:
-    - research_planning_task
-    - information_collection_task
   async_execution: false
 
 data_analysis_task:
@@ -125,7 +113,6 @@ data_analysis_task:
   context:
     - research_planning_task
     - information_collection_task
-    - wikipedia_research_task
   async_execution: false
 
 report_writing_task:
@@ -180,7 +167,6 @@ report_writing_task:
   context:
     - research_planning_task
     - information_collection_task
-    - wikipedia_research_task
     - data_analysis_task
   async_execution: false
   output_file: "{output_file}"

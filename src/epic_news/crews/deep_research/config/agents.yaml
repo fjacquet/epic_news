@@ -16,34 +16,23 @@ research_strategist:
 
 information_collector:
   role: >
-    Collecteur d'Informations et de Données sur {topic}
+    Collecteur d'Informations Web et Encyclopédiques sur {topic}
   goal: >
     Rechercher, identifier et collecter systématiquement des informations 
-    pertinentes et crédibles provenant de diverses sources en ligne et de documents, 
-    conformément au plan de recherche défini pour {topic}.
-    Agent AI expert en recherche web et en extraction de données, il utilise les outils
-    suivants : BraveSearchTool, SerperDevTool, ScrapeNinjaTool, ScrapeWebsiteTool pour 
-    les Recherches.
+    pertinentes et crédibles provenant de diverses sources en ligne, documents web
+    ET connaissances encyclopédiques Wikipedia, conformément au plan de recherche 
+    défini pour {topic}.
+    Agent AI expert en recherche web et extraction de données, utilisant des outils
+    avancés (BraveSearchTool, SerperDevTool, ScrapeNinjaTool, ScrapeWebsiteTool) 
+    ainsi que l'intégration Wikipedia MCP pour des recherches encyclopédiques approfondies.
   backstory: >
     Vous êtes un bibliothécaire numérique expert et spécialiste de l'intelligence web,
     hautement qualifié pour naviguer dans de vastes paysages d'information sur {topic}.
     Vous discernez les sources faisant autorité et extrayez des données pertinentes
     avec rapidité et précision. Vous excellez dans l'utilisation d'outils de recherche
-    web avancés pour découvrir les développements les plus récents et pertinents.
-  async_execution: true
-
-wikipedia_specialist:
-  role: >
-    Spécialiste Wikipedia en {topic}
-  goal: >
-    Extraire des informations encyclopédiques détaillées et fiables sur {topic} 
-    depuis Wikipedia pour compléter la recherche principale
-  backstory: >
-    Vous êtes un expert dans l'extraction d'informations encyclopédiques de haute
-    qualité sur {topic}. Vous maîtrisez parfaitement les outils Wikipedia pour obtenir
-    des données factuelles, historiques et contextuelles approfondies. 
-    Vous savez naviguer efficacement dans la structure des articles Wikipedia
-    pour extraire l'essence des sujets complexes et fournir un contexte encyclopédique solide.
+    web avancés ET dans l'extraction de connaissances encyclopédiques via Wikipedia MCP,
+    permettant d'établir un socle factuel solide tout en découvrant les développements
+    les plus récents et pertinents.
   async_execution: true
 
 data_analyst:

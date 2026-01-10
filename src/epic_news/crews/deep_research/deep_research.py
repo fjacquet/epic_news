@@ -16,7 +16,14 @@ from epic_news.models.crews.deep_research_report import DeepResearchReport
 
 @CrewBase
 class DeepResearchCrew:
-    """DeepResearch crew for comprehensive internet research with 6-agent architecture"""
+    """DeepResearch crew for comprehensive internet research with 4-agent architecture.
+    
+    Agents:
+    1. research_strategist: Planning and methodology
+    2. information_collector: Web + Wikipedia research (merged from 2 agents)
+    3. data_analyst: Analysis and synthesis with Code Interpreter
+    4. report_writer: Technical report creation
+    """
 
     agents_config = "config/agents.yaml"
     tasks_config = "config/tasks.yaml"
@@ -44,35 +51,26 @@ class DeepResearchCrew:
             verbose=True,
         )
 
-    # Information Collector - Web research and data collection
+    # Information Collector - Web and encyclopedic research
     @agent
     def information_collector(self) -> Agent:
-        """Information collector agent with web search and scraping tools."""
+        """Information collector agent with web search, scraping AND Wikipedia MCP tools."""
         return Agent(
             config=self.agents_config["information_collector"],
             tools=[
+                # Web search tools
                 BraveSearchTool(),
                 SerperDevTool(n_results=25, search_type="search"),
                 SerperDevTool(n_results=25, search_type="news"),
-                # ScrapeNinjaTool(),
                 ScrapeWebsiteTool(),
-                FileReadTool(),  # Backup scraping tool
+                FileReadTool(),
+                # Wikipedia MCP tools (encyclopedic research)
+                *self.wikipedia_tools,  # Adds search and fetch tools from Wikipedia MCP
             ],
             llm=LLMConfig.get_openrouter_llm(),
             llm_timeout=LLMConfig.get_timeout("long"),
             verbose=True,
             reasoning=True,
-        )
-
-    # Wikipedia Specialist - Encyclopedic research
-    @agent
-    def wikipedia_specialist(self) -> Agent:
-        """Wikipedia specialist agent for encyclopedic research using MCP."""
-        return Agent(
-            config=self.agents_config["wikipedia_specialist"],
-            tools=self.wikipedia_tools,  # Use Wikipedia MCP tools
-            verbose=True,
-            respect_context_window=True,
         )
 
     # Data Analyst - Analysis and synthesis with Code Interpreter
@@ -140,20 +138,7 @@ class DeepResearchCrew:
             ],
         )
 
-    # Task 3: Wikipedia Research
-    @task
-    def wikipedia_research_task(self) -> Task:
-        """Wikipedia research task."""
-        return Task(
-            config=self.tasks_config["wikipedia_research_task"],
-            verbose=True,
-            context=[
-                self.research_planning_task(),
-                self.information_collection_task(),
-            ],
-        )
-
-    # Task 4: Data Analysis
+    # Task 3: Data Analysis (formerly Task 4)
     @task
     def data_analysis_task(self) -> Task:
         """Data analysis and synthesis task."""
@@ -163,11 +148,10 @@ class DeepResearchCrew:
             context=[
                 self.research_planning_task(),
                 self.information_collection_task(),
-                self.wikipedia_research_task(),
             ],
         )
 
-    # Task 5: Report Writing
+    # Task 4: Report Writing (formerly Task 5)
     @task
     def report_writing_task(self) -> Task:
         """Report writing task."""
@@ -177,7 +161,6 @@ class DeepResearchCrew:
             context=[
                 self.research_planning_task(),
                 self.information_collection_task(),
-                self.wikipedia_research_task(),
                 self.data_analysis_task(),
             ],
             output_pydantic=DeepResearchReport,
