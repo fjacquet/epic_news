@@ -2,501 +2,343 @@
 
 ## Overview
 
-This project uses **Model Context Protocol (MCP)** servers to enhance crew capabilities with advanced tools and integrations. MCP provides a standardized way to connect AI assistants to external data sources and tools.
+This project uses MCP (Model Context Protocol) servers to enhance crew capabilities with external data sources and specialized tools. MCP provides a standardized way to integrate external services into LLM-powered applications.
 
-## Architecture
+**Current MCP Servers**:
+1. **Wikipedia MCP** - Encyclopedic research and knowledge retrieval
+2. *(Future)* Perplexity MCP - Advanced web research
+3. *(Future)* Custom Tools MCP - Project-specific tools server
 
+## What is MCP?
+
+The Model Context Protocol is a standard protocol that allows AI assistants to securely interact with local and remote resources. MCP servers expose tools, prompts, and resources that LLMs can use during execution.
+
+**Benefits**:
+- **Standardization**: Consistent interface for tool integration
+- **Maintainability**: Use community-maintained servers instead of custom tools
+- **Scalability**: Add new capabilities by installing servers, not writing code
+- **Security**: Fine-grained control over data access
+
+## Installed MCP Servers
+
+### 1. Wikipedia MCP Server
+
+**Purpose**: Provides maintained Wikipedia integration for encyclopedic research.
+
+**Installation**:
+```bash
+# Via uv (recommended)
+uv tool install wikipedia-mcp-server
 ```
-epic_news/
-├── src/epic_news/config/
-│   └── mcp_config.py          # MCP server configurations
-├── crews/                      # Crews using MCP tools
-│   ├── deep_research/         # Uses Wikipedia & Perplexity MCP
-│   ├── company_news/          # Uses Perplexity MCP
-│   └── news_daily/            # Uses Perplexity MCP
-└── docs/
-    └── MCP_INTEGRATION_GUIDE.md  # This file
-```
-
-## Available MCP Servers
-
-### 1. Perplexity MCP Server
-**Purpose**: Advanced web research and reasoning
-
-**Installation**: Automatic via `npx @perplexity-ai/mcp-server`
 
 **Available Tools**:
-- `perplexity_search`: Direct web search with real-time results
-- `perplexity_ask`: Conversational AI with integrated search
-- `perplexity_research`: Deep research using sonar-deep-research model
-- `perplexity_reason`: Advanced reasoning capabilities
+- `search(query, language)`: Search Wikipedia articles
+  - `query`: Search terms
+  - `language`: Language code (default: "en")
+  - Returns: List of matching articles with titles and snippets
 
-**Configuration**:
+- `fetch(page_id)`: Fetch full article content
+  - `page_id`: Wikipedia page ID from search results
+  - Returns: Complete article text with metadata
+
+**Configuration** (`src/epic_news/config/mcp_config.py`):
 ```python
-from epic_news.config.mcp_config import MCPConfig
+from mcp.server import MCPServerStdio
 
-perplexity_config = MCPConfig.get_perplexity_mcp()
-# Returns: {
-#     "command": "npx",
-#     "args": ["@perplexity-ai/mcp-server"],
-#     "env": {"PERPLEXITY_API_KEY": "your_key"}
-# }
+def get_wikipedia_mcp():
+    """Configure Wikipedia MCP server."""
+    return MCPServerStdio(
+        command="uvx",
+        args=["wikipedia-mcp-server@latest"],
+    )
+```
+
+**Crews Using Wikipedia MCP**:
+- `deep_research`: Replaces custom WikipediaTool with maintained MCP server
+- `library`: Adds Wikipedia context for book research
+- `holiday_planner`: Provides destination information
+
+**Example Usage**:
+```python
+# Search for articles
+results = wikipedia_search("artificial intelligence", language="en")
+# returns: [{"page_id": 12345, "title": "Artificial Intelligence", "snippet": "..."}]
+
+# Fetch full article
+article = wikipedia_fetch(page_id=12345)
+# returns: {"title": "...", "content": "...", "url": "..."}
+```
+
+### 2. Perplexity MCP Server (Future)
+
+**Purpose**: Advanced web research with real-time search and reasoning capabilities.
+
+**Installation**:
+```bash
+# Install via npx
+npx @perplexity-ai/mcp-server
 ```
 
 **Environment Variables**:
 ```bash
-PERPLEXITY_API_KEY=pplx-your-api-key-here
+PERPLEXITY_API_KEY=your_perplexity_api_key
 ```
-
-**Use Cases**:
-- Deep research tasks requiring real-time web data
-- Complex research requiring reasoning capabilities
-- News aggregation with current events
-- Market research and trend analysis
-
-### 2. Wikipedia MCP Server
-**Purpose**: Maintained Wikipedia integration
-
-**Installation**: Automatic via `uvx --from wikipedia-mcp-server@latest wikipedia-mcp`
 
 **Available Tools**:
-- `search`: Search Wikipedia articles with language support
-- `fetch`: Fetch full page content by article ID
+- `perplexity_search`: Direct web search
+- `perplexity_ask`: Conversational AI with real-time search
+- `perplexity_research`: Deep research using sonar-deep-research model
+- `perplexity_reason`: Advanced reasoning with citations
 
-**Configuration**:
-```python
-from epic_news.config.mcp_config import MCPConfig
-
-wikipedia_config = MCPConfig.get_wikipedia_mcp()
-# Returns: {
-#     "command": "uvx",
-#     "args": ["--from", "wikipedia-mcp-server@latest", "wikipedia-mcp"],
-#     "env": {}
-# }
-```
-
-**No API key required** - Wikipedia MCP is free to use.
-
-**Use Cases**:
-- Encyclopedic research
-- Background information gathering
-- Historical context and facts
-- Educational content
+**Target Crews**:
+- `deep_research`: Replace SerperDev/Tavily with `perplexity_research`
+- `company_news`: Use `perplexity_search` for news discovery
+- `news_daily`: Use `perplexity_ask` for current events
 
 ### 3. Custom Tools MCP Server (Future)
-**Purpose**: Dynamic loading of epic_news custom tools
 
-**Status**: Planned for future implementation
+**Purpose**: Centralize epic_news custom tools into MCP server for dynamic loading.
 
-**Implementation**: See `src/epic_news/mcp_servers/tools_server.py` (to be created)
+**Benefits**:
+- Faster crew startup (tools loaded on-demand)
+- Dynamic tool filtering per crew
+- Centralized tool management
+- Better observability
 
-## Using MCP Servers with CrewAI
+**Implementation Location**: `src/epic_news/mcp_servers/tools_server.py`
 
-### Method 1: Using CrewAI's MCPServerAdapter
+## Adding a New MCP Server
 
-CrewAI supports MCP tools through the `crewai-tools[mcp]` package using `MCPServerAdapter`:
+### Step 1: Install the MCP Server
 
-```python
-from crewai import Agent
-from crewai.project import CrewBase, agent
-from crewai_tools import MCPServerAdapter
-from epic_news.config.llm_config import LLMConfig
-from epic_news.config.mcp_config import MCPConfig
+```bash
+# For Python-based servers
+uv tool install package-name
 
-@CrewBase
-class MyResearchCrew:
-    """Example crew using MCP tools"""
-
-    agents_config = "config/agents.yaml"
-    tasks_config = "config/tasks.yaml"
-
-    # Initialize Wikipedia MCP server (lazy initialization recommended)
-    _wikipedia_mcp = None
-
-    @property
-    def wikipedia_tools(self):
-        """Get Wikipedia MCP tools."""
-        if self._wikipedia_mcp is None:
-            wikipedia_params = MCPConfig.get_wikipedia_mcp()
-            self._wikipedia_mcp = MCPServerAdapter(wikipedia_params)
-        return self._wikipedia_mcp.tools
-
-    # Create agent with MCP tools
-    @agent
-    def researcher(self) -> Agent:
-        return Agent(
-            config=self.agents_config["researcher"],
-            tools=self.wikipedia_tools,
-            llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("long"),
-            verbose=True,
-        )
+# For Node.js-based servers
+npx package-name
 ```
 
-**Alternative: Context Manager Pattern** (for short-lived usage):
+### Step 2: Configure the Server
+
+Add configuration to `src/epic_news/config/mcp_config.py`:
 
 ```python
-from crewai_tools import MCPServerAdapter
-from epic_news.config.mcp_config import MCPConfig
+from mcp.server import MCPServerStdio
+import os
 
-# Get Wikipedia tools using context manager
-wikipedia_params = MCPConfig.get_wikipedia_mcp()
-with MCPServerAdapter(wikipedia_params) as tools:
-    # Use tools here
-    # MCP server will be automatically stopped when exiting the context
-    pass
-```
-
-### Method 2: Direct Tool Import (If Available)
-
-Some MCP servers may provide direct Python imports:
-
-```python
-from epic_news.tools.wikipedia_search_tool import WikipediaSearchTool
-from epic_news.tools.wikipedia_article_tool import WikipediaArticleTool
-
-# Use existing custom tools
-tools = [
-    WikipediaSearchTool(),
-    WikipediaArticleTool(),
-]
-```
-
-## Crews Using MCP Tools
-
-### Deep Research Crew
-
-**MCP Servers**: Wikipedia MCP (replaces custom Wikipedia tools)
-
-**Before**:
-```python
-from epic_news.tools.wikipedia_search_tool import WikipediaSearchTool
-from epic_news.tools.wikipedia_article_tool import WikipediaArticleTool
-
-@agent
-def wikipedia_specialist(self) -> Agent:
-    return Agent(
-        config=self.agents_config["wikipedia_specialist"],
-        tools=[
-            WikipediaSearchTool(),
-            WikipediaArticleTool(),
-        ],
-        verbose=True,
+def get_your_mcp_server():
+    """Configure Your MCP server."""
+    return MCPServerStdio(
+        command="command_to_run",  # e.g., "uvx", "npx"
+        args=["server-package@version"],
+        env={
+            "API_KEY": os.getenv("YOUR_API_KEY"),  # If needed
+        },
     )
 ```
 
-**After** (with MCP):
-```python
-from crewai_tools import MCPServerAdapter
-from epic_news.config.mcp_config import MCPConfig
+### Step 3: Update Environment Variables
 
-@CrewBase
-class DeepResearchCrew:
-    # Initialize Wikipedia MCP server
-    _wikipedia_mcp = None
-
-    @property
-    def wikipedia_tools(self):
-        """Get Wikipedia MCP tools (lazy initialization)."""
-        if self._wikipedia_mcp is None:
-            wikipedia_params = MCPConfig.get_wikipedia_mcp()
-            self._wikipedia_mcp = MCPServerAdapter(wikipedia_params)
-        return self._wikipedia_mcp.tools
-
-    @agent
-    def wikipedia_specialist(self) -> Agent:
-        return Agent(
-            config=self.agents_config["wikipedia_specialist"],
-            tools=self.wikipedia_tools,  # Use MCP tools
-            verbose=True,
-        )
-```
-
-**Benefits**:
-- Maintained Wikipedia integration
-- Automatic updates
-- Better error handling
-- No custom tool maintenance required
-
-### Company News Crew
-
-**MCP Servers**: Perplexity MCP (enhances web search)
-
-**Use Case**: Real-time company news research
-
-**Integration**:
-```python
-from crewai_tools import MCPServerAdapter
-from epic_news.config.mcp_config import MCPConfig
-
-@CrewBase
-class CompanyNewsCrew:
-    # Initialize Perplexity MCP server
-    _perplexity_mcp = None
-
-    @property
-    def perplexity_tools(self):
-        """Get Perplexity MCP tools."""
-        if self._perplexity_mcp is None:
-            perplexity_params = MCPConfig.get_perplexity_mcp()
-            self._perplexity_mcp = MCPServerAdapter(perplexity_params)
-        return self._perplexity_mcp.tools
-
-    @agent
-    def researcher(self) -> Agent:
-        return Agent(
-            config=self.agents_config["researcher"],
-            tools=self.perplexity_tools,  # Use perplexity_search, perplexity_research
-            llm=LLMConfig.get_openrouter_llm(),
-            verbose=True,
-        )
-```
-
-### News Daily Crew
-
-**MCP Servers**: Perplexity MCP (current events)
-
-**Use Case**: Daily news curation in French
-
-**Integration**:
-```python
-from crewai_tools import MCPServerAdapter
-from epic_news.config.mcp_config import MCPConfig
-
-@CrewBase
-class NewsDailyCrew:
-    @property
-    def perplexity_tools(self):
-        """Get Perplexity MCP tools for news research."""
-        if not hasattr(self, '_perplexity_mcp') or self._perplexity_mcp is None:
-            perplexity_params = MCPConfig.get_perplexity_mcp()
-            self._perplexity_mcp = MCPServerAdapter(perplexity_params)
-        return self._perplexity_mcp.tools
-
-    # Use perplexity_ask for conversational news queries
-    # Use perplexity_search for topic-specific news
-```
-
-## Environment Setup
-
-### Required Environment Variables
-
-Add to your `.env` file:
+Add required API keys to `.env`:
 
 ```bash
-# Perplexity MCP (Optional - only if using Perplexity tools)
-PERPLEXITY_API_KEY=pplx-your-api-key-here
+# Your MCP Server Configuration
+YOUR_API_KEY=your_api_key_here
 ```
 
-### No Additional Variables Required
+### Step 4: Integrate with Crews
 
-- **Wikipedia MCP**: No API key needed
-- **Custom Tools MCP**: Uses existing project configuration
-
-## Testing MCP Integration
-
-### Test MCP Configuration
+Use the MCP server in crew initialization:
 
 ```python
-from epic_news.config.mcp_config import MCPConfig
+from epic_news.config.mcp_config import get_your_mcp_server
 
-# Test Wikipedia MCP (no API key required)
-wikipedia_config = MCPConfig.get_wikipedia_mcp()
-print("✓ Wikipedia MCP configured:", wikipedia_config)
-
-# Test Perplexity MCP (requires API key)
-try:
-    perplexity_config = MCPConfig.get_perplexity_mcp()
-    print("✓ Perplexity MCP configured:", perplexity_config)
-except ValueError as e:
-    print("⚠ Perplexity MCP not configured:", e)
-
-# Test all servers
-all_servers = MCPConfig.get_all_mcp_servers()
-print(f"✓ Total MCP servers configured: {len(all_servers)}")
-for name in all_servers.keys():
-    print(f"  - {name}")
+@CrewBase
+class YourCrew:
+    def __init__(self):
+        self.mcp_server = get_your_mcp_server()
+        # MCP tools are now available to agents
 ```
 
-### Test MCP Tools with CrewAI
+### Step 5: Document the Integration
 
-```bash
-# Test Wikipedia MCP with deep_research crew
-uv run crewai flow kickoff -f deep_research
-```
+Update:
+- `CLAUDE.md`: Add to MCP Servers section
+- This guide: Add server details
+- `.env.example`: Add required environment variables
 
-### Test MCP Server Directly
+## Available MCP Tools by Server
 
-```python
-# Test Wikipedia MCP server
-from crewai_tools import MCPServerAdapter
-from epic_news.config.mcp_config import MCPConfig
+### Wikipedia MCP
 
-wikipedia_params = MCPConfig.get_wikipedia_mcp()
-with MCPServerAdapter(wikipedia_params) as tools:
-    print(f"Available tools: {[tool.name for tool in tools]}")
-    # Expected: ['search', 'fetch']
-```
+| Tool | Parameters | Returns | Use Case |
+|------|-----------|---------|----------|
+| `search` | query, language | List of articles | Find relevant Wikipedia articles |
+| `fetch` | page_id | Article content | Get full article text |
+
+### Perplexity MCP (Future)
+
+| Tool | Parameters | Returns | Use Case |
+|------|-----------|---------|----------|
+| `perplexity_search` | query | Search results | Web search |
+| `perplexity_ask` | question | AI response | Conversational research |
+| `perplexity_research` | topic | Deep research | Comprehensive analysis |
+| `perplexity_reason` | problem | Reasoning chain | Advanced problem solving |
 
 ## Troubleshooting
 
-### Issue: MCP server not starting
+### MCP Server Not Starting
 
-**Symptoms**: Error when initializing MCP client
-
-**Solutions**:
-1. Check if `npx` is installed (for Perplexity): `npx --version`
-2. Check if `uv` is installed (for Wikipedia): `uv --version`
-3. Verify environment variables are set correctly
-
-### Issue: Perplexity API key not found
-
-**Symptoms**: `ValueError: PERPLEXITY_API_KEY environment variable is required`
+**Symptoms**: Error when crew initializes, tool calls fail
 
 **Solutions**:
-1. Add `PERPLEXITY_API_KEY` to your `.env` file
-2. Restart your terminal/IDE to reload environment variables
-3. Verify the key is valid at https://www.perplexity.ai
+1. Verify installation:
+   ```bash
+   # For uv tools
+   uv tool list
 
-### Issue: Wikipedia MCP not responding
+   # For npx
+   npx package-name --version
+   ```
 
-**Symptoms**: Timeout or connection errors
+2. Check environment variables:
+   ```bash
+   # Verify API keys are set
+   echo $PERPLEXITY_API_KEY
+   ```
+
+3. Test server manually:
+   ```bash
+   # Run server in isolation
+   uvx wikipedia-mcp-server@latest
+   ```
+
+### Tool Not Found
+
+**Symptoms**: `ToolNotFoundError` when agent tries to use MCP tool
 
 **Solutions**:
-1. Ensure you have internet connectivity
-2. Update wikipedia-mcp-server: `uv tool install --upgrade wikipedia-mcp-server`
-3. Check if the MCP server is running: `uvx --from wikipedia-mcp-server@latest wikipedia-mcp --help`
+1. Verify tool name matches server documentation
+2. Check if server is properly configured in crew
+3. Ensure server started successfully (check logs)
 
-## Benefits of MCP Integration
+### Rate Limiting
 
-### 1. **Maintained Tools**
-- MCP servers are maintained by their providers
-- Automatic updates and bug fixes
-- No need to maintain custom Wikipedia/Perplexity wrappers
+**Symptoms**: HTTP 429 errors, slow responses
 
-### 2. **Better Performance**
-- MCP servers are optimized for their specific use cases
-- Efficient data transfer
-- Reduced API calls
+**Solutions**:
+1. Adjust `max_rpm` in crew configuration:
+   ```python
+   max_rpm=5  # Lower rate for expensive APIs
+   ```
 
-### 3. **Standardized Interface**
-- Consistent tool interface across different providers
-- Easy to swap or add new MCP servers
-- Better observability and debugging
+2. Use caching when possible
+3. Monitor API usage in provider dashboard
 
-### 4. **Enhanced Capabilities**
-- Access to advanced features (Perplexity reasoning, deep research)
-- Real-time data access
-- Multi-language support (Wikipedia)
+### Authentication Errors
 
-## Migration from Custom Tools
+**Symptoms**: HTTP 401/403 errors
 
-### Wikipedia Tools Migration
+**Solutions**:
+1. Verify API key is correct in `.env`
+2. Check API key has required permissions
+3. Ensure API key environment variable is loaded:
+   ```python
+   from dotenv import load_dotenv
+   load_dotenv()  # Should be at module level
+   ```
 
-**Before** (Custom Tools):
+## Best Practices
+
+### 1. Use MCP Servers for Common Tasks
+
+**Prefer MCP servers over custom tools when available**:
+- ✅ Use Wikipedia MCP instead of custom WikipediaTool
+- ✅ Use Perplexity MCP instead of SerperDev/Tavily
+- ⚠️ Keep custom tools only for project-specific functionality
+
+### 2. Error Handling
+
+Always handle MCP server failures gracefully:
+
 ```python
-from epic_news.tools.wikipedia_search_tool import WikipediaSearchTool
-from epic_news.tools.wikipedia_article_tool import WikipediaArticleTool
-
-tools = [
-    WikipediaSearchTool(),
-    WikipediaArticleTool(),
-]
+try:
+    wikipedia_server = get_wikipedia_mcp()
+except Exception as e:
+    logger.warning(f"Wikipedia MCP not available: {e}")
+    # Fallback to alternative tool or skip
 ```
 
-**After** (MCP with MCPServerAdapter):
+### 3. Server Lifecycle
+
+MCP servers are typically:
+- Started when crew initializes
+- Shared across all agents in the crew
+- Automatically cleaned up when crew completes
+
+### 4. API Key Management
+
+**Never hardcode API keys**:
 ```python
-from crewai_tools import MCPServerAdapter
-from epic_news.config.mcp_config import MCPConfig
+# ✅ CORRECT
+env={"API_KEY": os.getenv("PERPLEXITY_API_KEY")}
 
-# Option 1: Property-based (recommended for crews)
-@property
-def wikipedia_tools(self):
-    if self._wikipedia_mcp is None:
-        wikipedia_params = MCPConfig.get_wikipedia_mcp()
-        self._wikipedia_mcp = MCPServerAdapter(wikipedia_params)
-    return self._wikipedia_mcp.tools
-
-# Option 2: Context manager (for one-off usage)
-wikipedia_params = MCPConfig.get_wikipedia_mcp()
-with MCPServerAdapter(wikipedia_params) as tools:
-    # Use tools
-    pass
+# ❌ WRONG
+env={"API_KEY": "sk-1234567890abcdef"}
 ```
 
-**Benefits**:
-- Maintained by Wikipedia MCP team
-- Better error handling
-- More languages supported
-- Automatic updates
-- No custom tool dependencies
+### 5. Tool Discovery
 
-### Search Tools Enhancement
-
-**Before** (Basic Search):
+Use server documentation to discover available tools:
 ```python
-from crewai_tools import SerperDevTool
-
-tools = [SerperDevTool()]
+# Most MCP servers support tool listing
+server.list_tools()
 ```
 
-**After** (Enhanced with Perplexity):
-```python
-from crewai_tools import MCPServerAdapter, SerperDevTool
-from epic_news.config.mcp_config import MCPConfig
+## Performance Considerations
 
-@CrewBase
-class MyNewsCrew:
-    @property
-    def search_tools(self):
-        """Get Perplexity MCP tools + backup search."""
-        if not hasattr(self, '_perplexity_mcp'):
-            perplexity_params = MCPConfig.get_perplexity_mcp()
-            self._perplexity_mcp = MCPServerAdapter(perplexity_params)
+### Latency
 
-        # Combine MCP tools with traditional tools
-        return self._perplexity_mcp.tools + [SerperDevTool()]
+MCP adds minimal overhead:
+- Local servers (Wikipedia): ~10-50ms
+- Remote servers (Perplexity): ~200-500ms (network dependent)
 
-# Use perplexity_search for better results
-# Use perplexity_research for deep analysis
-# Keep SerperDevTool as backup
-```
+### Caching
 
-## Future Enhancements
+Some MCP servers include built-in caching:
+- Wikipedia MCP: Caches article content for 15 minutes
+- Consider implementing application-level caching for expensive calls
 
-### Custom Tools MCP Server
+### Rate Limiting
 
-**Goal**: Expose epic_news 62 custom tools via MCP
+Monitor MCP API usage:
+- Track requests per minute in crew logs
+- Use `max_rpm` to prevent rate limit errors
+- Consider premium API tiers for high-volume crews
 
-**Benefits**:
-- Dynamic tool loading
-- Better observability
-- Centralized tool management
-- Version control for tools
+## Future MCP Integrations
 
-**Implementation**: See `src/epic_news/mcp_servers/tools_server.py` (planned)
+Potential MCP servers to add:
 
-### Additional MCP Servers
-
-Potential MCP servers to integrate:
-- **GitHub MCP**: For code repository analysis
-- **Notion MCP**: For documentation storage
-- **Slack MCP**: For team notifications
-- **Custom News APIs**: Via custom MCP servers
+1. **GitHub MCP**: Code repository search and analysis
+2. **Google Drive MCP**: Document access and search
+3. **Notion MCP**: Knowledge base integration
+4. **Slack MCP**: Team communication and data retrieval
+5. **Financial Data MCP**: Market data and analytics
 
 ## Resources
 
-- [MCP Specification](https://modelcontextprotocol.io/)
-- [CrewAI MCP Documentation](https://docs.crewai.com/tools/mcp)
-- [Perplexity MCP Server](https://docs.perplexity.ai/guides/mcp-server)
+- [MCP Specification](https://spec.modelcontextprotocol.io/)
+- [MCP Servers Directory](https://mcpservers.org/)
 - [Wikipedia MCP Server](https://mcpservers.org/servers/progamesigner/wikipedia-mcp)
-- [MCP Server Registry](https://mcpservers.org/)
+- [Perplexity MCP Guide](https://docs.perplexity.ai/guides/mcp-server)
+- [CrewAI MCP Integration](https://docs.crewai.com/concepts/mcp)
 
-## Getting Help
+## Support
 
-If you encounter issues with MCP integration:
-
-1. Check this guide's Troubleshooting section
-2. Review the MCP server documentation (links above)
-3. Check CrewAI's MCP integration docs
-4. Open an issue with debug logs and configuration
+For MCP-related issues:
+1. Check server-specific documentation
+2. Review CrewAI MCP integration docs
+3. Check `logs/` directory for error details
+4. Open issue on project GitHub with MCP server name and error logs
