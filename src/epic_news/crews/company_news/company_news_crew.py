@@ -43,21 +43,15 @@ class CompanyNewsCrew:
         Output file is passed via context parameter `output_file`.
         """
 
-        from composio_crewai import ComposioToolSet
+        from epic_news.config.composio_config import ComposioConfig
 
-        # Initialize the toolset
-        toolset = ComposioToolSet()
+        # Initialize Composio with new 1.0 API
+        # NOTE: Composio 1.0 has NO "SEARCH" toolkit. Search comes from social platforms.
+        composio = ComposioConfig()
 
-        # Use only available tools for search
-        self.search_tools = toolset.get_tools(
-            actions=[
-                "COMPOSIO_SEARCH_SEARCH",
-                "COMPOSIO_SEARCH_DUCK_DUCK_GO_SEARCH",
-                "COMPOSIO_SEARCH_NEWS_SEARCH",
-                "COMPOSIO_SEARCH_TRENDS_SEARCH",
-                "COMPOSIO_SEARCH_EVENT_SEARCH",
-            ],
-        )
+        # Get search tools from Reddit, Twitter, and HackerNews (5 tools total)
+        # These replace the deprecated COMPOSIO_SEARCH_* actions that no longer exist
+        self.search_tools = composio.get_search_tools()
 
         # Pass observability tools to instance
         self.tracer = tracer

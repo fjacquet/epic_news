@@ -41,33 +41,48 @@ class PostCrew:
             task_timeout=600,
         )
 
-    def _get_composio_toolset(self):
+    def _get_send_tools(self):
+        """Get email send tools from Composio using new 1.0 API.
+        
+        NOTE: Composio 1.0 Gmail integration does NOT include GMAIL_SEND_EMAIL.
+        Available Gmail actions: CREATE_EMAIL_DRAFT, FORWARD_MESSAGE, etc.
+        The deprecated GMAIL_SEND_EMAIL action from old ComposioToolSet no longer exists.
+        
+        Returns:
+            List of Gmail tools, or empty list if not available.
+        """
         try:
-            from composio_crewai import ComposioToolSet
-        except Exception as e:  # ImportError or runtime issues
+            from epic_news.config.composio_config import ComposioConfig
+            
+            # Initialize Composio with new 1.0 API
+            composio = ComposioConfig()
+            
+            # Get communication tools (includes Gmail)
+            comm_tools = composio.get_communication_tools()
+            
+            # Try to find GMAIL_SEND_EMAIL (will likely be empty)
+            gmail_send_tools = [t for t in comm_tools if 'GMAIL_SEND_EMAIL' in t.name]
+            
+            if not gmail_send_tools:
+                # Alternative: use draft creation instead
+                gmail_draft_tools = [t for t in comm_tools if 'GMAIL_CREATE_EMAIL_DRAFT' in t.name]
+                
+                if gmail_draft_tools:
+                    logging.getLogger(__name__).warning(
+                        "GMAIL_SEND_EMAIL not available in Composio 1.0. Using GMAIL_CREATE_EMAIL_DRAFT instead."
+                    )
+                    return gmail_draft_tools
+                else:
+                    logging.getLogger(__name__).warning(
+                        "No Gmail send/draft tools available in Composio 1.0"
+                    )
+                    return []
+            
+            return gmail_send_tools
+            
+        except Exception as e:
             logging.getLogger(__name__).warning(
                 "Composio not available; email sending tools disabled. Reason: %s",
-                e,
-            )
-            return None
-        try:
-            return ComposioToolSet()
-        except Exception as e:
-            logging.getLogger(__name__).warning(
-                "Failed to initialize ComposioToolSet; email sending disabled. Reason: %s",
-                e,
-            )
-            return None
-
-    def _get_send_tools(self):
-        toolset = self._get_composio_toolset()
-        if toolset is None:
-            return []
-        try:
-            return toolset.get_tools(actions=["GMAIL_SEND_EMAIL"])
-        except Exception as e:
-            logging.getLogger(__name__).warning(
-                "Composio tool retrieval failed; email sending disabled. Reason: %s",
                 e,
             )
             return []

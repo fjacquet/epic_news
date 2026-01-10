@@ -249,7 +249,21 @@ comm_tools = config.get_communication_tools()
 
 **Setup**: Already configured in project
 
-**Status**: ✅ **Ready to use**
+**IMPORTANT LIMITATION**: Composio 1.0 Gmail integration **does NOT include GMAIL_SEND_EMAIL**.
+
+**Available Gmail Actions** (20 tools):
+- `GMAIL_CREATE_EMAIL_DRAFT`: Create email drafts (alternative to sending)
+- `GMAIL_FORWARD_MESSAGE`: Forward existing messages
+- `GMAIL_FETCH_EMAILS`: Retrieve emails
+- `GMAIL_DELETE_MESSAGE`: Delete messages
+- And 16 other management tools (labels, attachments, etc.)
+
+**Missing Actions**:
+- ❌ `GMAIL_SEND_EMAIL` - Not available in Composio 1.0 (deprecated from old API)
+
+**Workaround**: Use `GMAIL_CREATE_EMAIL_DRAFT` to create drafts that can be manually sent, or use alternative tools like Slack/Discord for notifications.
+
+**Status**: ⚠️ **Partially ready** (no send functionality)
 
 ---
 
