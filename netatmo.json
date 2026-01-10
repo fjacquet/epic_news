@@ -1,0 +1,138 @@
+{
+  "name": "Home Temperature Monitor",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": "everyHour"
+      },
+      "id": "3f9a9a43-9b2b-4a1c-9b1a-3e4a9a439b2b",
+      "name": "Run Every Hour",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        800,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "station",
+        "operation": "getStationsData",
+        "options": {}
+      },
+      "id": "a1b2c3d4-e5f6-a7b8-c9d0-e1f2a3b4c5d6",
+      "name": "Get Station Data",
+      "type": "n8n-nodes-base.netatmo",
+      "typeVersion": 1,
+      "position": [
+        1000,
+        400
+      ],
+      "credentials": {
+        "netatmoApi": {
+          "id": "YOUR_NETATMO_CREDENTIAL_ID",
+          "name": "Netatmo credentials"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "operator": "and",
+          "conditions": [
+            {
+              "firstValue": "={{ $json.body.devices[0].dashboard_data.Temperature }}",
+              "operation": "larger",
+              "secondValue": "={{ $json.body.devices[0].modules.find(m => m.type === 'NAModule1').dashboard_data.Temperature }}"
+            },
+            {
+              "firstValue": "={{ DateTime.now().month }}",
+              "operation": "isIn",
+              "secondValue": "6,7,8"
+            }
+          ]
+        }
+      },
+      "id": "",
+      "name": "Is it warm inside during summer?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        1200,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "to": "YOUR_EMAIL@example.com",
+        "subject": "Home Alert: It's warmer inside than outside!",
+        "text": "={{ `Hi,\n\nThis is an automated alert from your n8n workflow.\n\nThe indoor temperature is currently ${$('Get Station Data').item.json.body.devices[0].dashboard_data.Temperature}°C.\nThe outdoor temperature is currently ${$('Get Station Data').item.json.body.devices[0].modules.find(m => m.type === 'NAModule1').dashboard_data.Temperature}°C.\n\nYou might want to open the windows to cool down the house.` }},"options": {}
+      },
+      "id": "",
+      "name": "Send Alert Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 4.2,
+      "position": [
+        1400,
+        300
+      ],
+      "credentials": {
+        "gmailApi": {
+          "id": "YOUR_GMAIL_CREDENTIAL_ID",
+          "name": "Gmail credentials"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Run Every Hour": {
+      "main": [
+        [
+          {
+            "node": "Get Station Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Station Data": {
+      "main": [
+        [
+          {
+            "node": "Is it warm inside during summer?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is it warm inside during summer?": {
+      "main": [
+        [
+          {
+            "node": "Send Alert Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    {
+      "name": "home-automation",
+      "id": "1"
+    },
+    {
+      "name": "netatmo",
+      "id": "2"
+    }
+  ]
+}
