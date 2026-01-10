@@ -50,14 +50,14 @@ def generate_rss_weekly_html_report(
                 for a in feed_data.articles
             ]
             report_feeds.append(
-                FeedDigest(
+                FeedDigest(  # type: ignore[call-arg]
                     feed_url=feed_data.feed_url,
-                    feed_name=feed_data.feed_title,  # Use the title from the feed
+                    feed_name=getattr(feed_data, "feed_title", None) or getattr(feed_data, "feed_name", "Unknown"),
                     articles=articles,
                 )
             )
 
-        report_model = RssWeeklyReport(
+        report_model = RssWeeklyReport(  # type: ignore[call-arg]
             title=report_title,
             summary="Un résumé hebdomadaire des dernières nouvelles et articles de vos flux RSS.",
             feeds=report_feeds,
@@ -65,7 +65,7 @@ def generate_rss_weekly_html_report(
 
         # Generate the HTML report using TemplateManager
         tm = TemplateManager()
-        html = tm.render_report("RSS_WEEKLY", report_model)
+        html = tm.render_report("RSS_WEEKLY", report_model.model_dump())
         with open(output_html_path, "w", encoding="utf-8") as f:
             f.write(html)
         logger.info(f"✅ HTML report successfully generated at: {output_html_path}")

@@ -19,7 +19,6 @@ Note: company_news_crew.py uses the old deprecated API. Update it to use this mo
 """
 
 import os
-from typing import Optional
 
 from composio import Composio
 from composio_crewai import CrewAIProvider

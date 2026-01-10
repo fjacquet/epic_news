@@ -19,12 +19,12 @@ from typing import Any
 
 try:
     # Local, optional tracing (no hard dependency)
-    from .tracing import trace_span  # type: ignore
+    from .tracing import trace_span
 except Exception:  # pragma: no cover - fallback if tracing is unavailable
     from contextlib import contextmanager
 
     @contextmanager
-    def trace_span(name: str, attrs: dict[str, Any] | None = None):  # type: ignore
+    def trace_span(name: str, attrs: dict[str, Any] | None = None):
         yield
 
 

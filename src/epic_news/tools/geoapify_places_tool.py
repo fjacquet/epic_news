@@ -8,7 +8,6 @@ points of interest by categories, conditions, and location filters.
 import json
 import os
 from enum import Enum
-from typing import Optional
 
 import requests
 from crewai.tools import BaseTool

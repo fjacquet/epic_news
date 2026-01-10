@@ -1,7 +1,6 @@
 """Base classes and common functionality for email search tools."""
 
 import re
-from typing import Optional
 
 import requests
 from loguru import logger

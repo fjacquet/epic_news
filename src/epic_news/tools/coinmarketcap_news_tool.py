@@ -4,7 +4,6 @@ CoinMarketCap API tool for cryptocurrency news.
 
 import json
 import os
-from typing import Optional
 
 import requests
 from crewai.tools import BaseTool

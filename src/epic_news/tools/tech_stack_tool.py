@@ -31,7 +31,7 @@ class TechStackTool(BaseTool, BaseSearchTool):
     name: str = "tech_stack_analysis"
     description: str = "Analyze the technology stack used by a website"
     args_schema: type[BaseModel] = TechStackInput
-    api_key: str = None
+    api_key: str | None = None
 
     # Common technology patterns to look for
     TECH_PATTERNS: ClassVar[dict[str, list[str]]] = {

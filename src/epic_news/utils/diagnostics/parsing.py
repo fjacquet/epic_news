@@ -257,7 +257,7 @@ def parse_crewai_output(report_content: Any, model_class: type[T], inputs: dict 
                 from epic_news.utils.data_normalization import normalize_metric_type
             except ImportError:
 
-                def normalize_metric_type(v: str):  # type: ignore[no-redef]
+                def normalize_metric_type(v: str) -> str:  # type: ignore[misc]
                     return v
 
             metrics = parsed_data.get("sales_metrics", {}).get("metrics", [])

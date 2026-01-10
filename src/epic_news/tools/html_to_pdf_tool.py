@@ -1,5 +1,4 @@
 import os
-from typing import Optional
 
 from crewai.tools import BaseTool
 from pydantic import BaseModel, Field
@@ -11,7 +10,7 @@ try:
     WEASYPRINT_AVAILABLE = True
 except (ImportError, OSError) as e:
     WEASYPRINT_AVAILABLE = False
-    HTML = None  # type: ignore
+    HTML = None
     _weasyprint_error = str(e)
 
 

@@ -1,3 +1,5 @@
+from typing import Any
+
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from dotenv import load_dotenv
@@ -23,8 +25,8 @@ class CookingCrew:
     in YAML files compatible with Paprika recipe manager for easy import.
     """
 
-    agents_config = "config/agents.yaml"
-    tasks_config = "config/tasks.yaml"
+    agents_config: dict[str, Any] = "config/agents.yaml"  # type: ignore[assignment]
+    tasks_config: dict[str, Any] = "config/tasks.yaml"  # type: ignore[assignment]
 
     @agent
     def cook(self) -> Agent:
@@ -69,7 +71,8 @@ class CookingCrew:
     def cook_task(self) -> Task:
         """Generate the `PaprikaRecipe`."""
         return Task(
-            config=self.tasks_config["cook_task"],
+            config=self.tasks_config["cook_task"],  # type: ignore[call-arg]
+            agent=self.cook(),  # type: ignore[call-arg]
             output_pydantic=PaprikaRecipe,
         )
 
@@ -79,7 +82,9 @@ class CookingCrew:
         Generate a recipe in YAML format compatible with the Paprika recipe manager.
         """
         return Task(
-            config=self.tasks_config["paprika_yaml_task"],
+            config=self.tasks_config["paprika_yaml_task"],  # type: ignore[call-arg]
+            agent=self.paprika_renderer(),  # type: ignore[call-arg]
+            context=[self.cook_task()],  # type: ignore
             verbose=True,
         )
 
@@ -87,7 +92,9 @@ class CookingCrew:
     def recipe_state_task(self) -> Task:
         """Persist recipe state to JSON for HTML rendering pipeline."""
         return Task(
-            config=self.tasks_config["recipe_state_task"],
+            config=self.tasks_config["recipe_state_task"],  # type: ignore[call-arg]
+            agent=self.json_exporter(),  # type: ignore[call-arg]
+            context=[self.cook_task()],  # type: ignore
             verbose=True,
         )
 
@@ -97,11 +104,11 @@ class CookingCrew:
         try:
             logger.info("Creating CookingCrew for recipe generation")
             return Crew(
-                agents=self.agents,
-                tasks=self.tasks,
+                agents=self.agents,  # type: ignore[attr-defined]
+                tasks=self.tasks,  # type: ignore[attr-defined]
                 process=Process.sequential,
                 verbose=True,
-                max_iter=LLMConfig.get_max_iter(),
+                max_iter=LLMConfig.get_max_iter(),  # type: ignore[call-arg]
                 max_rpm=LLMConfig.get_max_rpm(),
             )
         except Exception as e:

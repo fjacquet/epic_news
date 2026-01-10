@@ -1,6 +1,5 @@
 """Pydantic model for NewsDaily crew output."""
 
-from typing import Optional, Union
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -72,7 +71,7 @@ class NewsDailyReport(BaseModel):
             for item in v:
                 if isinstance(item, str):
                     news_items.append(
-                        NewsItem(title=item[:100] + "..." if len(item) > 100 else item, source="Actualité")
+                        NewsItem(title=item[:100] + "..." if len(item) > 100 else item, source="Actualité")  # type: ignore[call-arg]
                     )
                 else:
                     news_items.append(item)
@@ -90,7 +89,7 @@ class NewsDailyReport(BaseModel):
             for item in v:
                 if isinstance(item, str):
                     news_items.append(
-                        NewsItem(
+                        NewsItem(  # type: ignore[call-arg]
                             title=item[:100] + "..." if len(item) > 100 else item, source="Analyse économique"
                         )
                     )

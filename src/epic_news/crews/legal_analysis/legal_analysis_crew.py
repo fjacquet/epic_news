@@ -29,7 +29,7 @@ class LegalAnalysisCrew:
         all_tools = search_tools + [html_to_pdf_tool] + get_report_tools()
 
         return Agent(
-            config=self.agents_config["legal_researcher"],
+            config=self.agents_config["legal_researcher"],  # type: ignore[index]
             verbose=True,
             tools=all_tools,
             llm=LLMConfig.get_openrouter_llm(),
@@ -44,7 +44,7 @@ class LegalAnalysisCrew:
     def legal_reporter(self) -> Agent:
         """Creates the legal reporter agent without tools for clean output generation"""
         return Agent(
-            config=self.agents_config["legal_reporter"],
+            config=self.agents_config["legal_reporter"],  # type: ignore[index]
             tools=[],  # No tools for reporter to ensure clean output
             llm=LLMConfig.get_openrouter_llm(),
             llm_timeout=LLMConfig.get_timeout("default"),
@@ -59,49 +59,49 @@ class LegalAnalysisCrew:
     def legal_compliance_assessment(self) -> Task:
         """Assess the company's legal compliance status"""
         return Task(
-            config=self.tasks_config["legal_compliance_assessment"],
+            config=self.tasks_config["legal_compliance_assessment"],  # type: ignore[arg-type, index]
             async_execution=True,
-            verbose=True,
+            verbose=True,  # type: ignore[call-arg]
         )
 
     @task
     def intellectual_property_analysis(self) -> Task:
         """Analyze the company's intellectual property portfolio"""
         return Task(
-            config=self.tasks_config["intellectual_property_analysis"],
+            config=self.tasks_config["intellectual_property_analysis"],  # type: ignore[arg-type, index]
             async_execution=True,
-            verbose=True,
+            verbose=True,  # type: ignore[call-arg]
         )
 
     @task
     def regulatory_risk_assessment(self) -> Task:
         """Assess the company's regulatory risks"""
         return Task(
-            config=self.tasks_config["regulatory_risk_assessment"],
+            config=self.tasks_config["regulatory_risk_assessment"],  # type: ignore[arg-type, index]
             async_execution=True,
-            verbose=True,
+            verbose=True,  # type: ignore[call-arg]
         )
 
     @task
     def litigation_history_analysis(self) -> Task:
         """Analyze the company's litigation history"""
         return Task(
-            config=self.tasks_config["litigation_history_analysis"],
+            config=self.tasks_config["litigation_history_analysis"],  # type: ignore[arg-type, index]
             async_execution=True,
-            verbose=True,
+            verbose=True,  # type: ignore[call-arg]
         )
 
     @task
     def mergers_and_acquisitions_due_diligence(self) -> Task:
         """Conduct legal due diligence for mergers and acquisitions"""
         return Task(
-            config=self.tasks_config["mergers_and_acquisitions_due_diligence"],
+            config=self.tasks_config["mergers_and_acquisitions_due_diligence"],  # type: ignore[arg-type, index]
             async_execution=False,
             context=[
-                self.legal_compliance_assessment(),
-                self.intellectual_property_analysis(),
-                self.regulatory_risk_assessment(),
-                self.litigation_history_analysis(),
+                self.legal_compliance_assessment(),  # type: ignore[call-arg]
+                self.intellectual_property_analysis(),  # type: ignore[call-arg]
+                self.regulatory_risk_assessment(),  # type: ignore[call-arg]
+                self.litigation_history_analysis(),  # type: ignore[call-arg]
             ],
             output_pydantic=LegalAnalysisReport,
         )
@@ -110,10 +110,10 @@ class LegalAnalysisCrew:
     def crew(self) -> Crew:
         """Creates the Legal Analysis crew"""
         return Crew(
-            agents=self.agents,
-            tasks=self.tasks,
+            agents=self.agents,  # type: ignore[attr-defined]
+            tasks=self.tasks,  # type: ignore[attr-defined]
             process=Process.sequential,
-            llm_timeout=LLMConfig.get_timeout("default"),
+            llm_timeout=LLMConfig.get_timeout("default"),  # type: ignore[call-arg]
             max_iter=LLMConfig.get_max_iter(),
             max_rpm=LLMConfig.get_max_rpm(),
             verbose=True,

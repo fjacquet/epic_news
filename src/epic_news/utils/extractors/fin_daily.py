@@ -50,12 +50,13 @@ class FinancialExtractor(ContentExtractor):
                 logger.debug("  🔧 Creating fallback FinancialReport with available data...")
 
                 # Create a fallback FinancialReport with available data
-                financial_report = FinancialReport(
-                    title=financial_report.get("title", "Daily Financial Report"),
-                    executive_summary=financial_report.get(
+                fr_dict = financial_report  # Keep dict reference before reassignment
+                financial_report = FinancialReport(  # type: ignore[call-arg]
+                    title=fr_dict.get("title", "Daily Financial Report"),  # type: ignore[union-attr]
+                    executive_summary=fr_dict.get(  # type: ignore[union-attr]
                         "executive_summary",
-                        financial_report.get("summary", "Financial analysis summary not available"),
-                    ),
+                        fr_dict.get("summary", "Financial analysis summary not available"),  # type: ignore[union-attr]
+                    ) or "Financial analysis summary not available",
                     analyses=[],  # Empty list for now - can be enhanced later
                     suggestions=[],  # Empty list for now - can be enhanced later
                 )

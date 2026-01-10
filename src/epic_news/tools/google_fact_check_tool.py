@@ -1,5 +1,4 @@
 import os
-from typing import Optional
 
 import requests
 from crewai.tools import BaseTool
@@ -42,6 +41,6 @@ class GoogleFactCheckTool(BaseTool):
                 params=params,
             )
             response.raise_for_status()  # Raise an exception for bad status codes
-            return response.json()
+            return str(response.json())
         except requests.exceptions.RequestException as e:
             return f"Error: {e}"

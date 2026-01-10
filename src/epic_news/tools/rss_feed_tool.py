@@ -4,7 +4,7 @@ RSS Feed Tool for reliable news source ingestion.
 
 import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta
-from typing import Any, ClassVar, Optional
+from typing import Any, ClassVar
 from urllib.parse import urljoin, urlparse
 
 import httpx
@@ -269,7 +269,7 @@ class RSSFeedTool(BaseTool):
         def get_text(element, tag_name: str, default: str = "") -> str:
             elem = element.find(tag_name) or element.find(f".//{tag_name}")
             if elem is not None and elem.text:
-                return elem.text.strip()
+                return str(elem.text).strip()
             return default
 
         # Extract basic fields

@@ -10,7 +10,7 @@ class CrossReferenceReportRenderer(BaseRenderer):
 
     def __init__(self):
         """Initializes the renderer."""
-        super().__init__()
+        super().__init__()  # type: ignore[safe-super]
 
     def render(self, data: dict, **kwargs) -> str:
         """

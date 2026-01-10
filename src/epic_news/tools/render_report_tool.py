@@ -19,10 +19,10 @@ from __future__ import annotations
 import datetime as _dt
 import os
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any
 
 from crewai.tools import BaseTool
-from jinja2 import Environment, FileSystemLoader, select_autoescape  # type: ignore
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 from pydantic import BaseModel, PrivateAttr
 
 from epic_news.models.report_models import RenderReportToolSchema
@@ -51,7 +51,7 @@ class RenderReportTool(BaseTool):
 
     def __init__(self, template_dir: str | os.PathLike | None = None):
         """Initialize the tool and set up the Jinja2 environment."""
-        super().__init__()
+        super().__init__()  # type: ignore[call-arg]
         if template_dir:
             self._template_dir = Path(template_dir)
         else:

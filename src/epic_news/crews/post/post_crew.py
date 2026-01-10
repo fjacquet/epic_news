@@ -1,4 +1,5 @@
 import logging
+from typing import Any, cast
 
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
@@ -17,9 +18,9 @@ class PostCrew:
     tasks_config = "config/tasks.yaml"
 
     @agent
-    def distributor(self):
+    def distributor(self) -> Agent:
         return Agent(
-            config=self.agents_config["distributor"],
+            config=cast(dict[str, Any], self.agents_config)["distributor"],
             llm=LLMConfig.get_openrouter_llm(),
             llm_timeout=LLMConfig.get_timeout("default"),
             verbose=True,
@@ -27,27 +28,21 @@ class PostCrew:
 
     @task
     def distribution_task(self) -> Task:
-        return Task(
-            config=self.tasks_config["distribution_task"],
-            agent=self.distributor(),
+        return Task(  # type: ignore[call-arg]
+            config=cast(dict[str, Any], self.tasks_config)["distribution_task"],
+            agent=self.distributor(),  # type: ignore[call-arg]
             tools=self._get_send_tools() + [FileReadTool()],
-            verbose=True,
-            llm_timeout=LLMConfig.get_timeout("default"),
         )
 
     @crew
-    def crew(self):
+    def crew(self) -> Crew:
         return Crew(
-            agents=self.agents,
-            tasks=self.tasks,
+            agents=cast(list[Agent], self.agents),  # type: ignore[arg-type, attr-defined]
+            tasks=cast(list[Task], self.tasks),  # type: ignore[attr-defined]
             process=Process.sequential,
             verbose=True,
             memory=False,
             cache=False,
-            manager_llm_timeout=LLMConfig.get_timeout("default"),
-            max_iter=LLMConfig.get_max_iter(),
-            max_rpm=LLMConfig.get_max_rpm(),
-            task_timeout=600,  # Keep existing task timeout
         )
 
     def _get_send_tools(self):

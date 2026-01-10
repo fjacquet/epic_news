@@ -1,6 +1,5 @@
 """Pydantic models for the Todoist tool."""
 
-from typing import Union
 
 from pydantic import BaseModel, Field, model_validator
 

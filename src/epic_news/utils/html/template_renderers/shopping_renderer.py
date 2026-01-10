@@ -17,7 +17,7 @@ class ShoppingRenderer(BaseRenderer):
 
     def __init__(self):
         """Initialize the deep research renderer."""
-        super().__init__()
+        super().__init__()  # type: ignore[safe-super]
 
     def render(self, data: dict[str, Any]) -> str:
         """
@@ -37,7 +37,7 @@ class ShoppingRenderer(BaseRenderer):
         if "error" in data:
             error_div = soup.new_tag("div", class_="error")
             error_div.string = f"⚠️ {data['error']}"
-            container.append(error_div)
+            container.append(error_div)  # type: ignore[union-attr]
             return str(soup)
 
         # Add product overview

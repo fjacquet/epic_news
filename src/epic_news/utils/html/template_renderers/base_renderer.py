@@ -49,7 +49,7 @@ class BaseRenderer(ABC):
             # Convert Python naming to HTML (class_ -> class)
             if key.endswith("_"):
                 key = key[:-1]
-            root[key] = value
+            root[key] = value  # type: ignore[index]
 
         return soup
 

@@ -28,7 +28,7 @@ class SalesProspectingRenderer(BaseRenderer):
 
     def __init__(self):
         """Initialize the deep research renderer."""
-        super().__init__()
+        super().__init__()  # type: ignore[safe-super]
 
     def render(self, data: dict[str, Any], *_ignore, **__ignore) -> str:
         """Return the rendered report as an HTML string."""
@@ -47,7 +47,7 @@ class SalesProspectingRenderer(BaseRenderer):
 
     @staticmethod
     def _add_header(soup: BeautifulSoup, container) -> None:
-        header = soup.new_tag("div", **{"class": "report-header"})
+        header = soup.new_tag("div", **{"class": "report-header"})  # type: ignore[arg-type]
         header.append(soup.new_tag("h1", string="Sales Prospecting Report"))
         container.append(header)
 
@@ -57,7 +57,7 @@ class SalesProspectingRenderer(BaseRenderer):
         if not overview:
             return
 
-        section = soup.new_tag("section", **{"class": "report-section"})
+        section = soup.new_tag("section", **{"class": "report-section"})  # type: ignore[arg-type]
         section.append(soup.new_tag("h2", string="Company Overview"))
         section.append(soup.new_tag("p", string=overview))
         container.append(section)
@@ -68,12 +68,12 @@ class SalesProspectingRenderer(BaseRenderer):
         if not contacts:
             return
 
-        section = soup.new_tag("section", **{"class": "report-section"})
+        section = soup.new_tag("section", **{"class": "report-section"})  # type: ignore[arg-type]
         section.append(soup.new_tag("h2", string="Key Contacts"))
 
-        grid = soup.new_tag("div", **{"class": "contacts-grid"})
+        grid = soup.new_tag("div", **{"class": "contacts-grid"})  # type: ignore[arg-type]
         for contact in contacts:
-            card = soup.new_tag("div", **{"class": "contact-card"})
+            card = soup.new_tag("div", **{"class": "contact-card"})  # type: ignore[arg-type]
             card.append(soup.new_tag("h3", string=contact.get("name", "N/A")))
             card.append(soup.new_tag("p", string=contact.get("role", "N/A")))
             card.append(soup.new_tag("p", string=contact.get("department", "N/A")))
@@ -89,7 +89,7 @@ class SalesProspectingRenderer(BaseRenderer):
         if not strategy:
             return
 
-        section = soup.new_tag("section", **{"class": "report-section"})
+        section = soup.new_tag("section", **{"class": "report-section"})  # type: ignore[arg-type]
         section.append(soup.new_tag("h2", string="Approach Strategy"))
         section.append(soup.new_tag("p", string=strategy))
         container.append(section)
@@ -100,14 +100,14 @@ class SalesProspectingRenderer(BaseRenderer):
         if not info:
             return
 
-        section = soup.new_tag("section", **{"class": "report-section"})
+        section = soup.new_tag("section", **{"class": "report-section"})  # type: ignore[arg-type]
         section.append(soup.new_tag("h2", string="Remaining Information"))
         section.append(soup.new_tag("p", string=info))
         container.append(section)
 
     @staticmethod
     def _add_raw_data(soup: BeautifulSoup, container, data: dict[str, Any]) -> None:
-        details = soup.new_tag("details", **{"class": "raw-data"})
+        details = soup.new_tag("details", **{"class": "raw-data"})  # type: ignore[arg-type]
         details.append(soup.new_tag("summary", string="View Raw Data"))
         pre = soup.new_tag("pre")
         code = soup.new_tag("code")

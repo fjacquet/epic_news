@@ -1,7 +1,6 @@
 """Pydantic models for menu designer output validation."""
 
 from enum import Enum
-from typing import Optional
 
 from pydantic import BaseModel, Field, field_validator
 

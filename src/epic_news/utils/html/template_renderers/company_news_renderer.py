@@ -15,9 +15,9 @@ class CompanyNewsRenderer(BaseRenderer):
 
     def __init__(self):
         """Initialize the deep research renderer."""
-        super().__init__()
+        super().__init__()  # type: ignore[safe-super]
 
-    def render(self, data: dict[str, Any], selected_crew: str = None) -> str:
+    def render(self, data: dict[str, Any], selected_crew: str | None = None) -> str:
         """
         Render company news data to HTML, removing all internal/raw CrewAI data.
         Only business news content is displayed: summary, sections, articles, and notes.
@@ -28,7 +28,7 @@ class CompanyNewsRenderer(BaseRenderer):
 
         # Fallback: if container is still None, create it manually
         if container is None:
-            container = soup.new_tag("div", **{"class": "company-news-report"})
+            container = soup.new_tag("div", **{"class": "company-news-report"})  # type: ignore[arg-type]
             soup.append(container)
 
         # Add summary as header
@@ -49,11 +49,11 @@ class CompanyNewsRenderer(BaseRenderer):
             self._add_sections(soup, container, data)
         else:
             # Friendly message if no news
-            empty_div = soup.new_tag("div", **{"class": "company-news-empty"})
+            empty_div = soup.new_tag("div", **{"class": "company-news-empty"})  # type: ignore[arg-type]
             empty_msg = soup.new_tag("p")
             empty_msg.string = "Aucune actualité vérifiable disponible pour cette période."
             empty_div.append(empty_msg)
-            container.append(empty_div)
+            container.append(empty_div)  # type: ignore[attr-defined]
 
         # Add notes if present
         self._add_notes(soup, container, data)

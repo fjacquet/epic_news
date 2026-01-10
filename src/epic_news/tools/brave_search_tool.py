@@ -4,7 +4,6 @@ Brave Search Tool for enhanced news search with better link reliability.
 
 import json
 import os
-from typing import Optional
 
 from crewai.tools import BaseTool
 from crewai_tools import BraveSearchTool as CrewAIBraveSearchTool

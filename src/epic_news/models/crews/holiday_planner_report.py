@@ -6,7 +6,7 @@ Based on the format_and_translate_guide task output structure.
 """
 
 import json
-from typing import Any, Optional, Union
+from typing import Any
 
 from pydantic import BaseModel, Field
 

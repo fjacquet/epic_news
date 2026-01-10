@@ -7,15 +7,15 @@
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 
 import httpx
 from tenacity import retry, retry_if_exception, stop_after_attempt, wait_exponential
 
 try:
-    import requests_cache  # type: ignore
+    import requests_cache
 except Exception:  # pragma: no cover
-    requests_cache = None  # type: ignore
+    requests_cache = None  # type: ignore[assignment]
 
 _DEFAULT_HEADERS: dict[str, str] = {
     "User-Agent": "Mozilla/5.0 (compatible; EpicNews/1.0; +https://example.com)"
@@ -67,7 +67,7 @@ def _retry_predicate(exc: Exception) -> bool:
 @retry(
     wait=wait_exponential(multiplier=1, min=1, max=10),
     stop=stop_after_attempt(3),
-    retry=retry_if_exception(_retry_predicate),
+    retry=retry_if_exception(_retry_predicate),  # type: ignore[arg-type]
     reraise=True,
 )
 def http_get(

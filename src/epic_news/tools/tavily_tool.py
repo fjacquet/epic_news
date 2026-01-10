@@ -24,6 +24,6 @@ class TavilyTool(BaseTool):
 
             client = TavilyClient(api_key=api_key)
             response = client.search(query=query, search_depth="basic")
-            return response["results"]
+            return str(response["results"])
         except Exception as e:
             return f"Error performing search with Tavily: {e}"

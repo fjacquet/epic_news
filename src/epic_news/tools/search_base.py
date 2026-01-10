@@ -1,6 +1,6 @@
 """Base classes and common functionality for search tools."""
 
-from typing import Any, Optional, TypeVar
+from typing import Any, TypeVar
 
 import requests
 from loguru import logger
@@ -40,7 +40,7 @@ class BaseSearchTool:
     def _make_request(self, method: str, url: str, **kwargs) -> requests.Response | None:
         """Make an HTTP request with error handling."""
         try:
-            response = self.session.request(method, url, timeout=10, **kwargs)
+            response = self.session.request(method, url, timeout=10, **kwargs)  # type: ignore[union-attr]
             response.raise_for_status()
             return response
         except requests.RequestException as e:
@@ -77,7 +77,7 @@ class BaseSearchTool:
                 logger.error(f"Search API error: {data.get('message', 'Unknown error')}")
                 return None
 
-            return data
+            return dict(data) if isinstance(data, dict) else None
 
         except ValueError as e:
             logger.error(f"Failed to parse search response: {e}")

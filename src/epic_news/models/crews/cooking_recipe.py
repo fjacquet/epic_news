@@ -2,7 +2,6 @@
 
 import json
 import re
-from typing import Optional
 
 import yaml
 from pydantic import BaseModel, Field
@@ -67,7 +66,7 @@ class PaprikaRecipe(BaseModel):
             return cls(**data)
         except (yaml.YAMLError, TypeError, ValueError):
             # Return default instance if parsing fails
-            return cls(
+            return cls(  # type: ignore[call-arg]
                 name="Recette",
                 ingredients="",
                 directions="",
@@ -81,7 +80,7 @@ class PaprikaRecipe(BaseModel):
             return cls(**data)
         except (json.JSONDecodeError, TypeError, ValueError):
             # Return default instance if parsing fails
-            return cls(
+            return cls(  # type: ignore[call-arg]
                 name="Recette",
                 ingredients="",
                 directions="",

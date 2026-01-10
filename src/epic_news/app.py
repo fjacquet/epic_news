@@ -35,7 +35,7 @@ class StreamlitLogSink:
         self.queue.put(message.strip())
 
 
-log_queue = Queue()
+log_queue: Queue[str] = Queue()
 logger.add(StreamlitLogSink(log_queue), format="{time:YYYY-MM-DD HH:mm:ss} - {level} - {message}")
 
 
@@ -48,12 +48,12 @@ def html_to_markdown(html: str) -> str:
     """
     try:
         # Prefer markdownify when present
-        from markdownify import markdownify as md  # type: ignore
+        from markdownify import markdownify as md
 
-        return md(html, heading_style="ATX")
+        return str(md(html, heading_style="ATX"))
     except Exception:
         try:
-            from bs4 import BeautifulSoup  # type: ignore
+            from bs4 import BeautifulSoup
 
             soup = BeautifulSoup(html, "html.parser")
             # Keep basic structure using newlines

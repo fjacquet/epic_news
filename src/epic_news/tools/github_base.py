@@ -1,7 +1,6 @@
 """Base classes and common functionality for GitHub-related tools."""
 
 import re
-from typing import Optional
 
 import requests
 from loguru import logger
@@ -43,7 +42,7 @@ class GitHubBaseTool:
     def _make_request(self, method: str, url: str, **kwargs) -> requests.Response | None:
         """Make an HTTP request with error handling."""
         try:
-            response = self.session.request(method, url, timeout=10, **kwargs)
+            response = self.session.request(method, url, timeout=10, **kwargs)  # type: ignore[union-attr]
             response.raise_for_status()
             return response
         except requests.RequestException as e:

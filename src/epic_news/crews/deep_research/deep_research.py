@@ -46,7 +46,7 @@ class DeepResearchCrew:
     def research_strategist(self) -> Agent:
         """Research strategist agent for planning and methodology."""
         return Agent(
-            config=self.agents_config["research_strategist"],
+            config=self.agents_config["research_strategist"],  # type: ignore[index]
             tools=[],  # Strategic planning, no external tools needed
             llm=LLMConfig.get_openrouter_llm(),
             llm_timeout=LLMConfig.get_timeout("default"),
@@ -58,7 +58,7 @@ class DeepResearchCrew:
     def information_collector(self) -> Agent:
         """Information collector agent with web search, scraping AND Wikipedia MCP tools."""
         return Agent(
-            config=self.agents_config["information_collector"],
+            config=self.agents_config["information_collector"],  # type: ignore[index]
             tools=[
                 # Web search tools
                 BraveSearchTool(),
@@ -81,7 +81,7 @@ class DeepResearchCrew:
     def data_analyst(self) -> Agent:
         """Data analyst agent for synthesis and quantitative analysis with Code Interpreter."""
         return Agent(
-            config=self.agents_config["data_analyst"],
+            config=self.agents_config["data_analyst"],  # type: ignore[index]
             tools=[self.code_interpreter, FileReadTool()],
             llm=LLMConfig.get_openrouter_llm(),
             llm_timeout=LLMConfig.get_timeout("long"),
@@ -94,7 +94,7 @@ class DeepResearchCrew:
     def report_writer(self) -> Agent:
         """Report writer agent for technical report creation."""
         return Agent(
-            config=self.agents_config["report_writer"],
+            config=self.agents_config["report_writer"],  # type: ignore[index]
             tools=[],  # Report writing, no external tools needed
             llm=LLMConfig.get_openrouter_llm(),
             llm_timeout=LLMConfig.get_timeout("default"),
@@ -117,16 +117,16 @@ class DeepResearchCrew:
     def reformulate_task(self) -> Task:
         """Reformulate task."""
         return Task(
-            config=self.tasks_config["reformulate_task"],
-            verbose=True,
+            config=self.tasks_config["reformulate_task"],  # type: ignore[arg-type, index]
+            verbose=True,  # type: ignore[call-arg]
         )
 
     @task
     def research_planning_task(self) -> Task:
         """Research planning and methodology task."""
         return Task(
-            config=self.tasks_config["research_planning_task"],
-            verbose=True,
+            config=self.tasks_config["research_planning_task"],  # type: ignore[arg-type, index]
+            verbose=True,  # type: ignore[call-arg]
         )
 
     # Task 2: Information Collection
@@ -134,10 +134,10 @@ class DeepResearchCrew:
     def information_collection_task(self) -> Task:
         """Information collection task."""
         return Task(
-            config=self.tasks_config["information_collection_task"],
-            verbose=True,
+            config=self.tasks_config["information_collection_task"],  # type: ignore[arg-type, index]
+            verbose=True,  # type: ignore[call-arg]
             context=[
-                self.research_planning_task(),
+                self.research_planning_task(),  # type: ignore[call-arg]
             ],
         )
 
@@ -146,11 +146,11 @@ class DeepResearchCrew:
     def data_analysis_task(self) -> Task:
         """Data analysis and synthesis task."""
         return Task(
-            config=self.tasks_config["data_analysis_task"],
-            verbose=True,
+            config=self.tasks_config["data_analysis_task"],  # type: ignore[arg-type, index]
+            verbose=True,  # type: ignore[call-arg]
             context=[
-                self.research_planning_task(),
-                self.information_collection_task(),
+                self.research_planning_task(),  # type: ignore[call-arg]
+                self.information_collection_task(),  # type: ignore[call-arg]
             ],
         )
 
@@ -159,12 +159,12 @@ class DeepResearchCrew:
     def report_writing_task(self) -> Task:
         """Report writing task."""
         return Task(
-            config=self.tasks_config["report_writing_task"],
-            verbose=True,
+            config=self.tasks_config["report_writing_task"],  # type: ignore[arg-type, index]
+            verbose=True,  # type: ignore[call-arg]
             context=[
-                self.research_planning_task(),
-                self.information_collection_task(),
-                self.data_analysis_task(),
+                self.research_planning_task(),  # type: ignore[call-arg]
+                self.information_collection_task(),  # type: ignore[call-arg]
+                self.data_analysis_task(),  # type: ignore[call-arg]
             ],
             output_pydantic=DeepResearchReport,
         )
@@ -193,10 +193,10 @@ class DeepResearchCrew:
     def crew(self) -> Crew:
         """Creates the DeepResearch crew with 6-agent sequential process."""
         return Crew(
-            agents=self.agents,
-            tasks=self.tasks,  # Automatically created from the tasks above
+            agents=self.agents,  # type: ignore[attr-defined]
+            tasks=self.tasks,  # type: ignore[attr-defined] # Automatically created from the tasks above
             process=Process.sequential,
-            llm_timeout=LLMConfig.get_timeout("default"),
+            llm_timeout=LLMConfig.get_timeout("default"),  # type: ignore[call-arg]
             max_iter=LLMConfig.get_max_iter(),
             max_rpm=LLMConfig.get_max_rpm(),
             verbose=True,

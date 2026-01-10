@@ -1,6 +1,5 @@
 import json
 import os
-from typing import Optional
 
 import requests
 from crewai.tools import BaseTool
@@ -80,7 +79,7 @@ class ScrapeNinjaTool(BaseTool):
             try:
                 # Check if content is valid JSON, if so, return as is (it's already a string)
                 json.loads(content)
-                return content
+                return str(content)
             except json.JSONDecodeError:
                 # If not JSON, wrap it in a JSON structure
                 return json.dumps({"content": content})

@@ -34,7 +34,7 @@ class NewsDailyExtractor(ContentExtractor):
                 news_data = json.loads(news_raw) if isinstance(news_raw, str) else news_raw
 
                 logger.debug("  ✅ News data parsed from raw data")
-                return news_data
+                return dict(news_data) if isinstance(news_data, dict) else {"raw": news_data}
             except Exception as e:
                 logger.error(f"  ❌ Failed to parse news data from raw: {e}")
                 return {"error": f"Failed to parse news report data: {e}"}
@@ -50,7 +50,7 @@ class NewsDailyExtractor(ContentExtractor):
                 else:
                     result = dict(news_daily_report)
                 logger.debug("  ✅ News data extracted from model")
-                return result
+                return dict(result) if isinstance(result, dict) else {"raw": result}
             except Exception as e:
                 logger.error(f"  ❌ Failed to extract news data: {e}")
                 return {"error": f"Failed to extract news data: {e}"}

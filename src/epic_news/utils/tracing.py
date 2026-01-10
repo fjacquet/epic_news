@@ -15,9 +15,9 @@ from __future__ import annotations
 
 import os
 import time
-from contextlib import contextmanager, suppress
-from typing import Any, Optional, TypeVar, cast
 from collections.abc import Callable
+from contextlib import contextmanager, suppress
+from typing import Any, TypeVar
 
 T = TypeVar("T")
 
@@ -26,7 +26,7 @@ _langfuse = None
 _langfuse_span_cls = None
 
 try:  # Attempt to initialize Langfuse if configured
-    from langfuse import Langfuse  # type: ignore
+    from langfuse import Langfuse
 
     LF_PUBLIC = os.getenv("LANGFUSE_PUBLIC_KEY")
     LF_SECRET = os.getenv("LANGFUSE_SECRET_KEY")
@@ -68,7 +68,7 @@ def traced(name: str) -> Callable[[Callable[..., T]], Callable[..., T]]:
     def decorator(func: Callable[..., T]) -> Callable[..., T]:
         def wrapper(*args: Any, **kwargs: Any) -> T:
             with trace_span(name, {"func": func.__name__}):
-                return cast(T, func(*args, **kwargs))
+                return func(*args, **kwargs)
 
         return wrapper
 

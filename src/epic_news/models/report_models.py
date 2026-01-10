@@ -1,6 +1,5 @@
 """Pydantic models for report generation tools."""
 
-from typing import Union
 
 from pydantic import BaseModel, Field
 

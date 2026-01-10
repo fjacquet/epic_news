@@ -1,5 +1,5 @@
 import json
-from typing import Any, Optional
+from typing import Any
 
 from crewai.tools import BaseTool
 from crewai_tools import RagTool
@@ -23,9 +23,9 @@ class SaveToRagTool(BaseTool):
     rag_tool: Any = None  # Define rag_tool as a field
 
     def __init__(self, rag_tool: RagTool | None = None) -> None:
-        super().__init__()
-        self._rag_tool = rag_tool or RagTool(config=DEFAULT_RAG_CONFIG, summarize=True)
+        super().__init__()  # type: ignore[call-arg]
+        self._rag_tool = rag_tool or RagTool(config=DEFAULT_RAG_CONFIG, summarize=True)  # type: ignore[arg-type]
 
     def _run(self, text: str) -> str:
-        self._rag_tool.add(source=text, data_type="text")
+        self._rag_tool.add(source=text, data_type="text")  # type: ignore[call-arg]
         return json.dumps({"status": "success", "message": "stored"})

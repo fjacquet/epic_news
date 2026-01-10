@@ -32,7 +32,7 @@ class SaintDailyCrew:
         research_tools = wikipedia_tools
 
         return Agent(
-            config=self.agents_config["saint_researcher"],
+            config=self.agents_config["saint_researcher"],  # type: ignore[index]
             tools=research_tools,
             verbose=True,
             respect_context_window=True,
@@ -41,7 +41,7 @@ class SaintDailyCrew:
     @agent
     def saint_reporter(self) -> Agent:
         return Agent(
-            config=self.agents_config["saint_reporter"],
+            config=self.agents_config["saint_reporter"],  # type: ignore[index]
             tools=[],  # NO TOOLS = No action traces
             verbose=True,
             respect_context_window=True,
@@ -50,17 +50,17 @@ class SaintDailyCrew:
     @task
     def saint_research_task(self) -> Task:
         return Task(
-            config=self.tasks_config["saint_research_task"],
-            agent=self.saint_researcher(),
+            config=self.tasks_config["saint_research_task"],  # type: ignore[arg-type, index]
+            agent=self.saint_researcher(),  # type: ignore[call-arg]
             verbose=True,
         )
 
     @task
     def saint_data_task(self) -> Task:
         return Task(
-            config=self.tasks_config["saint_data_task"],
-            agent=self.saint_reporter(),
-            context=[self.saint_research_task()],
+            config=self.tasks_config["saint_data_task"],  # type: ignore[arg-type, index]
+            agent=self.saint_reporter(),  # type: ignore[call-arg]
+            context=[self.saint_research_task()],  # type: ignore[call-arg]
             output_pydantic=SaintData,
             verbose=True,
         )
@@ -69,9 +69,9 @@ class SaintDailyCrew:
     def crew(self) -> Crew:
         """Creates the SaintDaily crew"""
         return Crew(
-            agents=self.agents,
-            tasks=self.tasks,
+            agents=self.agents,  # type: ignore[attr-defined]
+            tasks=self.tasks,  # type: ignore[attr-defined]
             process=Process.sequential,
             verbose=True,
-            respect_context_window=True,
+            respect_context_window=True,  # type: ignore[call-arg]
         )

@@ -60,20 +60,14 @@ class RetryLLMWrapper(BaseLLM):
             factor: Backoff factor for exponential delay
             verbose: Whether to log detailed retry information
         """
-        super().__init__(
-            llm=llm,
-            max_retries=max_retries,
-            min_seconds=min_seconds,
-            max_seconds=max_seconds,
-            factor=factor,
-            verbose=verbose,
-        )
-        self.llm = llm
-        self.max_retries = max_retries
-        self.min_seconds = min_seconds
-        self.max_seconds = max_seconds
-        self.factor = factor
-        self.verbose = verbose
+        super().__init__()
+        # Store parameters as instance attributes directly since BaseLLM doesn't accept them
+        object.__setattr__(self, "llm", llm)
+        object.__setattr__(self, "max_retries", max_retries)
+        object.__setattr__(self, "min_seconds", min_seconds)
+        object.__setattr__(self, "max_seconds", max_seconds)
+        object.__setattr__(self, "factor", factor)
+        object.__setattr__(self, "verbose", verbose)
 
     @property
     def _llm_type(self) -> str:
@@ -114,12 +108,12 @@ class RetryLLMWrapper(BaseLLM):
             reraise=True,
         )
 
-        for attempt in retryer:
-            with attempt:
+        for attempt in retryer:  # type: ignore[assignment]
+            with attempt:  # type: ignore[attr-defined]
                 try:
-                    if self.verbose and attempt.retry_state.attempt_number > 1:
+                    if self.verbose and attempt.retry_state.attempt_number > 1:  # type: ignore[attr-defined]
                         logger.warning(
-                            f"Retrying LLM call, attempt {attempt.retry_state.attempt_number}/{self.max_retries}"
+                            f"Retrying LLM call, attempt {attempt.retry_state.attempt_number}/{self.max_retries}"  # type: ignore[attr-defined]
                         )
 
                     # Call the underlying LLM
@@ -147,7 +141,7 @@ class RetryLLMWrapper(BaseLLM):
             raise last_exception
         raise RuntimeError("All LLM call attempts failed")
 
-    async def _agenerate(
+    async def _agenerate(  # type: ignore[override]
         self,
         prompts: list[str],
         stop: list[str] | None = None,
@@ -175,7 +169,7 @@ class RetryLLMWrapper(BaseLLM):
                     logger.warning(f"Retrying async LLM call, attempt {attempt + 1}/{self.max_retries}")
 
                 # Call the underlying LLM
-                result = await self.llm._agenerate(prompts, stop=stop, run_manager=run_manager, **kwargs)
+                result = await self.llm._agenerate(prompts, stop=stop, run_manager=run_manager, **kwargs)  # type: ignore[arg-type]
 
                 # Check if result is empty or None
                 if not result or not result.generations or not result.generations[0]:

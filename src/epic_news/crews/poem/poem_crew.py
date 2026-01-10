@@ -1,3 +1,5 @@
+from typing import Any, cast
+
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 
@@ -13,7 +15,7 @@ class PoemCrew:
     @agent
     def poem_writer(self) -> Agent:
         return Agent(
-            config=self.agents_config["poem_writer"],
+            config=cast(dict[str, Any], self.agents_config)["poem_writer"],
             llm=LLMConfig.get_openrouter_llm(),
             llm_timeout=LLMConfig.get_timeout("default"),
             respect_context_window=True,
@@ -36,20 +38,17 @@ class PoemCrew:
 
     @task
     def write_poem(self) -> Task:
-        return Task(
-            config=self.tasks_config["write_poem"],
-            agent=self.poem_writer(),
+        return Task(  # type: ignore[call-arg]
+            config=cast(dict[str, Any], self.tasks_config)["write_poem"],
+            agent=self.poem_writer(),  # type: ignore[call-arg]
             output_pydantic=PoemJSONOutput,
         )
 
     @crew
     def crew(self) -> Crew:
         return Crew(
-            agents=self.agents,
-            tasks=self.tasks,
+            agents=cast(list[Agent], self.agents),  # type: ignore[arg-type, attr-defined]
+            tasks=cast(list[Task], self.tasks),  # type: ignore[attr-defined]
             process=Process.sequential,
-            llm_timeout=LLMConfig.get_timeout("default"),
-            max_iter=LLMConfig.get_max_iter(),
-            max_rpm=LLMConfig.get_max_rpm(),
             verbose=True,
         )

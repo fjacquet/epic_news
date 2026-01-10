@@ -8,7 +8,7 @@ to avoid repeated requests and respect rate limits.
 import json
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from loguru import logger
 

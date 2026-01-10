@@ -22,7 +22,7 @@ class SerperEmailSearchTool(BaseTool):
     name: str = "serper_email_search"
     description: str = "Search the web for publicly available email addresses related to a company"
     args_schema: type[BaseModel] = SerperSearchInput
-    searcher: EmailSearchTool = None
+    searcher: EmailSearchTool | None = None
 
     def __init__(self, **data):
         """Initialize with API key from environment."""
@@ -35,6 +35,7 @@ class SerperEmailSearchTool(BaseTool):
 
     def _run(self, query: str) -> str:
         """Search for emails using Serper API."""
+        assert self.searcher is not None, "EmailSearchTool not initialized"
         headers = {"X-API-KEY": self.searcher.api_key, "Content-Type": "application/json"}
 
         # Clean up the query for better search results
@@ -48,7 +49,7 @@ class SerperEmailSearchTool(BaseTool):
             return json.dumps([{"error": "Failed to fetch data from Serper API"}])
 
         results = response.json().get("organic", [])
-        emails_found = set()
+        emails_found: set[str] = set()
 
         for result in results:
             snippet = result.get("snippet", "")

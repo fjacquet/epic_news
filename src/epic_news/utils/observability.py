@@ -225,17 +225,17 @@ class HallucinationGuard:
 
         for pattern, warning, confidence_penalty in patterns:
             if re.search(pattern, statement, re.IGNORECASE):
-                results["warnings"].append(warning)
-                results["confidence"] *= confidence_penalty
+                results["warnings"].append(warning)  # type: ignore[attr-defined]
+                results["confidence"] *= confidence_penalty  # type: ignore[operator]
 
         # Check if statement contradicts known facts
         for fact_key, fact_value in self.known_facts.items():
             if fact_key in statement and str(fact_value) not in statement:
-                results["warnings"].append(f"Contradicts known fact: {fact_key} = {fact_value}")
-                results["confidence"] *= 0.5
+                results["warnings"].append(f"Contradicts known fact: {fact_key} = {fact_value}")  # type: ignore[attr-defined]
+                results["confidence"] *= 0.5  # type: ignore[operator]
 
         # Final determination
-        if results["confidence"] < self.confidence_threshold:
+        if results["confidence"] < self.confidence_threshold:  # type: ignore[operator]
             results["is_likely_hallucination"] = True
 
         return results
@@ -280,13 +280,13 @@ class HallucinationGuard:
             check_result = self.check_statement(sentence, context)
             if check_result["is_likely_hallucination"]:
                 hallucination_count += 1
-                results["warnings"].extend(check_result["warnings"])
+                results["warnings"].extend(check_result["warnings"])  # type: ignore[attr-defined]
 
         if sentences:
             results["hallucination_score"] = hallucination_count / len(sentences)
 
         # Attempt to fix hallucinations if requested
-        if fix_hallucinations and results["hallucination_score"] > 0:
+        if fix_hallucinations and results["hallucination_score"] > 0:  # type: ignore[operator]
             # Simple fix: add disclaimers to the output
             disclaimer = "\n\nNote: Some statements in this output may require further verification."
             results["fixed_output"] = output + disclaimer
@@ -355,9 +355,9 @@ class Dashboard:
             Dict[str, Any]: Filtered metrics
         """
         if category and name:
-            return self.metrics.get(category, {}).get(name, {})
+            return self.metrics.get(category, {}).get(name, {})  # type: ignore[no-any-return]
         if category:
-            return self.metrics.get(category, {})
+            return self.metrics.get(category, {})  # type: ignore[no-any-return]
         return self.metrics
 
     @classmethod
@@ -482,7 +482,7 @@ def monitor_agent(dashboard: Dashboard):
     return decorator
 
 
-def guard_output(hallucination_guard: HallucinationGuard, context: dict[str, Any] = None):
+def guard_output(hallucination_guard: HallucinationGuard, context: dict[str, Any] | None = None):
     """
     Decorator to guard against hallucinations in function outputs.
 

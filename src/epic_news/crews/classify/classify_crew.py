@@ -1,3 +1,5 @@
+from typing import Any, cast
+
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from dotenv import load_dotenv
@@ -20,7 +22,7 @@ class ClassifyCrew:
     @agent
     def classifier(self) -> Agent:
         return Agent(
-            config=self.agents_config["classifier"],
+            config=cast(dict[str, Any], self.agents_config)["classifier"],
             llm=LLMConfig.get_openrouter_llm(),
             llm_timeout=LLMConfig.get_timeout("default"),
             verbose=True,
@@ -28,18 +30,18 @@ class ClassifyCrew:
 
     @task
     def classification_task(self) -> Task:
-        return Task(config=self.tasks_config["classification_task"], verbose=True)
+        return Task(  # type: ignore[call-arg]
+            config=cast(dict[str, Any], self.tasks_config)["classification_task"],
+            agent=self.classifier(),  # type: ignore[call-arg]
+        )
 
     @crew
     def crew(self) -> Crew:
         """Creates a simple classification crew"""
         return Crew(
-            agents=self.agents,
-            tasks=self.tasks,
+            agents=cast(list[Agent], self.agents),  # type: ignore[arg-type, attr-defined]
+            tasks=cast(list[Task], self.tasks),  # type: ignore[attr-defined]
             process=Process.sequential,
-            llm_timeout=LLMConfig.get_timeout("default"),
-            max_iter=LLMConfig.get_max_iter(),
-            max_rpm=LLMConfig.get_max_rpm(),
             verbose=True,
         )
 

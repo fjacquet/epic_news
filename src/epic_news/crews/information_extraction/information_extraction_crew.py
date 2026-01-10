@@ -1,3 +1,5 @@
+from typing import Any, cast
+
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 
@@ -16,7 +18,7 @@ class InformationExtractionCrew:
     def detailed_request_analyzer_agent(self) -> Agent:
         """Agent that analyzes the user request in detail."""
         return Agent(
-            config=self.agents_config["detailed_request_analyzer_agent"],
+            config=cast(dict[str, Any], self.agents_config)["detailed_request_analyzer_agent"],
             llm=LLMConfig.get_openrouter_llm(),
             llm_timeout=LLMConfig.get_timeout("default"),
             verbose=True,
@@ -25,8 +27,9 @@ class InformationExtractionCrew:
     @task
     def comprehensive_information_extraction_task(self) -> Task:
         """Task to extract information into a Pydantic model."""
-        return Task(
-            config=self.tasks_config["comprehensive_information_extraction_task"],
+        return Task(  # type: ignore[call-arg]
+            config=cast(dict[str, Any], self.tasks_config)["comprehensive_information_extraction_task"],
+            agent=self.detailed_request_analyzer_agent(),  # type: ignore[call-arg]
             output_pydantic=ExtractedInfo,
         )
 
@@ -34,11 +37,8 @@ class InformationExtractionCrew:
     def crew(self) -> Crew:
         """Creates and returns the InformationExtractionCrew."""
         return Crew(
-            agents=self.agents,  # Uses the @agent decorated properties
-            tasks=self.tasks,  # Uses the @task decorated properties
+            agents=cast(list[Agent], self.agents),  # type: ignore[arg-type, attr-defined]
+            tasks=cast(list[Task], self.tasks),  # type: ignore[attr-defined]
             process=Process.sequential,
-            llm_timeout=LLMConfig.get_timeout("default"),
-            max_iter=LLMConfig.get_max_iter(),
-            max_rpm=LLMConfig.get_max_rpm(),
             verbose=True,
         )

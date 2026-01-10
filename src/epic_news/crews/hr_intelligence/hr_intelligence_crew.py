@@ -29,7 +29,7 @@ class HRIntelligenceCrew:
         all_tools = search_tools + [html_to_pdf_tool] + get_report_tools()
 
         return Agent(
-            config=self.agents_config["hr_researcher"],
+            config=self.agents_config["hr_researcher"],  # type: ignore[index]
             verbose=True,
             tools=all_tools,
             llm=LLMConfig.get_openrouter_llm(),
@@ -44,7 +44,7 @@ class HRIntelligenceCrew:
     def hr_reporter(self) -> Agent:
         """Creates the HR reporter agent without tools for clean output generation"""
         return Agent(
-            config=self.agents_config["hr_reporter"],
+            config=self.agents_config["hr_reporter"],  # type: ignore[index]
             verbose=True,
             tools=[],  # No tools for reporter to ensure clean output
             allow_delegation=False,
@@ -56,49 +56,49 @@ class HRIntelligenceCrew:
     def leadership_team_assessment(self) -> Task:
         """Assess the company's leadership team"""
         return Task(
-            config=self.tasks_config["leadership_team_assessment"],
+            config=self.tasks_config["leadership_team_assessment"],  # type: ignore[arg-type, index]
             async_execution=True,
-            verbose=True,
+            verbose=True,  # type: ignore[call-arg]
         )
 
     @task
     def employee_sentiment_analysis(self) -> Task:
         """Analyze employee reviews and sentiment"""
         return Task(
-            config=self.tasks_config["employee_sentiment_analysis"],
+            config=self.tasks_config["employee_sentiment_analysis"],  # type: ignore[arg-type, index]
             async_execution=True,
-            verbose=True,
+            verbose=True,  # type: ignore[call-arg]
         )
 
     @task
     def organizational_culture_assessment(self) -> Task:
         """Assess the company's organizational culture"""
         return Task(
-            config=self.tasks_config["organizational_culture_assessment"],
+            config=self.tasks_config["organizational_culture_assessment"],  # type: ignore[arg-type, index]
             async_execution=True,
-            verbose=True,
+            verbose=True,  # type: ignore[call-arg]
         )
 
     @task
     def talent_acquisition_strategy(self) -> Task:
         """Analyze the company's talent acquisition strategy"""
         return Task(
-            config=self.tasks_config["talent_acquisition_strategy"],
+            config=self.tasks_config["talent_acquisition_strategy"],  # type: ignore[arg-type, index]
             async_execution=True,
-            verbose=True,
+            verbose=True,  # type: ignore[call-arg]
         )
 
     @task
     def format_hr_intelligence_report(self) -> Task:
         """Format the comprehensive HR intelligence report"""
         return Task(
-            config=self.tasks_config["format_hr_intelligence_report"],
+            config=self.tasks_config["format_hr_intelligence_report"],  # type: ignore[arg-type, index]
             async_execution=False,
             context=[
-                self.leadership_team_assessment(),
-                self.employee_sentiment_analysis(),
-                self.organizational_culture_assessment(),
-                self.talent_acquisition_strategy(),
+                self.leadership_team_assessment(),  # type: ignore[call-arg]
+                self.employee_sentiment_analysis(),  # type: ignore[call-arg]
+                self.organizational_culture_assessment(),  # type: ignore[call-arg]
+                self.talent_acquisition_strategy(),  # type: ignore[call-arg]
             ],
             output_pydantic=HRIntelligenceReport,
         )
@@ -107,10 +107,10 @@ class HRIntelligenceCrew:
     def crew(self) -> Crew:
         """Creates the HR Intelligence Analysis crew"""
         return Crew(
-            agents=self.agents,
-            tasks=self.tasks,
+            agents=self.agents,  # type: ignore[attr-defined]
+            tasks=self.tasks,  # type: ignore[attr-defined]
             process=Process.sequential,
-            llm_timeout=LLMConfig.get_timeout("default"),
+            llm_timeout=LLMConfig.get_timeout("default"),  # type: ignore[call-arg]
             max_iter=LLMConfig.get_max_iter(),
             max_rpm=LLMConfig.get_max_rpm(),
             verbose=True,

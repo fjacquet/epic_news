@@ -1,7 +1,6 @@
 """Centralized LLM configuration for OpenRouter."""
 
 import os
-from typing import Optional
 
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
@@ -86,9 +85,9 @@ class LLMConfig:
             if max_tokens_str is not None and max_tokens_str.strip():
                 tokens = int(max_tokens_str)
 
-        return ChatOpenAI(
-            model=model_name,
-            api_key=os.getenv("OPENROUTER_API_KEY"),
+        return ChatOpenAI(  # type: ignore[call-arg]
+            model=model_name or "openrouter/xiaomi/mimo-v2-flash:free",
+            api_key=os.getenv("OPENROUTER_API_KEY"),  # type: ignore[arg-type]
             base_url="https://openrouter.ai/api/v1",
             temperature=temp,
             max_tokens=tokens,

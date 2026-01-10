@@ -130,15 +130,11 @@ class DeepResearchExtractor(ContentExtractor):
             # Last resort emergency fallback - include all fields explicitly
             report = DeepResearchReport(
                 title=f"Recherche approfondie: {topic}",
-                topic=topic,
                 executive_summary="Synthèse des résultats.",
                 methodology="Recherche documentaire.",
                 research_sections=[],
                 key_findings=["Analyse en cours"],
                 conclusions="Conclusions préliminaires sur le sujet.",
-                sources_count=0,
-                report_date="2023-01-01",
-                confidence_level="Low",
             )
         return {"deep_research_model": report}
 

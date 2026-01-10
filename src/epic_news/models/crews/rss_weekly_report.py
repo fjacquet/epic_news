@@ -1,7 +1,6 @@
 """Pydantic models for RSS Weekly digest reports."""
 
 from datetime import datetime
-from typing import Optional
 
 from pydantic import BaseModel, Field
 

@@ -1,5 +1,4 @@
 import xml.etree.ElementTree as ET
-from typing import Union
 
 from crewai.tools import BaseTool
 from pydantic import BaseModel, Field

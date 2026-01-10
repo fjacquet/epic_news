@@ -38,7 +38,7 @@ class AccuWeatherTool(BaseTool):
         data = response.json()
         if not data:
             raise ValueError(f"Location '{location}' not found.")
-        return data[0]["Key"]
+        return str(data[0]["Key"])
 
     def _get_current_conditions(self, location_key: str, api_key: str) -> str:
         """Get the current weather conditions for a given location key."""

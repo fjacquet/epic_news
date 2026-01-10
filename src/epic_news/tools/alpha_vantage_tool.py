@@ -45,7 +45,7 @@ class AlphaVantageCompanyOverviewTool(BaseTool):
         # Try to get from cache first (cache for 4 hours for fundamental data)
         cached_result = cache.get(cache_key, ttl=14400)
         if cached_result is not None:
-            return cached_result
+            return str(cached_result)
 
         api_key = os.getenv("ALPHA_VANTAGE_API_KEY")
         if not api_key:

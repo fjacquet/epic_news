@@ -4,7 +4,6 @@ Structures de données pour communication inter-agents et validation qualité
 """
 
 from datetime import datetime
-from typing import Optional, Union
 
 from pydantic import BaseModel, Field, validator
 

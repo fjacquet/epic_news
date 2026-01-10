@@ -1,7 +1,7 @@
 """Menu Designer Service with validation and error recovery."""
 
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from crewai import CrewOutput
 
@@ -104,18 +104,22 @@ class MenuDesignerService:
                     logger.info("🔍 Parsing JSON crew output...")
                     return self.validator.parse_and_validate_ai_output(result.json)
 
+                # No valid output found in CrewOutput
+                logger.warning("⚠️ No valid output found in CrewOutput")
+                return None
+
             # Handle direct WeeklyMenuPlan
-            elif isinstance(result, WeeklyMenuPlan):
+            if isinstance(result, WeeklyMenuPlan):
                 logger.info("✅ Got direct WeeklyMenuPlan")
                 return result
 
             # Handle string output
-            elif isinstance(result, str):
+            if isinstance(result, str):
                 logger.info("🔍 Parsing string output...")
                 return self.validator.parse_and_validate_ai_output(result)
 
             # Handle dict output
-            elif isinstance(result, dict):
+            if isinstance(result, dict):
                 logger.info("🔍 Validating dict output...")
                 fixed_data = self.validator.validate_and_fix_weekly_plan(result)
                 try:

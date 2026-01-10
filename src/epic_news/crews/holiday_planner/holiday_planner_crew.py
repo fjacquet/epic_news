@@ -20,7 +20,7 @@ class HolidayPlannerCrew:
     @agent
     def travel_researcher(self) -> Agent:
         return Agent(
-            config=self.agents_config["travel_researcher"],
+            config=self.agents_config["travel_researcher"],  # type: ignore[index]
             tools=get_search_tools() + get_youtube_tools() + get_scrape_tools() + [ExchangeRateTool()],
             llm=LLMConfig.get_openrouter_llm(),
             llm_timeout=LLMConfig.get_timeout("default"),
@@ -33,7 +33,7 @@ class HolidayPlannerCrew:
     @agent
     def accommodation_specialist(self) -> Agent:
         return Agent(
-            config=self.agents_config["accommodation_specialist"],
+            config=self.agents_config["accommodation_specialist"],  # type: ignore[index]
             tools=get_search_tools() + get_scrape_tools() + [ExchangeRateTool()],
             llm=LLMConfig.get_openrouter_llm(),
             llm_timeout=LLMConfig.get_timeout("default"),
@@ -46,7 +46,7 @@ class HolidayPlannerCrew:
     @agent
     def itinerary_architect(self) -> Agent:
         return Agent(
-            config=self.agents_config["itinerary_architect"],
+            config=self.agents_config["itinerary_architect"],  # type: ignore[index]
             tools=get_search_tools() + get_scrape_tools() + get_youtube_tools() + [ExchangeRateTool()],
             llm=LLMConfig.get_openrouter_llm(),
             llm_timeout=LLMConfig.get_timeout("default"),
@@ -59,7 +59,7 @@ class HolidayPlannerCrew:
     @agent
     def budget_manager(self) -> Agent:
         return Agent(
-            config=self.agents_config["budget_manager"],
+            config=self.agents_config["budget_manager"],  # type: ignore[index]
             tools=get_search_tools() + get_scrape_tools() + [ExchangeRateTool()],
             llm=LLMConfig.get_openrouter_llm(),
             llm_timeout=LLMConfig.get_timeout("default"),
@@ -70,7 +70,7 @@ class HolidayPlannerCrew:
     @agent
     def content_formatter(self) -> Agent:
         return Agent(
-            config=self.agents_config["content_formatter"],
+            config=self.agents_config["content_formatter"],  # type: ignore[index]
             tools=get_search_tools() + get_scrape_tools() + [ExchangeRateTool()],
             llm=LLMConfig.get_openrouter_llm(),
             llm_timeout=LLMConfig.get_timeout("default"),
@@ -80,30 +80,30 @@ class HolidayPlannerCrew:
 
     @task
     def research_destination(self) -> Task:
-        return Task(config=self.tasks_config["research_destination"], async_execution=True)
+        return Task(config=self.tasks_config["research_destination"], async_execution=True)  # type: ignore[call-arg, arg-type, index]
 
     @task
     def recommend_accommodation_and_dining(self) -> Task:
-        return Task(config=self.tasks_config["recommend_accommodation_and_dining"], async_execution=True)
+        return Task(config=self.tasks_config["recommend_accommodation_and_dining"], async_execution=True)  # type: ignore[call-arg, arg-type, index]
 
     @task
     def plan_itinerary(self) -> Task:
         return Task(
-            config=self.tasks_config["plan_itinerary"],
+            config=self.tasks_config["plan_itinerary"],  # type: ignore[call-arg, arg-type, index]
             async_execution=False,
         )
 
     @task
     def analyze_and_optimize_budget(self) -> Task:
         return Task(
-            config=self.tasks_config["analyze_and_optimize_budget"],
+            config=self.tasks_config["analyze_and_optimize_budget"],  # type: ignore[call-arg, arg-type, index]
             async_execution=False,
         )
 
     @task
     def format_and_translate_guide(self) -> Task:
         return Task(
-            config=self.tasks_config["format_and_translate_guide"],
+            config=self.tasks_config["format_and_translate_guide"],  # type: ignore[call-arg, arg-type, index]
             async_execution=False,
             output_pydantic=HolidayPlannerReport,
         )
@@ -112,10 +112,10 @@ class HolidayPlannerCrew:
     def crew(self) -> Crew:
         """Creates the HolidayPlanner crew"""
         return Crew(
-            agents=self.agents,
-            tasks=self.tasks,
+            agents=self.agents,  # type: ignore[attr-defined]
+            tasks=self.tasks,  # type: ignore[attr-defined]
             process=Process.sequential,
-            llm_timeout=LLMConfig.get_timeout("default"),
+            llm_timeout=LLMConfig.get_timeout("default"),  # type: ignore[call-arg]
             max_iter=LLMConfig.get_max_iter(),
             max_rpm=30,  # Keeping existing custom value
             max_retry_limit=5,

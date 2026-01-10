@@ -2,7 +2,7 @@
 
 import json
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import ValidationError
 
@@ -279,7 +279,7 @@ class MenuPlanValidator:
             daily_menu = DailyMenu(
                 day=day,
                 date=dates[i],
-                lunch=DailyMeal(
+                lunch=DailyMeal(  # type: ignore[call-arg]
                     meal_type=MealType.DEJEUNER,
                     starter=DishInfo(
                         name=f"Entrée du {day}",
@@ -296,7 +296,7 @@ class MenuPlanValidator:
                         nutritional_highlights="Source de protéines",
                     ),
                 ),
-                dinner=DailyMeal(
+                dinner=DailyMeal(  # type: ignore[call-arg]
                     meal_type=MealType.DINER,
                     starter=DishInfo(
                         name=f"Entrée du soir - {day}",

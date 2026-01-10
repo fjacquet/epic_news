@@ -42,7 +42,7 @@ class KrakenTickerInfoTool(BaseTool):
         # Try to get from cache first (cache for 5 minutes for ticker data)
         cached_result = cache.get(cache_key, ttl=300)
         if cached_result is not None:
-            return cached_result
+            return str(cached_result)
 
         url = f"https://api.kraken.com/0/public/Ticker?pair={pair}"
 
@@ -113,7 +113,7 @@ class KrakenAssetListTool(BaseTool):
         # Try to get from cache first (cache for 1 hour for asset list)
         cached_result = cache.get(cache_key, ttl=3600)
         if cached_result is not None:
-            return cached_result
+            return str(cached_result)
 
         # Kraken API endpoint for account balance
         url = "https://api.kraken.com/0/private/Balance"

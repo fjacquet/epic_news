@@ -2,7 +2,6 @@
 
 import json
 import os
-from typing import Optional
 
 from crewai.tools import BaseTool
 from dotenv import load_dotenv

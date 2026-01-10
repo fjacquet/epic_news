@@ -1,6 +1,5 @@
 import json
 import os
-from typing import Optional
 
 from crewai.tools import BaseTool
 from dotenv import load_dotenv
@@ -8,10 +7,10 @@ from pydantic import BaseModel
 
 try:
     # Firecrawl SDK (declared in pyproject.toml as firecrawl-py)
-    from firecrawl import FirecrawlApp, ScrapeOptions  # type: ignore
+    from firecrawl import FirecrawlApp, ScrapeOptions
 except Exception as _e:  # pragma: no cover
-    FirecrawlApp = None  # type: ignore
-    ScrapeOptions = None  # type: ignore
+    FirecrawlApp = None
+    ScrapeOptions = None
 
 from epic_news.models.web_search_models import ScrapeNinjaInput
 

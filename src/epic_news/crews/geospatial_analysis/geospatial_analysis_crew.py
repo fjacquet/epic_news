@@ -31,7 +31,7 @@ class GeospatialAnalysisCrew:
         all_tools = search_tools + location_tools + [html_to_pdf_tool] + get_report_tools()
 
         return Agent(
-            config=self.agents_config["geospatial_researcher"],
+            config=self.agents_config["geospatial_researcher"],  # type: ignore[index]
             verbose=True,
             tools=all_tools,
             allow_delegation=False,
@@ -45,7 +45,7 @@ class GeospatialAnalysisCrew:
     def geospatial_reporter(self) -> Agent:
         """Creates the geospatial reporter agent without tools for clean output generation"""
         return Agent(
-            config=self.agents_config["geospatial_reporter"],
+            config=self.agents_config["geospatial_reporter"],  # type: ignore[index]
             verbose=True,
             tools=[],  # No tools for reporter to ensure clean output
             allow_delegation=False,
@@ -58,39 +58,39 @@ class GeospatialAnalysisCrew:
     def physical_location_mapping(self) -> Task:
         """Map the company's physical locations"""
         return Task(
-            config=self.tasks_config["physical_location_mapping"],
+            config=self.tasks_config["physical_location_mapping"],  # type: ignore[arg-type, index]
             async_execution=True,
-            verbose=True,
+            verbose=True,  # type: ignore[call-arg]
         )
 
     @task
     def geospatial_risk_assessment(self) -> Task:
         """Assess geospatial risks for the company's locations"""
         return Task(
-            config=self.tasks_config["geospatial_risk_assessment"],
+            config=self.tasks_config["geospatial_risk_assessment"],  # type: ignore[arg-type, index]
             async_execution=True,
-            verbose=True,
+            verbose=True,  # type: ignore[call-arg]
         )
 
     @task
     def supply_chain_mapping(self) -> Task:
         """Map the company's supply chain geospatially"""
         return Task(
-            config=self.tasks_config["supply_chain_mapping"],
+            config=self.tasks_config["supply_chain_mapping"],  # type: ignore[arg-type, index]
             async_execution=True,
-            verbose=True,
+            verbose=True,  # type: ignore[call-arg]
         )
 
     @task
     def geospatial_intelligence_for_mergers_acquisitions(self) -> Task:
         """Provide geospatial intelligence for mergers and acquisitions"""
         return Task(
-            config=self.tasks_config["geospatial_intelligence_for_mergers_acquisitions"],
+            config=self.tasks_config["geospatial_intelligence_for_mergers_acquisitions"],  # type: ignore[arg-type, index]
             async_execution=False,
             context=[
-                self.physical_location_mapping(),
-                self.geospatial_risk_assessment(),
-                self.supply_chain_mapping(),
+                self.physical_location_mapping(),  # type: ignore[call-arg]
+                self.geospatial_risk_assessment(),  # type: ignore[call-arg]
+                self.supply_chain_mapping(),  # type: ignore[call-arg]
             ],
             output_pydantic=GeospatialAnalysisReport,
         )
@@ -99,11 +99,11 @@ class GeospatialAnalysisCrew:
     def crew(self) -> Crew:
         """Creates the Geospatial Analysis crew"""
         return Crew(
-            agents=self.agents,
-            tasks=self.tasks,
+            agents=self.agents,  # type: ignore[attr-defined]
+            tasks=self.tasks,  # type: ignore[attr-defined]
             process=Process.sequential,
             verbose=True,
             llm_timeout=LLMConfig.get_timeout("default"),
-            max_iter=LLMConfig.get_max_iter(),
+            max_iter=LLMConfig.get_max_iter(),  # type: ignore[call-arg]
             max_rpm=LLMConfig.get_max_rpm(),
         )

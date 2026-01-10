@@ -30,7 +30,7 @@ class RssWeeklyExtractor(ContentExtractor):
                 except (json.JSONDecodeError, ValueError) as e:
                     logger.error(f"❌ Error parsing RSS weekly raw output: {e}")
                     # Create minimal model with error info
-                    rss_model = RssWeeklyReport(
+                    rss_model = RssWeeklyReport(  # type: ignore[call-arg]
                         title="Erreur de Parsing RSS Weekly",
                         summary=f"Erreur lors du parsing des données: {str(e)}",
                     )
@@ -39,7 +39,7 @@ class RssWeeklyExtractor(ContentExtractor):
                 rss_model = RssWeeklyReport.model_validate(rss_weekly_output)
             else:
                 # Fallback: create empty model
-                rss_model = RssWeeklyReport(
+                rss_model = RssWeeklyReport(  # type: ignore[call-arg]
                     title="Résumé Hebdomadaire des Flux RSS", summary="Aucune donnée RSS disponible"
                 )
 

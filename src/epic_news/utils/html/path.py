@@ -44,7 +44,7 @@ def extract_recipe_title_from_state(state_data: dict[str, Any]) -> str | None:
     # Extraire le titre des données de recette
     for field in ["name", "recipe_title", "title"]:
         if field in recipe_data and recipe_data[field]:
-            return recipe_data[field]
+            return str(recipe_data[field])
 
     return None
 
@@ -78,7 +78,7 @@ def generate_cooking_output_path(state_data: dict[str, Any]) -> str:
     return "output/cooking/recette-cuisine.html"
 
 
-def determine_output_path(selected_crew: str, state_data: dict[str, Any] = None) -> str:
+def determine_output_path(selected_crew: str, state_data: dict[str, Any] | None = None) -> str:
     """Determine the appropriate output path based on selected crew category
 
     Si state_data.output_file existe, on utilise ce chemin en remplaçant l'extension par .html
@@ -93,7 +93,7 @@ def determine_output_path(selected_crew: str, state_data: dict[str, Any] = None)
     """
     # Si on a un output_file dans state_data, on l'utilise en remplaçant l'extension par .html
     if state_data and "output_file" in state_data and state_data["output_file"]:
-        yaml_path = state_data["output_file"]
+        yaml_path = str(state_data["output_file"])
         # Vérifier que le chemin n'est pas vide ou juste un point
         if not yaml_path or yaml_path.strip() in [".", ""]:
             logger.warning("  ⚠️ output_file vide ou invalide, utilisation du chemin par défaut")
