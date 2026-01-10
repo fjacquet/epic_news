@@ -499,7 +499,7 @@ CrewAI has a known issue where agents with tools write action traces to output f
 @agent
 def researcher(self) -> Agent:
     return Agent(
-        tools=[WikipediaSearchTool(), SerperDevTool()],  # Research with tools
+        tools=[WikipediaSearchTool(), HybridSearchTool()],  # Research with tools
     )
 
 @agent

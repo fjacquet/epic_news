@@ -1,17 +1,16 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import (
-    BraveSearchTool,
     CodeInterpreterTool,
     FileReadTool,
     MCPServerAdapter,
     ScrapeWebsiteTool,
-    SerperDevTool,
 )
 
 from epic_news.config.llm_config import LLMConfig
 from epic_news.config.mcp_config import MCPConfig
 from epic_news.models.crews.deep_research_report import DeepResearchReport
+from epic_news.tools.hybrid_search_tool import HybridSearchTool
 
 
 @CrewBase
@@ -60,10 +59,8 @@ class DeepResearchCrew:
         return Agent(
             config=self.agents_config["information_collector"],  # type: ignore[index]
             tools=[
-                # Web search tools
-                BraveSearchTool(),
-                SerperDevTool(n_results=25, search_type="search"),
-                SerperDevTool(n_results=25, search_type="news"),
+                # Hybrid search (Perplexity → Brave → Serper cascading fallback)
+                HybridSearchTool(),
                 ScrapeWebsiteTool(),
                 FileReadTool(),
                 # Wikipedia MCP tools (encyclopedic research)

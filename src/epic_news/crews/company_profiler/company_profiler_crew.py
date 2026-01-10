@@ -1,12 +1,13 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
-from crewai_tools import PDFSearchTool, SerperDevTool
+from crewai_tools import PDFSearchTool
 from dotenv import load_dotenv
 
 from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.company_profiler_report import CompanyProfileReport
 from epic_news.tools.finance_tools import get_yahoo_finance_tools
 from epic_news.tools.html_to_pdf_tool import HtmlToPdfTool
+from epic_news.tools.hybrid_search_tool import HybridSearchTool
 from epic_news.tools.report_tools import get_report_tools
 from epic_news.tools.scraper_factory import get_scraper
 
@@ -22,7 +23,7 @@ class CompanyProfilerCrew:
     def company_researcher(self) -> Agent:
         """Creates the company researcher agent with tools for data gathering"""
         # Get all tools
-        search_tools = [SerperDevTool(), get_scraper(), PDFSearchTool()]
+        search_tools = [HybridSearchTool(), get_scraper(), PDFSearchTool()]
         finance_tools = get_yahoo_finance_tools()
         html_to_pdf_tool = HtmlToPdfTool()
 
