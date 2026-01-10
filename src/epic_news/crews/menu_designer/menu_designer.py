@@ -1,7 +1,10 @@
+from typing import Any
+
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import DirectoryReadTool, FileReadTool
 
+from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.menu_designer_report import WeeklyMenuPlan
 from epic_news.tools.web_tools import get_search_tools
 
@@ -15,8 +18,8 @@ class MenuDesignerCrew:
     generation and file output is handled by a different process.
     """
 
-    agents_config = "config/agents.yaml"
-    tasks_config = "config/tasks.yaml"
+    agents_config: dict[str, Any] = "config/agents.yaml"  # type: ignore[assignment]
+    tasks_config: dict[str, Any] = "config/tasks.yaml"  # type: ignore[assignment]
 
     @agent
     def menu_researcher(self) -> Agent:
@@ -24,8 +27,11 @@ class MenuDesignerCrew:
         return Agent(
             config=self.agents_config["menu_researcher"],
             tools=get_search_tools() + [FileReadTool(), DirectoryReadTool()],
+            llm=LLMConfig.get_openrouter_llm(),
+            llm_timeout=LLMConfig.get_timeout("default"),
             respect_context_window=True,
             reasoning=True,
+            max_reasoning_attempts=3,
             verbose=True,
         )
 
@@ -35,17 +41,19 @@ class MenuDesignerCrew:
         return Agent(
             config=self.agents_config["menu_reporter"],
             tools=[],
+            llm=LLMConfig.get_openrouter_llm(),
+            llm_timeout=LLMConfig.get_timeout("default"),
             respect_context_window=True,
             reasoning=True,
+            max_reasoning_attempts=3,
             verbose=True,
         )
 
     @task
     def menu_planning_task(self) -> Task:
         """Task to plan the menu structure, assigned to the menu_researcher agent."""
-        return Task(
+        return Task(  # type: ignore[call-arg]
             config=self.tasks_config["menu_planning_task"],
-            verbose=True,
             output_pydantic=WeeklyMenuPlan,
             output_file="output/menu_designer/menu_research_{menu_slug}.json",
         )
@@ -53,10 +61,9 @@ class MenuDesignerCrew:
     @task
     def menu_json_task(self) -> Task:
         """Task to create a clean JSON version of the menu, assigned to the menu_reporter agent."""
-        return Task(
+        return Task(  # type: ignore[call-arg]
             config=self.tasks_config["menu_json_task"],
-            context=[self.menu_planning_task()],
-            verbose=True,
+            context=[self.menu_planning_task()],  # type: ignore
             output_file="output/menu_designer/{menu_slug}.json",
         )
 
@@ -64,8 +71,10 @@ class MenuDesignerCrew:
     def crew(self) -> Crew:
         """Create a menu designer crew with hierarchical process."""
         return Crew(
-            agents=self.agents,
-            tasks=self.tasks,
+            agents=self.agents,  # type: ignore[attr-defined]
+            tasks=self.tasks,  # type: ignore[attr-defined]
             process=Process.sequential,
             verbose=True,
+            max_iter=LLMConfig.get_max_iter(),  # type: ignore[call-arg]
+            max_rpm=LLMConfig.get_max_rpm(),
         )

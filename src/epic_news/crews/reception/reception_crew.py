@@ -1,6 +1,10 @@
+from typing import Any, cast
+
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from dotenv import load_dotenv
+
+from epic_news.config.llm_config import LLMConfig
 
 load_dotenv()
 
@@ -14,21 +18,27 @@ class ReceptionCrew:
 
     @agent
     def router(self) -> Agent:
-        return Agent(config=self.agents_config["router"], verbose=True, respect_context_window=True)
+        return Agent(
+            config=cast(dict[str, Any], self.agents_config)["router"],
+            llm=LLMConfig.get_openrouter_llm(),
+            llm_timeout=LLMConfig.get_timeout("default"),
+            verbose=True,
+            respect_context_window=True,
+        )
 
     @task
     def routing_task(self) -> Task:
-        return Task(
-            config=self.tasks_config["routing_task"],
-            agent=self.router(),
+        return Task(  # type: ignore[call-arg]
+            config=cast(dict[str, Any], self.tasks_config)["routing_task"],
+            agent=self.router(),  # type: ignore[call-arg]
         )
 
     @crew
     def crew(self) -> Crew:
         """Creates the ReceptionCrew for routing requests"""
         return Crew(
-            agents=self.agents,
-            tasks=self.tasks,
+            agents=cast(list[Agent], self.agents),  # type: ignore[arg-type, attr-defined]
+            tasks=cast(list[Task], self.tasks),  # type: ignore[attr-defined]
             process=Process.sequential,
             verbose=True,
         )

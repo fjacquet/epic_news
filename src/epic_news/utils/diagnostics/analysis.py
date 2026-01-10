@@ -50,20 +50,20 @@ def analyze_crewai_output(state_data: dict[str, Any], crew_name: str) -> dict[st
 
     for key, value in state_data.items():
         # Analyze data types
-        analysis["data_types"][key] = type(value).__name__
+        analysis["data_types"][key] = type(value).__name__  # type: ignore[index]
 
         # Check for task outputs
         if isinstance(value, dict):
             if "pydantic" in value:
                 analysis["has_pydantic"] = True
-                analysis["task_outputs"][key] = {
+                analysis["task_outputs"][key] = {  # type: ignore[index]
                     "type": "pydantic",
                     "model": type(value["pydantic"]).__name__ if value["pydantic"] else None,
                 }
             elif "raw" in value:
                 analysis["has_raw"] = True
                 preview = str(value["raw"]) if value["raw"] is not None else ""
-                analysis["task_outputs"][key] = {
+                analysis["task_outputs"][key] = {  # type: ignore[index]
                     "type": "raw",
                     "content_preview": (preview[:100] + "...") if len(preview) > 100 else preview,
                 }

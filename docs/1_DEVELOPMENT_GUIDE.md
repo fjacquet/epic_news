@@ -112,11 +112,124 @@ rm commit_message.tmp
 
 This approach ensures that your commit messages are well-formatted and easy to write, especially for more complex changes.
 
+#### Makefile - Primary Development Interface
+
+Epic News uses a **comprehensive Makefile** as the primary interface for all development tasks. This ensures consistency between local development and CI/CD environments.
+
+**Philosophy**: The Makefile wraps common development operations with simple, memorable commands. All targets use `uv` internally.
+
+##### Getting Started
+
+```bash
+# See all available targets
+make help
+
+# First-time setup
+make dev              # Install all dependencies + pre-commit hooks
+
+# Daily development workflow
+make lint             # Check code style (ruff + yamllint)
+make format           # Format code (ruff + yamlfix)
+make fix              # Auto-fix linting issues
+make test             # Run tests quickly
+make coverage         # Run tests with coverage
+```
+
+##### Available Target Categories
+
+**Installation & Setup**:
+- `make install` - Install production dependencies
+- `make dev` - Install development dependencies (includes mypy, bandit, safety)
+- `make build` - Build package distribution
+- `make clean` - Remove all artifacts
+
+**Code Quality**:
+- `make lint` - Run ruff check + yamllint
+- `make format` - Format code with ruff + yamlfix
+- `make fix` - Auto-fix linting issues
+- `make test` - Quick test run without coverage
+- `make coverage` - Tests with HTML + terminal coverage report
+- `make pre-commit` - Run pre-commit hooks on all files
+- `make validate` - Quick validation (lint + test)
+- `make ci-checks` - All CI checks (lint + test)
+
+**Advanced Quality Checks**:
+- `make type-check` - Run mypy type checking
+- `make security` - Run bandit (code security) + safety (dependency vulnerabilities)
+
+**Docker Operations**:
+- `make docker-build-api` - Build FastAPI image
+- `make docker-build-streamlit` - Build Streamlit image
+- `make docker-build-combined` - Build combined image
+- `make docker-build-all` - Build all Docker images
+- `make docker-run-*` - Run respective containers
+
+**Application Runtime**:
+- `make run-streamlit` - Start Streamlit app (port 8501)
+- `make run-api` - Start FastAPI server (port 8000)
+- `make run-crew` - Run CrewAI flow kickoff
+- `make update-kb` - Update knowledge base
+
+**Dependency Management**:
+- `make show-deps` - Show dependency tree
+- `make show-outdated` - Show outdated packages
+- `make sync` - Sync dependencies with lock file
+- `make lock` - Update lock file
+
+##### Why Use the Makefile?
+
+1. **Consistency**: Same commands work locally and in CI/CD
+2. **Simplicity**: Memorable targets instead of complex uv commands
+3. **Documentation**: `make help` shows all available operations
+4. **Efficiency**: Composite targets (e.g., `make fix` runs format + auto-fix)
+5. **Quality Gates**: Conditional checks (security/type-check warn if tools not installed)
+
+##### Integration with CI/CD
+
+The GitHub Actions CI workflow (`.github/workflows/ci.yml`) uses Makefile targets:
+
+```yaml
+- name: Install dependencies using Makefile
+  run: make install
+
+- name: Run linting checks using Makefile
+  run: make lint
+
+- name: Run tests with coverage using Makefile
+  run: make coverage
+```
+
+This ensures developers run the exact same commands locally as CI does.
+
+##### Common Development Workflows
+
+**Before committing**:
+```bash
+make fix              # Auto-fix issues
+make test             # Verify tests pass
+make lint             # Check for remaining issues
+```
+
+**Before pushing**:
+```bash
+make pre-commit       # Run all pre-commit hooks
+make type-check       # Optional: check type hints
+make security         # Optional: security scan
+```
+
+**Full quality check**:
+```bash
+make all              # clean + install + lint + test
+```
+
 #### Testing & Quality Assurance
 
-- **Testing**: Always run tests with `uv run pytest`
-- **Linting**: Use `ruff` for code quality (integrated with uv)
-- **Type Checking**: Leverage Pydantic models and type hints
+**IMPORTANT**: Use Makefile targets instead of direct commands for consistency.
+
+- **Testing**: `make test` (quick) or `make coverage` (with coverage report)
+- **Linting**: `make lint` (check) or `make fix` (auto-fix)
+- **Type Checking**: `make type-check` (requires mypy)
+- **Security**: `make security` (bandit + safety)
 - **Coverage**: Maintain comprehensive test coverage for all utilities
 
 #### Advanced Testing Libraries

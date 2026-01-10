@@ -96,7 +96,7 @@ class ContentState(BaseModel):
     # REQUEST INFORMATION
     # ============================================================================
     user_request: str = "Get the RSS Weekly Report"
-    extracted_info: Optional[ExtractedInfo] = None
+    extracted_info: ExtractedInfo | None = None
     attachment_file: str = ""
     current_year: str = str(datetime.datetime.now().year)
     topic_slug: str = ""
@@ -113,15 +113,15 @@ class ContentState(BaseModel):
     # ============================================================================
     # CREW RESULTS - Core Reports
     # ============================================================================
-    final_report: Optional[str] = None
+    final_report: str | None = None
     error_message: str = ""
 
     # Business Intelligence Reports
     company_profile: Optional["CompanyProfileReport"] = None
     tech_stack: Optional["TechStackReport"] = None
     tech_stack_report: Optional["TechStackReport"] = None
-    contact_info_report: Optional[Any] = None
-    lead_score_report: Optional[Any] = None
+    contact_info_report: Any | None = None
+    lead_score_report: Any | None = None
 
     # Analysis Reports
     geospatial_analysis: Optional["GeospatialAnalysisReport"] = None
@@ -139,16 +139,17 @@ class ContentState(BaseModel):
     fin_daily_report: Optional["FinancialReport"] = None
     news_daily_report: Optional["NewsDailyReport"] = None
     saint_daily_report: Optional["SaintData"] = None
-    post_report: Optional[Any] = None
+    post_report: Any | None = None
 
     # Specialized Reports
-    location_report: Optional[Any] = None
+    location_report: Any | None = None
     holiday_plan: Optional["HolidayPlannerReport"] = None
     recipe: Optional["PaprikaRecipe"] = None
     menu_designer_report: Optional["WeeklyMenuPlan"] = None
+    menu_plan: Optional["WeeklyMenuPlan"] = None
     book_summary: Optional["BookSummaryReport"] = None
     shopping_advice_report: Optional["ShoppingAdviceOutput"] = None
-    shopping_advice_model: Optional[ShoppingAdviceOutput] = None
+    shopping_advice_model: ShoppingAdviceOutput | None = None
     poem: Optional["PoemJSONOutput"] = None
     meeting_prep_report: Optional["MeetingPrepReport"] = None
 
@@ -209,6 +210,8 @@ class ContentState(BaseModel):
 
     def _flatten_extracted_info(self) -> dict:
         """Flatten extracted_info into crew input format."""
+        if self.extracted_info is None:
+            return {}
         extracted_data = self.extracted_info.model_dump()
 
         # DEBUG: Log extracted_data to understand the mapping issue

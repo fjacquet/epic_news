@@ -187,7 +187,7 @@ class TemplateManager:
             data = content_data.dict()
         else:
             data = content_data
-        return renderer.render(data, selected_crew)
+        return renderer.render(data, selected_crew)  # type: ignore[call-arg]
 
     # The _generate_poem_body method has been removed and replaced by the PoemRenderer class
     # See src/epic_news/utils/html/template_renderers/poem_renderer.py

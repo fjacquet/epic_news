@@ -1,14 +1,12 @@
 """Pydantic models for the Tech Stack crew."""
 
-from typing import Optional
-
 from pydantic import BaseModel, Field
 
 
 class TechStackComponent(BaseModel):
     name: str
     category: str
-    description: Optional[str] = None
+    description: str | None = None
 
 
 class TechStackReport(BaseModel):

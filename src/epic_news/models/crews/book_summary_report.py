@@ -1,5 +1,3 @@
-from typing import Optional
-
 from pydantic import BaseModel, Field
 
 
@@ -24,9 +22,9 @@ class BookSummaryReport(BaseModel):
     topic: str
     publication_date: str
     title: str
-    summary: Optional[str]
+    summary: str | None
     table_of_contents: list[TableOfContentsEntry]
     sections: list[BookSummarySection]
-    chapter_summaries: Optional[list[ChapterSummary]] = []
+    chapter_summaries: list[ChapterSummary] | None = []
     references: list[str]
     author: str

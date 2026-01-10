@@ -1,9 +1,10 @@
+---
 reformulate_task:
   description: >
-    Analyser et reformuler le sujet '{topic}' pour en faire émerger une problématique 
-    de recherche précise et pertinente. Clarifier l'angle d'approche, identifier les 
-    dimensions clés à explorer et les enjeux essentiels liés au sujet. Évaluer les 
-    différentes perspectives possibles pour aborder le sujet.
+    Analyser et reformuler le sujet '{topic}' pour en faire émerger une problématique  de
+    recherche précise et pertinente. Clarifier l'angle d'approche, identifier les  dimensions
+    clés à explorer et les enjeux essentiels liés au sujet. Évaluer les  différentes
+    perspectives possibles pour aborder le sujet.
   expected_output: >
     Une formulation enrichie et structurée du sujet de recherche :
     - Clarification et délimitation précise du sujet initial ({topic})
@@ -15,12 +16,11 @@ reformulate_task:
     - Identification des contraintes et opportunités liées à ce sujet
   agent: research_strategist
   async_execution: false
-  output_file: "output/deep_research/reformulated_topic.md"
-
+  output_file: output/deep_research/reformulated_topic.md
 research_planning_task:
   description: >
-    Élaborer un protocole de recherche de niveau doctoral pour une analyse approfondie 
-    autour de la problématique formulée dans la tache précédente.
+    Élaborer un protocole de recherche de niveau doctoral pour une analyse approfondie  autour
+    de la problématique formulée dans la tache précédente.
     Définir la problématique, formuler des hypothèses de recherche claires, et concevoir
     une méthodologie robuste incluant les cadres théoriques et analytiques. Anticiper
     les biais potentiels et définir des stratégies de mitigation.
@@ -34,85 +34,64 @@ research_planning_task:
     - Analyse des risques et des limitations méthodologiques.
     - Bibliographie préliminaire.
   agent: research_strategist
-  context:  
-    - reformulate_task  
+  context: [reformulate_task]
   async_execution: false
-
 information_collection_task:
   description: >
     Exécuter le protocole de recherche en collectant de manière exhaustive les données
-    primaires et secondaires autour de la problématique formulée dans la premiere tache.
-    Prioriser les sources académiques, les publications évaluées par les pairs, les rapports
-    d'experts et les bases de données statistiques. Documenter chaque source de manière
-    méticuleuse.
-    
-    IMPORTANT: Pour chaque source, vous DEVEZ inclure une URL précise et fonctionnelle.
-    Les sources sans URL ne seront pas considérées comme valides et pourraient compromettre
-    la validité du rapport final.
+    primaires et secondaires (WEB + WIKIPEDIA) autour de la problématique formulée
+    dans  la premiere tache. Prioriser les sources académiques, les publications évaluées
+    par  les pairs, les rapports d'experts et les bases de données statistiques.
+    RECHERCHE WEB: Utiliser les outils de recherche web avancés pour découvrir  les
+    développements récents, articles académiques, et analyses expertes.
+    RECHERCHE WIKIPEDIA: Collecter les connaissances encyclopédiques via Wikipedia
+    MCP  pour établir un socle factuel et contextuel. Analyser l'historique, les concepts
+    clés  et l'état de l'art. Identifier les controverses et les guerres d'édition
+    pour évaluer  la stabilité du consensus.
+    Documenter chaque source de manière méticuleuse.
+    IMPORTANT: Pour chaque source (web ET Wikipedia), vous DEVEZ inclure une URL  précise
+    et fonctionnelle. Les sources sans URL ne seront pas considérées comme  valides
+    et pourraient compromettre la validité du rapport final.
   expected_output: >
-    Un corpus de recherche structuré et une bibliographie annotée :
+    Un corpus de recherche structuré combinant sources web et encyclopédiques :
     - Un ensemble complet de données brutes (articles, statistiques, etc.) enregistré
      dans des fichiers markdown dans "output/deep_research/"
-    - Une bibliographie annotée détaillée pour chaque source, incluant OBLIGATOIREMENT:
+    - Une bibliographie annotée détaillée pour CHAQUE source (web et Wikipedia), 
+      incluant OBLIGATOIREMENT:
       * Un titre descriptif
-      * Une URL précise et fonctionnelle
+      * Une URL précise et fonctionnelle (permanente pour Wikipedia)
       * Un résumé substantiel
       * Une évaluation de la crédibilité (échelle 0-1)
       * Sa pertinence par rapport aux hypothèses (échelle 0-10)
       * La date d'extraction
-    - Une synthèse des données collectées, identifiant les convergences, les
+      * Le type de source (web, wikipedia, académique, etc.)
+    - Une synthèse encyclopédique critique incluant:
+      * Résumé approfondi des connaissances factuelles établies
+      * Analyse chronologique et contextuelle de l'évolution du sujet
+      * Identification des concepts fondamentaux et des théories associées
+      * Évaluation des lacunes et des controverses dans la littérature
+    - Une synthèse globale des données collectées, identifiant les convergences, les
       divergences et les lacunes informationnelles.
   agent: information_collector
-  context:  
-    - research_planning_task
+  context: [research_planning_task]
   async_execution: false
-
-wikipedia_research_task:
-  description: >
-    Collecter les connaissances encyclopédiques à partir de Wikipedia pour établir un
-    socle factuel et contextuel. Analyser l'historique, les concepts clés et l'état de
-    l'art pour enrichir l'analyse principale. Identifier les controverses et les guerres
-    d'édition pour évaluer la stabilité du consensus.
-    
-    IMPORTANT: Pour chaque article Wikipedia consulté, vous DEVEZ inclure l'URL
-    complète et permanente vers l'article. Ne pas se contenter de citer le titre
-    de l'article sans son URL.
-  expected_output: >
-    Une synthèse encyclopédique critique :
-    - Résumé approfondi des connaissances factuelles établies.
-    - Analyse chronologique et contextuelle de l'évolution du sujet.
-    - Identification des concepts fondamentaux et des théories associées.
-    - Évaluation des lacunes et des controverses présentes dans la littérature
-      encyclopédique.
-    - Liste des articles Wikipedia consultés avec pour chacun:
-      * Le titre exact de l'article
-      * L'URL complète et permanente
-      * Un résumé concis de la contribution de cet article à l'analyse
-      * Une évaluation de la qualité de l'article (Bon, Moyen, À améliorer)
-  agent: wikipedia_specialist
-  context:
-    - research_planning_task
-    - information_collection_task
-  async_execution: false
-
 data_analysis_task:
   description: >
     Mener une analyse critique et approfondie du corpus de données sur {topic}.
     Appliquer les méthodes d'analyse définies dans le protocole pour tester les
     hypothèses. Utiliser l'interpréteur de code pour des analyses quantitatives,
     des modélisations statistiques et des visualisations de données complexes.
-    IMPORTANT: Enregistre tes codes python dans des fichiers python dans le dossier 
-    "output/deep_research/python_scripts"
-    IMPORTANT: Le code Python généré doit être propre, sans indentation superflue, 
-    et directement exécutable. Ne pas inclure le code dans des blocs de démarques.
+    IMPORTANT: Enregistre tes codes python dans des fichiers python dans le dossier  "output/deep_research/python_scripts"
+    IMPORTANT: Le code Python généré doit être propre, sans indentation superflue,  et
+    directement exécutable. Ne pas inclure le code dans des blocs de démarques.
     IMPORTANT: le code python peut etre lancé avec uv run python "python_script.py"
-    ATTENTION: Vérifiez méticuleusement la syntaxe du code Python. 
-    Assurez-vous que toutes les chaînes de caractères, en particulier les f-strings,
+    ATTENTION: Vérifiez méticuleusement la syntaxe du code Python.  Assurez-vous que
+    toutes les chaînes de caractères, en particulier les f-strings,
      sont correctement terminées et ne contiennent pas de caractères d'échappement
       erronés qui pourraient causer une `SyntaxError`.
-    INTERDICTION: Ne JAMAIS inclure de commandes d'installation de paquets comme 
-    `!pip install` ou `pip install`. L'environnement contient déjà toutes 
-    les bibliothèques nécessaires (pandas, matplotlib, scipy, etc.).
+    INTERDICTION: Ne JAMAIS inclure de commandes d'installation de paquets comme  `!pip
+    install` ou `pip install`. L'environnement contient déjà toutes  les bibliothèques
+    nécessaires (pandas, matplotlib, scipy, etc.).
   expected_output: >
     Une analyse de données de niveau recherche avec interprétations :
     - Validation ou réfutation des hypothèses avec preuves à l'appui.
@@ -122,21 +101,18 @@ data_analysis_task:
     - Scripts d'analyse reproductibles (Python/R) générés via l'interpréteur de code.
     - Interprétation des résultats à la lumière du cadre théorique.
   agent: data_analyst
-  context:
-    - research_planning_task
-    - information_collection_task
-    - wikipedia_research_task
+  context: [research_planning_task, information_collection_task]
   async_execution: false
-
 report_writing_task:
   description: >
     Rédiger un rapport de recherche de niveau publication a partir des données collectées,
     en suivant la structure IMRaD (Introduction, Méthodes, Résultats et Discussion).
     Intégrer les analyses de manière fluide et argumentée. Le rapport doit être clair,
     logique et apporter une contribution originale à la compréhension du sujet.
-    
-    CRITIQUE: Toutes les sources mentionnées dans le rapport DOIVENT avoir une URL précise et
-    fonctionnelle. Un rapport contenant des sources sans URL sera considéré comme incomplet
+    CRITIQUE: Toutes les sources mentionnées dans le rapport DOIVENT avoir une URL
+    précise et
+    fonctionnelle. Un rapport contenant des sources sans URL sera considéré comme
+    incomplet
     et devra être révisé. Les URLs sont essentielles pour la vérifiabilité de la recherche.
   expected_output: >
     Un rapport de recherche en format JSON structuré conforme au modèle DeepResearchReport:
@@ -171,27 +147,27 @@ report_writing_task:
       "conclusions": "Conclusions générales de la recherche"
     }
     ```
-    
-    IMPORTANT: Le modèle JSON DOIT respecter la structure exacte du modèle DeepResearchReport avec:
-    - Tous les champs obligatoires (title, topic, executive_summary, key_findings, research_sections, methodology, conclusions)
-    - Chaque section de recherche doit avoir un champ "section_title" (PAS "title") et un champ "conclusions"
-    - Chaque source doit obligatoirement avoir une URL valide et un score de crédibilité entre 0 et 1
+    IMPORTANT: Le modèle JSON DOIT respecter la structure exacte du modèle DeepResearchReport
+    avec:
+    - Tous les champs obligatoires (title, topic, executive_summary, key_findings,
+    research_sections, methodology, conclusions)
+    - Chaque section de recherche doit avoir un champ "section_title" (PAS "title")
+    et un champ "conclusions"
+    - Chaque source doit obligatoirement avoir une URL valide et un score de crédibilité
+    entre 0 et 1
   agent: report_writer
   context:
     - research_planning_task
     - information_collection_task
-    - wikipedia_research_task
     - data_analysis_task
   async_execution: false
-  output_file: "{output_file}"
-
+  output_file: '{output_file}'
 # quality_assurance_task:
 #   description: >
 #     Effectuer une relecture critique du rapport de recherche, simulant un processus
 #     d'évaluation par les pairs. Vérifier la validité scientifique, la rigueur
 #     méthodologique, la cohérence de l'argumentation et la clarté de l'expression.
 #     Assurer que le rapport final est exempt d'erreurs et prêt pour publication.
-    
 #     IMPORTANT: Votre réponse finale DOIT être un objet JSON valide contenant les champs suivants:
 #     - title: titre principal du rapport
 #     - topic: sujet de recherche
@@ -202,9 +178,7 @@ report_writing_task:
 #     - sources_count: nombre total de sources consultées
 #     - report_date: date de génération du rapport
 #     - confidence_level: niveau global de confiance (High, Medium, Low)
-    
 #     Chaque source doit contenir: title, url (si disponible), source_type, summary, et relevance_score.
-    
 #     NE PAS retourner de Markdown, YAML ou HTML. UNIQUEMENT un objet JSON valide.
 #   expected_output: >
 #     Un rapport de recherche en format JSON structuré conforme au modèle DeepResearchReport:

@@ -2,12 +2,12 @@
 
 import json
 
-from src.epic_news.tools.wikipedia_search_tool import WikipediaSearchTool
+from epic_news.tools.wikipedia_search_tool import WikipediaSearchTool
 
 
 def test_wikipedia_search_success(mocker):
     """Test that WikipediaSearchTool returns search results successfully."""
-    mock_search = mocker.patch("src.epic_news.tools.wikipedia_search_tool.wikipedia.search")
+    mock_search = mocker.patch("epic_news.tools.wikipedia_search_tool.wikipedia.search")
     tool = WikipediaSearchTool()
     query = "Artificial Intelligence"
     limit = 3
@@ -26,7 +26,7 @@ def test_wikipedia_search_success(mocker):
 
 def test_wikipedia_search_api_error(mocker):
     """Test that WikipediaSearchTool handles API errors gracefully."""
-    mock_search = mocker.patch("src.epic_news.tools.wikipedia_search_tool.wikipedia.search")
+    mock_search = mocker.patch("epic_news.tools.wikipedia_search_tool.wikipedia.search")
     tool = WikipediaSearchTool()
     query = "Error Prone Query"
     error_message = "Wikipedia API is down"

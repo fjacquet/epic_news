@@ -116,7 +116,7 @@ class WikipediaProcessingTool(BaseTool):
         if not section_content:
             return f"Section '{section_title}' not found in article '{page.title}'."
 
-        summary = section_content[:max_length]
+        summary = str(section_content)[:max_length]
         if len(section_content) > max_length:
             summary += "..."
         return summary

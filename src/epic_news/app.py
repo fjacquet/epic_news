@@ -10,7 +10,7 @@ from epic_news.main import kickoff
 # --- Streamlit UI Configuration ---
 st.set_page_config(page_title="Epic News CrewAI Orchestrator", layout="wide")
 st.title("✨ Epic News CrewAI Orchestrator")
-st.markdown("""Welcome! Enter your request below, and the flow will automatically classify it
+st.markdown("""Welcome! Enter your research question below. The system will classify it
 and dispatch the appropriate crew to handle the job.""")
 
 # --- State Management ---
@@ -20,6 +20,8 @@ if "log_messages" not in st.session_state:
     st.session_state.log_messages = []
 if "final_report" not in st.session_state:
     st.session_state.final_report = None
+if "final_report_md" not in st.session_state:
+    st.session_state.final_report_md = None
 
 
 # --- Real-time Logging Setup ---
@@ -33,8 +35,32 @@ class StreamlitLogSink:
         self.queue.put(message.strip())
 
 
-log_queue = Queue()
+log_queue: Queue[str] = Queue()
 logger.add(StreamlitLogSink(log_queue), format="{time:YYYY-MM-DD HH:mm:ss} - {level} - {message}")
+
+
+# --- Helpers ---
+def html_to_markdown(html: str) -> str:
+    """Best-effort HTML→Markdown conversion for displaying/downloading.
+
+    Tries `markdownify` if available; falls back to BeautifulSoup text extraction;
+    finally returns original HTML if no converters are available.
+    """
+    try:
+        # Prefer markdownify when present
+        from markdownify import markdownify as md
+
+        return str(md(html, heading_style="ATX"))
+    except Exception:
+        try:
+            from bs4 import BeautifulSoup
+
+            soup = BeautifulSoup(html, "html.parser")
+            # Keep basic structure using newlines
+            text = soup.get_text("\n")
+            return text.strip()
+        except Exception:
+            return html
 
 
 # --- Crew Execution Logic ---
@@ -62,16 +88,17 @@ def run_crew_thread(user_request: str, log_queue: Queue):
 
 # --- UI Components ---
 user_request = st.text_input(
-    "Enter your request",
+    "Enter your research question",
     "Summarize 'Art of War by Sun Tzu' and suggest similar books.",
     disabled=st.session_state.crew_running,
 )
 
-if st.button("🚀 Kickoff Flow", disabled=st.session_state.crew_running):
+if st.button("🔎 Start Research", disabled=st.session_state.crew_running):
     # Reset state for a new run
     st.session_state.crew_running = True
     st.session_state.log_messages = []
     st.session_state.final_report = None
+    st.session_state.final_report_md = None
 
     # Start the crew thread
     st.session_state.thread = Thread(target=run_crew_thread, args=(user_request, log_queue))
@@ -79,39 +106,63 @@ if st.button("🚀 Kickoff Flow", disabled=st.session_state.crew_running):
 
 # --- Display Logic for Running Crew ---
 if st.session_state.crew_running:
-    st.info("ReceptionFlow is running... Logs will appear below.")
-    log_placeholder = st.empty()
-    report_placeholder = st.empty()
+    with st.status("ReceptionFlow is running...", expanded=True) as status:
+        log_placeholder = st.empty()
 
-    # Poll the queue for updates
-    while st.session_state.thread.is_alive() or not log_queue.empty():
+        # Poll the queue for updates
+        while st.session_state.thread.is_alive() or not log_queue.empty():
+            try:
+                message = log_queue.get(timeout=0.1)
+                if isinstance(message, tuple):
+                    msg_type, content = message
+                    if msg_type == "REPORT":
+                        st.session_state.final_report = content
+                    elif msg_type == "ERROR":
+                        st.session_state.log_messages.append(f"❌ ERROR: {content}")
+                    elif msg_type == "END":
+                        st.session_state.crew_running = False
+                        break  # Exit the loop
+                else:
+                    st.session_state.log_messages.append(message)
+
+                # Update the log display inside the status box
+                log_placeholder.code("\n".join(st.session_state.log_messages), language="log")
+
+            except Empty:
+                continue  # Continue polling
+
+        # Final state update after loop
+        st.session_state.crew_running = False
+        if st.session_state.final_report:
+            st.session_state.final_report_md = html_to_markdown(st.session_state.final_report)
+            status.update(label="✅ Crew finished! Final report is ready.", state="complete")
+        else:
+            status.update(label="❌ Crew finished, but no report was generated.", state="error")
+
+    # After status closes, show the final report section and download
+    if st.session_state.final_report_md:
+        st.subheader("Final Report (Markdown)")
+        st.markdown(st.session_state.final_report_md)
+
+        # Suggest a filename based on output_file if available
+        default_name = "final_report.md"
         try:
-            message = log_queue.get(timeout=0.1)
-            if isinstance(message, tuple):
-                msg_type, content = message
-                if msg_type == "REPORT":
-                    st.session_state.final_report = content
-                elif msg_type == "ERROR":
-                    st.session_state.log_messages.append(f"❌ ERROR: {content}")
-                elif msg_type == "END":
-                    st.session_state.crew_running = False
-                    break  # Exit the loop
-            else:
-                st.session_state.log_messages.append(message)
+            if "thread" in st.session_state and hasattr(st.session_state, "thread"):
+                pass  # no-op; kept for symmetry
+            # We cannot access flow object here; rely on a default name
+        except Exception:
+            pass
 
-            # Update the log display
-            log_placeholder.code("\n".join(st.session_state.log_messages), language="log")
-
-        except Empty:
-            continue  # Continue polling
-
-    # Final state update after loop
-    st.session_state.crew_running = False
-    if st.session_state.final_report:
-        report_placeholder.success("Crew finished! Here is the final report:")
+        st.download_button(
+            label="⬇️ Download report (.md)",
+            data=st.session_state.final_report_md,
+            file_name=default_name,
+            mime="text/markdown",
+        )
+    elif st.session_state.final_report:
+        # Fallback: if markdown conversion failed, still show HTML
+        st.subheader("Final Report (HTML)")
         st.markdown(st.session_state.final_report, unsafe_allow_html=True)
-    else:
-        report_placeholder.error("Crew finished, but no report was generated.")
 
     # Clean up the thread
     if "thread" in st.session_state:

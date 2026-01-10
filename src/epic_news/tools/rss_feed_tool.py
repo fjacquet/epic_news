@@ -4,7 +4,7 @@ RSS Feed Tool for reliable news source ingestion.
 
 import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta
-from typing import Any, ClassVar, Optional
+from typing import Any, ClassVar
 from urllib.parse import urljoin, urlparse
 
 import httpx
@@ -22,8 +22,8 @@ class RSSFeedInput(BaseModel):
     """Input schema for RSS Feed Tool."""
 
     region: str = Field(..., description="Region to get news for (suisse_romande, france, europe, world)")
-    max_articles: Optional[int] = Field(10, description="Maximum number of articles to retrieve")
-    hours_back: Optional[int] = Field(24, description="How many hours back to look for articles")
+    max_articles: int | None = Field(10, description="Maximum number of articles to retrieve")
+    hours_back: int | None = Field(24, description="How many hours back to look for articles")
 
 
 class RSSFeedTool(BaseTool):
@@ -269,7 +269,7 @@ class RSSFeedTool(BaseTool):
         def get_text(element, tag_name: str, default: str = "") -> str:
             elem = element.find(tag_name) or element.find(f".//{tag_name}")
             if elem is not None and elem.text:
-                return elem.text.strip()
+                return str(elem.text).strip()
             return default
 
         # Extract basic fields

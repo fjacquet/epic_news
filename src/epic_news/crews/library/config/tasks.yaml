@@ -1,23 +1,26 @@
+---
 research_task:
   description: >
     Menez une recherche académique approfondie sur le sujet suivant : {topic}.
     Suivez une méthodologie rigoureuse en plusieurs étapes :
       1. Définissez la problématique et les questions de recherche.
-      2. Collectez des sources variées et crédibles (livres, articles scientifiques, rapports, etc.).
-      3. Analysez l'origine, le contexte historique, les faits clés, les controverses majeures, et les développements récents.
-      4. Intégrez des données quantitatives, des comparaisons internationales, et des perspectives critiques.
-      5. Dégagez au moins 20 points essentiels, avec des métriques et des citations précises.
+      2. Collectez des sources variées et crédibles (livres, articles scientifiques,
+    rapports, etc.).
+      3. Analysez l'origine, le contexte historique, les faits clés, les controverses
+    majeures, et les développements récents.
+      4. Intégrez des données quantitatives, des comparaisons internationales, et
+    des perspectives critiques.
+      5. Dégagez au moins 20 points essentiels, avec des métriques et des citations
+    précises.
     Toutes les notes et analyses doivent être rédigées en français.
   expected_output: >
     A markdown file containing a detailed and well-structured research report
     on the specified topic, with citations and references.
   agent: researcher
-
 reporting_task:
   description: |
     CRITIQUE : Compilez les résultats de la recherche sur {topic} dans un objet JSON unique,
     strictement conforme au modèle Pydantic BookSummaryReport, en français.
-    
     STRUCTURE REQUISE :
     Le rapport doit comporter :
       - Une introduction détaillée du sujet (minimum 300 mots)
@@ -25,7 +28,6 @@ reporting_task:
       - Une synthèse et une conclusion critique (minimum 300 mots)
       - Des citations précises et une bibliographie complète
       - L'utilisation de tableaux et de listes à puces pour structurer l'information si pertinent
-    
     RÈGLES JSON CRITIQUES :
     - Sortie UNIQUEMENT en JSON valide, aucun texte explicatif
     - Tous les champs string doivent être entre guillemets doubles
@@ -37,13 +39,11 @@ reporting_task:
     - Le champ 'table_of_contents' doit être un tableau d'objets avec 'id' et 'title'
     - Le champ 'references' doit être un tableau de strings
     - Le champ 'chapter_summaries' doit être un tableau d'objets avec 'chapter', 'title', 'focus'
-    
     VALIDATION :
     - Vérifiez que votre JSON est syntaxiquement correct
     - Testez mentalement la structure avant de l'envoyer
     - Assurez-vous que tous les champs requis sont présents
     - Chaque section doit avoir un identifiant ('id') descriptif et unique
-    
     La sortie finale doit être un objet JSON pur, sans texte additionnel.
   expected_output: |
     A valid and pure JSON object matching the BookSummaryReport Pydantic model.
@@ -53,4 +53,4 @@ reporting_task:
     Each section must have string-based 'id', 'title', and 'content' fields.
   agent: reporting_analyst
   context: [research_task]
-  output_file: "{output_file}"
+  output_file: '{output_file}'

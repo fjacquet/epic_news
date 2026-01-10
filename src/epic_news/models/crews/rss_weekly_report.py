@@ -1,7 +1,6 @@
 """Pydantic models for RSS Weekly digest reports."""
 
 from datetime import datetime
-from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -20,7 +19,7 @@ class FeedDigest(BaseModel):
     """Represents a digest of articles from a single RSS feed."""
 
     feed_url: str = Field(..., description="RSS feed URL")
-    feed_name: Optional[str] = Field(None, description="Human-readable feed name")
+    feed_name: str | None = Field(None, description="Human-readable feed name")
     articles: list[ArticleSummary] = Field(
         default_factory=list, description="Summarized articles from this feed"
     )
@@ -35,7 +34,7 @@ class RssWeeklyReport(BaseModel):
     feeds: list[FeedDigest] = Field(default_factory=list, description="Digests from all RSS feeds")
     total_feeds: int = Field(0, description="Total number of RSS feeds processed")
     total_articles: int = Field(0, description="Total number of articles across all feeds")
-    summary: Optional[str] = Field(None, description="Executive summary of the weekly digest")
+    summary: str | None = Field(None, description="Executive summary of the weekly digest")
 
     def model_post_init(self, __context) -> None:
         """Calculate totals after model initialization."""

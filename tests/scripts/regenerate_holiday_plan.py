@@ -5,7 +5,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 import json
 
-from src.epic_news.utils.html.template_manager import TemplateManager
+from epic_news.utils.html.template_manager import TemplateManager
 
 input_json_path = Path("output/holiday/itinerary.json")
 output_html_path = Path("output/holiday/regenerated_itinerary.html")

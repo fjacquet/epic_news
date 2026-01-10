@@ -4,7 +4,7 @@ Temporary script to regenerate company news HTML from JSON data.
 
 import json
 
-from src.epic_news.utils.html.template_manager import TemplateManager
+from epic_news.utils.html.template_manager import TemplateManager
 
 # Load JSON data
 with open("output/holiday/itinerary.json", encoding="utf-8") as f:

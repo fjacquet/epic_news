@@ -6,7 +6,6 @@ to enable crews to store and retrieve knowledge across sessions.
 """
 
 import copy  # Add import for deepcopy
-from typing import Optional
 
 from crewai.tools import BaseTool as Tool
 from crewai_tools import RagTool
@@ -16,7 +15,7 @@ from epic_news.rag_config import DEFAULT_RAG_CONFIG
 from epic_news.tools.save_to_rag_tool import SaveToRagTool
 
 
-def get_rag_tools(collection_suffix: Optional[str] = None) -> list[Tool]:
+def get_rag_tools(collection_suffix: str | None = None) -> list[Tool]:
     """
     Get RAG tools for knowledge retrieval and storage.
 
@@ -33,24 +32,24 @@ def get_rag_tools(collection_suffix: Optional[str] = None) -> list[Tool]:
     # If a collection suffix is provided, create a crew-specific collection
     if collection_suffix:
         # No need to copy config["vectordb"]["config"] again as config is already a deepcopy
-        config["vectordb"]["config"]["collection_name"] = f"epic_news-{collection_suffix}"
+        config["vectordb"]["config"]["collection_name"] = f"epic_news-{collection_suffix}"  # type: ignore[index]
 
     # Instantiate the LLM and Embedder
-    llm = ChatOpenAI(**config["llm"]["config"])
-    embedder = OpenAIEmbeddings(**config["embedder"]["config"])
+    llm = ChatOpenAI(**config["llm"]["config"])  # type: ignore[index]
+    embedder = OpenAIEmbeddings(**config["embedder"]["config"])  # type: ignore[index]
 
     # Determine the collection name
-    collection_name = config["vectordb"]["config"]["collection_name"]
+    collection_name = config["vectordb"]["config"]["collection_name"]  # type: ignore[index]
 
     # Create the RAG tool for retrieval with app_config to ensure collection_name is properly set
-    rag_tool = RagTool(
+    rag_tool = RagTool(  # type: ignore[call-arg]
         llm=llm,
         embedder=embedder,
         chunker_config=config["chunker"],
         vectordb_config=config["vectordb"],
         app_config={
             "collection_name": collection_name,  # This ensures the collection name is properly set
-            "db": {"dir": config["vectordb"]["config"].get("dir", "/tmp/chroma_db")},
+            "db": {"dir": config["vectordb"]["config"].get("dir", "/tmp/chroma_db")},  # type: ignore[index]
         },
         summarize=True,
         description=(

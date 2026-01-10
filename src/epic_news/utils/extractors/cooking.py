@@ -38,7 +38,7 @@ class CookingExtractor(ContentExtractor):
                     logger.debug(f"  ✅ PaprikaRecipe reconstructed from dict: {recipe_model.name}")
                 except Exception as e:
                     logger.warning(f"  ⚠️ Failed to reconstruct PaprikaRecipe from dict: {e}")
-                    recipe_model = PaprikaRecipe(name="Recette", ingredients="", directions="")
+                    recipe_model = PaprikaRecipe(name="Recette", ingredients="", directions="")  # type: ignore[call-arg]
             else:
                 # Direct PaprikaRecipe object
                 recipe_model = paprika_data
@@ -59,7 +59,7 @@ class CookingExtractor(ContentExtractor):
                     logger.debug(f"  ✅ JSON parsing successful, recipe: {recipe_model.name}")
                 except Exception as e2:
                     logger.error(f"  ❌ Both YAML and JSON parsing failed: {e2}")
-                    recipe_model = PaprikaRecipe(name="Recette", ingredients="", directions="")
+                    recipe_model = PaprikaRecipe(name="Recette", ingredients="", directions="")  # type: ignore[call-arg]
 
         # Use Pydantic model to get template data
         content_data = recipe_model.to_template_data()

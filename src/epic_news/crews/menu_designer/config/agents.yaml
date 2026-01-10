@@ -15,10 +15,10 @@ menu_researcher:
     et {user_context}, tout en assurant un équilibre nutritionnel optimal et en  respectant
     les principes diététiques essentiels (apports en protéines, glucides, lipides,  fibres,
     vitamines et minéraux).
-    Planifier un menu hebdomadaire cohérent et harmonieux avec EXACTEMENT 30 recettes:  
-    - 14 entrées uniques
-    - 14 plats principaux uniques  
-    - 2 desserts spécifiquement pour les déjeuners du weekend
+    Planifier un menu hebdomadaire cohérent et harmonieux avec EXACTEMENT 30 recettes:   -
+    14 entrées uniques
+    - 14 plats principaux uniques   - 2 desserts spécifiquement pour les déjeuners
+    du weekend
     Assurer une cohérence gustative et diététique globale :
     - Harmonie des saveurs et textures au sein de chaque repas
     - Progression culinaire logique dans chaque repas
@@ -45,10 +45,12 @@ menu_reporter:
   backstory: >-
     Vous êtes un expert en structuration de données spécialisé dans le domaine culinaire.
     Votre expertise consiste à transformer des informations complexes sur les menus
-    et recettes en formats de données standardisés et exploitables. Vous avez une compréhension
+    et recettes en formats de données standardisés et exploitables. Vous avez une
+    compréhension
     approfondie des modèles de données et des formats JSON.
     Vous excellez dans l'art d'organiser logiquement l'information pour qu'elle soit
-    à la fois complète et facilement utilisable par d'autres systèmes. Votre attention aux détails
+    à la fois complète et facilement utilisable par d'autres systèmes. Votre attention
+    aux détails
     et votre rigueur assurent que les données que vous produisez sont toujours cohérentes,
     valides et conformes aux spécifications requises.
     Votre travail consiste à prendre les informations brutes collectées par les chercheurs

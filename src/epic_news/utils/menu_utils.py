@@ -4,6 +4,7 @@ import json
 import os
 from typing import Any
 
+from crewai import Crew
 from loguru import logger
 
 from epic_news.crews.cooking.cooking_crew import CookingCrew
@@ -118,7 +119,7 @@ def enhance_menu_structure(html_content: str) -> str:
 
 
 def process_recipes_from_menu(
-    recipe_specs: list[dict[str, Any]], cooking_crew: CookingCrew = None
+    recipe_specs: list[dict[str, Any]], cooking_crew: Crew | None = None
 ) -> list[str]:
     """
     Process a list of recipe specifications using the cooking crew.

@@ -1,9 +1,17 @@
 import os
-from typing import Optional
 
 from crewai.tools import BaseTool
 from pydantic import BaseModel, Field
-from weasyprint import HTML
+
+# Try to import WeasyPrint, but make it optional
+try:
+    from weasyprint import HTML
+
+    WEASYPRINT_AVAILABLE = True
+except (ImportError, OSError) as e:
+    WEASYPRINT_AVAILABLE = False
+    HTML = None
+    _weasyprint_error = str(e)
 
 
 class HtmlToPdfToolSchema(BaseModel):
@@ -25,14 +33,22 @@ class HtmlToPdfTool(BaseTool):
         "or an error message if the conversion fails or an issue occurs."
     )
     args_schema: type[BaseModel] = HtmlToPdfToolSchema
-    html_file_path: Optional[str] = None
-    output_pdf_path: Optional[str] = None
+    html_file_path: str | None = None
+    output_pdf_path: str | None = None
 
     def _run(
         self,
         html_file_path: str,
         output_pdf_path: str,
     ) -> str:
+        # Check if WeasyPrint is available
+        if not WEASYPRINT_AVAILABLE:
+            return (
+                "Error: WeasyPrint library is not available. "
+                f"Original error: {_weasyprint_error}. "
+                "Please install system dependencies: brew install glib pango cairo"
+            )
+
         self.html_file_path = html_file_path
         self.output_pdf_path = output_pdf_path
         try:

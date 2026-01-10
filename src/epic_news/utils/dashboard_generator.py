@@ -55,7 +55,7 @@ class DashboardGenerator:
         """
         if os.path.exists(self.data_file):
             with open(self.data_file) as f:
-                return json.load(f)
+                return json.load(f)  # type: ignore[no-any-return]
         return {}
 
     def _generate_crew_charts(self) -> list[dict[str, str]]:
@@ -277,9 +277,9 @@ class DashboardGenerator:
             completion_times = [m.get("avg_completion_time", 0) for m in self.metrics["daily_metrics"]]
         else:
             # Example data if real metrics not available
-            days = np.arange(1, 8)
-            success_rates = np.random.uniform(75, 100, 7)
-            completion_times = np.random.uniform(10, 30, 7)
+            days = np.arange(1, 8)  # type: ignore[assignment]
+            success_rates = np.random.uniform(75, 100, 7)  # type: ignore[assignment]
+            completion_times = np.random.uniform(10, 30, 7)  # type: ignore[assignment]
 
         # Plot data
         plt.plot(days, success_rates, "o-", color="#1a73e8", label="Success Rate (%)")
@@ -404,12 +404,12 @@ class DashboardGenerator:
         template_data.update(
             {
                 "date_range": f"{one_week_ago} to {today}",
-                "total_runs": total_runs,
-                "success_rate": success_rate,
-                "success_trend": success_trend,
-                "avg_time": avg_time,
-                "hallucination_score": hallucination_score,
-                "hallucination_percent": hallucination_percent,
+                "total_runs": total_runs,  # type: ignore[dict-item]
+                "success_rate": success_rate,  # type: ignore[dict-item]
+                "success_trend": success_trend,  # type: ignore[dict-item]
+                "avg_time": avg_time,  # type: ignore[dict-item]
+                "hallucination_score": hallucination_score,  # type: ignore[dict-item]
+                "hallucination_percent": hallucination_percent,  # type: ignore[dict-item]
                 "performance_chart": performance_chart,
                 "recent_runs": recent_runs,
                 "alerts": alerts,

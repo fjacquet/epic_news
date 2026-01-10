@@ -6,7 +6,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 import json
 
-from src.epic_news.utils.html.template_manager import TemplateManager
+from epic_news.utils.html.template_manager import TemplateManager
 
 # ---------------------------------------------------------------------------
 # Paths

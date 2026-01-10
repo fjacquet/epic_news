@@ -2,8 +2,8 @@ import json
 
 import pytest
 
-from src.epic_news.models.rss_models import Article, FeedWithArticles, RssFeeds
-from src.epic_news.tools.batch_article_scraper_tool import BatchArticleScraperTool
+from epic_news.models.rss_models import Article, FeedWithArticles, RssFeeds
+from epic_news.tools.batch_article_scraper_tool import BatchArticleScraperTool
 
 
 @pytest.fixture

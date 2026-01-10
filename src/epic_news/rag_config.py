@@ -5,15 +5,17 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 
 DEFAULT_RAG_CONFIG = {
     "llm": {
-        "provider": "openai",
+        "provider": "openrouter",  # Changed from openai to openrouter
         "config": {
-            "model": "gpt-4.1-nano",
-            "temperature": 0.7,
+            "model": os.getenv("MODEL", "openrouter/xiaomi/mimo-v2-flash:free"),
+            "api_key": os.getenv("OPENROUTER_API_KEY"),
+            "base_url": "https://openrouter.ai/api/v1",
+            "temperature": float(os.getenv("LLM_TEMPERATURE", "0.7")),
             "max_tokens": 1000,
         },
     },
     "embedder": {
-        "provider": "openai",
+        "provider": "openai",  # Keep OpenAI for embeddings
         "config": {
             "model": "text-embedding-3-large",
         },

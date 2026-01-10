@@ -7,7 +7,7 @@ Handles daily meal plans, ingredients, and nutritional information.
 
 from typing import Any
 
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Tag
 
 from .base_renderer import BaseRenderer
 
@@ -129,7 +129,7 @@ class MenuRenderer(BaseRenderer):
 
         container.append(daily_plans_section)
 
-    def _create_day_plan(self, soup: BeautifulSoup, day: str, meals: dict[str, Any]) -> BeautifulSoup:
+    def _create_day_plan(self, soup: BeautifulSoup, day: str, meals: dict[str, Any]) -> Tag:
         """Create a daily meal plan card."""
         day_div = soup.new_tag("div", class_="day-plan")
 

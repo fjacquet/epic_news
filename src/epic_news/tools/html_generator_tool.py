@@ -40,7 +40,7 @@ class HtmlGeneratorTool(BaseTool):
 
     def __init__(self):
         """Initialize the HTML Generator Tool with TemplateManager."""
-        super().__init__()
+        super().__init__()  # type: ignore[call-arg]
         # Initialize template manager without setting as instance attribute to avoid Pydantic validation error
         object.__setattr__(self, "template_manager", TemplateManager())
 
@@ -63,7 +63,7 @@ class HtmlGeneratorTool(BaseTool):
             content_data = ContentExtractorFactory.extract_content(parsed_state_data, selected_crew)
 
             # Use template manager to render the report
-            html_content = self.template_manager.render_report(selected_crew, content_data)
+            html_content = self.template_manager.render_report(selected_crew, content_data)  # type: ignore[attr-defined]
 
             # Write the HTML content to the output file
             with open(output_file_path, "w", encoding="utf-8") as f:

@@ -20,7 +20,7 @@ def test_instantiation(tool_instance):
 
 # --- _run Method Tests ---
 def test_run_successful_news_retrieval_with_limit(tool_instance, mocker):
-    mock_yfinance_ticker = mocker.patch("src.epic_news.tools.yahoo_finance_news_tool.yf.Ticker")
+    mock_yfinance_ticker = mocker.patch("epic_news.tools.yahoo_finance_news_tool.yf.Ticker")
     ticker_symbol = "GOODNEWS"
     limit = 2
     mock_ticker_instance = mocker.MagicMock()
@@ -49,7 +49,7 @@ def test_run_successful_news_retrieval_with_limit(tool_instance, mocker):
 
 
 def test_run_successful_news_retrieval_fewer_than_limit(tool_instance, mocker):
-    mock_yfinance_ticker = mocker.patch("src.epic_news.tools.yahoo_finance_news_tool.yf.Ticker")
+    mock_yfinance_ticker = mocker.patch("epic_news.tools.yahoo_finance_news_tool.yf.Ticker")
     ticker_symbol = "FEWNEWS"
     limit = 5
     mock_ticker_instance = mocker.MagicMock()
@@ -72,7 +72,7 @@ def test_run_successful_news_retrieval_fewer_than_limit(tool_instance, mocker):
 
 
 def test_run_successful_news_retrieval_default_limit(tool_instance, mocker):
-    mock_yfinance_ticker = mocker.patch("src.epic_news.tools.yahoo_finance_news_tool.yf.Ticker")
+    mock_yfinance_ticker = mocker.patch("epic_news.tools.yahoo_finance_news_tool.yf.Ticker")
     ticker_symbol = "DEFAULTLIMITNEWS"
     mock_ticker_instance = mocker.MagicMock()
     mock_yfinance_ticker.return_value = mock_ticker_instance
@@ -93,7 +93,7 @@ def test_run_successful_news_retrieval_default_limit(tool_instance, mocker):
 
 
 def test_run_no_news_found(tool_instance, mocker):
-    mock_yfinance_ticker = mocker.patch("src.epic_news.tools.yahoo_finance_news_tool.yf.Ticker")
+    mock_yfinance_ticker = mocker.patch("epic_news.tools.yahoo_finance_news_tool.yf.Ticker")
     ticker_symbol = "NONEWS"
     mock_ticker_instance = mocker.MagicMock()
     mock_yfinance_ticker.return_value = mock_ticker_instance
@@ -106,7 +106,7 @@ def test_run_no_news_found(tool_instance, mocker):
 
 
 def test_run_news_item_missing_fields(tool_instance, mocker):
-    mock_yfinance_ticker = mocker.patch("src.epic_news.tools.yahoo_finance_news_tool.yf.Ticker")
+    mock_yfinance_ticker = mocker.patch("epic_news.tools.yahoo_finance_news_tool.yf.Ticker")
     ticker_symbol = "MISSINGFIELDSNEWS"
     mock_ticker_instance = mocker.MagicMock()
     mock_yfinance_ticker.return_value = mock_ticker_instance
@@ -138,7 +138,7 @@ def test_run_news_item_missing_fields(tool_instance, mocker):
 
 
 def test_run_yfinance_exception(tool_instance, mocker):
-    mock_yfinance_ticker = mocker.patch("src.epic_news.tools.yahoo_finance_news_tool.yf.Ticker")
+    mock_yfinance_ticker = mocker.patch("epic_news.tools.yahoo_finance_news_tool.yf.Ticker")
     ticker_symbol = "ERRORNEWS"
     error_message = "Test yfinance news error"
 
@@ -160,7 +160,7 @@ def test_run_yfinance_exception(tool_instance, mocker):
 
 
 def test_run_with_zero_limit(tool_instance, mocker):
-    mock_yfinance_ticker = mocker.patch("src.epic_news.tools.yahoo_finance_news_tool.yf.Ticker")
+    mock_yfinance_ticker = mocker.patch("epic_news.tools.yahoo_finance_news_tool.yf.Ticker")
     ticker_symbol = "ZEROLIMITNEWS"
     mock_ticker_instance = mocker.MagicMock()
     mock_yfinance_ticker.return_value = mock_ticker_instance

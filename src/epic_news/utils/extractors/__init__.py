@@ -6,4 +6,4 @@ Single Responsibility Principle.
 """
 
 # Keep __init__.py minimal - "Light as a Haiku" philosophy
-from epic_news.utils.extractors.factory import ContentExtractorFactory
+from epic_news.utils.extractors.factory import ContentExtractorFactory as ContentExtractorFactory

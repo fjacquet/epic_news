@@ -59,8 +59,8 @@ class UnifiedRssTool(BaseTool):
         self,
         opml_file_path: str,
         days_to_look_back: int = 7,
-        output_file_path: str = None,
-        invalid_sources_file_path: str = None,
+        output_file_path: str | None = None,
+        invalid_sources_file_path: str | None = None,
     ) -> str:
         """
         Execute the entire RSS processing pipeline.
@@ -76,7 +76,7 @@ class UnifiedRssTool(BaseTool):
         """
         try:
             # Track invalid sources
-            invalid_sources = set()
+            invalid_sources: set[str] = set()
 
             # Parse OPML file to get feed URLs
             feed_urls = self._parse_opml_file(opml_file_path)
@@ -330,7 +330,7 @@ class UnifiedRssTool(BaseTool):
 
             if article.text and len(article.text.strip()) > 100:  # Ensure we got meaningful content
                 logger.info(f"Successfully scraped with Newspaper3k: {url}")
-                return article.text
+                return str(article.text)
             logger.warning(f"Newspaper3k extracted no/short content from: {url}")
         except Exception as e:
             logger.warning(f"Newspaper3k failed for {url}: {str(e)}")
@@ -347,10 +347,10 @@ class UnifiedRssTool(BaseTool):
 
             if content and isinstance(content, dict) and "content" in content:
                 logger.info(f"Successfully scraped with ScrapeNinja: {url}")
-                return content["content"]
+                return str(content["content"])
             if content:
                 logger.info(f"Successfully scraped with ScrapeNinja: {url}")
-                return content
+                return str(content)
             logger.warning(f"ScrapeNinja returned no content for: {url}")
             return None
 

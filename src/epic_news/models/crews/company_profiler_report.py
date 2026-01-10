@@ -1,24 +1,24 @@
 """Pydantic models for the Company Profiler crew."""
 
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
 
 
 class CompanyCoreInfo(BaseModel):
     legal_name: str = Field(..., description="Full legal name of the company.")
-    parent_company: Optional[str] = Field(None, description="Parent company, if any.")
+    parent_company: str | None = Field(None, description="Parent company, if any.")
     subsidiaries: list[str] = Field(default_factory=list, description="List of subsidiary companies.")
     year_founded: int = Field(..., description="Year the company was founded.")
     headquarters_location: str = Field(..., description="Headquarters location.")
     industry_classification: str = Field(..., description="Primary industry.")
     business_activities: list[str] = Field(..., description="List of primary business activities.")
-    employee_count: Optional[int] = Field(None, description="Number of employees.")
-    revenue: Optional[float] = Field(None, description="Annual revenue.")
-    market_cap: Optional[float] = Field(None, description="Market capitalization if public.")
+    employee_count: int | None = Field(None, description="Number of employees.")
+    revenue: float | None = Field(None, description="Annual revenue.")
+    market_cap: float | None = Field(None, description="Market capitalization if public.")
     corporate_structure: str = Field(..., description="Description of the corporate structure.")
     ownership_details: str = Field(..., description="Details about ownership.")
-    mission_statement: Optional[str] = Field(None, description="Company's mission statement.")
+    mission_statement: str | None = Field(None, description="Company's mission statement.")
     core_values: list[str] = Field(default_factory=list, description="List of core values.")
 
 
@@ -42,17 +42,17 @@ class Financials(BaseModel):
     revenue_and_profit_trends: list[dict[str, Any]] = Field(
         ..., description="Revenue and profit trends over 3-5 years."
     )
-    key_financial_ratios: dict[str, float] = Field(..., description="Key financial ratios.")
+    key_financial_ratios: dict[str, Any] = Field(..., description="Key financial ratios (values may be numbers or notes).")
     funding_rounds: list[dict[str, Any]] = Field(
         default_factory=list, description="Information on funding rounds."
     )
     major_investors: list[str] = Field(default_factory=list, description="List of major investors.")
-    debt_structure: Optional[str] = Field(None, description="Description of the debt structure.")
+    debt_structure: dict[str, Any] | str | None = Field(None, description="Description of the debt structure (may be text or structured data).")
     recent_financial_news: list[str] = Field(default_factory=list, description="Recent financial news.")
 
 
 class MarketPosition(BaseModel):
-    market_share: Optional[str] = Field(None, description="Estimated market share.")
+    market_share: str | None = Field(None, description="Estimated market share.")
     competitive_landscape: str = Field(..., description="Description of the competitive landscape.")
     key_competitors: list[str] = Field(..., description="List of key competitors.")
     comparative_advantages: list[str] = Field(..., description="List of comparative advantages.")
@@ -65,7 +65,7 @@ class ProductsAndServices(BaseModel):
     core_product_lines: list[str] = Field(..., description="Core product or service lines.")
     recent_launches: list[str] = Field(default_factory=list, description="Recent product launches.")
     discontinued_offerings: list[str] = Field(default_factory=list, description="Discontinued products.")
-    pricing_strategy: Optional[str] = Field(None, description="Description of the pricing strategy.")
+    pricing_strategy: str | None = Field(None, description="Description of the pricing strategy.")
     customer_segments: list[str] = Field(..., description="Primary customer segments.")
 
 
@@ -74,7 +74,7 @@ class Management(BaseModel):
         ..., description="List of key executives and their backgrounds."
     )
     board_of_directors: list[str] = Field(..., description="List of board members.")
-    management_style: Optional[str] = Field(None, description="Description of the management style.")
+    management_style: str | None = Field(None, description="Description of the management style.")
     corporate_culture: str = Field(..., description="Description of the corporate culture.")
 
 

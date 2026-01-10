@@ -4,7 +4,6 @@ CoinMarketCap API tool for cryptocurrency news.
 
 import json
 import os
-from typing import Optional
 
 import requests
 from crewai.tools import BaseTool
@@ -24,7 +23,7 @@ class CoinMarketCapNewsTool(BaseTool):
     )
     args_schema: type[BaseModel] = CryptocurrencyNewsInput
 
-    def _run(self, symbol: Optional[str] = None, limit: int = 10) -> str:
+    def _run(self, symbol: str | None = None, limit: int = 10) -> str:
         logger.info(
             f"Retrieving {limit} news articles for {symbol if symbol else 'general cryptocurrencies'}"
         )

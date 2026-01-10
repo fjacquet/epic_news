@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
-from src.epic_news.tools.accuweather_tool import AccuWeatherTool
+from epic_news.tools.accuweather_tool import AccuWeatherTool
 
 
 @pytest.fixture
@@ -22,7 +22,7 @@ def test_get_current_weather_success(api_key_present, tool, mocker):
     else:
         mocker.patch.dict(os.environ, {}, clear=True)
 
-    mock_get = mocker.patch("src.epic_news.tools.accuweather_tool.requests.get")
+    mock_get = mocker.patch("epic_news.tools.accuweather_tool.requests.get")
 
     if not api_key_present:
         result = tool._run(location="Test City")
@@ -59,7 +59,7 @@ def test_get_current_weather_missing_api_key(tool, mocker):
 def test_get_current_weather_location_not_found(tool, mocker):
     """Test that the tool handles a location not found error."""
     mocker.patch.dict(os.environ, {"ACCUWEATHER_API_KEY": "fake_api_token"})
-    mock_get = mocker.patch("src.epic_news.tools.accuweather_tool.requests.get")
+    mock_get = mocker.patch("epic_news.tools.accuweather_tool.requests.get")
     mock_location_response = mocker.MagicMock()
     mock_location_response.json.return_value = []
     mock_location_response.raise_for_status.return_value = None

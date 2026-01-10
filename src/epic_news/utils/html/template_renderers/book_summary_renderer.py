@@ -17,7 +17,7 @@ class BookSummaryRenderer(BaseRenderer):
 
     def __init__(self):
         """Initialize the deep research renderer."""
-        super().__init__()
+        super().__init__()  # type: ignore[safe-super]
 
     def render(self, data: dict[str, Any]) -> str:
         """
@@ -31,7 +31,7 @@ class BookSummaryRenderer(BaseRenderer):
         """
         # Create main container
         soup = self.create_soup("div")
-        soup.find("div")["class"] = "book-summary-report"
+        soup.find("div")["class"] = "book-summary-report"  # type: ignore[index]
         container = soup.find("div")
 
         # Add book header

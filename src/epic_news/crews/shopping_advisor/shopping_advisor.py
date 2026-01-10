@@ -23,7 +23,7 @@ class ShoppingAdvisorCrew:
     @agent
     def product_researcher(self) -> Agent:
         return Agent(
-            config=self.agents_config["product_researcher"],
+            config=self.agents_config["product_researcher"],  # type: ignore[index]
             tools=get_search_tools() + get_scrape_tools(),
             verbose=True,
         )
@@ -31,7 +31,7 @@ class ShoppingAdvisorCrew:
     @agent
     def price_analyst(self) -> Agent:
         return Agent(
-            config=self.agents_config["price_analyst"],
+            config=self.agents_config["price_analyst"],  # type: ignore[index]
             tools=get_search_tools() + get_scrape_tools(),
             verbose=True,
         )
@@ -39,7 +39,7 @@ class ShoppingAdvisorCrew:
     @agent
     def competitor_analyst(self) -> Agent:
         return Agent(
-            config=self.agents_config["competitor_analyst"],
+            config=self.agents_config["competitor_analyst"],  # type: ignore[index]
             tools=get_search_tools() + get_scrape_tools(),
             verbose=True,
         )
@@ -47,7 +47,7 @@ class ShoppingAdvisorCrew:
     @agent
     def shopping_advisor(self) -> Agent:
         return Agent(
-            config=self.agents_config["shopping_advisor"],
+            config=self.agents_config["shopping_advisor"],  # type: ignore[index]
             tools=[],
             verbose=True,
         )
@@ -55,30 +55,30 @@ class ShoppingAdvisorCrew:
     @task
     def product_research_task(self) -> Task:
         return Task(
-            config=self.tasks_config["product_research_task"],
-        )
+            config=self.tasks_config["product_research_task"],  # type: ignore[arg-type, index]
+        )  # type: ignore[call-arg]
 
     @task
     def price_analysis_task(self) -> Task:
         return Task(
-            config=self.tasks_config["price_analysis_task"],
-        )
+            config=self.tasks_config["price_analysis_task"],  # type: ignore[arg-type, index]
+        )  # type: ignore[call-arg]
 
     @task
     def competitor_analysis_task(self) -> Task:
         return Task(
-            config=self.tasks_config["competitor_analysis_task"],
-        )
+            config=self.tasks_config["competitor_analysis_task"],  # type: ignore[arg-type, index]
+        )  # type: ignore[call-arg]
 
     @task
     def shopping_data_task(self) -> Task:
         return Task(
-            config=self.tasks_config["shopping_data_task"],
-            agent=self.shopping_advisor(),
+            config=self.tasks_config["shopping_data_task"],  # type: ignore[arg-type, index]
+            agent=self.shopping_advisor(),  # type: ignore[call-arg]
             context=[
-                self.product_research_task(),
-                self.price_analysis_task(),
-                self.competitor_analysis_task(),
+                self.product_research_task(),  # type: ignore[call-arg]
+                self.price_analysis_task(),  # type: ignore[call-arg]
+                self.competitor_analysis_task(),  # type: ignore[call-arg]
             ],
             output_pydantic=ShoppingAdviceOutput,
         )
@@ -86,8 +86,8 @@ class ShoppingAdvisorCrew:
     @crew
     def crew(self) -> Crew:
         return Crew(
-            agents=self.agents,
-            tasks=self.tasks,
+            agents=self.agents,  # type: ignore[attr-defined]
+            tasks=self.tasks,  # type: ignore[attr-defined]
             process=Process.sequential,
             verbose=True,
         )

@@ -34,9 +34,9 @@ class HolidayRenderer(BaseRenderer):
 
         # Handle error case
         if "error" in data:
-            error_div = soup.new_tag("div", **{"class": "error"})
+            error_div = soup.new_tag("div", **{"class": "error"})  # type: ignore[arg-type]
             error_div.string = f"⚠️ {data['error']}"
-            container.append(error_div)
+            container.append(error_div)  # type: ignore[union-attr]
             return str(soup)
 
         # Add introduction
@@ -70,13 +70,13 @@ class HolidayRenderer(BaseRenderer):
         if not data.get("introduction"):
             return
 
-        section = soup.new_tag("section", **{"class": "introduction"})
+        section = soup.new_tag("section", **{"class": "introduction"})  # type: ignore[arg-type]
 
         title = soup.new_tag("h2")
         title.string = "🌍 Introduction"
         section.append(title)
 
-        intro_div = soup.new_tag("div", **{"class": "intro-content"})
+        intro_div = soup.new_tag("div", **{"class": "intro-content"})  # type: ignore[arg-type]
         intro_div.string = data["introduction"]
         section.append(intro_div)
 
@@ -88,13 +88,13 @@ class HolidayRenderer(BaseRenderer):
         if not toc_items:
             return
 
-        section = soup.new_tag("section", **{"class": "table-of-contents"})
+        section = soup.new_tag("section", **{"class": "table-of-contents"})  # type: ignore[arg-type]
 
         title = soup.new_tag("h2")
         title.string = "📋 Table des Matières"
         section.append(title)
 
-        toc_list = soup.new_tag("ul", **{"class": "toc-list"})
+        toc_list = soup.new_tag("ul", **{"class": "toc-list"})  # type: ignore[arg-type]
         for item in toc_items:
             li = soup.new_tag("li")
             li.string = item
@@ -109,17 +109,17 @@ class HolidayRenderer(BaseRenderer):
         if not itinerary:
             return
 
-        section = soup.new_tag("section", **{"class": "itinerary"})
+        section = soup.new_tag("section", **{"class": "itinerary"})  # type: ignore[arg-type]
 
         title = soup.new_tag("h2")
         title.string = "📅 Itinéraire Jour par Jour"
         section.append(title)
 
         for day_data in itinerary:
-            day_div = soup.new_tag("div", **{"class": "day-itinerary"})
+            day_div = soup.new_tag("div", **{"class": "day-itinerary"})  # type: ignore[arg-type]
 
             # Day header
-            day_header = soup.new_tag("h3", **{"class": "day-header"})
+            day_header = soup.new_tag("h3", **{"class": "day-header"})  # type: ignore[arg-type]
             day_header.string = (
                 f"Jour {day_data.get('day', 'N/A')} - {day_data.get('date', 'Date non spécifiée')}"
             )
@@ -128,18 +128,18 @@ class HolidayRenderer(BaseRenderer):
             # Activities
             activities = day_data.get("activities", [])
             if activities:
-                activities_div = soup.new_tag("div", **{"class": "activities"})
+                activities_div = soup.new_tag("div", **{"class": "activities"})  # type: ignore[arg-type]
 
                 for activity in activities:
-                    activity_div = soup.new_tag("div", **{"class": "activity"})
+                    activity_div = soup.new_tag("div", **{"class": "activity"})  # type: ignore[arg-type]
 
                     # Time
-                    time_span = soup.new_tag("span", **{"class": "activity-time"})
+                    time_span = soup.new_tag("span", **{"class": "activity-time"})  # type: ignore[arg-type]
                     time_span.string = f"⏰ {activity.get('time', 'Heure non spécifiée')}"
                     activity_div.append(time_span)
 
                     # Description
-                    desc_div = soup.new_tag("div", **{"class": "activity-description"})
+                    desc_div = soup.new_tag("div", **{"class": "activity-description"})  # type: ignore[arg-type]
                     desc_div.string = activity.get("description", "Description non disponible")
                     activity_div.append(desc_div)
 
@@ -157,42 +157,42 @@ class HolidayRenderer(BaseRenderer):
         if not accommodations:
             return
 
-        section = soup.new_tag("section", **{"class": "accommodations"})
+        section = soup.new_tag("section", **{"class": "accommodations"})  # type: ignore[arg-type]
 
         title = soup.new_tag("h2")
         title.string = "🏨 Hébergements Recommandés"
         section.append(title)
 
         for acc in accommodations:
-            acc_div = soup.new_tag("div", **{"class": "accommodation"})
+            acc_div = soup.new_tag("div", **{"class": "accommodation"})  # type: ignore[arg-type]
 
             # Name
-            name_h3 = soup.new_tag("h3", **{"class": "accommodation-name"})
+            name_h3 = soup.new_tag("h3", **{"class": "accommodation-name"})  # type: ignore[arg-type]
             name_h3.string = acc.get("name", "Nom non spécifié")
             acc_div.append(name_h3)
 
             # Address
             if acc.get("address"):
-                addr_div = soup.new_tag("div", **{"class": "accommodation-address"})
+                addr_div = soup.new_tag("div", **{"class": "accommodation-address"})  # type: ignore[arg-type]
                 addr_div.string = f"📍 {acc['address']}"
                 acc_div.append(addr_div)
 
             # Price range
             if acc.get("price_range"):
-                price_div = soup.new_tag("div", **{"class": "accommodation-price"})
+                price_div = soup.new_tag("div", **{"class": "accommodation-price"})  # type: ignore[arg-type]
                 price_div.string = f"💰 {acc['price_range']}"
                 acc_div.append(price_div)
 
             # Description
             if acc.get("description"):
-                desc_div = soup.new_tag("div", **{"class": "accommodation-description"})
+                desc_div = soup.new_tag("div", **{"class": "accommodation-description"})  # type: ignore[arg-type]
                 desc_div.string = acc["description"]
                 acc_div.append(desc_div)
 
             # Amenities
             amenities = acc.get("amenities", [])
             if amenities:
-                amenities_div = soup.new_tag("div", **{"class": "accommodation-amenities"})
+                amenities_div = soup.new_tag("div", **{"class": "accommodation-amenities"})  # type: ignore[arg-type]
                 amenities_title = soup.new_tag("strong")
                 amenities_title.string = "Équipements: "
                 amenities_div.append(amenities_title)
@@ -201,7 +201,7 @@ class HolidayRenderer(BaseRenderer):
 
             # Contact/Booking
             if acc.get("contact_booking"):
-                contact_div = soup.new_tag("div", **{"class": "accommodation-contact"})
+                contact_div = soup.new_tag("div", **{"class": "accommodation-contact"})  # type: ignore[arg-type]
                 contact_div.string = f"📞 {acc['contact_booking']}"
                 acc_div.append(contact_div)
 
@@ -215,7 +215,7 @@ class HolidayRenderer(BaseRenderer):
         if not dining:
             return
 
-        section = soup.new_tag("section", **{"class": "dining"})
+        section = soup.new_tag("section", **{"class": "dining"})  # type: ignore[arg-type]
 
         title = soup.new_tag("h2")
         title.string = "🍽️ Restaurants et Restauration"
@@ -224,19 +224,19 @@ class HolidayRenderer(BaseRenderer):
         # Restaurants
         restaurants = dining.get("restaurants", [])
         if restaurants:
-            restaurants_div = soup.new_tag("div", **{"class": "restaurants"})
+            restaurants_div = soup.new_tag("div", **{"class": "restaurants"})  # type: ignore[arg-type]
 
             for restaurant in restaurants:
-                rest_div = soup.new_tag("div", **{"class": "restaurant"})
+                rest_div = soup.new_tag("div", **{"class": "restaurant"})  # type: ignore[arg-type]
 
                 # Name
-                name_h3 = soup.new_tag("h3", **{"class": "restaurant-name"})
+                name_h3 = soup.new_tag("h3", **{"class": "restaurant-name"})  # type: ignore[arg-type]
                 name_h3.string = restaurant.get("name", "Nom non spécifié")
                 rest_div.append(name_h3)
 
                 # Location
                 if restaurant.get("location"):
-                    loc_div = soup.new_tag("div", **{"class": "restaurant-location"})
+                    loc_div = soup.new_tag("div", **{"class": "restaurant-location"})  # type: ignore[arg-type]
                     loc_div.string = f"📍 {restaurant['location']}"
                     rest_div.append(loc_div)
 
@@ -248,20 +248,20 @@ class HolidayRenderer(BaseRenderer):
                     details.append(f"Prix: {restaurant['price_range']}")
 
                 if details:
-                    details_div = soup.new_tag("div", **{"class": "restaurant-details"})
+                    details_div = soup.new_tag("div", **{"class": "restaurant-details"})  # type: ignore[arg-type]
                     details_div.string = " | ".join(details)
                     rest_div.append(details_div)
 
                 # Description
                 if restaurant.get("description"):
-                    desc_div = soup.new_tag("div", **{"class": "restaurant-description"})
+                    desc_div = soup.new_tag("div", **{"class": "restaurant-description"})  # type: ignore[arg-type]
                     desc_div.string = restaurant["description"]
                     rest_div.append(desc_div)
 
                 # Dietary options
                 dietary = restaurant.get("dietary_options", [])
                 if dietary:
-                    dietary_div = soup.new_tag("div", **{"class": "restaurant-dietary"})
+                    dietary_div = soup.new_tag("div", **{"class": "restaurant-dietary"})  # type: ignore[arg-type]
                     dietary_title = soup.new_tag("strong")
                     dietary_title.string = "Options alimentaires: "
                     dietary_div.append(dietary_title)
@@ -270,12 +270,12 @@ class HolidayRenderer(BaseRenderer):
 
                 # Contact and reservation
                 if restaurant.get("contact"):
-                    contact_div = soup.new_tag("div", **{"class": "restaurant-contact"})
+                    contact_div = soup.new_tag("div", **{"class": "restaurant-contact"})  # type: ignore[arg-type]
                     contact_div.string = f"📞 {restaurant['contact']}"
                     rest_div.append(contact_div)
 
                 if restaurant.get("reservation_required"):
-                    res_div = soup.new_tag("div", **{"class": "restaurant-reservation"})
+                    res_div = soup.new_tag("div", **{"class": "restaurant-reservation"})  # type: ignore[arg-type]
                     res_div.string = "⚠️ Réservation recommandée"
                     rest_div.append(res_div)
 
@@ -286,7 +286,7 @@ class HolidayRenderer(BaseRenderer):
         # Local specialties
         specialties = dining.get("local_specialties", [])
         if specialties:
-            spec_div = soup.new_tag("div", **{"class": "local-specialties"})
+            spec_div = soup.new_tag("div", **{"class": "local-specialties"})  # type: ignore[arg-type]
             spec_title = soup.new_tag("h3")
             spec_title.string = "🥘 Spécialités Locales à Essayer"
             spec_div.append(spec_title)
@@ -307,7 +307,7 @@ class HolidayRenderer(BaseRenderer):
         if not budget:
             return
 
-        section = soup.new_tag("section", **{"class": "budget"})
+        section = soup.new_tag("section", **{"class": "budget"})  # type: ignore[arg-type]
 
         title = soup.new_tag("h2")
         title.string = "💰 Résumé du Budget"
@@ -316,7 +316,7 @@ class HolidayRenderer(BaseRenderer):
         # Budget items
         items = budget.get("items", [])
         if items:
-            table = soup.new_tag("table", **{"class": "budget-table"})
+            table = soup.new_tag("table", **{"class": "budget-table"})  # type: ignore[arg-type]
 
             # Header
             thead = soup.new_tag("thead")
@@ -365,13 +365,13 @@ class HolidayRenderer(BaseRenderer):
 
         # Total
         if budget.get("total_estimated"):
-            total_div = soup.new_tag("div", **{"class": "budget-total"})
+            total_div = soup.new_tag("div", **{"class": "budget-total"})  # type: ignore[arg-type]
             total_div.string = f"💵 Total Estimé: {budget['total_estimated']} {budget.get('currency', 'CHF')}"
             section.append(total_div)
 
         # Notes
         if budget.get("notes"):
-            notes_div = soup.new_tag("div", **{"class": "budget-notes"})
+            notes_div = soup.new_tag("div", **{"class": "budget-notes"})  # type: ignore[arg-type]
             notes_div.string = f"📝 {budget['notes']}"
             section.append(notes_div)
 
@@ -383,7 +383,7 @@ class HolidayRenderer(BaseRenderer):
         if not practical:
             return
 
-        section = soup.new_tag("section", **{"class": "practical-information"})
+        section = soup.new_tag("section", **{"class": "practical-information"})  # type: ignore[arg-type]
 
         title = soup.new_tag("h2")
         title.string = "ℹ️ Informations Pratiques"
@@ -392,7 +392,7 @@ class HolidayRenderer(BaseRenderer):
         # Packing checklist
         packing = practical.get("packing_checklist")
         if packing:
-            packing_div = soup.new_tag("div", **{"class": "packing-checklist"})
+            packing_div = soup.new_tag("div", **{"class": "packing-checklist"})  # type: ignore[arg-type]
             packing_title = soup.new_tag("h3")
             packing_title.string = "🧳 Liste de Bagages"
             packing_div.append(packing_title)
@@ -411,7 +411,7 @@ class HolidayRenderer(BaseRenderer):
             for key, emoji_title in categories.items():
                 items = packing.get(key, [])
                 if items:
-                    cat_div = soup.new_tag("div", **{"class": f"packing-{key}"})
+                    cat_div = soup.new_tag("div", **{"class": f"packing-{key}"})  # type: ignore[arg-type]
                     cat_title = soup.new_tag("h4")
                     cat_title.string = emoji_title
                     cat_div.append(cat_title)
@@ -429,7 +429,7 @@ class HolidayRenderer(BaseRenderer):
         # Safety tips
         safety_tips = practical.get("safety_tips", [])
         if safety_tips:
-            safety_div = soup.new_tag("div", **{"class": "safety-tips"})
+            safety_div = soup.new_tag("div", **{"class": "safety-tips"})  # type: ignore[arg-type]
             safety_title = soup.new_tag("h3")
             safety_title.string = "🛡️ Conseils de Sécurité"
             safety_div.append(safety_title)
@@ -445,16 +445,16 @@ class HolidayRenderer(BaseRenderer):
         # Emergency contacts
         emergency = practical.get("emergency_contacts", [])
         if emergency:
-            emergency_div = soup.new_tag("div", **{"class": "emergency-contacts"})
+            emergency_div = soup.new_tag("div", **{"class": "emergency-contacts"})  # type: ignore[arg-type]
             emergency_title = soup.new_tag("h3")
             emergency_title.string = "🚨 Contacts d'Urgence"
             emergency_div.append(emergency_title)
 
             for contact in emergency:
-                contact_div = soup.new_tag("div", **{"class": "emergency-contact"})
+                contact_div = soup.new_tag("div", **{"class": "emergency-contact"})  # type: ignore[arg-type]
                 contact_div.string = f"{contact.get('service', 'Service')}: {contact.get('number', 'N/A')}"
                 if contact.get("notes"):
-                    contact_div.string += f" ({contact['notes']})"
+                    contact_div.string += f" ({contact['notes']})"  # type: ignore[operator]
                 emergency_div.append(contact_div)
 
             section.append(emergency_div)
@@ -462,16 +462,16 @@ class HolidayRenderer(BaseRenderer):
         # Useful phrases
         phrases = practical.get("useful_phrases", [])
         if phrases:
-            phrases_div = soup.new_tag("div", **{"class": "useful-phrases"})
+            phrases_div = soup.new_tag("div", **{"class": "useful-phrases"})  # type: ignore[arg-type]
             phrases_title = soup.new_tag("h3")
             phrases_title.string = "💬 Phrases Utiles"
             phrases_div.append(phrases_title)
 
             for phrase in phrases:
-                phrase_div = soup.new_tag("div", **{"class": "phrase"})
+                phrase_div = soup.new_tag("div", **{"class": "phrase"})  # type: ignore[arg-type]
                 phrase_div.string = f"🇫🇷 {phrase.get('french', 'N/A')} → {phrase.get('local', 'N/A')}"
                 if phrase.get("pronunciation"):
-                    phrase_div.string += f" [{phrase['pronunciation']}]"
+                    phrase_div.string += f" [{phrase['pronunciation']}]"  # type: ignore[operator]
                 phrases_div.append(phrase_div)
 
             section.append(phrases_div)
@@ -486,11 +486,11 @@ class HolidayRenderer(BaseRenderer):
         if not sources and not media:
             return
 
-        section = soup.new_tag("section", **{"class": "sources-media"})
+        section = soup.new_tag("section", **{"class": "sources-media"})  # type: ignore[arg-type]
 
         # Sources
         if sources:
-            sources_div = soup.new_tag("div", **{"class": "sources"})
+            sources_div = soup.new_tag("div", **{"class": "sources"})  # type: ignore[arg-type]
             sources_title = soup.new_tag("h3")
             sources_title.string = "📚 Sources"
             sources_div.append(sources_title)
@@ -511,13 +511,13 @@ class HolidayRenderer(BaseRenderer):
 
         # Media
         if media:
-            media_div = soup.new_tag("div", **{"class": "media"})
+            media_div = soup.new_tag("div", **{"class": "media"})  # type: ignore[arg-type]
             media_title = soup.new_tag("h3")
             media_title.string = "🖼️ Médias"
             media_div.append(media_title)
 
             for media_item in media:
-                item_div = soup.new_tag("div", **{"class": "media-item"})
+                item_div = soup.new_tag("div", **{"class": "media-item"})  # type: ignore[arg-type]
 
                 if media_item.get("type") == "image" or not media_item.get("type"):
                     img = soup.new_tag(
@@ -530,7 +530,7 @@ class HolidayRenderer(BaseRenderer):
                     item_div.append(link)
 
                 if media_item.get("caption"):
-                    caption_div = soup.new_tag("div", **{"class": "media-caption"})
+                    caption_div = soup.new_tag("div", **{"class": "media-caption"})  # type: ignore[arg-type]
                     caption_div.string = media_item["caption"]
                     item_div.append(caption_div)
 

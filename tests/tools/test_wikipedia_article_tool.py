@@ -5,7 +5,7 @@ import json
 import pytest
 import wikipedia
 
-from src.epic_news.tools.wikipedia_article_tool import ArticleAction, WikipediaArticleTool
+from epic_news.tools.wikipedia_article_tool import ArticleAction, WikipediaArticleTool
 
 
 @pytest.fixture
@@ -21,7 +21,7 @@ def mock_wikipedia_page(mocker):
 
 def test_get_summary_success(mock_wikipedia_page, mocker):
     """Test successfully getting an article summary."""
-    mock_page_func = mocker.patch("src.epic_news.tools.wikipedia_article_tool.wikipedia.page")
+    mock_page_func = mocker.patch("epic_news.tools.wikipedia_article_tool.wikipedia.page")
     mock_page_func.return_value = mock_wikipedia_page
     tool = WikipediaArticleTool()
     result = tool._run(title="Test Title", action=ArticleAction.GET_SUMMARY)
@@ -31,7 +31,7 @@ def test_get_summary_success(mock_wikipedia_page, mocker):
 
 def test_get_full_article_success(mock_wikipedia_page, mocker):
     """Test successfully getting full article content."""
-    mock_page_func = mocker.patch("src.epic_news.tools.wikipedia_article_tool.wikipedia.page")
+    mock_page_func = mocker.patch("epic_news.tools.wikipedia_article_tool.wikipedia.page")
     mock_page_func.return_value = mock_wikipedia_page
     tool = WikipediaArticleTool()
     result = tool._run(title="Test Title", action=ArticleAction.GET_ARTICLE)
@@ -40,7 +40,7 @@ def test_get_full_article_success(mock_wikipedia_page, mocker):
 
 def test_get_links_success(mock_wikipedia_page, mocker):
     """Test successfully getting article links."""
-    mock_page_func = mocker.patch("src.epic_news.tools.wikipedia_article_tool.wikipedia.page")
+    mock_page_func = mocker.patch("epic_news.tools.wikipedia_article_tool.wikipedia.page")
     mock_page_func.return_value = mock_wikipedia_page
     tool = WikipediaArticleTool()
     result = tool._run(title="Test Title", action=ArticleAction.GET_LINKS)
@@ -49,7 +49,7 @@ def test_get_links_success(mock_wikipedia_page, mocker):
 
 def test_page_not_found_error(mocker):
     """Test handling of PageError when a page is not found."""
-    mock_page_func = mocker.patch("src.epic_news.tools.wikipedia_article_tool.wikipedia.page")
+    mock_page_func = mocker.patch("epic_news.tools.wikipedia_article_tool.wikipedia.page")
     mock_page_func.side_effect = wikipedia.exceptions.PageError(pageid="NonExistentPage")
     tool = WikipediaArticleTool()
     result = tool._run(title="NonExistentPage", action=ArticleAction.GET_SUMMARY)
@@ -58,7 +58,7 @@ def test_page_not_found_error(mocker):
 
 def test_disambiguation_error(mocker):
     """Test handling of DisambiguationError."""
-    mock_page_func = mocker.patch("src.epic_news.tools.wikipedia_article_tool.wikipedia.page")
+    mock_page_func = mocker.patch("epic_news.tools.wikipedia_article_tool.wikipedia.page")
     options = ["Option 1", "Option 2"]
     mock_page_func.side_effect = wikipedia.exceptions.DisambiguationError("Ambiguous", options)
     tool = WikipediaArticleTool()

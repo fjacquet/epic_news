@@ -17,7 +17,7 @@ class PoemRenderer(BaseRenderer):
 
     def __init__(self):
         """Initialize the deep research renderer."""
-        super().__init__()
+        super().__init__()  # type: ignore[safe-super]
 
     def render(self, data: dict[str, Any]) -> str:
         """
@@ -102,7 +102,7 @@ class PoemRenderer(BaseRenderer):
             poem_text = data.get("poem") or data.get("content")
             poem_div = soup.new_tag("div", class_="full-poem")
 
-            lines = poem_text.split("\n")
+            lines = str(poem_text).split("\n")
             for line in lines:
                 if line.strip():
                     line_p = soup.new_tag("p", class_="poem-line")
