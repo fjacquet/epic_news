@@ -8,6 +8,7 @@ Centralizes renderer instantiation and provides fallback to generic renderer.
 from .base_renderer import BaseRenderer
 from .book_summary_renderer import BookSummaryRenderer
 from .company_news_renderer import CompanyNewsRenderer
+from .company_profiler_renderer import CompanyProfilerRenderer
 from .cooking_renderer import CookingRenderer
 from .cross_reference_report_renderer import CrossReferenceReportRenderer
 from .deep_research_renderer import DeepResearchRenderer
@@ -34,6 +35,7 @@ class RendererFactory:
     # Mapping of crew types to their specific renderers
     _RENDERER_MAP: dict[str, type[BaseRenderer]] = {
         "BOOK_SUMMARY": BookSummaryRenderer,
+        "COMPANY_PROFILE": CompanyProfilerRenderer,
         "COOKING": CookingRenderer,
         "DEEPRESEARCH": DeepResearchRenderer,
         "FINDAILY": FinancialRenderer,
