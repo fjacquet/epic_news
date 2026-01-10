@@ -28,7 +28,7 @@ class MenuGenerator:
         return "automne"
 
     @staticmethod
-    def parse_menu_structure(menu_structure: str | dict[str, Any]) -> list[dict[str, Any]]:
+    def parse_menu_structure(menu_structure: Any) -> list[dict[str, Any]]:
         """Parse the *actual* menu structure returned by ``MenuDesignerCrew``.
 
         The crew is expected to return a JSON document (as a string **or** already

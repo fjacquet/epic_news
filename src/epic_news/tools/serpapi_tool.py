@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from loguru import logger
 from pydantic import BaseModel
 
-from src.epic_news.models.web_search_models import SerpApiInput
+from epic_news.models.web_search_models import SerpApiInput
 
 # Load environment variables from .env file
 load_dotenv()

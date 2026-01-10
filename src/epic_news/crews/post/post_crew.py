@@ -20,8 +20,9 @@ class PostCrew:
     def distributor(self):
         return Agent(
             config=self.agents_config["distributor"],
-            verbose=True,
+            llm=LLMConfig.get_openrouter_llm(),
             llm_timeout=LLMConfig.get_timeout("default"),
+            verbose=True,
         )
 
     @task

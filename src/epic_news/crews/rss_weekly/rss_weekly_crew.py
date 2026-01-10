@@ -2,6 +2,8 @@ from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import FileReadTool
 
+from epic_news.config.llm_config import LLMConfig
+
 
 @CrewBase
 class RssWeeklyCrew:
@@ -24,6 +26,8 @@ class RssWeeklyCrew:
         return Agent(
             config=self.agents_config["content_reader_agent"],
             tools=[FileReadTool()],
+            llm=LLMConfig.get_openrouter_llm(),
+            llm_timeout=LLMConfig.get_timeout("default"),
             verbose=True,
             allow_delegation=False,
         )
@@ -35,6 +39,8 @@ class RssWeeklyCrew:
         return Agent(
             config=self.agents_config["translator_agent"],
             tools=[],  # NO TOOLS = No action traces in output
+            llm=LLMConfig.get_openrouter_llm(),
+            llm_timeout=LLMConfig.get_timeout("default"),
             verbose=True,
             allow_delegation=False,
         )
@@ -63,5 +69,8 @@ class RssWeeklyCrew:
             agents=self.agents,
             tasks=self.tasks,
             process=Process.sequential,
+            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
+            max_rpm=LLMConfig.get_max_rpm(),
             verbose=True,
         )

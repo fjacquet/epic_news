@@ -45,11 +45,14 @@ class LegalAnalysisCrew:
         """Creates the legal reporter agent without tools for clean output generation"""
         return Agent(
             config=self.agents_config["legal_reporter"],
-            verbose=True,
             tools=[],  # No tools for reporter to ensure clean output
+            llm=LLMConfig.get_openrouter_llm(),
+            llm_timeout=LLMConfig.get_timeout("default"),
+            verbose=True,
             allow_delegation=False,
             respect_context_window=True,
             reasoning=True,
+            max_reasoning_attempts=3,
         )
 
     @task
@@ -110,5 +113,8 @@ class LegalAnalysisCrew:
             agents=self.agents,
             tasks=self.tasks,
             process=Process.sequential,
+            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
+            max_rpm=LLMConfig.get_max_rpm(),
             verbose=True,
         )

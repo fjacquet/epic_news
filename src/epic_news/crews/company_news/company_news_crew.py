@@ -73,6 +73,7 @@ class CompanyNewsCrew:
             verbose=True,
             llm_timeout=LLMConfig.get_timeout("default"),
             reasoning=True,
+            max_reasoning_attempts=3,
             respect_context_window=True,
         )
 
@@ -89,6 +90,7 @@ class CompanyNewsCrew:
             verbose=True,
             llm_timeout=LLMConfig.get_timeout("default"),
             reasoning=True,
+            max_reasoning_attempts=3,
             respect_context_window=True,
         )
 
@@ -105,6 +107,7 @@ class CompanyNewsCrew:
             verbose=True,
             llm_timeout=LLMConfig.get_timeout("default"),
             reasoning=True,
+            max_reasoning_attempts=3,
             respect_context_window=True,
         )
 

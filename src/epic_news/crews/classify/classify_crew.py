@@ -2,6 +2,8 @@ from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from dotenv import load_dotenv
 
+from epic_news.config.llm_config import LLMConfig
+
 load_dotenv()
 
 
@@ -17,7 +19,12 @@ class ClassifyCrew:
 
     @agent
     def classifier(self) -> Agent:
-        return Agent(config=self.agents_config["classifier"], verbose=True)
+        return Agent(
+            config=self.agents_config["classifier"],
+            llm=LLMConfig.get_openrouter_llm(),
+            llm_timeout=LLMConfig.get_timeout("default"),
+            verbose=True,
+        )
 
     @task
     def classification_task(self) -> Task:
@@ -30,6 +37,9 @@ class ClassifyCrew:
             agents=self.agents,
             tasks=self.tasks,
             process=Process.sequential,
+            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
+            max_rpm=LLMConfig.get_max_rpm(),
             verbose=True,
         )
 

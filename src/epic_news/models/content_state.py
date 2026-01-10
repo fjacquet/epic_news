@@ -146,6 +146,7 @@ class ContentState(BaseModel):
     holiday_plan: Optional["HolidayPlannerReport"] = None
     recipe: Optional["PaprikaRecipe"] = None
     menu_designer_report: Optional["WeeklyMenuPlan"] = None
+    menu_plan: Optional["WeeklyMenuPlan"] = None
     book_summary: Optional["BookSummaryReport"] = None
     shopping_advice_report: Optional["ShoppingAdviceOutput"] = None
     shopping_advice_model: Optional[ShoppingAdviceOutput] = None
@@ -209,6 +210,8 @@ class ContentState(BaseModel):
 
     def _flatten_extracted_info(self) -> dict:
         """Flatten extracted_info into crew input format."""
+        if self.extracted_info is None:
+            return {}
         extracted_data = self.extracted_info.model_dump()
 
         # DEBUG: Log extracted_data to understand the mapping issue

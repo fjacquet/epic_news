@@ -3,6 +3,7 @@ from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import PDFSearchTool, SerperDevTool
 from dotenv import load_dotenv
 
+from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.tech_stack_report import TechStackReport
 from epic_news.tools.github_tools import get_github_tools
 from epic_news.tools.html_to_pdf_tool import HtmlToPdfTool
@@ -28,11 +29,14 @@ class TechStackCrew:
 
         return Agent(
             config=self.agents_config["tech_researcher"],
-            verbose=True,
             tools=all_tools,
+            llm=LLMConfig.get_openrouter_llm(),
+            llm_timeout=LLMConfig.get_timeout("default"),
+            verbose=True,
             allow_delegation=False,
             respect_context_window=True,
             reasoning=True,
+            max_reasoning_attempts=3,
         )
 
     @agent
@@ -40,11 +44,14 @@ class TechStackCrew:
         """Creates the tech reporter agent without tools for clean output generation"""
         return Agent(
             config=self.agents_config["tech_reporter"],
-            verbose=True,
             tools=[],  # No tools for reporter to ensure clean output
+            llm=LLMConfig.get_openrouter_llm(),
+            llm_timeout=LLMConfig.get_timeout("default"),
+            verbose=True,
             allow_delegation=False,
             respect_context_window=True,
             reasoning=True,
+            max_reasoning_attempts=3,
         )
 
     @task
@@ -105,5 +112,8 @@ class TechStackCrew:
             agents=self.agents,
             tasks=self.tasks,
             process=Process.sequential,
+            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
+            max_rpm=LLMConfig.get_max_rpm(),
             verbose=True,
         )

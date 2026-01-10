@@ -26,6 +26,7 @@ class HolidayPlannerCrew:
             llm_timeout=LLMConfig.get_timeout("default"),
             verbose=False,
             reasoning=True,
+            max_reasoning_attempts=3,
             allow_delegation=True,
         )
 
@@ -38,6 +39,7 @@ class HolidayPlannerCrew:
             llm_timeout=LLMConfig.get_timeout("default"),
             verbose=False,
             reasoning=True,
+            max_reasoning_attempts=3,
             allow_delegation=True,
         )
 
@@ -50,6 +52,7 @@ class HolidayPlannerCrew:
             llm_timeout=LLMConfig.get_timeout("default"),
             verbose=False,
             reasoning=True,
+            max_reasoning_attempts=3,
             allow_delegation=True,
         )
 
@@ -69,6 +72,8 @@ class HolidayPlannerCrew:
         return Agent(
             config=self.agents_config["content_formatter"],
             tools=get_search_tools() + get_scrape_tools() + [ExchangeRateTool()],
+            llm=LLMConfig.get_openrouter_llm(),
+            llm_timeout=LLMConfig.get_timeout("default"),
             verbose=False,
             allow_delegation=False,
         )
@@ -110,7 +115,9 @@ class HolidayPlannerCrew:
             agents=self.agents,
             tasks=self.tasks,
             process=Process.sequential,
-            verbose=False,
+            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
+            max_rpm=30,  # Keeping existing custom value
             max_retry_limit=5,
-            max_rpm=30,
+            verbose=False,
         )

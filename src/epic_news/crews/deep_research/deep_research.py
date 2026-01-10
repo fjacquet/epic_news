@@ -48,6 +48,8 @@ class DeepResearchCrew:
         return Agent(
             config=self.agents_config["research_strategist"],
             tools=[],  # Strategic planning, no external tools needed
+            llm=LLMConfig.get_openrouter_llm(),
+            llm_timeout=LLMConfig.get_timeout("default"),
             verbose=True,
         )
 
@@ -71,6 +73,7 @@ class DeepResearchCrew:
             llm_timeout=LLMConfig.get_timeout("long"),
             verbose=True,
             reasoning=True,
+            max_reasoning_attempts=3,
         )
 
     # Data Analyst - Analysis and synthesis with Code Interpreter
@@ -193,7 +196,10 @@ class DeepResearchCrew:
             agents=self.agents,
             tasks=self.tasks,  # Automatically created from the tasks above
             process=Process.sequential,
-            # manager_llm="gpt-4.1-nano",
+            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
+            max_rpm=LLMConfig.get_max_rpm(),
             verbose=True,
+            # manager_llm="gpt-4.1-nano",
             # planning=True,
         )

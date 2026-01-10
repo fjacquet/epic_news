@@ -28,8 +28,10 @@ class WebPresenceCrew:
 
         return Agent(
             config=self.agents_config["web_researcher"],
-            verbose=True,
             tools=all_tools,
+            llm=LLMConfig.get_openrouter_llm(),
+            llm_timeout=LLMConfig.get_timeout("default"),
+            verbose=True,
             allow_delegation=False,
             respect_context_window=True,
             reasoning=True,
@@ -42,11 +44,14 @@ class WebPresenceCrew:
         """Creates the web reporter agent without tools for clean output generation"""
         return Agent(
             config=self.agents_config["web_reporter"],
-            verbose=True,
             tools=[],  # No tools for reporter to ensure clean output
+            llm=LLMConfig.get_openrouter_llm(),
+            llm_timeout=LLMConfig.get_timeout("default"),
+            verbose=True,
             allow_delegation=False,
             respect_context_window=True,
             reasoning=True,
+            max_reasoning_attempts=3,
         )
 
     @task

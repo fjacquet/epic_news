@@ -19,12 +19,21 @@ Key functionalities include:
 - Utility functions to kickoff the flow (`kickoff`) and plot its structure (`plot`).
 """
 
+# Set environment variables for WeasyPrint library dependencies on macOS
+import os
+import sys
+
+# Only set these on macOS
+if sys.platform == "darwin":
+    os.environ["DYLD_LIBRARY_PATH"] = f"/opt/homebrew/lib:{os.environ.get('DYLD_LIBRARY_PATH', '')}"
+    os.environ["PKG_CONFIG_PATH"] = f"/opt/homebrew/lib/pkgconfig:{os.environ.get('PKG_CONFIG_PATH', '')}"
+
 import datetime
 import json
-import os
 import re
 import warnings
 from pathlib import Path
+from typing import cast
 
 from crewai.flow import Flow, listen, or_, router, start
 from dotenv import load_dotenv
@@ -321,7 +330,7 @@ class ReceptionFlow(Flow[ContentState]):
         template_manager = TemplateManager()
         html_content = template_manager.render_report(
             selected_crew="POEM",
-            content_data=poem_model.model_dump() if hasattr(poem_model, "model_dump") else poem_model,
+            content_data=poem_model.model_dump(),
         )
         os.makedirs(os.path.dirname(html_file), exist_ok=True)
         with open(html_file, "w", encoding="utf-8") as f:
@@ -360,7 +369,7 @@ class ReceptionFlow(Flow[ContentState]):
         template_manager = TemplateManager()
         html_content = template_manager.render_report(
             selected_crew="COMPANY_NEWS",
-            content_data=news_model.model_dump() if hasattr(news_model, "model_dump") else news_model,
+            content_data=news_model.model_dump(),
         )
         os.makedirs(os.path.dirname(html_file), exist_ok=True)
         with open(html_file, "w", encoding="utf-8") as f:
@@ -518,11 +527,7 @@ class ReceptionFlow(Flow[ContentState]):
         template_manager = TemplateManager()
         html_content = template_manager.render_report(
             selected_crew="FINDAILY",
-            content_data=(
-                financial_report_model.model_dump()
-                if hasattr(financial_report_model, "model_dump")
-                else financial_report_model
-            ),
+            content_data=financial_report_model.model_dump(),
         )
         os.makedirs(os.path.dirname(html_file), exist_ok=True)
         with open(html_file, "w", encoding="utf-8") as f:
@@ -570,9 +575,7 @@ class ReceptionFlow(Flow[ContentState]):
         template_manager = TemplateManager()
         html_content = template_manager.render_report(
             selected_crew="NEWSDAILY",
-            content_data=news_daily_model.model_dump()
-            if hasattr(news_daily_model, "model_dump")
-            else news_daily_model,
+            content_data=news_daily_model.model_dump(),
         )
         os.makedirs(os.path.dirname(html_file), exist_ok=True)
         with open(html_file, "w", encoding="utf-8") as f:
@@ -624,7 +627,7 @@ class ReceptionFlow(Flow[ContentState]):
         template_manager = TemplateManager()
         html_content = template_manager.render_report(
             selected_crew="SAINT",
-            content_data=saint_model.model_dump() if hasattr(saint_model, "model_dump") else saint_model,
+            content_data=saint_model.model_dump(),
         )
         os.makedirs(os.path.dirname(html_file), exist_ok=True)
         with open(html_file, "w", encoding="utf-8") as f:
@@ -701,7 +704,7 @@ class ReceptionFlow(Flow[ContentState]):
         template_manager = TemplateManager()
         html_content = template_manager.render_report(
             selected_crew="COOKING",
-            content_data=recipe_model.model_dump() if hasattr(recipe_model, "model_dump") else recipe_model,
+            content_data=recipe_model.model_dump(),
         )
         os.makedirs(os.path.dirname(html_file), exist_ok=True)
         with open(html_file, "w", encoding="utf-8") as f:
@@ -750,7 +753,7 @@ class ReceptionFlow(Flow[ContentState]):
                 template_manager = TemplateManager()
                 html_content = template_manager.render_report(
                     selected_crew="MENU",
-                    content_data=menu_plan.model_dump() if hasattr(menu_plan, "model_dump") else menu_plan,
+                    content_data=menu_plan.model_dump(),
                 )
                 os.makedirs(os.path.dirname(html_file), exist_ok=True)
                 with open(html_file, "w", encoding="utf-8") as f:
@@ -1052,7 +1055,7 @@ class ReceptionFlow(Flow[ContentState]):
         template_manager = TemplateManager()
         html_content = template_manager.render_report(
             selected_crew="SALES_PROSPECTING",
-            content_data=report_model.model_dump() if hasattr(report_model, "model_dump") else report_model,
+            content_data=report_model.model_dump(),
         )
         os.makedirs(os.path.dirname(html_file), exist_ok=True)
         with open(html_file, "w", encoding="utf-8") as f:
@@ -1100,7 +1103,7 @@ class ReceptionFlow(Flow[ContentState]):
 
         # Fallback: parse the direct CrewAI output (legacy path)
         if research_report_model is None:
-            research_report_model = parse_crewai_output(output, DeepResearchReport, inputs)
+            research_report_model = cast(DeepResearchReport, parse_crewai_output(output, DeepResearchReport, inputs))
             self.logger.info("ℹ️ Using DeepResearchReport built from CrewAI raw output (fallback path)")
 
         self.state.deep_research_report = research_report_model
@@ -1317,7 +1320,7 @@ class ReceptionFlow(Flow[ContentState]):
         template_manager = TemplateManager()
         html_content = template_manager.render_report(
             selected_crew="CROSS_REFERENCE_REPORT",
-            content_data=report_model.model_dump() if hasattr(report_model, "model_dump") else report_model,
+            content_data=report_model.model_dump(),
         )
         os.makedirs(os.path.dirname(html_file), exist_ok=True)
         with open(html_file, "w", encoding="utf-8") as f:
@@ -1478,7 +1481,7 @@ def kickoff(user_input: str | None = None):
     setup_logging()
     # If user_input is not provided, use a default value.
     request = (
-        user_input if user_input else "get the rss weekly report"
+        user_input if user_input else "Get me a poem on the mouse of the desert Muad dib"
         # else "get the daily  news report"
         # else "conduct a deep research study on a travel on the north of the italy between san remo and Genova. Give me the best hotel and restaurant options."
         # + "How to book italian train, electrical bicylce and cultural events. I will be alone for 1 week in end of july "

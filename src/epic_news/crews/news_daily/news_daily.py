@@ -19,6 +19,8 @@ class NewsDailyCrew:
         return Agent(
             config=self.agents_config["news_researcher"],
             tools=get_news_tools() + get_search_tools(),
+            llm=LLMConfig.get_openrouter_llm(),
+            llm_timeout=LLMConfig.get_timeout("default"),
             verbose=True,
         )
 
@@ -29,6 +31,7 @@ class NewsDailyCrew:
             tools=[],
             verbose=True,
             reasoning=True,
+            max_reasoning_attempts=3,
             llm=LLMConfig.get_openrouter_llm(),
             llm_timeout=LLMConfig.get_timeout("default"),
         )
@@ -120,5 +123,8 @@ class NewsDailyCrew:
             agents=self.agents,
             tasks=self.tasks,
             process=Process.sequential,
+            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
+            max_rpm=LLMConfig.get_max_rpm(),
             verbose=True,
         )

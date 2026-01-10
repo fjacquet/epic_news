@@ -30,6 +30,7 @@ class MeetingPrepCrew:
             tools=get_search_tools() + get_scrape_tools() + get_yahoo_finance_tools(),
             allow_delegation=False,
             reasoning=True,
+            max_reasoning_attempts=3,
             verbose=True,
             respect_context_window=True,
             llm_timeout=LLMConfig.get_timeout("default"),
@@ -58,6 +59,7 @@ class MeetingPrepCrew:
             config=self.agents_config["sales_strategist_agent"],
             tools=get_search_tools() + get_scrape_tools() + get_yahoo_finance_tools(),
             reasoning=True,
+            max_reasoning_attempts=3,
             verbose=True,
             respect_context_window=True,
             llm_timeout=LLMConfig.get_timeout("default"),
@@ -131,11 +133,11 @@ class MeetingPrepCrew:
                 agents=self.agents,
                 tasks=self.tasks,
                 process=Process.sequential,
-                verbose=True,
                 llm_timeout=LLMConfig.get_timeout("default"),
                 max_iter=LLMConfig.get_max_iter(),
-                max_rpm=10,  # Keeping existing value (lower than default 20)
+                max_rpm=10,  # Keeping existing custom value (lower than default 20)
                 memory=True,
+                verbose=True,
             )
         except Exception as e:
             logger.error(f"Error creating MeetingPrep crew: {str(e)}")

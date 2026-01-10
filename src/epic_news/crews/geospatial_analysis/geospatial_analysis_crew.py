@@ -51,6 +51,7 @@ class GeospatialAnalysisCrew:
             allow_delegation=False,
             respect_context_window=True,
             reasoning=True,
+            max_reasoning_attempts=3,
         )
 
     @task

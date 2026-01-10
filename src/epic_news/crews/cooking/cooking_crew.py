@@ -34,8 +34,9 @@ class CookingCrew:
         """
         return Agent(
             config=self.agents_config["cook"],
-            verbose=True,
+            llm=LLMConfig.get_openrouter_llm(),
             llm_timeout=LLMConfig.get_timeout("quick"),
+            verbose=True,
             respect_context_window=True,
             reasoning=False,
         )
@@ -45,6 +46,8 @@ class CookingCrew:
         """Paprika renderer agent that serialises recipe to YAML."""
         return Agent(
             config=self.agents_config["paprika_renderer"],
+            llm=LLMConfig.get_openrouter_llm(),
+            llm_timeout=LLMConfig.get_timeout("quick"),
             verbose=True,
             respect_context_window=True,
             reasoning=False,
@@ -55,6 +58,8 @@ class CookingCrew:
         """Agent that exports the PaprikaRecipe to JSON for downstream crews."""
         return Agent(
             config=self.agents_config["json_exporter"],
+            llm=LLMConfig.get_openrouter_llm(),
+            llm_timeout=LLMConfig.get_timeout("quick"),
             verbose=True,
             respect_context_window=True,
             reasoning=False,

@@ -1,6 +1,7 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 
+from epic_news.config.llm_config import LLMConfig
 from epic_news.models.extracted_info import ExtractedInfo
 
 
@@ -16,6 +17,8 @@ class InformationExtractionCrew:
         """Agent that analyzes the user request in detail."""
         return Agent(
             config=self.agents_config["detailed_request_analyzer_agent"],
+            llm=LLMConfig.get_openrouter_llm(),
+            llm_timeout=LLMConfig.get_timeout("default"),
             verbose=True,
         )
 
@@ -34,5 +37,8 @@ class InformationExtractionCrew:
             agents=self.agents,  # Uses the @agent decorated properties
             tasks=self.tasks,  # Uses the @task decorated properties
             process=Process.sequential,
+            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
+            max_rpm=LLMConfig.get_max_rpm(),
             verbose=True,
         )

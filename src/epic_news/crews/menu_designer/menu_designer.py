@@ -2,6 +2,7 @@ from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import DirectoryReadTool, FileReadTool
 
+from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.menu_designer_report import WeeklyMenuPlan
 from epic_news.tools.web_tools import get_search_tools
 
@@ -24,8 +25,11 @@ class MenuDesignerCrew:
         return Agent(
             config=self.agents_config["menu_researcher"],
             tools=get_search_tools() + [FileReadTool(), DirectoryReadTool()],
+            llm=LLMConfig.get_openrouter_llm(),
+            llm_timeout=LLMConfig.get_timeout("default"),
             respect_context_window=True,
             reasoning=True,
+            max_reasoning_attempts=3,
             verbose=True,
         )
 
@@ -35,8 +39,11 @@ class MenuDesignerCrew:
         return Agent(
             config=self.agents_config["menu_reporter"],
             tools=[],
+            llm=LLMConfig.get_openrouter_llm(),
+            llm_timeout=LLMConfig.get_timeout("default"),
             respect_context_window=True,
             reasoning=True,
+            max_reasoning_attempts=3,
             verbose=True,
         )
 
@@ -67,5 +74,8 @@ class MenuDesignerCrew:
             agents=self.agents,
             tasks=self.tasks,
             process=Process.sequential,
+            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
+            max_rpm=LLMConfig.get_max_rpm(),
             verbose=True,
         )

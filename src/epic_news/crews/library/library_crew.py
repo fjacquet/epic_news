@@ -35,6 +35,7 @@ class LibraryCrew:
             tools=get_search_tools() + get_scrape_tools() + get_report_tools(),
             llm=LLMConfig.get_openrouter_llm(),
             reasoning=True,
+            max_reasoning_attempts=3,
             llm_timeout=LLMConfig.get_timeout("default"),
         )
 
@@ -48,6 +49,7 @@ class LibraryCrew:
             tools=[],  # No tools for final reporting agent to ensure clean JSON output
             llm=LLMConfig.get_openrouter_llm(),
             reasoning=True,
+            max_reasoning_attempts=3,
             llm_timeout=LLMConfig.get_timeout("default"),
             system_template="""You are a JSON formatting expert. Your ONLY job is to produce valid,
             syntactically correct JSON that conforms exactly to the specified Pydantic model.
@@ -89,6 +91,9 @@ class LibraryCrew:
                 agents=self.agents,
                 tasks=self.tasks,
                 process=Process.sequential,
+                llm_timeout=LLMConfig.get_timeout("default"),
+                max_iter=LLMConfig.get_max_iter(),
+                max_rpm=LLMConfig.get_max_rpm(),
                 verbose=True,
             )
         except Exception as e:

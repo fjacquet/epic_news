@@ -3,6 +3,7 @@ from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import PDFSearchTool, SerperDevTool
 from dotenv import load_dotenv
 
+from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.company_profiler_report import CompanyProfileReport
 from epic_news.tools.finance_tools import get_yahoo_finance_tools
 from epic_news.tools.html_to_pdf_tool import HtmlToPdfTool
@@ -29,11 +30,14 @@ class CompanyProfilerCrew:
 
         return Agent(
             config=self.agents_config["company_researcher"],
-            verbose=True,
             tools=all_tools,
+            llm=LLMConfig.get_openrouter_llm(),
+            llm_timeout=LLMConfig.get_timeout("default"),
+            verbose=True,
             allow_delegation=False,
             respect_context_window=True,
             reasoning=True,
+            max_reasoning_attempts=3,
         )
 
     @agent
@@ -41,11 +45,14 @@ class CompanyProfilerCrew:
         """Creates the company reporter agent with no tools for clean output generation"""
         return Agent(
             config=self.agents_config["company_reporter"],
-            verbose=True,
             tools=[],  # No tools to prevent action traces in output
+            llm=LLMConfig.get_openrouter_llm(),
+            llm_timeout=LLMConfig.get_timeout("default"),
+            verbose=True,
             allow_delegation=False,
             respect_context_window=True,
             reasoning=True,
+            max_reasoning_attempts=3,
         )
 
     @task
@@ -140,5 +147,8 @@ class CompanyProfilerCrew:
             agents=self.agents,
             tasks=self.tasks,
             process=Process.sequential,  # Sequential to avoid needing a manager
+            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
+            max_rpm=LLMConfig.get_max_rpm(),
             verbose=True,
         )

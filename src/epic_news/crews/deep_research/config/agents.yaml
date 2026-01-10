@@ -13,7 +13,6 @@ research_strategist:
     et votre adaptabilité dans la structuration d'investigations  complexes sur {topic}.
     Vous excellez dans la planification dynamique et  la re-planification basée sur
     les résultats intermédiaires.
-  async_execution: true
 information_collector:
   role: >
     Collecteur d'Informations Web et Encyclopédiques sur {topic}
@@ -35,7 +34,6 @@ information_collector:
     MCP,
     permettant d'établir un socle factuel solide tout en découvrant les développements
     les plus récents et pertinents.
-  async_execution: true
 data_analyst:
   role: >
     Analyste de Données et Synthétiseur Quantitatif pour {topic}
@@ -48,17 +46,12 @@ data_analyst:
   backstory: >
     Vous êtes un data scientist méticuleux avec un sens aigu du détail et une forte
      mentalité analytique spécialisé dans {topic}. Expert en Python, pandas, numpy,
-    
      scipy, matplotlib et seaborn, vous excellez dans l'analyse statistique rigoureuse,
-    
      les tests d'hypothèses, la modélisation de données et la création de visualisations
-    
      percutantes. Vous maîtrisez l'exécution de code Python pour effectuer des 
      analyses quantitatives approfondies et générer des insights basés sur des preuves
-    
      statistiques calculées et vérifiées par code.
   allow_code_execution: true
-  async_execution: true
 report_writer:
   role: >
     Rédacteur de Rapports Techniques sur {topic}

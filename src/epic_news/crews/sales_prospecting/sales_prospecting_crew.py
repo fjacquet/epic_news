@@ -30,6 +30,8 @@ class SalesProspectingCrew:
             ]
             + get_report_tools()
             + get_data_centric_tools(),
+            llm=LLMConfig.get_openrouter_llm(),
+            llm_timeout=LLMConfig.get_timeout("default"),
             verbose=True,
             max_reasoning_attempts=5,
             respect_context_window=True,
@@ -47,6 +49,8 @@ class SalesProspectingCrew:
             ]
             + get_report_tools()
             + get_data_centric_tools(),
+            llm=LLMConfig.get_openrouter_llm(),
+            llm_timeout=LLMConfig.get_timeout("default"),
             verbose=True,
             max_reasoning_attempts=5,
             respect_context_window=True,
@@ -64,6 +68,8 @@ class SalesProspectingCrew:
             ]
             + get_report_tools()
             + get_data_centric_tools(),
+            llm=LLMConfig.get_openrouter_llm(),
+            llm_timeout=LLMConfig.get_timeout("default"),
             verbose=True,
             max_reasoning_attempts=5,
             respect_context_window=True,
@@ -74,6 +80,8 @@ class SalesProspectingCrew:
         return Agent(
             config=self.agents_config["sales_strategist"],
             tools=[],
+            llm=LLMConfig.get_openrouter_llm(),
+            llm_timeout=LLMConfig.get_timeout("default"),
             verbose=True,
             reasoning=True,
             max_reasoning_attempts=5,
@@ -126,5 +134,5 @@ class SalesProspectingCrew:
             llm_timeout=LLMConfig.get_timeout("default"),
             max_iter=LLMConfig.get_max_iter(),
             max_retry_limit=3,
-            max_rpm=10,  # Keeping existing value (lower than default 20)
+            max_rpm=10,  # Keeping existing custom value (lower than default 20)
         )

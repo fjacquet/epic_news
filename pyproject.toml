@@ -71,6 +71,9 @@ dependencies = [
     "mypy>=1.19.1",
     "bandit>=1.9.2",
     "safety>=3.7.0",
+    "litellm>=1.75.3",
+    "apscheduler>=3.11.2",
+    "fastapi-sso>=0.17.0",
 ]
 
 [project.scripts]
