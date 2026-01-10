@@ -42,12 +42,12 @@ class Financials(BaseModel):
     revenue_and_profit_trends: list[dict[str, Any]] = Field(
         ..., description="Revenue and profit trends over 3-5 years."
     )
-    key_financial_ratios: dict[str, float] = Field(..., description="Key financial ratios.")
+    key_financial_ratios: dict[str, Any] = Field(..., description="Key financial ratios (values may be numbers or notes).")
     funding_rounds: list[dict[str, Any]] = Field(
         default_factory=list, description="Information on funding rounds."
     )
     major_investors: list[str] = Field(default_factory=list, description="List of major investors.")
-    debt_structure: str | None = Field(None, description="Description of the debt structure.")
+    debt_structure: dict[str, Any] | str | None = Field(None, description="Description of the debt structure (may be text or structured data).")
     recent_financial_news: list[str] = Field(default_factory=list, description="Recent financial news.")
 
 

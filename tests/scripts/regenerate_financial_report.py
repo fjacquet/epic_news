@@ -2,8 +2,8 @@ import json
 import os
 import sys
 
-from src.epic_news.models.crews.financial_report import FinancialReport
-from src.epic_news.utils.html.template_manager import TemplateManager
+from epic_news.models.crews.financial_report import FinancialReport
+from epic_news.utils.html.template_manager import TemplateManager
 
 # Add the project root to the Python path
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))

@@ -1443,13 +1443,13 @@ class ReceptionFlow(Flow[ContentState]):
             # If Composio isn't available, skip email sending gracefully
             try:
                 try:
-                    from composio_crewai import ComposioToolSet  # type: ignore
+                    from composio_crewai import CrewAIProvider  # type: ignore
 
                     # Attempt to initialize to ensure environment is ready
-                    _ = ComposioToolSet()
+                    _ = CrewAIProvider()
                 except Exception as e:
                     self.logger.warning(
-                        "Composio not available; skipping email sending for this run. Reason: %s",
+                        "Composio not available; skipping email sending for this run. Reason: {}",
                         e,
                     )
                     self.state.email_sent = True
@@ -1483,7 +1483,7 @@ def kickoff(user_input: str | None = None):
     setup_logging()
     # If user_input is not provided, use a default value.
     request = (
-        user_input if user_input else "Get me a poem on the mouse of the desert Muad dib"
+        user_input if user_input else "Complete OSINT analysis of Mistral.AI"
         # else "get the daily  news report"
         # else "conduct a deep research study on a travel on the north of the italy between san remo and Genova. Give me the best hotel and restaurant options."
         # + "How to book italian train, electrical bicylce and cultural events. I will be alone for 1 week in end of july "

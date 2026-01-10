@@ -60,14 +60,14 @@ class RetryLLMWrapper(BaseLLM):
             factor: Backoff factor for exponential delay
             verbose: Whether to log detailed retry information
         """
-        super().__init__()
-        # Store parameters as instance attributes directly since BaseLLM doesn't accept them
-        object.__setattr__(self, "llm", llm)
-        object.__setattr__(self, "max_retries", max_retries)
-        object.__setattr__(self, "min_seconds", min_seconds)
-        object.__setattr__(self, "max_seconds", max_seconds)
-        object.__setattr__(self, "factor", factor)
-        object.__setattr__(self, "verbose", verbose)
+        super().__init__(
+            llm=llm,
+            max_retries=max_retries,
+            min_seconds=min_seconds,
+            max_seconds=max_seconds,
+            factor=factor,
+            verbose=verbose,
+        )
 
     @property
     def _llm_type(self) -> str:

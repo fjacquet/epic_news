@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
-from src.epic_news.tools.tavily_tool import TavilyTool
+from epic_news.tools.tavily_tool import TavilyTool
 
 
 @pytest.fixture
@@ -17,7 +17,7 @@ def tool():
 def test_tavily_search_success(tool, mocker):
     """Test a successful search with the TavilyTool."""
     mocker.patch.dict(os.environ, {"TAVILY_API_KEY": "fake_api_token"})
-    mock_tavily_client = mocker.patch("src.epic_news.tools.tavily_tool.TavilyClient")
+    mock_tavily_client = mocker.patch("epic_news.tools.tavily_tool.TavilyClient")
     mock_instance = mocker.MagicMock()
     mock_instance.search.return_value = {"results": "Search results for AI"}
     mock_tavily_client.return_value = mock_instance
@@ -38,7 +38,7 @@ def test_tavily_search_missing_api_key(tool, mocker):
 def test_tavily_search_api_error(tool, mocker):
     """Test that the tool handles an API error gracefully."""
     mocker.patch.dict(os.environ, {"TAVILY_API_KEY": "fake_api_token"})
-    mock_tavily_client = mocker.patch("src.epic_news.tools.tavily_tool.TavilyClient")
+    mock_tavily_client = mocker.patch("epic_news.tools.tavily_tool.TavilyClient")
     mock_instance = mocker.MagicMock()
     mock_instance.search.side_effect = Exception("API Error")
     mock_tavily_client.return_value = mock_instance

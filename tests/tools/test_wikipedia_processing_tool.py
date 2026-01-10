@@ -2,7 +2,7 @@
 
 import pytest
 
-from src.epic_news.tools.wikipedia_processing_tool import ProcessingAction, WikipediaProcessingTool
+from epic_news.tools.wikipedia_processing_tool import ProcessingAction, WikipediaProcessingTool
 
 
 @pytest.fixture
@@ -18,7 +18,7 @@ def mock_wikipedia_page(mocker):
 
 def test_extract_key_facts_success(mock_wikipedia_page, mocker):
     """Test successfully extracting key facts."""
-    mock_page_func = mocker.patch("src.epic_news.tools.wikipedia_processing_tool.wikipedia.page")
+    mock_page_func = mocker.patch("epic_news.tools.wikipedia_processing_tool.wikipedia.page")
     mock_page_func.return_value = mock_wikipedia_page
     tool = WikipediaProcessingTool()
     result = tool._run(title="Test Title", action=ProcessingAction.EXTRACT_KEY_FACTS, count=2)
@@ -27,7 +27,7 @@ def test_extract_key_facts_success(mock_wikipedia_page, mocker):
 
 def test_summarize_for_query_success(mock_wikipedia_page, mocker):
     """Test successfully summarizing an article for a query."""
-    mock_page_func = mocker.patch("src.epic_news.tools.wikipedia_processing_tool.wikipedia.page")
+    mock_page_func = mocker.patch("epic_news.tools.wikipedia_processing_tool.wikipedia.page")
     mock_page_func.return_value = mock_wikipedia_page
     tool = WikipediaProcessingTool()
     result = tool._run(title="Test Title", action=ProcessingAction.SUMMARIZE_FOR_QUERY, query="query term")
@@ -36,7 +36,7 @@ def test_summarize_for_query_success(mock_wikipedia_page, mocker):
 
 def test_summarize_section_success(mock_wikipedia_page, mocker):
     """Test successfully summarizing a section."""
-    mock_page_func = mocker.patch("src.epic_news.tools.wikipedia_processing_tool.wikipedia.page")
+    mock_page_func = mocker.patch("epic_news.tools.wikipedia_processing_tool.wikipedia.page")
     mock_page_func.return_value = mock_wikipedia_page
     tool = WikipediaProcessingTool()
     result = tool._run(
@@ -48,7 +48,7 @@ def test_summarize_section_success(mock_wikipedia_page, mocker):
 
 def test_summarize_for_query_missing_query(mock_wikipedia_page, mocker):
     """Test that an error is returned when query is missing."""
-    mock_page_func = mocker.patch("src.epic_news.tools.wikipedia_processing_tool.wikipedia.page")
+    mock_page_func = mocker.patch("epic_news.tools.wikipedia_processing_tool.wikipedia.page")
     mock_page_func.return_value = mock_wikipedia_page
     tool = WikipediaProcessingTool()
     result = tool._run(title="Test Title", action=ProcessingAction.SUMMARIZE_FOR_QUERY)

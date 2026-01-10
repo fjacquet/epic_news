@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from src.epic_news.tools.opml_parser_tool import OpmlParserTool
+from epic_news.tools.opml_parser_tool import OpmlParserTool
 
 
 @pytest.fixture

@@ -1,6 +1,5 @@
 import json
 import os
-import unittest.mock
 
 import pytest
 
@@ -144,6 +143,6 @@ def test_run_query_cleaning_and_formatting(mock_env_serper_key, mocker):
     mock_make_request.assert_called_once_with(
         "POST",
         SERPER_API_URL,
-        headers=unittest.mock.ANY,  # Headers checked in other tests
+        headers=mocker.ANY,  # Headers checked in other tests
         json={"q": expected_search_q},
     )

@@ -61,11 +61,11 @@ def kickoff_flow(crew_or_factory: Any, context: dict[str, Any]) -> Any:
             raise AttributeError(f"Object {crew!r} does not support kickoff()")
 
         logger.info(
-            "🚀 Kicking off crew %s with context keys: %s", crew_name, ", ".join(sorted(context.keys()))
+            "🚀 Kicking off crew {} with context keys: {}", crew_name, ", ".join(sorted(context.keys()))
         )
         try:
             result = crew.kickoff(inputs=context)
             return result
         finally:
             elapsed = time.perf_counter() - start
-            logger.info("✅ Crew %s finished in %.2fs", crew_name, elapsed)
+            logger.info("✅ Crew {} finished in %.2fs", crew_name, elapsed)

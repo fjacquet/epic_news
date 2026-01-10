@@ -48,12 +48,12 @@ class PostCrew:
     def _get_send_tools(self):
         """Get email send tools from Composio using new 1.0 API.
 
-        NOTE: Composio 1.0 Gmail integration does NOT include GMAIL_SEND_EMAIL.
-        Available Gmail actions: CREATE_EMAIL_DRAFT, FORWARD_MESSAGE, etc.
-        The deprecated GMAIL_SEND_EMAIL action from old ComposioToolSet no longer exists.
+        Uses the get_gmail_email_tools() method which explicitly requests
+        GMAIL_SEND_EMAIL and other send tools to work around the toolkit
+        pagination limitation.
 
         Returns:
-            List of Gmail tools, or empty list if not available.
+            List of Gmail send tools, or empty list if not available.
         """
         try:
             from epic_news.config.composio_config import ComposioConfig
@@ -61,29 +61,36 @@ class PostCrew:
             # Initialize Composio with new 1.0 API
             composio = ComposioConfig()
 
-            # Get communication tools (includes Gmail)
-            comm_tools = composio.get_communication_tools()
+            # Get Gmail tools with send functionality explicitly requested
+            gmail_tools = composio.get_gmail_email_tools(include_send=True)
 
-            # Try to find GMAIL_SEND_EMAIL (will likely be empty)
-            gmail_send_tools = [t for t in comm_tools if "GMAIL_SEND_EMAIL" in t.name]
+            # Filter to only send-related tools
+            send_tool_names = ["GMAIL_SEND_EMAIL", "GMAIL_SEND_DRAFT", "GMAIL_REPLY_TO_THREAD"]
+            gmail_send_tools = [t for t in gmail_tools if any(n in t.name for n in send_tool_names)]
 
-            if not gmail_send_tools:
-                # Alternative: use draft creation instead
-                gmail_draft_tools = [t for t in comm_tools if "GMAIL_CREATE_EMAIL_DRAFT" in t.name]
+            if gmail_send_tools:
+                logging.getLogger(__name__).info(
+                    "Loaded {} Gmail send tools: {}",
+                    len(gmail_send_tools),
+                    [t.name for t in gmail_send_tools],
+                )
+                return gmail_send_tools
 
-                if gmail_draft_tools:
-                    logging.getLogger(__name__).warning(
-                        "GMAIL_SEND_EMAIL not available in Composio 1.0. Using GMAIL_CREATE_EMAIL_DRAFT instead."
-                    )
-                    return gmail_draft_tools
-                logging.getLogger(__name__).warning("No Gmail send/draft tools available in Composio 1.0")
-                return []
+            # Fallback to draft creation if send tools unavailable
+            gmail_draft_tools = [t for t in gmail_tools if "GMAIL_CREATE_EMAIL_DRAFT" in t.name]
 
-            return gmail_send_tools
+            if gmail_draft_tools:
+                logging.getLogger(__name__).warning(
+                    "GMAIL_SEND_EMAIL not returned, falling back to GMAIL_CREATE_EMAIL_DRAFT"
+                )
+                return gmail_draft_tools
+
+            logging.getLogger(__name__).warning("No Gmail send/draft tools available")
+            return []
 
         except Exception as e:
             logging.getLogger(__name__).warning(
-                "Composio not available; email sending tools disabled. Reason: %s",
+                "Composio not available; email sending tools disabled. Reason: {}",
                 e,
             )
             return []

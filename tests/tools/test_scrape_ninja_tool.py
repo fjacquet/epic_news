@@ -1,12 +1,11 @@
 import json
 import os
-import unittest.mock
 
 import pytest
 import requests
 
-from src.epic_news.models.web_search_models import ScrapeNinjaInput
-from src.epic_news.tools.scrape_ninja_tool import ScrapeNinjaTool
+from epic_news.models.web_search_models import ScrapeNinjaInput
+from epic_news.tools.scrape_ninja_tool import ScrapeNinjaTool
 
 TEST_RAPIDAPI_KEY = "test_rapidapi_key_for_ninja"
 SCRAPENINJA_API_URL = "https://scrapeninja.p.rapidapi.com/scrape"
@@ -119,7 +118,7 @@ def test_run_with_all_optional_params(mock_env_rapidapi_key, mocker):
     result_str = tool._run(**params)
     mock_requests_post.assert_called_once_with(
         SCRAPENINJA_API_URL,
-        headers=unittest.mock.ANY,  # Headers are checked in basic test
+        headers=mocker.ANY,  # Headers are checked in basic test
         data=json.dumps(expected_payload),
     )
     assert result_str == '{"title": "Advanced Scrape"}'

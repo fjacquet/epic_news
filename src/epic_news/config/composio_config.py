@@ -249,3 +249,58 @@ class ComposioConfig:
                 print(f"Warning: Could not load {toolkit} tools: {e}")
 
         return tools
+
+    def get_gmail_email_tools(self, include_send: bool = True) -> list[BaseTool]:
+        """Get Gmail email tools including send functionality.
+
+        IMPORTANT: The Gmail toolkit query only returns ~20 tools due to API pagination.
+        This method explicitly requests all important Gmail tools including SEND actions.
+
+        Args:
+            include_send: If True, includes GMAIL_SEND_EMAIL and GMAIL_SEND_DRAFT tools.
+
+        Returns:
+            List of CrewAI-compatible Gmail tools.
+
+        Available Tools (when include_send=True):
+            - GMAIL_SEND_EMAIL: Send a new email
+            - GMAIL_SEND_DRAFT: Send an existing draft
+            - GMAIL_CREATE_EMAIL_DRAFT: Create a draft email
+            - GMAIL_REPLY_TO_THREAD: Reply to an email thread
+            - GMAIL_FORWARD_MESSAGE: Forward an email
+            - GMAIL_FETCH_EMAILS: Fetch emails from inbox
+            - GMAIL_GET_PROFILE: Get user profile
+
+        Example:
+            >>> config = ComposioConfig()
+            >>> gmail_tools = config.get_gmail_email_tools()
+        """
+        tools = []
+
+        # Core Gmail tools to explicitly request
+        gmail_tools_list = [
+            "GMAIL_CREATE_EMAIL_DRAFT",
+            "GMAIL_FETCH_EMAILS",
+            "GMAIL_FETCH_MESSAGE_BY_MESSAGE_ID",
+            "GMAIL_FETCH_MESSAGE_BY_THREAD_ID",
+            "GMAIL_FORWARD_MESSAGE",
+            "GMAIL_GET_PROFILE",
+            "GMAIL_GET_ATTACHMENT",
+            "GMAIL_ADD_LABEL_TO_EMAIL",
+            "GMAIL_CREATE_LABEL",
+        ]
+
+        # Add send tools if requested
+        if include_send:
+            gmail_tools_list.extend([
+                "GMAIL_SEND_EMAIL",
+                "GMAIL_SEND_DRAFT",
+                "GMAIL_REPLY_TO_THREAD",
+            ])
+
+        try:
+            tools = self.client.tools.get(user_id=self.user_id, tools=gmail_tools_list)
+        except Exception as e:
+            print(f"Warning: Could not load Gmail tools: {e}")
+
+        return tools
