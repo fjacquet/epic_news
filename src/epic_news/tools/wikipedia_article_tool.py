@@ -44,9 +44,9 @@ class WikipediaArticleTool(BaseTool):
             page = wikipedia.page(title, auto_suggest=True, redirect=True)
 
             if action == ArticleAction.GET_SUMMARY:
-                return page.summary
+                return str(page.summary)
             if action == ArticleAction.GET_ARTICLE:
-                return page.content
+                return str(page.content)
             if action == ArticleAction.GET_LINKS:
                 return json.dumps(page.links)
             if action == ArticleAction.GET_SECTIONS:

@@ -63,7 +63,7 @@ def patch_crewai_llm_initialization(max_retries: int = 5, verbose: bool = True) 
             # Check if it's a langchain LLM that we can wrap
             if isinstance(llm, BaseLLM | BaseChatModel):
                 logger.info(f"Adding retry wrapper to LLM: {type(llm).__name__}")
-                return get_llm_with_retries(llm, max_retries=max_retries, verbose=verbose)
+                return get_llm_with_retries(llm, max_retries=max_retries, verbose=verbose)  # type: ignore[arg-type]
             return llm
 
         # Patch OpenAI adapter if applicable
@@ -77,7 +77,7 @@ def patch_crewai_llm_initialization(max_retries: int = 5, verbose: bool = True) 
                 # Check if it's a langchain LLM that we can wrap
                 if isinstance(model, BaseLLM | BaseChatModel):
                     logger.info(f"Adding retry wrapper to OpenAI model: {type(model).__name__}")
-                    return get_llm_with_retries(model, max_retries=max_retries, verbose=verbose)
+                    return get_llm_with_retries(model, max_retries=max_retries, verbose=verbose)  # type: ignore[arg-type]
                 return model
 
             # Apply the patch to OpenAI adapter
@@ -125,7 +125,7 @@ def initialize_retry_mechanism(max_retries: int = 5, timeout: int = 180) -> None
         import httpx
 
         # Try to find and update timeout in any httpx clients used by CrewAI
-        from crewai.llm import OpenAIChat
+        from crewai.llm import OpenAIChat  # type: ignore[attr-defined]
 
         if hasattr(OpenAIChat, "client") and hasattr(OpenAIChat.client, "timeout"):
             OpenAIChat.client.timeout = httpx.Timeout(timeout)

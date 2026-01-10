@@ -35,7 +35,7 @@ class YahooFinanceTickerInfoTool(BaseTool):
         # Try to get from cache first (cache for 30 minutes)
         cached_result = cache.get(cache_key, ttl=1800)
         if cached_result is not None:
-            return cached_result
+            return str(cached_result)
 
         try:
             ticker_data = yf.Ticker(ticker)

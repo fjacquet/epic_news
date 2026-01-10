@@ -11,12 +11,10 @@ import os
 import re
 import time
 from contextlib import suppress
-from typing import Any, TypeVar
+from typing import Any
 
 from loguru import logger
 from pydantic import BaseModel
-
-T = TypeVar("T", bound=BaseModel)
 
 
 def _attempt_json_repair(json_str: str) -> str:
@@ -183,7 +181,9 @@ def _transform_holiday_planner_data(parsed_data: dict) -> dict:
     return parsed_data
 
 
-def parse_crewai_output(report_content: Any, model_class: type[T], inputs: dict | None = None) -> T:
+def parse_crewai_output[T: BaseModel](
+    report_content: Any, model_class: type[T], inputs: dict | None = None
+) -> T:
     """
     Parse CrewAI output to a Pydantic model with robust JSON cleaning.
 
@@ -257,7 +257,7 @@ def parse_crewai_output(report_content: Any, model_class: type[T], inputs: dict 
                 from epic_news.utils.data_normalization import normalize_metric_type
             except ImportError:
 
-                def normalize_metric_type(v: str):  # type: ignore[no-redef]
+                def normalize_metric_type(v: str) -> str:  # type: ignore[misc]
                     return v
 
             metrics = parsed_data.get("sales_metrics", {}).get("metrics", [])

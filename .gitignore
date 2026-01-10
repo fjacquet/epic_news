@@ -1,28 +1,183 @@
+# ============================================================================
+# Python
+# ============================================================================
+
+# Byte-compiled / optimized / DLL files
 __pycache__/
-.composio.lock
-.coverage
-.DS_Store
-.env
-.venv/
-.vscode/settings.json
-# @/
-# *.html
+**/*.pyc
+**/*.pyo
+**/*.pyd
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
 build/
+dist/
+*.egg-info/
+src/epic_news.egg-info/
+.eggs/
+wheels/
+pip-wheel-metadata/
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Testing
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.tox/
+.nox/
+.pytest_cache/
+.hypothesis/
+
+# Type checking
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pytype/
+.pyre/
+
+# Linting
+.ruff_cache/
+
+# ============================================================================
+# Project-Specific Outputs
+# ============================================================================
+
+# Crew outputs
+output/
+reports/
+traces/
+
+# Logs
+logs/*.log
+logs/**/*.log
+
+# Temporary files
 cache/
 checkpoints/
-data/etf.csv
-data/stock.csv
 db/
 debug/
+
+# Data files (versioned separately)
+data/etf.csv
+data/stock.csv
+
+# Documentation test files
 docs/test.md
-logs/*.log
-output/
+
+# Temporary work files
 prompts.md
 prompts.txt
 report.md
-reports/
-src/epic_news.egg-info/
-traces/
+
+# Test scripts (work in progress)
 test_deep_research_flow.py
 test_deep_research.py
 test_simple_flow.py
+
+# ============================================================================
+# IDE and Editor
+# ============================================================================
+
+# VS Code
+.vscode/settings.json
+.vscode/.ropeproject
+
+# PyCharm
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# ============================================================================
+# Operating System
+# ============================================================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.directory
+.Trash-*
+
+# ============================================================================
+# Security and Secrets
+# ============================================================================
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# API keys and credentials
+*.key
+*.pem
+credentials.json
+
+# ============================================================================
+# Dependencies and Tools
+# ============================================================================
+
+# Composio
+.composio.lock
+
+# UV lock files
+uv.lock
+
+# Node modules (if any MCP servers installed locally)
+node_modules/
+
+# ============================================================================
+# Security and Quality Reports
+# ============================================================================
+
+bandit-report.json
+security-report.json
+quality-report.md
+
+# ============================================================================
+# Claude Code
+# ============================================================================
+
+# Claude Code CLI data
+.claude/
+
+# ============================================================================
+# Commented Out (Uncomment if needed)
+# ============================================================================
+
+# HTML reports (currently generated as outputs)
+# *.html
+
+# Project-specific directories (uncomment if not needed)
+# @/

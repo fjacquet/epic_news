@@ -4,8 +4,8 @@ import os
 import pytest
 import requests
 
-from src.epic_news.models.web_search_models import SerpApiInput
-from src.epic_news.tools.serpapi_tool import SerpApiTool
+from epic_news.models.web_search_models import SerpApiInput
+from epic_news.tools.serpapi_tool import SerpApiTool
 
 # Assuming logger is correctly mocked or not essential for output validation here
 

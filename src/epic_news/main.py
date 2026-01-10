@@ -19,12 +19,21 @@ Key functionalities include:
 - Utility functions to kickoff the flow (`kickoff`) and plot its structure (`plot`).
 """
 
+# Set environment variables for WeasyPrint library dependencies on macOS
+import os
+import sys
+
+# Only set these on macOS
+if sys.platform == "darwin":
+    os.environ["DYLD_LIBRARY_PATH"] = f"/opt/homebrew/lib:{os.environ.get('DYLD_LIBRARY_PATH', '')}"
+    os.environ["PKG_CONFIG_PATH"] = f"/opt/homebrew/lib/pkgconfig:{os.environ.get('PKG_CONFIG_PATH', '')}"
+
 import datetime
 import json
-import os
 import re
 import warnings
 from pathlib import Path
+from typing import cast
 
 from crewai.flow import Flow, listen, or_, router, start
 from dotenv import load_dotenv
@@ -321,7 +330,7 @@ class ReceptionFlow(Flow[ContentState]):
         template_manager = TemplateManager()
         html_content = template_manager.render_report(
             selected_crew="POEM",
-            content_data=poem_model.model_dump() if hasattr(poem_model, "model_dump") else poem_model,
+            content_data=poem_model.model_dump(),
         )
         os.makedirs(os.path.dirname(html_file), exist_ok=True)
         with open(html_file, "w", encoding="utf-8") as f:
@@ -360,7 +369,7 @@ class ReceptionFlow(Flow[ContentState]):
         template_manager = TemplateManager()
         html_content = template_manager.render_report(
             selected_crew="COMPANY_NEWS",
-            content_data=news_model.model_dump() if hasattr(news_model, "model_dump") else news_model,
+            content_data=news_model.model_dump(),
         )
         os.makedirs(os.path.dirname(html_file), exist_ok=True)
         with open(html_file, "w", encoding="utf-8") as f:
@@ -471,7 +480,7 @@ class ReceptionFlow(Flow[ContentState]):
         )
 
         # Store the final report path in the state
-        self.state.rss_weekly_report = f"Report generated at {html_report_path}"
+        self.state.rss_weekly_report = f"Report generated at {html_report_path}"  # type: ignore[assignment]
         self.state.output_file = str(html_report_path)
         self.logger.info(f"✅ New RSS weekly pipeline complete. Report at: {html_report_path}")
 
@@ -518,11 +527,7 @@ class ReceptionFlow(Flow[ContentState]):
         template_manager = TemplateManager()
         html_content = template_manager.render_report(
             selected_crew="FINDAILY",
-            content_data=(
-                financial_report_model.model_dump()
-                if hasattr(financial_report_model, "model_dump")
-                else financial_report_model
-            ),
+            content_data=financial_report_model.model_dump(),
         )
         os.makedirs(os.path.dirname(html_file), exist_ok=True)
         with open(html_file, "w", encoding="utf-8") as f:
@@ -570,9 +575,7 @@ class ReceptionFlow(Flow[ContentState]):
         template_manager = TemplateManager()
         html_content = template_manager.render_report(
             selected_crew="NEWSDAILY",
-            content_data=news_daily_model.model_dump()
-            if hasattr(news_daily_model, "model_dump")
-            else news_daily_model,
+            content_data=news_daily_model.model_dump(),
         )
         os.makedirs(os.path.dirname(html_file), exist_ok=True)
         with open(html_file, "w", encoding="utf-8") as f:
@@ -624,7 +627,7 @@ class ReceptionFlow(Flow[ContentState]):
         template_manager = TemplateManager()
         html_content = template_manager.render_report(
             selected_crew="SAINT",
-            content_data=saint_model.model_dump() if hasattr(saint_model, "model_dump") else saint_model,
+            content_data=saint_model.model_dump(),
         )
         os.makedirs(os.path.dirname(html_file), exist_ok=True)
         with open(html_file, "w", encoding="utf-8") as f:
@@ -687,7 +690,7 @@ class ReceptionFlow(Flow[ContentState]):
         except Exception:
             # Try to load from Paprika YAML if available
             try:
-                import yaml  # type: ignore
+                import yaml
 
                 with open(crew_inputs["patrika_file"], encoding="utf-8") as f:
                     data = yaml.safe_load(f)
@@ -701,7 +704,7 @@ class ReceptionFlow(Flow[ContentState]):
         template_manager = TemplateManager()
         html_content = template_manager.render_report(
             selected_crew="COOKING",
-            content_data=recipe_model.model_dump() if hasattr(recipe_model, "model_dump") else recipe_model,
+            content_data=recipe_model.model_dump(),
         )
         os.makedirs(os.path.dirname(html_file), exist_ok=True)
         with open(html_file, "w", encoding="utf-8") as f:
@@ -750,7 +753,7 @@ class ReceptionFlow(Flow[ContentState]):
                 template_manager = TemplateManager()
                 html_content = template_manager.render_report(
                     selected_crew="MENU",
-                    content_data=menu_plan.model_dump() if hasattr(menu_plan, "model_dump") else menu_plan,
+                    content_data=menu_plan.model_dump(),
                 )
                 os.makedirs(os.path.dirname(html_file), exist_ok=True)
                 with open(html_file, "w", encoding="utf-8") as f:
@@ -802,7 +805,7 @@ class ReceptionFlow(Flow[ContentState]):
             template_manager = TemplateManager()
             html_content = template_manager.render_report(
                 selected_crew="MENU",
-                content_data=report_model.model_dump()
+                content_data=report_model.model_dump()  # type: ignore[arg-type]
                 if hasattr(report_model, "model_dump")
                 else report_model,
             )
@@ -818,7 +821,7 @@ class ReceptionFlow(Flow[ContentState]):
 
         if menu_structure_result is None:
             self.logger.error("❌ No menu structure available for recipe generation")
-            self.state.menu_designer_report = final_report
+            self.state.menu_designer_report = final_report  # type: ignore[assignment]
             return
 
         recipe_specs = menu_generator.parse_menu_structure(menu_structure_result)
@@ -850,7 +853,7 @@ class ReceptionFlow(Flow[ContentState]):
             except Exception as e:
                 self.logger.error(f"  ❌ Error with {recipe_code}: {e}")
 
-        self.state.menu_designer_report = final_report
+        self.state.menu_designer_report = final_report  # type: ignore[assignment]
 
     @listen("go_generate_book_summary")
     @trace_task(tracer)
@@ -888,7 +891,7 @@ class ReceptionFlow(Flow[ContentState]):
         template_manager = TemplateManager()
         html_content = template_manager.render_report(
             selected_crew="BOOK_SUMMARY",
-            content_data=book_summary_model.model_dump()
+            content_data=book_summary_model.model_dump()  # type: ignore[arg-type]
             if hasattr(book_summary_model, "model_dump")
             else book_summary_model,
         )
@@ -938,7 +941,7 @@ class ReceptionFlow(Flow[ContentState]):
         self.state.shopping_advice_model = shopping_advice_obj
 
         # Set output file path
-        topic = self.state.extracted_info.topic or "product-recommendation"
+        topic = self.state.extracted_info.topic or "product-recommendation"  # type: ignore[union-attr]
         topic_slug = topic.lower().replace(" ", "-").replace("'", "").replace('"', "")
         html_file = f"output/shopping_advisor/shopping-advice-{topic_slug}.html"
         self.state.output_file = html_file
@@ -1001,7 +1004,7 @@ class ReceptionFlow(Flow[ContentState]):
         template_manager = TemplateManager()
         html_content = template_manager.render_report(
             selected_crew="MEETING_PREP",
-            content_data=meeting_model.model_dump()
+            content_data=meeting_model.model_dump()  # type: ignore[arg-type]
             if hasattr(meeting_model, "model_dump")
             else meeting_model,
         )
@@ -1052,7 +1055,7 @@ class ReceptionFlow(Flow[ContentState]):
         template_manager = TemplateManager()
         html_content = template_manager.render_report(
             selected_crew="SALES_PROSPECTING",
-            content_data=report_model.model_dump() if hasattr(report_model, "model_dump") else report_model,
+            content_data=report_model.model_dump(),
         )
         os.makedirs(os.path.dirname(html_file), exist_ok=True)
         with open(html_file, "w", encoding="utf-8") as f:
@@ -1093,14 +1096,16 @@ class ReceptionFlow(Flow[ContentState]):
                     json_str = json_f.read()
                 # Re-use the DeepResearchExtractor to benefit from its robust adaptation logic
                 extractor = DeepResearchExtractor()
-                research_report_model = extractor.extract({"raw_output": json_str})
+                research_report_model = extractor.extract({"raw_output": json_str})  # type: ignore[assignment]
                 self.logger.info("✅ Loaded DeepResearchReport from JSON file generated by the crew")
             except Exception as json_err:
                 self.logger.warning(f"Could not parse JSON file {output_file}: {json_err}")
 
         # Fallback: parse the direct CrewAI output (legacy path)
         if research_report_model is None:
-            research_report_model = parse_crewai_output(output, DeepResearchReport, inputs)
+            research_report_model = cast(  # type: ignore[redundant-cast]
+                DeepResearchReport, parse_crewai_output(output, DeepResearchReport, inputs)
+            )
             self.logger.info("ℹ️ Using DeepResearchReport built from CrewAI raw output (fallback path)")
 
         self.state.deep_research_report = research_report_model
@@ -1317,7 +1322,7 @@ class ReceptionFlow(Flow[ContentState]):
         template_manager = TemplateManager()
         html_content = template_manager.render_report(
             selected_crew="CROSS_REFERENCE_REPORT",
-            content_data=report_model.model_dump() if hasattr(report_model, "model_dump") else report_model,
+            content_data=report_model.model_dump(),
         )
         os.makedirs(os.path.dirname(html_file), exist_ok=True)
         with open(html_file, "w", encoding="utf-8") as f:
@@ -1374,7 +1379,7 @@ class ReceptionFlow(Flow[ContentState]):
         template_manager = TemplateManager()
         html_content = template_manager.render_report(
             selected_crew="HOLIDAY_PLANNER",
-            content_data=holiday_model.model_dump()
+            content_data=holiday_model.model_dump()  # type: ignore[arg-type]
             if hasattr(holiday_model, "model_dump")
             else holiday_model,
         )
@@ -1438,13 +1443,13 @@ class ReceptionFlow(Flow[ContentState]):
             # If Composio isn't available, skip email sending gracefully
             try:
                 try:
-                    from composio_crewai import ComposioToolSet  # type: ignore
+                    from composio_crewai import CrewAIProvider  # type: ignore
 
                     # Attempt to initialize to ensure environment is ready
-                    _ = ComposioToolSet()
+                    _ = CrewAIProvider()
                 except Exception as e:
                     self.logger.warning(
-                        "Composio not available; skipping email sending for this run. Reason: %s",
+                        "Composio not available; skipping email sending for this run. Reason: {}",
                         e,
                     )
                     self.state.email_sent = True
@@ -1478,7 +1483,7 @@ def kickoff(user_input: str | None = None):
     setup_logging()
     # If user_input is not provided, use a default value.
     request = (
-        user_input if user_input else "get the daily  news report"
+        user_input if user_input else "Complete OSINT analysis of Mistral.AI"
         # else "get the daily  news report"
         # else "conduct a deep research study on a travel on the north of the italy between san remo and Genova. Give me the best hotel and restaurant options."
         # + "How to book italian train, electrical bicylce and cultural events. I will be alone for 1 week in end of july "

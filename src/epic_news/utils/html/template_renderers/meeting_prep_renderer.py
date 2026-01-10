@@ -18,7 +18,7 @@ class MeetingPrepRenderer(BaseRenderer):
 
     def __init__(self):
         """Initialize the deep research renderer."""
-        super().__init__()
+        super().__init__()  # type: ignore[safe-super]
 
     def render(self, data: dict[str, Any]) -> str:
         """
@@ -48,9 +48,9 @@ class MeetingPrepRenderer(BaseRenderer):
         # Add title if available
         if "title" in data:
             title_h2 = soup.new_tag("h2")
-            title_h2.attrs["class"] = ["meeting-title"]
+            title_h2.attrs["class"] = ["meeting-title"]  # type: ignore[assignment]
             title_h2.string = data["title"]
-            container.append(title_h2)
+            container.append(title_h2)  # type: ignore[union-attr]
 
         # Add summary
         self._add_summary(soup, container, data)
@@ -86,7 +86,7 @@ class MeetingPrepRenderer(BaseRenderer):
             return
 
         summary_div = soup.new_tag("div")
-        summary_div.attrs["class"] = ["meeting-summary"]
+        summary_div.attrs["class"] = ["meeting-summary"]  # type: ignore[assignment]
 
         summary_p = soup.new_tag("p")
         summary_p.string = summary
@@ -101,7 +101,7 @@ class MeetingPrepRenderer(BaseRenderer):
             return
 
         section = soup.new_tag("div")
-        section.attrs["class"] = ["meeting-section"]
+        section.attrs["class"] = ["meeting-section"]  # type: ignore[assignment]
 
         # Section heading
         heading = soup.new_tag("h3")
@@ -109,7 +109,7 @@ class MeetingPrepRenderer(BaseRenderer):
         section.append(heading)
 
         profile_div = soup.new_tag("div")
-        profile_div.attrs["class"] = ["company-profile"]
+        profile_div.attrs["class"] = ["company-profile"]  # type: ignore[assignment]
 
         # Company name
         company_name = company_profile.get("name")
@@ -165,7 +165,7 @@ class MeetingPrepRenderer(BaseRenderer):
             return
 
         section = soup.new_tag("div")
-        section.attrs["class"] = ["meeting-section"]
+        section.attrs["class"] = ["meeting-section"]  # type: ignore[assignment]
 
         # Section heading
         heading = soup.new_tag("h3")
@@ -173,11 +173,11 @@ class MeetingPrepRenderer(BaseRenderer):
         section.append(heading)
 
         participants_div = soup.new_tag("div")
-        participants_div.attrs["class"] = ["participants-list"]
+        participants_div.attrs["class"] = ["participants-list"]  # type: ignore[assignment]
 
         for participant in participants:
             participant_div = soup.new_tag("div")
-            participant_div.attrs["class"] = ["participant"]
+            participant_div.attrs["class"] = ["participant"]  # type: ignore[assignment]
 
             # Name
             name = participant.get("name")
@@ -218,7 +218,7 @@ class MeetingPrepRenderer(BaseRenderer):
             return
 
         section = soup.new_tag("div")
-        section.attrs["class"] = ["meeting-section"]
+        section.attrs["class"] = ["meeting-section"]  # type: ignore[assignment]
 
         # Section heading
         heading = soup.new_tag("h3")
@@ -226,7 +226,7 @@ class MeetingPrepRenderer(BaseRenderer):
         section.append(heading)
 
         overview_div = soup.new_tag("div")
-        overview_div.attrs["class"] = ["industry-overview"]
+        overview_div.attrs["class"] = ["industry-overview"]  # type: ignore[assignment]
 
         overview_p = soup.new_tag("p")
         overview_p.string = industry_overview
@@ -242,7 +242,7 @@ class MeetingPrepRenderer(BaseRenderer):
             return
 
         section = soup.new_tag("div")
-        section.attrs["class"] = ["meeting-section"]
+        section.attrs["class"] = ["meeting-section"]  # type: ignore[assignment]
 
         # Section heading
         heading = soup.new_tag("h3")
@@ -250,11 +250,11 @@ class MeetingPrepRenderer(BaseRenderer):
         section.append(heading)
 
         points_div = soup.new_tag("div")
-        points_div.attrs["class"] = ["talking-points-list"]
+        points_div.attrs["class"] = ["talking-points-list"]  # type: ignore[assignment]
 
         for _, point in enumerate(talking_points):
             point_div = soup.new_tag("div")
-            point_div.attrs["class"] = ["talking-point"]
+            point_div.attrs["class"] = ["talking-point"]  # type: ignore[assignment]
 
             # Topic as heading
             topic = point.get("topic", "")
@@ -266,14 +266,14 @@ class MeetingPrepRenderer(BaseRenderer):
             key_points = point.get("key_points", [])
             if key_points:
                 key_points_div = soup.new_tag("div")
-                key_points_div.attrs["class"] = ["key-points"]
+                key_points_div.attrs["class"] = ["key-points"]  # type: ignore[assignment]
 
                 key_points_h5 = soup.new_tag("h5")
                 key_points_h5.string = "Points clés:"
                 key_points_div.append(key_points_h5)
 
                 key_points_ul = soup.new_tag("ul")
-                key_points_ul.attrs["class"] = ["key-points-list"]
+                key_points_ul.attrs["class"] = ["key-points-list"]  # type: ignore[assignment]
 
                 for key_point in key_points:
                     key_point_li = soup.new_tag("li")
@@ -287,14 +287,14 @@ class MeetingPrepRenderer(BaseRenderer):
             questions = point.get("questions", [])
             if questions:
                 questions_div = soup.new_tag("div")
-                questions_div.attrs["class"] = ["questions"]
+                questions_div.attrs["class"] = ["questions"]  # type: ignore[assignment]
 
                 questions_h5 = soup.new_tag("h5")
                 questions_h5.string = "Questions à poser:"
                 questions_div.append(questions_h5)
 
                 questions_ul = soup.new_tag("ul")
-                questions_ul.attrs["class"] = ["questions-list"]
+                questions_ul.attrs["class"] = ["questions-list"]  # type: ignore[assignment]
 
                 for question in questions:
                     question_li = soup.new_tag("li")
@@ -316,7 +316,7 @@ class MeetingPrepRenderer(BaseRenderer):
             return
 
         section = soup.new_tag("div")
-        section.attrs["class"] = ["meeting-section", "recommendation-section"]
+        section.attrs["class"] = ["meeting-section", "recommendation-section"]  # type: ignore[assignment]
 
         # Section heading
         heading = soup.new_tag("h3")
@@ -324,11 +324,11 @@ class MeetingPrepRenderer(BaseRenderer):
         section.append(heading)
 
         recommendations_div = soup.new_tag("div")
-        recommendations_div.attrs["class"] = ["recommendations-list"]
+        recommendations_div.attrs["class"] = ["recommendations-list"]  # type: ignore[assignment]
 
         for i, reco in enumerate(recommendations):
             reco_div = soup.new_tag("div")
-            reco_div.attrs["class"] = ["recommendation-item"]
+            reco_div.attrs["class"] = ["recommendation-item"]  # type: ignore[assignment]
 
             # Area as heading
             area = reco.get("area", "")
@@ -340,7 +340,7 @@ class MeetingPrepRenderer(BaseRenderer):
             suggestion = reco.get("suggestion", "")
             if suggestion:
                 suggestion_div = soup.new_tag("div")
-                suggestion_div.attrs["class"] = ["recommendation-suggestion"]
+                suggestion_div.attrs["class"] = ["recommendation-suggestion"]  # type: ignore[assignment]
 
                 suggestion_p = soup.new_tag("p")
                 strong = soup.new_tag("strong")
@@ -355,7 +355,7 @@ class MeetingPrepRenderer(BaseRenderer):
             expected_outcome = reco.get("expected_outcome", "")
             if expected_outcome:
                 outcome_div = soup.new_tag("div")
-                outcome_div.attrs["class"] = ["recommendation-outcome"]
+                outcome_div.attrs["class"] = ["recommendation-outcome"]  # type: ignore[assignment]
 
                 outcome_p = soup.new_tag("p")
                 strong = soup.new_tag("strong")
@@ -378,7 +378,7 @@ class MeetingPrepRenderer(BaseRenderer):
             return
 
         section = soup.new_tag("div")
-        section.attrs["class"] = ["meeting-section"]
+        section.attrs["class"] = ["meeting-section"]  # type: ignore[assignment]
 
         # Section heading
         heading = soup.new_tag("h3")
@@ -386,11 +386,11 @@ class MeetingPrepRenderer(BaseRenderer):
         section.append(heading)
 
         resources_div = soup.new_tag("div")
-        resources_div.attrs["class"] = ["resources-list"]
+        resources_div.attrs["class"] = ["resources-list"]  # type: ignore[assignment]
 
         for resource in resources:
             resource_div = soup.new_tag("div")
-            resource_div.attrs["class"] = ["resource-item"]
+            resource_div.attrs["class"] = ["resource-item"]  # type: ignore[assignment]
 
             # Title with link if URL is available
             title = resource.get("title", "")
@@ -416,7 +416,7 @@ class MeetingPrepRenderer(BaseRenderer):
             # Display URL separately if available
             if url:
                 url_p = soup.new_tag("p")
-                url_p.attrs["class"] = ["resource-link"]
+                url_p.attrs["class"] = ["resource-link"]  # type: ignore[assignment]
                 url_a = soup.new_tag("a", href=url, target="_blank")
                 url_a.string = url
                 url_p.append(url_a)
@@ -506,4 +506,4 @@ class MeetingPrepRenderer(BaseRenderer):
             word-break: break-all;
         }
         """
-        soup.head.append(style)
+        soup.head.append(style)  # type: ignore[union-attr]

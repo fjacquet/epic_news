@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
-from src.epic_news.tools.airtable_tool import AirtableReaderTool, AirtableTool
+from epic_news.tools.airtable_tool import AirtableReaderTool, AirtableTool
 
 
 @pytest.fixture
@@ -18,7 +18,7 @@ def tool():
 def test_airtable_create_record_success(tool, mocker):
     """Test a successful record creation with the AirtableTool."""
     mocker.patch.dict(os.environ, {"AIRTABLE_API_KEY": "fake_api_token"})
-    mock_table = mocker.patch("src.epic_news.tools.airtable_tool.Table")
+    mock_table = mocker.patch("epic_news.tools.airtable_tool.Table")
     mock_instance = mocker.MagicMock()
     mock_instance.create.return_value = {"id": "rec12345"}
     mock_table.return_value = mock_instance
@@ -40,7 +40,7 @@ def test_airtable_create_record_missing_api_key(tool, mocker):
 def test_airtable_create_record_api_error(tool, mocker):
     """Test that the tool handles an API error gracefully."""
     mocker.patch.dict(os.environ, {"AIRTABLE_API_KEY": "fake_api_token"})
-    mock_table = mocker.patch("src.epic_news.tools.airtable_tool.Table")
+    mock_table = mocker.patch("epic_news.tools.airtable_tool.Table")
     mock_instance = mocker.MagicMock()
     mock_instance.create.side_effect = Exception("API Error")
     mock_table.return_value = mock_instance
@@ -59,7 +59,7 @@ def reader_tool():
 def test_airtable_read_records_success(reader_tool, mocker):
     """Test a successful record read with the AirtableReaderTool."""
     mocker.patch.dict(os.environ, {"AIRTABLE_API_KEY": "fake_api_token"})
-    mock_table = mocker.patch("src.epic_news.tools.airtable_tool.Table")
+    mock_table = mocker.patch("epic_news.tools.airtable_tool.Table")
     mock_instance = mocker.MagicMock()
     mock_instance.all.return_value = [{"id": "rec123", "fields": {"Name": "Test"}}]
     mock_table.return_value = mock_instance
@@ -81,7 +81,7 @@ def test_airtable_read_records_missing_api_key(reader_tool, mocker):
 def test_airtable_read_records_api_error(reader_tool, mocker):
     """Test that the tool handles an API error gracefully."""
     mocker.patch.dict(os.environ, {"AIRTABLE_API_KEY": "fake_api_token"})
-    mock_table = mocker.patch("src.epic_news.tools.airtable_tool.Table")
+    mock_table = mocker.patch("epic_news.tools.airtable_tool.Table")
     mock_instance = mocker.MagicMock()
     mock_instance.all.side_effect = Exception("API Error")
     mock_table.return_value = mock_instance

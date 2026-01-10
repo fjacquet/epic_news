@@ -2,8 +2,8 @@
 
 import json
 
-from src.epic_news.models.crews.menu_designer_report import WeeklyMenuPlan
-from src.epic_news.utils.menu_plan_validator import MenuPlanValidator
+from epic_news.models.crews.menu_designer_report import WeeklyMenuPlan
+from epic_news.utils.menu_plan_validator import MenuPlanValidator
 
 
 class TestMenuPlanValidator:

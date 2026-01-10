@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 from datetime import datetime
-from typing import Any, Optional, Union
+from typing import Any
 
 from crewai.tools import BaseTool
 from jinja2 import Environment, FileSystemLoader
@@ -17,6 +17,7 @@ from epic_news.models.data_metrics import (
     DataTable,
     Metric,
     MetricType,
+    MetricValue,
     StructuredDataReport,
     TrendDirection,
 )
@@ -63,10 +64,10 @@ class MetricsCalculatorTool(BaseTool):
         description: str,
         value: Any,
         type: str,
-        previous_value: Optional[Any] = None,
-        unit: Optional[str] = None,
-        source: Optional[str] = None,
-        target: Optional[Any] = None,
+        previous_value: Any | None = None,
+        unit: str | None = None,
+        source: str | None = None,
+        target: Any | None = None,
         is_key_metric: bool = False,
         **kwargs,
     ) -> str:
@@ -76,11 +77,11 @@ class MetricsCalculatorTool(BaseTool):
             metric_type = MetricType(type.lower())
 
             # Create metric value with trend calculation
-            metric_value = {
-                "value": value,
-                "previous_value": previous_value,
-                # Let the model validators handle calculations
-            }
+            metric_value = MetricValue(  # type: ignore[call-arg]
+                value=value,
+                previous_value=previous_value,
+                # Model validators will handle trend and percentage calculations
+            )
 
             # Create the metric
             metric = Metric(
@@ -137,10 +138,10 @@ class KPITrackerTool(BaseTool):
         value: Any,
         type: str,
         target: Any,
-        previous_value: Optional[Any] = None,
-        unit: Optional[str] = None,
-        source: Optional[str] = None,
-        target_date: Optional[str] = None,
+        previous_value: Any | None = None,
+        unit: str | None = None,
+        source: str | None = None,
+        target_date: str | None = None,
         **kwargs,
     ) -> str:
         """Run the KPI tracker tool."""
@@ -157,11 +158,11 @@ class KPITrackerTool(BaseTool):
                     parsed_target_date = None
 
             # Create metric value with trend calculation
-            metric_value = {
-                "value": value,
-                "previous_value": previous_value,
-                # Let the model validators handle calculations
-            }
+            metric_value = MetricValue(  # type: ignore[call-arg]
+                value=value,
+                previous_value=previous_value,
+                # Model validators will handle trend and percentage calculations
+            )
 
             # Create the KPI
             kpi = KPI(
@@ -174,9 +175,9 @@ class KPITrackerTool(BaseTool):
                 source=source,
                 target=target,
                 target_date=parsed_target_date,
+                progress_percentage=None,  # Model validator will calculate this
                 timestamp=datetime.now(),
                 metadata=kwargs.get("metadata", {}),
-                # Let the model validators handle progress and status
             )
 
             # Return as JSON string for downstream standardization
@@ -283,12 +284,12 @@ class StructuredReportTool(BaseTool):
             metrics = []
             for metric_data in kwargs.get("metrics", []):
                 # Create metric value
-                metric_value = {
-                    "value": metric_data.get("value"),
-                    "previous_value": metric_data.get("previous_value"),
-                    "change_percentage": metric_data.get("change_percentage"),
-                    "trend": metric_data.get("trend", TrendDirection.UNKNOWN),
-                }
+                metric_value = MetricValue(
+                    value=metric_data.get("value", 0),
+                    previous_value=metric_data.get("previous_value"),
+                    change_percentage=metric_data.get("change_percentage"),
+                    trend=metric_data.get("trend", TrendDirection.UNKNOWN),
+                )
 
                 # Create metric
                 metrics.append(
@@ -311,12 +312,12 @@ class StructuredReportTool(BaseTool):
             kpis = []
             for kpi_data in kwargs.get("kpis", []):
                 # Create metric value
-                metric_value = {
-                    "value": kpi_data.get("value"),
-                    "previous_value": kpi_data.get("previous_value"),
-                    "change_percentage": kpi_data.get("change_percentage"),
-                    "trend": kpi_data.get("trend", TrendDirection.UNKNOWN),
-                }
+                metric_value = MetricValue(
+                    value=kpi_data.get("value", 0),
+                    previous_value=kpi_data.get("previous_value"),
+                    change_percentage=kpi_data.get("change_percentage"),
+                    trend=kpi_data.get("trend", TrendDirection.UNKNOWN),
+                )
 
                 # Create KPI
                 kpis.append(
@@ -382,6 +383,7 @@ class StructuredReportTool(BaseTool):
                 data_tables=data_tables,
                 timestamp=datetime.now(),
                 metadata=kwargs.get("metadata", {}),
+                html=None,  # Will be populated if generate_html is True
             )
 
             # Generate HTML if requested
@@ -417,7 +419,7 @@ class StructuredReportTool(BaseTool):
             return ensure_json_str({"error": f"Failed to generate structured report: {str(e)}"})
 
 
-def get_data_centric_tools() -> list[Union[BaseTool, LangchainBaseTool]]:
+def get_data_centric_tools() -> list[BaseTool | LangchainBaseTool]:
     """Get a list of all data-centric tools."""
     return [
         MetricsCalculatorTool(),

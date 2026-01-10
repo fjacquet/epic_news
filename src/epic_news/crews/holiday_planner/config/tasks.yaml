@@ -20,7 +20,8 @@ research_destination:
 recommend_accommodation_and_dining:
   description: >
     Using the research on {destination} for a {duration} trip, recommend:
-    - 3-5 accommodations with details (amenities, photos, exact locations, cancellation policies)
+    - 3-5 accommodations with details (amenities, photos, exact locations, cancellation
+    policies)
     - Dining options for each day (including dietary accommodations)
     - Nearby grocery stores and markets
     - Kid-friendly options where applicable

@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import pytest
 from freezegun import freeze_time
 
-from src.epic_news.tools.rss_feed_parser_tool import RssFeedParserTool
+from epic_news.tools.rss_feed_parser_tool import RssFeedParserTool
 
 
 @pytest.fixture
@@ -17,7 +17,7 @@ def tool():
 def test_rss_feed_parser_success(tool, mocker):
     """Test successful parsing and filtering of a recent RSS feed entry."""
     # Mock feedparser to return a feed with one recent entry and one old entry
-    mock_feedparser = mocker.patch("src.epic_news.tools.rss_feed_parser_tool.feedparser")
+    mock_feedparser = mocker.patch("epic_news.tools.rss_feed_parser_tool.feedparser")
     mock_feed = mocker.MagicMock()
     mock_feed.bozo = 0
     mock_feed.status = 200
@@ -59,7 +59,7 @@ def test_rss_feed_parser_success(tool, mocker):
 
 def test_rss_feed_parser_error(tool, mocker):
     """Test that the tool gracefully handles a parsing error."""
-    mock_feedparser = mocker.patch("src.epic_news.tools.rss_feed_parser_tool.feedparser")
+    mock_feedparser = mocker.patch("epic_news.tools.rss_feed_parser_tool.feedparser")
     mock_feedparser.parse.side_effect = Exception("Network Error")
 
     result = tool._run(feed_url="http://invalid-url.com/feed")

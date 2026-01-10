@@ -110,23 +110,22 @@ class MyCrew:
 
 **CRITICAL**: Tools must be assigned programmatically in the `@agent` method, never in `agents.yaml`. Hybrid YAML/code tool configuration causes `KeyError` exceptions.
 
-### Pydantic Models: Legacy Union Syntax Required
+### Pydantic Models: Modern Python 3.13 Syntax
 
-CrewAI's internal schema parser **cannot handle** Python 3.10+ Union syntax (`X | Y`).
+CrewAI 1.8.0+ **fully supports** Python 3.13 union syntax (PEP 604: `X | Y`).
 
 ```python
-from typing import Union, Optional
-
-# ✅ CORRECT - Works with CrewAI
-field: Optional[str] = None
-field: Union[str, int] = "default"
-
-# ❌ WRONG - Causes AttributeError
+# ✅ MODERN SYNTAX (Python 3.13+) - RECOMMENDED
 field: str | None = None
 field: str | int = "default"
+
+# ✅ Legacy syntax still works but not required
+from typing import Union, Optional
+field: Optional[str] = None
+field: Union[str, int] = "default"
 ```
 
-**All Pydantic models** used with CrewAI must use legacy `Union` and `Optional` syntax. This is enforced project-wide and disabled in ruff config (UP007, UP035, UP045).
+**Project standard**: Use modern Python 3.13 union syntax (`X | None`, `X | Y`) for all new code. Ruff will auto-upgrade legacy syntax with `UP007`, `UP035`, `UP045` rules enabled.
 
 ### HTML Report Generation: Two-Agent Pattern
 
@@ -207,6 +206,211 @@ All tool `_run()` methods must return **JSON strings** parseable by `json.loads(
 - Directory creation is centralized via `ensure_output_directories()` (called at startup)
 - **Never** use `os.makedirs()` in crew/task logic
 
+## LLM Configuration - OpenRouter
+
+This project uses **OpenRouter** as the primary LLM provider for cost efficiency and model flexibility.
+
+### Centralized Configuration
+
+All LLM configuration is managed through `LLMConfig` (`src/epic_news/config/llm_config.py`):
+
+```python
+from epic_news.config.llm_config import LLMConfig
+
+# Get OpenRouter LLM instance
+llm = LLMConfig.get_openrouter_llm()
+
+# Get timeouts by task type
+llm_timeout = LLMConfig.get_timeout("quick")    # 120s
+llm_timeout = LLMConfig.get_timeout("default")  # 300s
+llm_timeout = LLMConfig.get_timeout("long")     # 600s
+
+# Get crew configuration
+max_iter = LLMConfig.get_max_iter()  # default: 5
+max_rpm = LLMConfig.get_max_rpm()    # default: 20
+```
+
+### Environment Variables
+
+Configure in `.env`:
+```bash
+# OpenRouter Configuration (PRIMARY LLM PROVIDER)
+OPENROUTER_API_KEY=your_openrouter_api_key_here
+MODEL=openrouter/xiaomi/mimo-v2-flash:free  # Default model
+OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
+
+# LLM Parameters
+LLM_TEMPERATURE=0.7                          # 0.0-2.0: Lower=deterministic, Higher=creative
+LLM_MAX_TOKENS=                              # Leave empty for no limit
+
+# Timeout Configuration (seconds)
+LLM_TIMEOUT_QUICK=120                        # Quick tasks (cooking, classification)
+LLM_TIMEOUT_DEFAULT=300                      # Standard tasks (research, analysis)
+LLM_TIMEOUT_LONG=600                         # Complex tasks (deep research, reports)
+
+# Crew Configuration
+CREW_MAX_ITER=5                              # Max iterations per crew
+CREW_MAX_RPM=20                              # Max requests per minute
+```
+
+### Switching Models
+
+To change models globally, update `.env`:
+```bash
+MODEL=openrouter/anthropic/claude-3.5-sonnet
+```
+All crews will use the new model on next run.
+
+### Agent Configuration Pattern
+
+**ALWAYS** use `LLMConfig` methods in agent/crew definitions:
+
+```python
+from epic_news.config.llm_config import LLMConfig
+
+@agent
+def my_agent(self) -> Agent:
+    return Agent(
+        config=self.agents_config["my_agent"],
+        llm=LLMConfig.get_openrouter_llm(),  # ✅ CORRECT
+        llm_timeout=LLMConfig.get_timeout("default"),  # ✅ CORRECT
+        verbose=True,
+    )
+
+@crew
+def crew(self) -> Crew:
+    return Crew(
+        agents=self.agents,
+        tasks=self.tasks,
+        process=Process.sequential,
+        llm_timeout=LLMConfig.get_timeout("default"),  # ✅ CORRECT
+        max_iter=LLMConfig.get_max_iter(),              # ✅ CORRECT
+        max_rpm=LLMConfig.get_max_rpm(),                # ✅ CORRECT
+        verbose=True,
+    )
+```
+
+**NEVER** hardcode model names or timeout values:
+```python
+# ❌ WRONG - Hardcoded values
+llm="gpt-4o-mini"
+llm_timeout=300
+max_iter=5
+```
+
+## MCP Servers
+
+The project uses MCP (Model Context Protocol) servers for advanced tool integration.
+
+### Available MCP Servers
+
+1. **Wikipedia MCP** (`wikipedia-mcp-server`): Maintained Wikipedia integration
+   - `search`: Search Wikipedia with language support
+   - `fetch`: Fetch page content by ID
+
+### Configuration
+
+MCP servers are configured in `src/epic_news/config/mcp_config.py`:
+
+```python
+from epic_news.config.mcp_config import get_wikipedia_mcp
+
+# Get Wikipedia MCP server
+wikipedia_server = get_wikipedia_mcp()
+```
+
+### Usage in Crews
+
+MCP servers are automatically available to crews that need them. The Wikipedia MCP server is primarily used by:
+- `deep_research` crew (encyclopedic research)
+- `library` crew (book context)
+- `holiday_planner` crew (destination information)
+
+**Note**: MCP integration is transparent - crews access MCP tools like any other tool.
+
+## Composio Tools
+
+The project integrates **Composio 1.0** with 176 tools across 10 toolkits for comprehensive external service integration.
+
+### Available Toolkits
+
+1. **Social Platform Search**: Reddit, Twitter, HackerNews
+2. **Communication**: Gmail, Slack, Discord, Notion
+3. **Financial Data**: CoinMarketCap
+4. **Content Creation**: Canva, Airtable
+
+### Configuration
+
+All Composio tools are managed through `ComposioConfig` (`src/epic_news/config/composio_config.py`):
+
+```python
+from epic_news.config.composio_config import ComposioConfig
+
+composio = ComposioConfig()
+
+# Get tool categories
+search_tools = composio.get_search_tools()           # Reddit, Twitter, HackerNews
+comm_tools = composio.get_communication_tools()      # Gmail, Slack, Discord, Notion
+financial_tools = composio.get_financial_tools()     # CoinMarketCap
+content_tools = composio.get_content_creation_tools()  # Canva, Airtable
+```
+
+### Tool Categories
+
+**Search Tools** (5 tools):
+- `REDDIT_GET_POSTS`: Aggregate Reddit discussions
+- `TWITTER_SEARCH`: Real-time social media trends
+- `HACKERNEWS_GET_STORIES`: Tech news aggregation
+
+**Communication Tools** (Gmail, Slack, Discord, Notion):
+- Email sending, Slack messaging, Discord notifications
+- Note: Gmail in Composio 1.0 uses `CREATE_EMAIL_DRAFT` instead of deprecated `GMAIL_SEND_EMAIL`
+
+**Financial Tools**:
+- `COINMARKETCAP_GET_LISTINGS`: Cryptocurrency market data
+
+**Content Creation**:
+- Canva design integration
+- Airtable data management
+
+### Usage Pattern
+
+```python
+from epic_news.config.composio_config import ComposioConfig
+
+def __init__(self):
+    composio = ComposioConfig()
+    self.search_tools = composio.get_search_tools()
+
+@agent
+def researcher(self) -> Agent:
+    return Agent(
+        config=self.agents_config["researcher"],
+        tools=self.search_tools,  # Reddit, Twitter, HackerNews
+        verbose=True,
+    )
+```
+
+### Environment Variables
+
+Required API keys in `.env`:
+```bash
+# Composio Configuration
+COMPOSIO_API_KEY=your_composio_api_key
+
+# Optional: Individual service keys if using direct integrations
+REDDIT_CLIENT_ID=your_reddit_client_id
+REDDIT_CLIENT_SECRET=your_reddit_client_secret
+TWITTER_API_KEY=your_twitter_api_key
+```
+
+### Crew-Specific Tool Assignment
+
+Different crews use different Composio tool categories:
+- **News crews** (`company_news`, `news_daily`): Search tools (Reddit, Twitter, HackerNews)
+- **Financial crews** (`fin_daily`): Financial tools (CoinMarketCap)
+- **Communication crews** (`post`): Communication tools (Gmail, Slack)
+
 ## Code Style Specifics
 
 ### Imports
@@ -237,6 +441,8 @@ Configuration in `src/epic_news/utils/logger.py`.
 5. **Single-agent HTML reports** → Use two-agent pattern (researcher + reporter)
 6. **Constructor injection for context** → Use `.kickoff(inputs=crew_inputs)`
 7. **Using `os.makedirs()` in crews** → Use centralized `ensure_output_directories()`
+8. **Hardcoded LLM configuration** → Always use `LLMConfig.get_openrouter_llm()`, `LLMConfig.get_timeout()`, etc.
+9. **Hardcoded model names** → Use `MODEL` from `.env` via `LLMConfig`, never `llm="gpt-4o-mini"`
 
 ## Development Workflow
 

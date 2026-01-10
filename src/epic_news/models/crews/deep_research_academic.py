@@ -4,7 +4,6 @@ Structures de données pour communication inter-agents et validation qualité
 """
 
 from datetime import datetime
-from typing import Optional, Union
 
 from pydantic import BaseModel, Field, validator
 
@@ -23,7 +22,7 @@ class ResearchPlan(BaseModel):
     expected_depth: str = Field(default="PhD", description="Niveau de profondeur attendu")
 
     @validator("quality_criteria")
-    def validate_quality_criteria(cls, v):
+    def validate_quality_criteria(self, v):
         required_criteria = ["min_word_count", "min_sources", "min_statistical_tests"]
         for criterion in required_criteria:
             if criterion not in v:
@@ -44,7 +43,7 @@ class CollectedData(BaseModel):
     data_quality: str = Field(..., description="Évaluation qualitative des données")
 
     @validator("credibility_score", "relevance_score")
-    def validate_scores(cls, v):
+    def validate_scores(self, v):
         if not 0.0 <= v <= 1.0:
             raise ValueError("Les scores doivent être entre 0.0 et 1.0")
         return v
@@ -54,7 +53,7 @@ class QuantitativeAnalysis(BaseModel):
     """Analyse quantitative avec métriques statistiques"""
 
     analysis_type: str = Field(..., description="Type d'analyse (descriptive, corrélation, etc.)")
-    metrics: dict[str, Union[float, int]] = Field(..., description="Métriques calculées")
+    metrics: dict[str, float | int] = Field(..., description="Métriques calculées")
     statistical_tests: list[str] = Field(..., description="Tests statistiques effectués")
     p_values: dict[str, float] = Field(default_factory=dict, description="Valeurs p des tests")
     confidence_intervals: dict[str, list[float]] = Field(
@@ -67,7 +66,7 @@ class QuantitativeAnalysis(BaseModel):
     limitations: list[str] = Field(..., description="Limitations de l'analyse")
 
     @validator("p_values")
-    def validate_p_values(cls, v):
+    def validate_p_values(self, v):
         for test, p_val in v.items():
             if not 0.0 <= p_val <= 1.0:
                 raise ValueError(f"Valeur p invalide pour {test}: {p_val}")
@@ -87,7 +86,7 @@ class QualityAssessment(BaseModel):
     coherence_score: float = Field(..., ge=0.0, le=1.0, description="Score cohérence logique")
 
     # Seuils qualité PhD
-    quality_thresholds: dict[str, Union[int, float]] = Field(
+    quality_thresholds: dict[str, int | float] = Field(
         default={
             "min_word_count": 15000,
             "min_sources": 25,
@@ -130,10 +129,10 @@ class ResearchState(BaseModel):
     current_phase: str = Field(default="planning", description="Phase actuelle")
 
     # Données des phases
-    research_plan: Optional[ResearchPlan] = None
+    research_plan: ResearchPlan | None = None
     collected_data: list[CollectedData] = Field(default_factory=list)
-    quantitative_analysis: Optional[QuantitativeAnalysis] = None
-    quality_assessment: Optional[QualityAssessment] = None
+    quantitative_analysis: QuantitativeAnalysis | None = None
+    quality_assessment: QualityAssessment | None = None
 
     # Métadonnées d'orchestration
     iteration_count: int = Field(default=1, description="Nombre d'itérations")
@@ -166,7 +165,7 @@ class ResearchState(BaseModel):
         """Vérifie si une nouvelle itération est possible"""
         return self.iteration_count < self.max_iterations
 
-    def get_completion_status(self) -> dict[str, Union[bool, str, int]]:
+    def get_completion_status(self) -> dict[str, bool | str | int]:
         """Retourne le statut de completion"""
         return {
             "is_complete": self.is_complete,
@@ -210,7 +209,7 @@ class AcademicReport(BaseModel):
     created_at: datetime = Field(default_factory=datetime.now)
 
     @validator("word_count")
-    def validate_word_count(cls, v):
+    def validate_word_count(self, v):
         if v < 15000:  # Minimum PhD standard
             raise ValueError(f"Rapport trop court: {v} mots (minimum 15,000)")
         return v
@@ -239,7 +238,7 @@ class AcademicReport(BaseModel):
                 <p><strong>Recherche Académique Approfondie</strong></p>
                 <p>Généré le {self.created_at.strftime("%d/%m/%Y")}</p>
             </div>
-            
+
             <div class="metadata">
                 <h3>🎯 Métadonnées de Qualité</h3>
                 <ul>
@@ -251,49 +250,49 @@ class AcademicReport(BaseModel):
                     <li><strong>Niveau académique:</strong> {self.academic_level}</li>
                 </ul>
             </div>
-            
+
             <div class="section">
                 <h2>📋 Résumé Exécutif</h2>
                 {self.executive_summary}
             </div>
-            
+
             <div class="section">
                 <h2>🎯 Introduction</h2>
                 {self.introduction}
             </div>
-            
+
             <div class="section">
                 <h2>📚 Revue de Littérature</h2>
                 {self.literature_review}
             </div>
-            
+
             <div class="section">
                 <h2>🔬 Méthodologie</h2>
                 {self.methodology}
             </div>
-            
+
             <div class="section">
                 <h2>📊 Analyse Quantitative</h2>
                 {self.quantitative_analysis}
             </div>
-            
+
             <div class="section">
                 <h2>💭 Discussion</h2>
                 {self.discussion}
             </div>
-            
+
             <div class="section">
                 <h2>🎯 Conclusions</h2>
                 {self.conclusions}
             </div>
-            
+
             <div class="section references">
                 <h2>📖 Références</h2>
                 <ol>
                     {"".join(f"<li>{ref}</li>" for ref in self.references)}
                 </ol>
             </div>
-            
+
             {f'<div class="section"><h2>📎 Annexes</h2>{self.appendices}</div>' if self.appendices else ""}
         </body>
         </html>

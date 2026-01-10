@@ -1,5 +1,3 @@
-from typing import Optional
-
 from pydantic import BaseModel
 
 
@@ -18,4 +16,4 @@ class Section(BaseModel):
 class CompanyNewsReport(BaseModel):
     summary: str
     sections: list[Section]
-    notes: Optional[str]
+    notes: str | None

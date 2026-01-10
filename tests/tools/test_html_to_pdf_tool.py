@@ -1,5 +1,7 @@
 import os
 
+import pytest
+
 from epic_news.tools.html_to_pdf_tool import HtmlToPdfTool
 from epic_news.utils.directory_utils import ensure_output_directory
 
@@ -15,8 +17,24 @@ def create_dummy_html(
     return filepath
 
 
+@pytest.fixture
+def mock_weasyprint_available(mocker):
+    """Mock WeasyPrint as available for tests that need path validation."""
+    mocker.patch("epic_news.tools.html_to_pdf_tool.WEASYPRINT_AVAILABLE", True)
+    mock_html_class = mocker.MagicMock()
+    mock_html_instance = mocker.MagicMock()
+    mock_html_class.return_value = mock_html_instance
+    # Make write_pdf create the output file
+    def create_pdf(output_path):
+        with open(output_path, "wb") as f:
+            f.write(b"%PDF-1.4 mock pdf content")
+    mock_html_instance.write_pdf.side_effect = create_pdf
+    mocker.patch("epic_news.tools.html_to_pdf_tool.HTML", mock_html_class)
+    return mock_html_class
+
+
 class TestHtmlToPdfTool:
-    def test_successful_conversion(self, tmp_path):
+    def test_successful_conversion(self, tmp_path, mock_weasyprint_available):
         """Test successful conversion of an HTML file to PDF."""
         tool = HtmlToPdfTool()
         html_file_path = str(tmp_path / "test_input.html")
@@ -30,7 +48,7 @@ class TestHtmlToPdfTool:
         assert os.path.exists(pdf_file_path), "PDF file was not created."
         assert str(pdf_file_path) in result, "Output PDF path not mentioned in success message."
 
-    def test_input_html_not_found(self, tmp_path):
+    def test_input_html_not_found(self, tmp_path, mock_weasyprint_available):
         """Test handling when the input HTML file does not exist."""
         tool = HtmlToPdfTool()
         non_existent_html_file = str(tmp_path / "non_existent.html")
@@ -41,7 +59,7 @@ class TestHtmlToPdfTool:
         assert "Error: HTML input file not found" in result, f"Incorrect error message: {result}"
         assert not os.path.exists(pdf_file_path), "PDF file should not be created if input is missing."
 
-    def test_non_absolute_html_path(self, tmp_path):
+    def test_non_absolute_html_path(self, tmp_path, mock_weasyprint_available):
         """Test that the tool returns an error for a non-absolute HTML file path."""
         tool = HtmlToPdfTool()
         # Create a dummy html file in tmp_path to ensure the error is about the path type, not file existence
@@ -57,7 +75,7 @@ class TestHtmlToPdfTool:
             f"Incorrect error for relative HTML path: {result}"
         )
 
-    def test_non_absolute_pdf_path(self, tmp_path):
+    def test_non_absolute_pdf_path(self, tmp_path, mock_weasyprint_available):
         """Test that the tool returns an error for a non-absolute PDF output path."""
         tool = HtmlToPdfTool()
         absolute_html_path = str(tmp_path / "input.html")
@@ -70,7 +88,7 @@ class TestHtmlToPdfTool:
             f"Incorrect error for relative PDF path: {result}"
         )
 
-    def test_output_directory_creation(self, tmp_path):
+    def test_output_directory_creation(self, tmp_path, mock_weasyprint_available):
         """Test that the tool creates the output directory if it doesn't exist."""
         tool = HtmlToPdfTool()
         html_file_path = str(tmp_path / "input.html")

@@ -24,7 +24,9 @@ class OrchestrationStrategy(Enum):
     HIERARCHICAL = Process.hierarchical
 
     @staticmethod
-    def determine_optimal_strategy(tasks: list[Task], dependencies: dict[str, list[str]] = None) -> Process:
+    def determine_optimal_strategy(
+        tasks: list[Task], dependencies: dict[str, list[str]] | None = None
+    ) -> Process:
         """
         Determines the optimal orchestration strategy based on task characteristics.
         """
@@ -38,13 +40,13 @@ class TaskGroup:
     Manages a group of tasks that can be executed with different strategies.
     """
 
-    def __init__(self, tasks: list[Task], dependencies: dict[str, list[str]] = None):
+    def __init__(self, tasks: list[Task], dependencies: dict[str, list[str]] | None = None):
         """
         Initialize a TaskGroup.
         """
         self.tasks = tasks
         self.dependencies = dependencies or {}
-        self.results = {}
+        self.results: dict[str, Any] = {}
 
     def get_optimal_process(self) -> Process:
         """

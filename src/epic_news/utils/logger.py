@@ -8,6 +8,7 @@ application using Loguru.
 import os
 import sys
 from pathlib import Path
+from typing import Any
 
 from loguru import logger
 
@@ -59,7 +60,7 @@ def setup_logging(
         )
 
 
-def get_logger(name: str, log_level: str | None = None) -> "logger":
+def get_logger(name: str, log_level: str | None = None) -> Any:
     """
     Get a logger with the given name.
 

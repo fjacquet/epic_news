@@ -1,8 +1,11 @@
+from typing import Any
+
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from dotenv import load_dotenv
 from loguru import logger
 
+from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.company_news_report import CompanyNewsReport
 from epic_news.utils.observability import get_observability_tools, trace_task
 
@@ -43,21 +46,15 @@ class CompanyNewsCrew:
         Output file is passed via context parameter `output_file`.
         """
 
-        from composio_crewai import ComposioToolSet
+        from epic_news.config.composio_config import ComposioConfig
 
-        # Initialize the toolset
-        toolset = ComposioToolSet()
+        # Initialize Composio with new 1.0 API
+        # NOTE: Composio 1.0 has NO "SEARCH" toolkit. Search comes from social platforms.
+        composio = ComposioConfig()
 
-        # Use only available tools for search
-        self.search_tools = toolset.get_tools(
-            actions=[
-                "COMPOSIO_SEARCH_SEARCH",
-                "COMPOSIO_SEARCH_DUCK_DUCK_GO_SEARCH",
-                "COMPOSIO_SEARCH_NEWS_SEARCH",
-                "COMPOSIO_SEARCH_TRENDS_SEARCH",
-                "COMPOSIO_SEARCH_EVENT_SEARCH",
-            ],
-        )
+        # Get search tools from Reddit, Twitter, and HackerNews (5 tools total)
+        # These replace the deprecated COMPOSIO_SEARCH_* actions that no longer exist
+        self.search_tools = composio.get_search_tools()
 
         # Pass observability tools to instance
         self.tracer = tracer
@@ -73,11 +70,12 @@ class CompanyNewsCrew:
             Agent: Configured researcher agent from YAML configuration
         """
         return Agent(
-            config=self.agents_config["researcher"],
+            config=self.agents_config["researcher"],  # type: ignore[index]
             tools=self.search_tools,
             verbose=True,
-            llm_timeout=300,
+            llm_timeout=LLMConfig.get_timeout("default"),
             reasoning=True,
+            max_reasoning_attempts=3,
             respect_context_window=True,
         )
 
@@ -89,11 +87,12 @@ class CompanyNewsCrew:
             Agent: Configured analyst agent from YAML configuration
         """
         return Agent(
-            config=self.agents_config["analyst"],
+            config=self.agents_config["analyst"],  # type: ignore[index]
             tools=self.search_tools,
             verbose=True,
-            llm_timeout=300,
+            llm_timeout=LLMConfig.get_timeout("default"),
             reasoning=True,
+            max_reasoning_attempts=3,
             respect_context_window=True,
         )
 
@@ -105,11 +104,12 @@ class CompanyNewsCrew:
         All output file handling must be done via CrewAI config/context, NOT in Python.
         """
         return Agent(
-            config=self.agents_config["editor"],
+            config=self.agents_config["editor"],  # type: ignore[index]
             tools=[],  # Gold standard: no tools for reporting agent
             verbose=True,
-            llm_timeout=300,
+            llm_timeout=LLMConfig.get_timeout("default"),
             reasoning=True,
+            max_reasoning_attempts=3,
             respect_context_window=True,
         )
 
@@ -128,12 +128,12 @@ class CompanyNewsCrew:
             Task: Configured research task from YAML configuration
         """
         # Create task config with dynamic topic
-        task_config = dict(self.tasks_config["research_task"])
+        task_config: dict[str, Any] = dict(self.tasks_config["research_task"])  # type: ignore[index, arg-type]
         return Task(
             config=task_config,
-            verbose=True,
+            verbose=True,  # type: ignore[call-arg]
             async_execution=False,  # Parallel execution for better performance
-            llm_timeout=300,
+            llm_timeout=LLMConfig.get_timeout("default"),
         )
 
     @task
@@ -148,12 +148,12 @@ class CompanyNewsCrew:
             Task: Configured analysis task from YAML configuration
         """
         # Create task config with dynamic topic
-        task_config = dict(self.tasks_config["analysis_task"])
+        task_config: dict[str, Any] = dict(self.tasks_config["analysis_task"])  # type: ignore[index, arg-type]
         return Task(
             config=task_config,
             context=[self.research_task()],  # This task depends on research
             verbose=True,
-            llm_timeout=300,
+            llm_timeout=LLMConfig.get_timeout("default"),  # type: ignore[call-arg]
         )
 
     @task
@@ -168,7 +168,7 @@ class CompanyNewsCrew:
             Task: Configured editing task from YAML configuration
         """
         # Create task config with dynamic topic
-        task_config = dict(self.tasks_config["editing_task"])
+        task_config: dict[str, Any] = dict(self.tasks_config["editing_task"])  # type: ignore[index, arg-type]
 
         return Task(
             config=task_config,
@@ -177,7 +177,7 @@ class CompanyNewsCrew:
                 self.analysis_task(),
             ],  # This task depends on all previous tasks
             verbose=True,
-            llm_timeout=300,
+            llm_timeout=LLMConfig.get_timeout("default"),  # type: ignore[call-arg]
             output_pydantic=CompanyNewsReport,
         )
 
@@ -195,12 +195,14 @@ class CompanyNewsCrew:
         try:
             # Configure the crew with hierarchical process and appropriate settings
             return Crew(
-                agents=self.agents,  # Automatically created by the @agent decorator
-                tasks=self.tasks,  # Automatically created by the @task decorator
+                agents=self.agents,  # type: ignore[attr-defined] # Automatically created by the @agent decorator
+                tasks=self.tasks,  # type: ignore[attr-defined] # Automatically created by the @task decorator
                 process=Process.sequential,  # Hierarchical process for parallel execution
                 verbose=True,  # Enable verbose output for better debugging
-                llm_timeout=300,  # 5 minute timeout for LLM calls
-                max_retries=2,  # Retry up to 2 times on failure
+                llm_timeout=LLMConfig.get_timeout("default"),
+                max_iter=LLMConfig.get_max_iter(),  # type: ignore[call-arg]
+                max_rpm=LLMConfig.get_max_rpm(),
+                max_retries=2,
             )
         except Exception as e:
             # Fail fast with explicit error message

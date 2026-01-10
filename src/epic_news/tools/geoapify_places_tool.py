@@ -8,7 +8,6 @@ points of interest by categories, conditions, and location filters.
 import json
 import os
 from enum import Enum
-from typing import Optional
 
 import requests
 from crewai.tools import BaseTool
@@ -26,7 +25,7 @@ class GeoapifyPlacesInput(BaseModel):
         PLACE = "place"  # place ID
         GEOMETRY = "geometry"  # geometry ID
 
-    categories: Optional[list[str]] = Field(
+    categories: list[str] | None = Field(
         None,
         description=(
             "List of category IDs to search for "
@@ -34,7 +33,7 @@ class GeoapifyPlacesInput(BaseModel):
             "See https://apidocs.geoapify.com/docs/places/ for full list."
         ),
     )
-    conditions: Optional[list[str]] = Field(
+    conditions: list[str] | None = Field(
         None,
         description=(
             "List of conditions to filter results "
@@ -42,21 +41,21 @@ class GeoapifyPlacesInput(BaseModel):
             "See API docs for available conditions per category."
         ),
     )
-    filter_type: Optional[FilterType] = Field(
+    filter_type: FilterType | None = Field(
         None,
         description=(
             "Type of filter to apply. Options: 'circle' (lon,lat,radiusM), "
             "'rect' (lon1,lat1,lon2,lat2), 'place' (place ID), 'geometry' (geometry ID)"
         ),
     )
-    filter_value: Optional[str] = Field(
+    filter_value: str | None = Field(
         None,
         description=(
             "Filter values as comma-separated string based on filter_type. "
             "Example for circle: '-0.0707,51.5085,1000' (lon,lat,radiusM)"
         ),
     )
-    bias: Optional[str] = Field(
+    bias: str | None = Field(
         None,
         description=(
             "Bias results by proximity to a point as 'lon,lat'. "

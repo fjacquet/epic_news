@@ -22,9 +22,9 @@ class HunterIOTool(BaseTool):
     name: str = "hunter_io_search"
     description: str = "Find professional email addresses for a given domain using Hunter.io"
     args_schema: type[BaseModel] = HunterIOInput
-    searcher: EmailSearchTool = Field(default=None, exclude=True)
+    searcher: EmailSearchTool | None = Field(default=None, exclude=True)
 
-    def __init__(self, searcher: EmailSearchTool = None, **data):
+    def __init__(self, searcher: EmailSearchTool | None = None, **data):
         """Initialize with API key from environment or a searcher instance."""
         super().__init__(**data)
         if searcher:
@@ -37,6 +37,7 @@ class HunterIOTool(BaseTool):
 
     def _run(self, domain: str) -> str:
         """Search for emails using Hunter.io API."""
+        assert self.searcher is not None, "EmailSearchTool not initialized"
         params = {"domain": domain, "api_key": self.searcher.api_key}
 
         response = self.searcher._make_request("GET", HUNTER_API_URL, params=params)

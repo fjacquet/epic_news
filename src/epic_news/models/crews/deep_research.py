@@ -7,7 +7,6 @@ de rapports structurés en français.
 """
 
 from datetime import datetime
-from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -19,7 +18,7 @@ class ResearchSource(BaseModel):
     title: str = Field(description="Titre de la source")
     credibility_score: float = Field(description="Score de crédibilité (0.0-1.0)", ge=0.0, le=1.0)
     extraction_date: str = Field(description="Date d'extraction (ISO format)")
-    summary: Optional[str] = Field(default=None, description="Résumé du contenu de la source")
+    summary: str | None = Field(default=None, description="Résumé du contenu de la source")
 
 
 class ResearchSection(BaseModel):
@@ -31,7 +30,7 @@ class ResearchSection(BaseModel):
         default_factory=list, description="Sources utilisées pour cette section"
     )
     key_findings: list[str] = Field(default_factory=list, description="Découvertes clés de cette section")
-    confidence_level: Optional[float] = Field(
+    confidence_level: float | None = Field(
         default=None, description="Niveau de confiance dans les informations (0.0-1.0)", ge=0.0, le=1.0
     )
 
@@ -45,7 +44,7 @@ class QuantitativeAnalysis(BaseModel):
     visualizations: list[str] = Field(
         default_factory=list, description="Chemins vers les visualisations générées"
     )
-    code_executed: Optional[str] = Field(default=None, description="Code Python exécuté pour l'analyse")
+    code_executed: str | None = Field(default=None, description="Code Python exécuté pour l'analyse")
 
 
 class DeepResearchReport(BaseModel):
@@ -59,7 +58,7 @@ class DeepResearchReport(BaseModel):
         default_factory=list, description="Sections de recherche détaillées"
     )
 
-    quantitative_analysis: Optional[QuantitativeAnalysis] = Field(
+    quantitative_analysis: QuantitativeAnalysis | None = Field(
         default=None, description="Analyse quantitative si applicable"
     )
 
@@ -81,9 +80,9 @@ class DeepResearchReport(BaseModel):
         default_factory=lambda: datetime.now().isoformat(), description="Date de génération du rapport"
     )
 
-    research_duration: Optional[str] = Field(default=None, description="Durée de la recherche")
+    research_duration: str | None = Field(default=None, description="Durée de la recherche")
 
-    quality_score: Optional[float] = Field(
+    quality_score: float | None = Field(
         default=None, description="Score de qualité global (0.0-1.0)", ge=0.0, le=1.0
     )
 

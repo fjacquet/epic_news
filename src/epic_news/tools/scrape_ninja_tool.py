@@ -1,13 +1,12 @@
 import json
 import os
-from typing import Optional
 
 import requests
 from crewai.tools import BaseTool
 from dotenv import load_dotenv
 from pydantic import BaseModel
 
-from src.epic_news.models.web_search_models import ScrapeNinjaInput
+from epic_news.models.web_search_models import ScrapeNinjaInput
 
 # Load environment variables from .env file
 load_dotenv()
@@ -28,7 +27,7 @@ class ScrapeNinjaTool(BaseTool):
     name: str = "ScrapeNinja"
     description: str = "Scrapes website content using the ScrapeNinja API with advanced options"
     args_schema: type[BaseModel] = ScrapeNinjaInput
-    api_key: Optional[str] = None
+    api_key: str | None = None
 
     def __init__(self, **data):
         """Initialize with API key from environment."""
@@ -80,7 +79,7 @@ class ScrapeNinjaTool(BaseTool):
             try:
                 # Check if content is valid JSON, if so, return as is (it's already a string)
                 json.loads(content)
-                return content
+                return str(content)
             except json.JSONDecodeError:
                 # If not JSON, wrap it in a JSON structure
                 return json.dumps({"content": content})

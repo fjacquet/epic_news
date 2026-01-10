@@ -12,7 +12,7 @@ import sys
 
 from dotenv import load_dotenv
 
-from src.epic_news.tools.kraken_api_tool import KrakenAssetListTool, KrakenTickerInfoTool
+from epic_news.tools.kraken_api_tool import KrakenAssetListTool, KrakenTickerInfoTool
 
 
 def check_ticker_info(pair: str = "XXBTZUSD") -> bool:

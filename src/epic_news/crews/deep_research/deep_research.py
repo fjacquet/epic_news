@@ -4,65 +4,76 @@ from crewai_tools import (
     BraveSearchTool,
     CodeInterpreterTool,
     FileReadTool,
+    MCPServerAdapter,
     ScrapeWebsiteTool,
     SerperDevTool,
 )
 
+from epic_news.config.llm_config import LLMConfig
+from epic_news.config.mcp_config import MCPConfig
 from epic_news.models.crews.deep_research_report import DeepResearchReport
-from epic_news.tools.wikipedia_article_tool import WikipediaArticleTool
-from epic_news.tools.wikipedia_search_tool import WikipediaSearchTool
 
 
 @CrewBase
 class DeepResearchCrew:
-    """DeepResearch crew for comprehensive internet research with 6-agent architecture"""
+    """DeepResearch crew for comprehensive internet research with 4-agent architecture.
+
+    Agents:
+    1. research_strategist: Planning and methodology
+    2. information_collector: Web + Wikipedia research (merged from 2 agents)
+    3. data_analyst: Analysis and synthesis with Code Interpreter
+    4. report_writer: Technical report creation
+    """
 
     agents_config = "config/agents.yaml"
     tasks_config = "config/tasks.yaml"
 
     code_interpreter = CodeInterpreterTool(default_image_tag="fjacquet/code-interpreter:latest")
 
+    # Initialize Wikipedia MCP server
+    _wikipedia_mcp = None
+
+    @property
+    def wikipedia_tools(self):
+        """Get Wikipedia MCP tools (lazy initialization)."""
+        if self._wikipedia_mcp is None:
+            wikipedia_params = MCPConfig.get_wikipedia_mcp()
+            self._wikipedia_mcp = MCPServerAdapter(wikipedia_params)
+        return self._wikipedia_mcp.tools
+
     # Research Strategist - Planning and methodology
     @agent
     def research_strategist(self) -> Agent:
         """Research strategist agent for planning and methodology."""
         return Agent(
-            config=self.agents_config["research_strategist"],
+            config=self.agents_config["research_strategist"],  # type: ignore[index]
             tools=[],  # Strategic planning, no external tools needed
+            llm=LLMConfig.get_openrouter_llm(),
+            llm_timeout=LLMConfig.get_timeout("default"),
             verbose=True,
         )
 
-    # Information Collector - Web research and data collection
+    # Information Collector - Web and encyclopedic research
     @agent
     def information_collector(self) -> Agent:
-        """Information collector agent with web search and scraping tools."""
+        """Information collector agent with web search, scraping AND Wikipedia MCP tools."""
         return Agent(
-            config=self.agents_config["information_collector"],
+            config=self.agents_config["information_collector"],  # type: ignore[index]
             tools=[
+                # Web search tools
                 BraveSearchTool(),
                 SerperDevTool(n_results=25, search_type="search"),
                 SerperDevTool(n_results=25, search_type="news"),
-                # ScrapeNinjaTool(),
                 ScrapeWebsiteTool(),
-                FileReadTool(),  # Backup scraping tool
+                FileReadTool(),
+                # Wikipedia MCP tools (encyclopedic research)
+                *self.wikipedia_tools,  # Adds search and fetch tools from Wikipedia MCP
             ],
-            llm="gpt-5-mini",
+            llm=LLMConfig.get_openrouter_llm(),
+            llm_timeout=LLMConfig.get_timeout("long"),
             verbose=True,
             reasoning=True,
-        )
-
-    # Wikipedia Specialist - Encyclopedic research
-    @agent
-    def wikipedia_specialist(self) -> Agent:
-        """Wikipedia specialist agent for encyclopedic research."""
-        return Agent(
-            config=self.agents_config["wikipedia_specialist"],
-            tools=[
-                WikipediaSearchTool(),
-                WikipediaArticleTool(),
-            ],
-            verbose=True,
-            respect_context_window=True,
+            max_reasoning_attempts=3,
         )
 
     # Data Analyst - Analysis and synthesis with Code Interpreter
@@ -70,9 +81,10 @@ class DeepResearchCrew:
     def data_analyst(self) -> Agent:
         """Data analyst agent for synthesis and quantitative analysis with Code Interpreter."""
         return Agent(
-            config=self.agents_config["data_analyst"],
+            config=self.agents_config["data_analyst"],  # type: ignore[index]
             tools=[self.code_interpreter, FileReadTool()],
-            llm="gpt-5-mini",
+            llm=LLMConfig.get_openrouter_llm(),
+            llm_timeout=LLMConfig.get_timeout("long"),
             verbose=True,
             allow_code_execution=True,  # Enable Code Interpreter for real quantitative analysis
         )
@@ -82,9 +94,10 @@ class DeepResearchCrew:
     def report_writer(self) -> Agent:
         """Report writer agent for technical report creation."""
         return Agent(
-            config=self.agents_config["report_writer"],
+            config=self.agents_config["report_writer"],  # type: ignore[index]
             tools=[],  # Report writing, no external tools needed
-            llm="gpt-5-mini",
+            llm=LLMConfig.get_openrouter_llm(),
+            llm_timeout=LLMConfig.get_timeout("default"),
             verbose=True,
         )
 
@@ -104,16 +117,16 @@ class DeepResearchCrew:
     def reformulate_task(self) -> Task:
         """Reformulate task."""
         return Task(
-            config=self.tasks_config["reformulate_task"],
-            verbose=True,
+            config=self.tasks_config["reformulate_task"],  # type: ignore[arg-type, index]
+            verbose=True,  # type: ignore[call-arg]
         )
 
     @task
     def research_planning_task(self) -> Task:
         """Research planning and methodology task."""
         return Task(
-            config=self.tasks_config["research_planning_task"],
-            verbose=True,
+            config=self.tasks_config["research_planning_task"],  # type: ignore[arg-type, index]
+            verbose=True,  # type: ignore[call-arg]
         )
 
     # Task 2: Information Collection
@@ -121,52 +134,37 @@ class DeepResearchCrew:
     def information_collection_task(self) -> Task:
         """Information collection task."""
         return Task(
-            config=self.tasks_config["information_collection_task"],
-            verbose=True,
+            config=self.tasks_config["information_collection_task"],  # type: ignore[arg-type, index]
+            verbose=True,  # type: ignore[call-arg]
             context=[
-                self.research_planning_task(),
+                self.research_planning_task(),  # type: ignore[call-arg]
             ],
         )
 
-    # Task 3: Wikipedia Research
-    @task
-    def wikipedia_research_task(self) -> Task:
-        """Wikipedia research task."""
-        return Task(
-            config=self.tasks_config["wikipedia_research_task"],
-            verbose=True,
-            context=[
-                self.research_planning_task(),
-                self.information_collection_task(),
-            ],
-        )
-
-    # Task 4: Data Analysis
+    # Task 3: Data Analysis (formerly Task 4)
     @task
     def data_analysis_task(self) -> Task:
         """Data analysis and synthesis task."""
         return Task(
-            config=self.tasks_config["data_analysis_task"],
-            verbose=True,
+            config=self.tasks_config["data_analysis_task"],  # type: ignore[arg-type, index]
+            verbose=True,  # type: ignore[call-arg]
             context=[
-                self.research_planning_task(),
-                self.information_collection_task(),
-                self.wikipedia_research_task(),
+                self.research_planning_task(),  # type: ignore[call-arg]
+                self.information_collection_task(),  # type: ignore[call-arg]
             ],
         )
 
-    # Task 5: Report Writing
+    # Task 4: Report Writing (formerly Task 5)
     @task
     def report_writing_task(self) -> Task:
         """Report writing task."""
         return Task(
-            config=self.tasks_config["report_writing_task"],
-            verbose=True,
+            config=self.tasks_config["report_writing_task"],  # type: ignore[arg-type, index]
+            verbose=True,  # type: ignore[call-arg]
             context=[
-                self.research_planning_task(),
-                self.information_collection_task(),
-                self.wikipedia_research_task(),
-                self.data_analysis_task(),
+                self.research_planning_task(),  # type: ignore[call-arg]
+                self.information_collection_task(),  # type: ignore[call-arg]
+                self.data_analysis_task(),  # type: ignore[call-arg]
             ],
             output_pydantic=DeepResearchReport,
         )
@@ -195,10 +193,13 @@ class DeepResearchCrew:
     def crew(self) -> Crew:
         """Creates the DeepResearch crew with 6-agent sequential process."""
         return Crew(
-            agents=self.agents,
-            tasks=self.tasks,  # Automatically created from the tasks above
+            agents=self.agents,  # type: ignore[attr-defined]
+            tasks=self.tasks,  # type: ignore[attr-defined] # Automatically created from the tasks above
             process=Process.sequential,
-            # manager_llm="gpt-4.1-nano",
+            llm_timeout=LLMConfig.get_timeout("default"),  # type: ignore[call-arg]
+            max_iter=LLMConfig.get_max_iter(),
+            max_rpm=LLMConfig.get_max_rpm(),
             verbose=True,
+            # manager_llm="gpt-4.1-nano",
             # planning=True,
         )

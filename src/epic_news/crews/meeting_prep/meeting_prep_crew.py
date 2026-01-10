@@ -3,6 +3,7 @@ from crewai.project import CrewBase, agent, crew, task
 from dotenv import load_dotenv
 from loguru import logger
 
+from epic_news.config.llm_config import LLMConfig
 from epic_news.tools.finance_tools import get_yahoo_finance_tools
 from epic_news.tools.report_tools import get_report_tools
 from epic_news.tools.web_tools import get_scrape_tools, get_search_tools
@@ -25,13 +26,14 @@ class MeetingPrepCrew:
         Create a lead researcher agent responsible for gathering information.
         """
         return Agent(
-            config=self.agents_config["lead_researcher_agent"],
+            config=self.agents_config["lead_researcher_agent"],  # type: ignore[index]
             tools=get_search_tools() + get_scrape_tools() + get_yahoo_finance_tools(),
             allow_delegation=False,
             reasoning=True,
+            max_reasoning_attempts=3,
             verbose=True,
             respect_context_window=True,
-            llm_timeout=300,
+            llm_timeout=LLMConfig.get_timeout("default"),
         )
 
     @agent
@@ -40,12 +42,12 @@ class MeetingPrepCrew:
         Create a product specialist agent for product-related analysis.
         """
         return Agent(
-            config=self.agents_config["product_specialist_agent"],
+            config=self.agents_config["product_specialist_agent"],  # type: ignore[index]
             tools=get_search_tools() + get_scrape_tools() + get_yahoo_finance_tools(),
             allow_delegation=False,
             verbose=True,
             respect_context_window=True,
-            llm_timeout=240,
+            llm_timeout=LLMConfig.get_timeout("default"),
         )
 
     @agent
@@ -54,12 +56,13 @@ class MeetingPrepCrew:
         Create a sales strategist agent for developing sales approaches.
         """
         return Agent(
-            config=self.agents_config["sales_strategist_agent"],
+            config=self.agents_config["sales_strategist_agent"],  # type: ignore[index]
             tools=get_search_tools() + get_scrape_tools() + get_yahoo_finance_tools(),
             reasoning=True,
+            max_reasoning_attempts=3,
             verbose=True,
             respect_context_window=True,
-            llm_timeout=240,
+            llm_timeout=LLMConfig.get_timeout("default"),
         )
 
     @agent
@@ -68,11 +71,11 @@ class MeetingPrepCrew:
         Create a briefing coordinator agent to compile the final briefing.
         """
         return Agent(
-            config=self.agents_config["briefing_coordinator_agent"],
+            config=self.agents_config["briefing_coordinator_agent"],  # type: ignore[index]
             tools=get_report_tools(),
             verbose=True,
             respect_context_window=True,
-            llm_timeout=180,
+            llm_timeout=LLMConfig.get_timeout("default"),
         )
 
     @task
@@ -81,8 +84,8 @@ class MeetingPrepCrew:
         Define the research task for gathering meeting-related information.
         """
         return Task(
-            config=self.tasks_config["research_task"],
-            agent=self.lead_researcher_agent(),
+            config=self.tasks_config["research_task"],  # type: ignore[arg-type, index]
+            agent=self.lead_researcher_agent(),  # type: ignore[call-arg]
             async_execution=True,
         )
 
@@ -92,9 +95,9 @@ class MeetingPrepCrew:
         Define the product alignment task for analyzing product fit.
         """
         return Task(
-            config=self.tasks_config["product_alignment_task"],
+            config=self.tasks_config["product_alignment_task"],  # type: ignore[arg-type, index]
             async_execution=True,
-        )
+        )  # type: ignore[call-arg]
 
     @task
     def sales_strategy_task(self) -> Task:
@@ -102,9 +105,9 @@ class MeetingPrepCrew:
         Define the sales strategy task for developing sales approaches.
         """
         return Task(
-            config=self.tasks_config["sales_strategy_task"],
+            config=self.tasks_config["sales_strategy_task"],  # type: ignore[arg-type, index]
             async_execution=True,
-        )
+        )  # type: ignore[call-arg]
 
     @task
     def meeting_preparation_task(self) -> Task:
@@ -112,11 +115,11 @@ class MeetingPrepCrew:
         Define the meeting preparation task for creating the final briefing.
         """
         return Task(
-            config=self.tasks_config["meeting_preparation_task"],
+            config=self.tasks_config["meeting_preparation_task"],  # type: ignore[arg-type, index]
             context=[
-                self.research_task(),
-                self.product_alignment_task(),
-                self.sales_strategy_task(),
+                self.research_task(),  # type: ignore[call-arg]
+                self.product_alignment_task(),  # type: ignore[call-arg]
+                self.sales_strategy_task(),  # type: ignore[call-arg]
             ],
         )
 
@@ -127,13 +130,14 @@ class MeetingPrepCrew:
         """
         try:
             return Crew(
-                agents=self.agents,
-                tasks=self.tasks,
+                agents=self.agents,  # type: ignore[attr-defined]
+                tasks=self.tasks,  # type: ignore[attr-defined]
                 process=Process.sequential,
-                verbose=True,
-                llm_timeout=300,
+                llm_timeout=LLMConfig.get_timeout("default"),  # type: ignore[call-arg]
+                max_iter=LLMConfig.get_max_iter(),
+                max_rpm=10,  # Keeping existing custom value (lower than default 20)
                 memory=True,
-                max_rpm=10,
+                verbose=True,
             )
         except Exception as e:
             logger.error(f"Error creating MeetingPrep crew: {str(e)}")

@@ -20,7 +20,6 @@ class DeepResearchRenderer(BaseRenderer):
 
     def __init__(self):
         """Initialize the deep research renderer."""
-        super().__init__()
 
     def render(self, data: dict[str, Any]) -> str:
         """
@@ -79,34 +78,40 @@ class DeepResearchRenderer(BaseRenderer):
 
     def _add_header(self, soup: BeautifulSoup, container, data: dict[str, Any]) -> None:
         """Add report header with title and metadata."""
-        header = soup.new_tag("div", **{"class": "report-header"})
+        header = soup.new_tag("div")
+        header.attrs["class"] = "report-header"
 
         # Title
         title = data.get("title", "Rapport de Recherche Approfondie")
-        title_tag = soup.new_tag("h1", **{"class": "report-title"})
+        title_tag = soup.new_tag("h1")
+        title_tag.attrs["class"] = "report-title"
         title_tag.string = f"🔬 {title}"
         header.append(title_tag)
 
         # Topic
         topic = data.get("topic", "")
         if topic:
-            topic_tag = soup.new_tag("h2", **{"class": "report-topic"})
+            topic_tag = soup.new_tag("h2")
+            topic_tag.attrs["class"] = "report-topic"
             topic_tag.string = f"Sujet: {topic}"
             header.append(topic_tag)
 
         # Metadata
-        metadata_div = soup.new_tag("div", **{"class": "report-metadata"})
+        metadata_div = soup.new_tag("div")
+        metadata_div.attrs["class"] = "report-metadata"
 
         # Research date
         research_date = data.get("research_date", "")
         if research_date:
-            date_tag = soup.new_tag("p", **{"class": "research-date"})
+            date_tag = soup.new_tag("p")
+            date_tag.attrs["class"] = "research-date"
             date_tag.string = f"📅 Date de recherche: {research_date}"
             metadata_div.append(date_tag)
 
         # Language
         language = data.get("language", "Français")
-        lang_tag = soup.new_tag("p", **{"class": "language"})
+        lang_tag = soup.new_tag("p")
+        lang_tag.attrs["class"] = "language"
         lang_tag.string = f"🌐 Langue: {language}"
         metadata_div.append(lang_tag)
 
@@ -119,13 +124,16 @@ class DeepResearchRenderer(BaseRenderer):
         if not summary:
             return
 
-        section = soup.new_tag("section", **{"class": "executive-summary"})
+        section = soup.new_tag("section")
+        section.attrs["class"] = "executive-summary"
 
-        title = soup.new_tag("h2", **{"class": "section-title"})
+        title = soup.new_tag("h2")
+        title.attrs["class"] = "section-title"
         title.string = "📋 Résumé Exécutif"
         section.append(title)
 
-        summary_div = soup.new_tag("div", **{"class": "summary-content"})
+        summary_div = soup.new_tag("div")
+        summary_div.attrs["class"] = "summary-content"
         summary_p = soup.new_tag("p")
         summary_p.string = summary
         summary_div.append(summary_p)
@@ -139,17 +147,22 @@ class DeepResearchRenderer(BaseRenderer):
         if not key_findings:
             return
 
-        section = soup.new_tag("section", **{"class": "key-findings"})
+        section = soup.new_tag("section")
+        section.attrs["class"] = "key-findings"
 
-        title = soup.new_tag("h2", **{"class": "section-title"})
+        title = soup.new_tag("h2")
+        title.attrs["class"] = "section-title"
         title.string = "🎯 Principales Découvertes"
         section.append(title)
 
-        findings_div = soup.new_tag("div", **{"class": "findings-content"})
-        findings_list = soup.new_tag("ul", **{"class": "findings-list"})
+        findings_div = soup.new_tag("div")
+        findings_div.attrs["class"] = "findings-content"
+        findings_list = soup.new_tag("ul")
+        findings_list.attrs["class"] = "findings-list"
 
         for finding in key_findings:
-            li = soup.new_tag("li", **{"class": "finding-item"})
+            li = soup.new_tag("li")
+            li.attrs["class"] = "finding-item"
             li.string = finding
             findings_list.append(li)
 
@@ -163,25 +176,30 @@ class DeepResearchRenderer(BaseRenderer):
         if not sections:
             return
 
-        main_section = soup.new_tag("section", **{"class": "research-sections"})
+        main_section = soup.new_tag("section")
+        main_section.attrs["class"] = "research-sections"
 
-        title = soup.new_tag("h2", **{"class": "section-title"})
+        title = soup.new_tag("h2")
+        title.attrs["class"] = "section-title"
         title.string = "🔍 Sections de Recherche"
         main_section.append(title)
 
         for i, section_data in enumerate(sections, 1):
-            section_div = soup.new_tag("div", **{"class": "research-section"})
+            section_div = soup.new_tag("div")
+            section_div.attrs["class"] = "research-section"
 
             # Section title
             section_title = section_data.get("section_title", f"Section {i}")
-            title_tag = soup.new_tag("h3", **{"class": "subsection-title"})
+            title_tag = soup.new_tag("h3")
+            title_tag.attrs["class"] = "subsection-title"
             title_tag.string = section_title
             section_div.append(title_tag)
 
             # Section content
             content = section_data.get("content", "")
             if content:
-                content_div = soup.new_tag("div", **{"class": "section-content"})
+                content_div = soup.new_tag("div")
+                content_div.attrs["class"] = "section-content"
                 # Split content into paragraphs
                 paragraphs = content.split("\n\n")
                 for paragraph in paragraphs:
@@ -194,20 +212,25 @@ class DeepResearchRenderer(BaseRenderer):
             # Add sources for this section
             sources = section_data.get("sources", [])
             if sources:
-                sources_div = soup.new_tag("div", **{"class": "section-sources"})
+                sources_div = soup.new_tag("div")
+                sources_div.attrs["class"] = "section-sources"
                 sources_title = soup.new_tag("h4")
                 sources_title.string = "📚 Sources"
                 sources_div.append(sources_title)
 
-                sources_list = soup.new_tag("ul", **{"class": "sources-list"})
+                sources_list = soup.new_tag("ul")
+                sources_list.attrs["class"] = "sources-list"
                 for source in sources:
-                    li = soup.new_tag("li", **{"class": "source-item"})
+                    li = soup.new_tag("li")
+                    li.attrs["class"] = "source-item"
 
                     # Source title and URL
                     source_title = source.get("title", "Source")
                     url = source.get("url", "")
                     if url:
-                        link = soup.new_tag("a", href=url, target="_blank")
+                        link = soup.new_tag("a")
+                        link.attrs["href"] = url
+                        link.attrs["target"] = "_blank"
                         link.string = source_title
                         li.append(link)
                     else:
@@ -217,13 +240,16 @@ class DeepResearchRenderer(BaseRenderer):
                     source_type = source.get("source_type", "")
                     summary = source.get("summary", "")
                     if source_type or summary:
-                        details = soup.new_tag("div", **{"class": "source-details"})
+                        details = soup.new_tag("div")
+                        details.attrs["class"] = "source-details"
                         if source_type:
-                            type_span = soup.new_tag("span", **{"class": "source-type"})
+                            type_span = soup.new_tag("span")
+                            type_span.attrs["class"] = "source-type"
                             type_span.string = f"({source_type})"
                             details.append(type_span)
                         if summary:
-                            summary_span = soup.new_tag("span", **{"class": "source-summary"})
+                            summary_span = soup.new_tag("span")
+                            summary_span.attrs["class"] = "source-summary"
                             summary_span.string = f" - {summary}"
                             details.append(summary_span)
                         li.append(details)
@@ -238,32 +264,38 @@ class DeepResearchRenderer(BaseRenderer):
 
     def _add_report_metadata(self, soup: BeautifulSoup, container, data: dict[str, Any]) -> None:
         """Add report metadata section."""
-        section = soup.new_tag("section", **{"class": "report-metadata"})
+        section = soup.new_tag("section")
+        section.attrs["class"] = "report-metadata"
 
-        title = soup.new_tag("h2", **{"class": "section-title"})
+        title = soup.new_tag("h2")
+        title.attrs["class"] = "section-title"
         title.string = "📊 Informations du Rapport"
         section.append(title)
 
-        metadata_div = soup.new_tag("div", **{"class": "metadata-content"})
+        metadata_div = soup.new_tag("div")
+        metadata_div.attrs["class"] = "metadata-content"
 
         # Report date
         report_date = data.get("report_date", "")
         if report_date:
-            date_p = soup.new_tag("p", **{"class": "report-date"})
+            date_p = soup.new_tag("p")
+            date_p.attrs["class"] = "report-date"
             date_p.string = f"📅 Date du rapport: {report_date}"
             metadata_div.append(date_p)
 
         # Sources count
         sources_count = data.get("sources_count", 0)
         if sources_count:
-            count_p = soup.new_tag("p", **{"class": "sources-count"})
+            count_p = soup.new_tag("p")
+            count_p.attrs["class"] = "sources-count"
             count_p.string = f"📚 Nombre de sources: {sources_count}"
             metadata_div.append(count_p)
 
         # Confidence level
         confidence_level = data.get("confidence_level", "")
         if confidence_level:
-            confidence_p = soup.new_tag("p", **{"class": "confidence-level"})
+            confidence_p = soup.new_tag("p")
+            confidence_p.attrs["class"] = "confidence-level"
             confidence_p.string = f"🎯 Niveau de confiance: {confidence_level}"
             metadata_div.append(confidence_p)
 
@@ -276,13 +308,16 @@ class DeepResearchRenderer(BaseRenderer):
         if not methodology:
             return
 
-        section = soup.new_tag("section", **{"class": "methodology-section"})
+        section = soup.new_tag("section")
+        section.attrs["class"] = "methodology-section"
 
-        title = soup.new_tag("h2", **{"class": "section-title"})
+        title = soup.new_tag("h2")
+        title.attrs["class"] = "section-title"
         title.string = "🔬 Méthodologie"
         section.append(title)
 
-        methodology_div = soup.new_tag("div", **{"class": "methodology-content"})
+        methodology_div = soup.new_tag("div")
+        methodology_div.attrs["class"] = "methodology-content"
         methodology_p = soup.new_tag("p")
         methodology_p.string = methodology
         methodology_div.append(methodology_p)

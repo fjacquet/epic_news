@@ -2,11 +2,11 @@
 
 import json
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import ValidationError
 
-from src.epic_news.models.crews.menu_designer_report import (
+from epic_news.models.crews.menu_designer_report import (
     DailyMeal,
     DailyMenu,
     DishInfo,
@@ -223,7 +223,7 @@ class MenuPlanValidator:
         return fixed_plan
 
     @staticmethod
-    def parse_and_validate_ai_output(ai_output: str) -> Optional[WeeklyMenuPlan]:
+    def parse_and_validate_ai_output(ai_output: str) -> WeeklyMenuPlan | None:
         """Parse AI output and validate/fix it to create a valid WeeklyMenuPlan."""
         try:
             # Try to parse as JSON
@@ -279,7 +279,7 @@ class MenuPlanValidator:
             daily_menu = DailyMenu(
                 day=day,
                 date=dates[i],
-                lunch=DailyMeal(
+                lunch=DailyMeal(  # type: ignore[call-arg]
                     meal_type=MealType.DEJEUNER,
                     starter=DishInfo(
                         name=f"Entrée du {day}",
@@ -296,7 +296,7 @@ class MenuPlanValidator:
                         nutritional_highlights="Source de protéines",
                     ),
                 ),
-                dinner=DailyMeal(
+                dinner=DailyMeal(  # type: ignore[call-arg]
                     meal_type=MealType.DINER,
                     starter=DishInfo(
                         name=f"Entrée du soir - {day}",

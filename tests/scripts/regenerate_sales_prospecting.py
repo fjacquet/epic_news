@@ -5,8 +5,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 import json
 
-from src.epic_news.utils.data_normalization import normalize_structured_data_report
-from src.epic_news.utils.html.template_manager import TemplateManager
+from epic_news.utils.data_normalization import normalize_structured_data_report
+from epic_news.utils.html.template_manager import TemplateManager
 
 input_json_path = Path("output/sales_prospecting/report.json")
 output_html_path = Path("output/sales_prospecting/regenerated_report.html")

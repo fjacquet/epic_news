@@ -2,14 +2,13 @@
 
 import json
 from pathlib import Path
-from typing import Union
 
 from loguru import logger
 
 # logger = logging.getLogger(__name__)
 
 
-def extract_html_from_json_output(file_path: Union[str, Path]) -> bool:
+def extract_html_from_json_output(file_path: str | Path) -> bool:
     """
     Extract HTML content from CrewAI JSON-wrapped output and save as pure HTML.
 
@@ -63,7 +62,7 @@ def extract_html_from_json_output(file_path: Union[str, Path]) -> bool:
         return False
 
 
-def extract_html_from_directory(directory_path: Union[str, Path], pattern: str = "*.html") -> int:
+def extract_html_from_directory(directory_path: str | Path, pattern: str = "*.html") -> int:
     """
     Extract HTML from all JSON-wrapped files in a directory.
 

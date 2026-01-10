@@ -28,7 +28,7 @@ class MenuGenerator:
         return "automne"
 
     @staticmethod
-    def parse_menu_structure(menu_structure: str | dict[str, Any]) -> list[dict[str, Any]]:
+    def parse_menu_structure(menu_structure: Any) -> list[dict[str, Any]]:
         """Parse the *actual* menu structure returned by ``MenuDesignerCrew``.
 
         The crew is expected to return a JSON document (as a string **or** already
@@ -77,7 +77,7 @@ class MenuGenerator:
             try:
                 data = json.loads(menu_structure)
             except json.JSONDecodeError as exc:
-                logger.error("Failed to decode menu_structure JSON: %s", exc)
+                logger.error("Failed to decode menu_structure JSON: {}", exc)
                 raise
         elif isinstance(menu_structure, dict):
             data = menu_structure
@@ -90,12 +90,12 @@ class MenuGenerator:
                     if raw_content:
                         break
             if raw_content is None:
-                logger.error("Unsupported menu_structure type: %s", type(menu_structure))
+                logger.error("Unsupported menu_structure type: {}", type(menu_structure))
                 raise TypeError("Unsupported menu_structure input type")
             try:
                 data = json.loads(raw_content if isinstance(raw_content, str) else str(raw_content))
             except json.JSONDecodeError as exc:
-                logger.error("Failed to decode extracted menu_structure JSON: %s", exc)
+                logger.error("Failed to decode extracted menu_structure JSON: {}", exc)
                 raise
 
         daily_menus = data.get("daily_menus", [])
@@ -141,7 +141,7 @@ class MenuGenerator:
                     if not dish_name or not dish_type:
                         # Skip malformed entries but warn for visibility
                         logger.warning(
-                            "Skipping malformed dish entry in %s %s: %s", day_label, meal_label, dish_obj
+                            "Skipping malformed dish entry in {} {}: {}", day_label, meal_label, dish_obj
                         )
                         continue
 

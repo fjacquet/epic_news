@@ -1,7 +1,5 @@
 """Pydantic model for meeting preparation JSON output."""
 
-from typing import Optional
-
 from pydantic import BaseModel, Field
 
 
@@ -45,7 +43,7 @@ class AdditionalResource(BaseModel):
 
     title: str = Field(..., description="Title of the resource.")
     description: str = Field(..., description="Description of the resource.")
-    link: Optional[str] = Field(None, description="URL or reference link to the resource.")
+    link: str | None = Field(None, description="URL or reference link to the resource.")
 
 
 class MeetingPrepReport(BaseModel):

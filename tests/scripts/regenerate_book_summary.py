@@ -4,8 +4,8 @@ Temporary script to regenerate book summary HTML from JSON data.
 
 import json
 
-from src.epic_news.models.crews.book_summary_report import BookSummaryReport
-from src.epic_news.utils.html.template_manager import TemplateManager
+from epic_news.models.crews.book_summary_report import BookSummaryReport
+from epic_news.utils.html.template_manager import TemplateManager
 
 # Define the path to the JSON data
 # Note: You may need to update this path to your actual JSON output file.

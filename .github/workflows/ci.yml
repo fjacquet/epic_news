@@ -34,7 +34,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.10'
+        python-version: '3.13'
     
     - name: Install the latest version of uv and activate the environment
       uses: astral-sh/setup-uv@v6
@@ -43,31 +43,21 @@ jobs:
         enable-cache: true
         prune-cache: false
 
-    
-    - name: Install project dependencies with uv
-      run: |
-        uv sync -U
-    
-    - name: Install epic_news in editable mode
-      run: pip install -e .
+    - name: Install dependencies using Makefile
+      run: make install
 
-    - name: Set PYTHONPATH
-      run: export PYTHONPATH=$PYTHONPATH:$(pwd):$(pwd)/SRC:${{ github.workspace }}/src
+    - name: Run linting checks using Makefile
+      run: make lint
 
-    - name: Run tests with coverage
-      env:
-        PYTHONPATH: $PYTHONPATH:$(pwd):$(pwd)/SRC:${{ github.workspace }}/src
-      run: uv run pytest tests/ --cov=src --cov-report=xml --cov-report=term
-    
+    - name: Run type checking with mypy
+      run: uv run mypy src/epic_news
+
+    - name: Run tests with coverage using Makefile
+      run: make coverage
+
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v5
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         slug: fjacquet/epic_news
         fail_ci_if_error: false
-    
-    - name: Run ruff linter
-      run: uv run ruff check .
-    
-    - name: Run ruff formatter check
-      run: uv run ruff format --check .
