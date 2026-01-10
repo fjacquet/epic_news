@@ -19,3 +19,10 @@ repos:
         args: ["-s"]
         language: system
         types: [yaml]
+      - id: mypy
+        name: mypy
+        entry: mypy
+        args: ["src/epic_news", "--no-error-summary"]
+        language: system
+        types: [python]
+        pass_filenames: false

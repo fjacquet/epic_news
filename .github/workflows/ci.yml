@@ -49,6 +49,9 @@ jobs:
     - name: Run linting checks using Makefile
       run: make lint
 
+    - name: Run type checking with mypy
+      run: uv run mypy src/epic_news
+
     - name: Run tests with coverage using Makefile
       run: make coverage
 
