@@ -4,14 +4,14 @@ from crewai_tools import (
     BraveSearchTool,
     CodeInterpreterTool,
     FileReadTool,
+    MCPServerAdapter,
     ScrapeWebsiteTool,
     SerperDevTool,
 )
 
 from epic_news.config.llm_config import LLMConfig
+from epic_news.config.mcp_config import MCPConfig
 from epic_news.models.crews.deep_research_report import DeepResearchReport
-from epic_news.tools.wikipedia_article_tool import WikipediaArticleTool
-from epic_news.tools.wikipedia_search_tool import WikipediaSearchTool
 
 
 @CrewBase
@@ -22,6 +22,17 @@ class DeepResearchCrew:
     tasks_config = "config/tasks.yaml"
 
     code_interpreter = CodeInterpreterTool(default_image_tag="fjacquet/code-interpreter:latest")
+
+    # Initialize Wikipedia MCP server
+    _wikipedia_mcp = None
+
+    @property
+    def wikipedia_tools(self):
+        """Get Wikipedia MCP tools (lazy initialization)."""
+        if self._wikipedia_mcp is None:
+            wikipedia_params = MCPConfig.get_wikipedia_mcp()
+            self._wikipedia_mcp = MCPServerAdapter(wikipedia_params)
+        return self._wikipedia_mcp.tools
 
     # Research Strategist - Planning and methodology
     @agent
@@ -56,13 +67,10 @@ class DeepResearchCrew:
     # Wikipedia Specialist - Encyclopedic research
     @agent
     def wikipedia_specialist(self) -> Agent:
-        """Wikipedia specialist agent for encyclopedic research."""
+        """Wikipedia specialist agent for encyclopedic research using MCP."""
         return Agent(
             config=self.agents_config["wikipedia_specialist"],
-            tools=[
-                WikipediaSearchTool(),
-                WikipediaArticleTool(),
-            ],
+            tools=self.wikipedia_tools,  # Use Wikipedia MCP tools
             verbose=True,
             respect_context_window=True,
         )
