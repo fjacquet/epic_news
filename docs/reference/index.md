@@ -6,6 +6,7 @@ Comprehensive reference information for Epic News components.
 
 | Reference | Description |
 |-----------|-------------|
+| [API Keys](api_keys.md) | Complete API keys reference and setup guide |
 | [Tools Reference](tools.md) | Complete list of available tools and their usage |
 | [Integration Patterns](integration_patterns.md) | Patterns for integrating crews and tools |
 
