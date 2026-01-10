@@ -62,32 +62,33 @@ SERPAPI_API_KEY=xxxx                             # SerpAPI
 
 ### Core Services
 
-| Key | Service | Required | Free Tier | Get Key |
-|-----|---------|----------|-----------|---------|
-| `OPENROUTER_API_KEY` | OpenRouter LLM | **Yes** | $5 credit | [openrouter.ai](https://openrouter.ai) |
-| `PERPLEXITY_API_KEY` | Perplexity AI Search | **Yes*** | Limited | [perplexity.ai](https://perplexity.ai) |
-| `SERPER_API_KEY` | Serper.dev | **Yes*** | 2,500/month | [serper.dev](https://serper.dev) |
+| Key                  | Service              | Required  | Free Tier   | Get Key                                |
+| -------------------- | -------------------- | --------- | ----------- | -------------------------------------- |
+| `OPENROUTER_API_KEY` | OpenRouter LLM       | **Yes**   | \$5 credit  | [openrouter.ai](https://openrouter.ai) |
+| `PERPLEXITY_API_KEY` | Perplexity AI Search | **Yes\*** | Limited     | [perplexity.ai](https://perplexity.ai) |
+| `SERPER_API_KEY`     | Serper.dev           | **Yes\*** | 2,500/month | [serper.dev](https://serper.dev)       |
 
-*At least one search provider required
+\*At least one search provider required
 
 ### Search Providers
 
-| Key | Service | Purpose | Free Tier | Get Key |
-|-----|---------|---------|-----------|---------|
-| `PERPLEXITY_API_KEY` | Perplexity | AI-powered search with synthesis | Limited | [perplexity.ai](https://perplexity.ai) |
-| `SERPER_API_KEY` | Serper.dev | Google search results | 2,500/month | [serper.dev](https://serper.dev) |
-| `BRAVE_API_KEY` | Brave Search | Privacy-focused search | 2,000/month | [brave.com/search/api](https://brave.com/search/api) |
-| `TAVILY_API_KEY` | Tavily | Research-optimized search | 1,000/month | [tavily.com](https://tavily.com) |
-| `SERPAPI_API_KEY` | SerpAPI | Multi-engine search | 100/month | [serpapi.com](https://serpapi.com) |
+| Key                  | Service      | Purpose                          | Free Tier   | Get Key                                              |
+| -------------------- | ------------ | -------------------------------- | ----------- | ---------------------------------------------------- |
+| `PERPLEXITY_API_KEY` | Perplexity   | AI-powered search with synthesis | Limited     | [perplexity.ai](https://perplexity.ai)               |
+| `SERPER_API_KEY`     | Serper.dev   | Google search results            | 2,500/month | [serper.dev](https://serper.dev)                     |
+| `BRAVE_API_KEY`      | Brave Search | Privacy-focused search           | 2,000/month | [brave.com/search/api](https://brave.com/search/api) |
+| `TAVILY_API_KEY`     | Tavily       | Research-optimized search        | 1,000/month | [tavily.com](https://tavily.com)                     |
+| `SERPAPI_API_KEY`    | SerpAPI      | Multi-engine search              | 100/month   | [serpapi.com](https://serpapi.com)                   |
 
 ### Web Scraping
 
-| Key | Service | Purpose | Free Tier | Get Key |
-|-----|---------|---------|-----------|---------|
-| `RAPIDAPI_KEY` | ScrapeNinja | Default web scraper | Limited | [rapidapi.com](https://rapidapi.com) |
-| `FIRECRAWL_API_KEY` | Firecrawl | Alternative scraper | 500/month | [firecrawl.dev](https://firecrawl.dev) |
+| Key                 | Service     | Purpose             | Free Tier | Get Key                                |
+| ------------------- | ----------- | ------------------- | --------- | -------------------------------------- |
+| `RAPIDAPI_KEY`      | ScrapeNinja | Default web scraper | Limited   | [rapidapi.com](https://rapidapi.com)   |
+| `FIRECRAWL_API_KEY` | Firecrawl   | Alternative scraper | 500/month | [firecrawl.dev](https://firecrawl.dev) |
 
 **Configuration:**
+
 ```bash
 # Select scraper provider (default: scrapeninja)
 WEB_SCRAPER_PROVIDER=scrapeninja  # or "firecrawl"
@@ -95,46 +96,46 @@ WEB_SCRAPER_PROVIDER=scrapeninja  # or "firecrawl"
 
 ### Financial Data
 
-| Key | Service | Purpose | Free Tier | Get Key |
-|-----|---------|---------|-----------|---------|
-| `ALPHA_VANTAGE_API_KEY` | Alpha Vantage | Stock fundamentals | 25/day | [alphavantage.co](https://alphavantage.co) |
-| `X-CMC_PRO_API_KEY` | CoinMarketCap | Crypto data | 333/day | [coinmarketcap.com](https://coinmarketcap.com/api) |
-| `OPENEXCHANGERATES_API_KEY` | Open Exchange Rates | Currency rates | 1,000/month | [openexchangerates.org](https://openexchangerates.org) |
-| `KRAKEN_API_KEY` | Kraken | Crypto exchange | Unlimited | [kraken.com](https://kraken.com) |
+| Key                         | Service             | Purpose            | Free Tier   | Get Key                                                |
+| --------------------------- | ------------------- | ------------------ | ----------- | ------------------------------------------------------ |
+| `ALPHA_VANTAGE_API_KEY`     | Alpha Vantage       | Stock fundamentals | 25/day      | [alphavantage.co](https://alphavantage.co)             |
+| `X-CMC_PRO_API_KEY`         | CoinMarketCap       | Crypto data        | 333/day     | [coinmarketcap.com](https://coinmarketcap.com/api)     |
+| `OPENEXCHANGERATES_API_KEY` | Open Exchange Rates | Currency rates     | 1,000/month | [openexchangerates.org](https://openexchangerates.org) |
+| `KRAKEN_API_KEY`            | Kraken              | Crypto exchange    | Unlimited   | [kraken.com](https://kraken.com)                       |
 
 ### Location & Weather
 
-| Key | Service | Purpose | Free Tier | Get Key |
-|-----|---------|---------|-----------|---------|
-| `ACCUWEATHER_API_KEY` | AccuWeather | Weather forecasts | 50/day | [developer.accuweather.com](https://developer.accuweather.com) |
-| `GEOAPIFY_API_KEY` | Geoapify | Place search, geocoding | 3,000/day | [geoapify.com](https://geoapify.com) |
+| Key                   | Service     | Purpose                 | Free Tier | Get Key                                                        |
+| --------------------- | ----------- | ----------------------- | --------- | -------------------------------------------------------------- |
+| `ACCUWEATHER_API_KEY` | AccuWeather | Weather forecasts       | 50/day    | [developer.accuweather.com](https://developer.accuweather.com) |
+| `GEOAPIFY_API_KEY`    | Geoapify    | Place search, geocoding | 3,000/day | [geoapify.com](https://geoapify.com)                           |
 
 ### Business Intelligence
 
-| Key | Service | Purpose | Free Tier | Get Key |
-|-----|---------|---------|-----------|---------|
-| `HUNTER_API_KEY` | Hunter.io | Email finding | 25/month | [hunter.io](https://hunter.io) |
-| `GITHUB_TOKEN` | GitHub | Repository data | 5,000/hour | [github.com/settings/tokens](https://github.com/settings/tokens) |
+| Key              | Service   | Purpose         | Free Tier  | Get Key                                                          |
+| ---------------- | --------- | --------------- | ---------- | ---------------------------------------------------------------- |
+| `HUNTER_API_KEY` | Hunter.io | Email finding   | 25/month   | [hunter.io](https://hunter.io)                                   |
+| `GITHUB_TOKEN`   | GitHub    | Repository data | 5,000/hour | [github.com/settings/tokens](https://github.com/settings/tokens) |
 
 ### Productivity
 
-| Key | Service | Purpose | Free Tier | Get Key |
-|-----|---------|---------|-----------|---------|
-| `AIRTABLE_API_KEY` | Airtable | Database integration | Yes | [airtable.com](https://airtable.com/account) |
-| `TODOIST_API_KEY` | Todoist | Task management | Yes | [todoist.com](https://todoist.com/app/settings/integrations) |
-| `COMPOSIO_API_KEY` | Composio | Tool integrations | Yes | [composio.dev](https://composio.dev) |
+| Key                | Service  | Purpose              | Free Tier | Get Key                                                      |
+| ------------------ | -------- | -------------------- | --------- | ------------------------------------------------------------ |
+| `AIRTABLE_API_KEY` | Airtable | Database integration | Yes       | [airtable.com](https://airtable.com/account)                 |
+| `TODOIST_API_KEY`  | Todoist  | Task management      | Yes       | [todoist.com](https://todoist.com/app/settings/integrations) |
+| `COMPOSIO_API_KEY` | Composio | Tool integrations    | Yes       | [composio.dev](https://composio.dev)                         |
 
 ### Fact Checking
 
-| Key | Service | Purpose | Free Tier | Get Key |
-|-----|---------|---------|-----------|---------|
-| `GOOGLE_API_KEY` | Google Fact Check | Claim verification | Yes | [console.cloud.google.com](https://console.cloud.google.com) |
+| Key              | Service           | Purpose            | Free Tier | Get Key                                                      |
+| ---------------- | ----------------- | ------------------ | --------- | ------------------------------------------------------------ |
+| `GOOGLE_API_KEY` | Google Fact Check | Claim verification | Yes       | [console.cloud.google.com](https://console.cloud.google.com) |
 
 ## Search Provider Hierarchy
 
 Epic News uses a cascading fallback for search:
 
-```
+```text
 1. Perplexity (Primary)    → AI-powered synthesis with citations
    ↓ (if unavailable)
 2. Brave Search            → Quality web results
@@ -175,11 +176,12 @@ print(f'Perplexity configured: {tool.api_key is not None}')
 
 ### Key Not Found Errors
 
-```
+```text
 ValueError: SERPER_API_KEY environment variable not set
 ```
 
 **Solutions:**
+
 1. Verify key exists in `.env` file
 2. Check for typos in key name
 3. Ensure no trailing whitespace
@@ -187,22 +189,24 @@ ValueError: SERPER_API_KEY environment variable not set
 
 ### Invalid Key Errors
 
-```
+```text
 401 Unauthorized
 ```
 
 **Solutions:**
+
 1. Verify key is valid and not expired
 2. Check API dashboard for usage limits
 3. Regenerate key if compromised
 
 ### Rate Limit Errors
 
-```
+```text
 429 Too Many Requests
 ```
 
 **Solutions:**
+
 1. Wait and retry (automatic with hybrid search)
 2. Configure backup providers
 3. Upgrade API plan if needed
