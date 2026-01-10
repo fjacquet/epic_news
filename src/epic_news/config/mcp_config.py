@@ -102,7 +102,7 @@ class MCPConfig:
         """
         return {
             "command": "uvx",
-            "args": ["wikipedia-mcp-server@latest"],
+            "args": ["--from", "wikipedia-mcp-server@latest", "wikipedia-mcp"],
             "env": {},
         }
 

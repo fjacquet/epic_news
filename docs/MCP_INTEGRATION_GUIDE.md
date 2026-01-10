@@ -57,7 +57,7 @@ PERPLEXITY_API_KEY=pplx-your-api-key-here
 ### 2. Wikipedia MCP Server
 **Purpose**: Maintained Wikipedia integration
 
-**Installation**: Automatic via `uvx wikipedia-mcp-server@latest`
+**Installation**: Automatic via `uvx --from wikipedia-mcp-server@latest wikipedia-mcp`
 
 **Available Tools**:
 - `search`: Search Wikipedia articles with language support
@@ -70,7 +70,7 @@ from epic_news.config.mcp_config import MCPConfig
 wikipedia_config = MCPConfig.get_wikipedia_mcp()
 # Returns: {
 #     "command": "uvx",
-#     "args": ["wikipedia-mcp-server@latest"],
+#     "args": ["--from", "wikipedia-mcp-server@latest", "wikipedia-mcp"],
 #     "env": {}
 # }
 ```
@@ -365,7 +365,7 @@ with MCPServerAdapter(wikipedia_params) as tools:
 **Solutions**:
 1. Ensure you have internet connectivity
 2. Update wikipedia-mcp-server: `uv tool install --upgrade wikipedia-mcp-server`
-3. Check if the MCP server is running: `uvx wikipedia-mcp-server@latest --help`
+3. Check if the MCP server is running: `uvx --from wikipedia-mcp-server@latest wikipedia-mcp --help`
 
 ## Benefits of MCP Integration
 
