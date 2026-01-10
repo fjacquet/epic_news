@@ -212,12 +212,63 @@ Each “crew” is a team of specialized AI agents. Here’s what they do:
 
 ---
 
+## 🛠️ Development Workflow
+
+Epic News uses a comprehensive **Makefile** for all development tasks. Run `make help` to see all available targets.
+
+### Quick Reference
+
+```bash
+# Installation & Setup
+make install             # Install production dependencies
+make dev                 # Install dev dependencies (mypy, bandit, safety)
+make build               # Build package distribution
+
+# Code Quality
+make lint                # Check code style (ruff + yamllint)
+make format              # Format code (ruff + yamlfix)
+make fix                 # Auto-fix linting issues
+make test                # Run tests quickly
+make coverage            # Run tests with coverage report
+make pre-commit          # Run pre-commit hooks
+
+# Advanced Quality Checks
+make type-check          # Run mypy type checking
+make security            # Run bandit + safety security checks
+make validate            # Quick validation (lint + test)
+make ci-checks           # All CI checks (lint + test)
+
+# Docker Operations
+make docker-build-all    # Build all Docker images
+make docker-run-api      # Run FastAPI container
+make docker-run-streamlit # Run Streamlit container
+
+# Application Runtime
+make run-streamlit       # Start Streamlit app (port 8501)
+make run-api             # Start FastAPI server (port 8000)
+make run-crew            # Run CrewAI flow kickoff
+
+# Cleanup
+make clean               # Remove all artifacts
+make clean-pyc           # Remove Python cache files
+make clean-test          # Remove test artifacts
+```
+
+**Consistency:** The Makefile ensures the same commands work both locally and in CI/CD.
+
+**See also:** `docs/1_DEVELOPMENT_GUIDE.md` for detailed development guidelines.
+
+---
+
 ## 🧪 Testing
+
+The project uses pytest for testing. **Use the Makefile for consistent test execution:**
 
 - **Run the full test suite:**
 
   ```bash
-  uv run pytest -q
+  make test              # Quick tests without coverage
+  make coverage          # Tests with HTML + terminal coverage report
   ```
 
 - **Run PR-001 tests only (JSON outputs and HTTP resilience):**
@@ -229,8 +280,9 @@ Each “crew” is a team of specialized AI agents. Here’s what they do:
 - **Lint and format:**
 
   ```bash
-  uv run ruff check .
-  uv run ruff format .
+  make lint              # Check code style
+  make format            # Format code
+  make fix               # Auto-fix issues
   ```
 
 What these tests cover:
