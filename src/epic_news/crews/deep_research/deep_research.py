@@ -17,7 +17,7 @@ from epic_news.models.crews.deep_research_report import DeepResearchReport
 @CrewBase
 class DeepResearchCrew:
     """DeepResearch crew for comprehensive internet research with 4-agent architecture.
-    
+
     Agents:
     1. research_strategist: Planning and methodology
     2. information_collector: Web + Wikipedia research (merged from 2 agents)

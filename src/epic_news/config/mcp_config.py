@@ -11,6 +11,7 @@ Available MCP Servers:
 Environment Variables:
     PERPLEXITY_API_KEY: API key for Perplexity MCP server
 """
+
 import os
 from typing import Optional
 

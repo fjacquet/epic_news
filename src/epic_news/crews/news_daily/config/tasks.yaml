@@ -3,16 +3,15 @@ suisse_romande_news_task:
   description: >
     Rechercher et collecter les 10 principales actualités du jour ({current_date})
     pour la Suisse Romande.
-    
     CRITÈRES DE QUALITÉ OBLIGATOIRES :
     1. Utiliser des requêtes en français ciblées sur les cantons francophones (Vaud,
        Genève, Neuchâtel, Valais, Fribourg, Jura)
     2. VÉRIFIER que chaque lien est accessible et fonctionnel
     3. CONFIRMER que l'article date bien des derniers 7 jours depuis {current_date}
-    4. PRIVILÉGIER les sources fiables : RTS, 24heures, Tribune de Genève, Le Temps, etc.
+    4. PRIVILÉGIER les sources fiables : RTS, 24heures, Tribune de Genève, Le Temps,
+    etc.
     5. VALIDER que le contenu correspond bien au titre et résumé fournis
     6. EXCLURE les articles sans date claire ou avec liens brisés
-    
     PROCESSUS DE VALIDATION :
     - Tester chaque lien avant inclusion
     - Vérifier la date de publication dans l'article
@@ -20,14 +19,14 @@ suisse_romande_news_task:
     - S'assurer de la qualité de la source
   expected_output: >
     Une liste de 10 actualités VÉRIFIÉES pour la Suisse Romande en français du {current_date},
-    avec titre, source fiable, résumé et lien FONCTIONNEL testé. Chaque entrée doit être
+    avec titre, source fiable, résumé et lien FONCTIONNEL testé. Chaque entrée doit
+    être
     vérifiable et accessible. Format: titre | source | résumé | lien | date_vérifiée.
   agent: news_researcher
 suisse_news_task:
   description: >
     Rechercher et collecter les 10 principales actualités du jour ({current_date})
     pour la Suisse.
-    
     CRITÈRES DE QUALITÉ OBLIGATOIRES :
     1. Couvrir politique, économie, société et événements importants nationaux
     2. VÉRIFIER que chaque lien est accessible et fonctionnel
@@ -35,7 +34,6 @@ suisse_news_task:
     4. PRIVILÉGIER les sources fiables : SRF, Swissinfo, NZZ, Tages-Anzeiger, etc.
     5. ÉVITER les doublons avec Suisse Romande (vérifier le contenu)
     6. EXCLURE les articles sans date claire ou avec liens brisés
-    
     PROCESSUS DE VALIDATION :
     - Tester chaque lien avant inclusion
     - Vérifier la date de publication dans l'article
@@ -43,14 +41,14 @@ suisse_news_task:
     - S'assurer de la qualité et fiabilité de la source
   expected_output: >
     Une liste de 10 actualités nationales suisses VÉRIFIÉES en français du {current_date},
-    avec titre, source fiable, résumé et lien FONCTIONNEL testé. Chaque entrée doit être
+    avec titre, source fiable, résumé et lien FONCTIONNEL testé. Chaque entrée doit
+    être
     vérifiable et accessible. Format: titre | source | résumé | lien | date_vérifiée.
-  agent: news_researcher  
+  agent: news_researcher
 france_news_task:
   description: >
     Rechercher et collecter les 10 principales actualités du jour ({current_date})
     pour la France.
-    
     CRITÈRES DE QUALITÉ OBLIGATOIRES :
     1. Couvrir politique, économie, société, culture et événements nationaux
     2. VÉRIFIER que chaque lien est accessible et fonctionnel
@@ -58,7 +56,6 @@ france_news_task:
     4. PRIVILÉGIER les sources fiables : Le Figaro, Le Monde, France24, BFM, etc.
     5. Focus sur les nouvelles importantes et d'impact national
     6. EXCLURE les articles sans date claire ou avec liens brisés
-    
     PROCESSUS DE VALIDATION :
     - Tester chaque lien avant inclusion
     - Vérifier la date de publication dans l'article
@@ -66,14 +63,14 @@ france_news_task:
     - S'assurer de la qualité et crédibilité de la source
   expected_output: >
     Une liste de 10 actualités françaises VÉRIFIÉES en français du {current_date},
-    avec titre, source fiable, résumé et lien FONCTIONNEL testé. Chaque entrée doit être
+    avec titre, source fiable, résumé et lien FONCTIONNEL testé. Chaque entrée doit
+    être
     vérifiable et accessible. Format: titre | source | résumé | lien | date_vérifiée.
   agent: news_researcher
 europe_news_task:
   description: >
     Rechercher et collecter les 10 principales actualités du jour ({current_date})
     pour l'Europe.
-    
     CRITÈRES DE QUALITÉ OBLIGATOIRES :
     1. Inclure Union Européenne, politique européenne, économie et événements majeurs
     2. VÉRIFIER que chaque lien est accessible et fonctionnel
@@ -81,7 +78,6 @@ europe_news_task:
     4. PRIVILÉGIER les sources fiables : Euronews, Reuters, AFP, BBC Europe, etc.
     5. ÉVITER les doublons avec France et Suisse (vérifier le contenu)
     6. EXCLURE les articles sans date claire ou avec liens brisés
-    
     PROCESSUS DE VALIDATION :
     - Tester chaque lien avant inclusion
     - Vérifier la date de publication dans l'article
@@ -89,21 +85,22 @@ europe_news_task:
     - S'assurer de la qualité et fiabilité de la source
   expected_output: >
     Une liste de 10 actualités européennes VÉRIFIÉES en français du {current_date},
-    avec titre, source fiable, résumé et lien FONCTIONNEL testé. Chaque entrée doit être
+    avec titre, source fiable, résumé et lien FONCTIONNEL testé. Chaque entrée doit
+    être
     vérifiable et accessible. Format: titre | source | résumé | lien | date_vérifiée.
   agent: news_researcher
 world_news_task:
   description: >
     Rechercher et collecter les 10 principales actualités mondiales du jour ({current_date}).
-    
     CRITÈRES DE QUALITÉ OBLIGATOIRES :
-    1. Focus sur événements internationaux majeurs, politique mondiale, catastrophes, découvertes
+    1. Focus sur événements internationaux majeurs, politique mondiale, catastrophes,
+    découvertes
     2. VÉRIFIER que chaque lien est accessible et fonctionnel
     3. CONFIRMER que l'article date bien des derniers 7 jours depuis {current_date}
-    4. PRIVILÉGIER les sources fiables : Reuters, AP, BBC World, CNN International, etc.
+    4. PRIVILÉGIER les sources fiables : Reuters, AP, BBC World, CNN International,
+    etc.
     5. ÉVITER les doublons régionaux (déjà couverts par Europe/France/Suisse)
     6. EXCLURE les articles sans date claire ou avec liens brisés
-    
     PROCESSUS DE VALIDATION :
     - Tester chaque lien avant inclusion
     - Vérifier la date de publication dans l'article
@@ -111,22 +108,22 @@ world_news_task:
     - S'assurer de la qualité et fiabilité de la source
   expected_output: >
     Une liste de 10 actualités mondiales VÉRIFIÉES en français du {current_date},
-    avec titre, source fiable, résumé et lien FONCTIONNEL testé. Chaque entrée doit être
+    avec titre, source fiable, résumé et lien FONCTIONNEL testé. Chaque entrée doit
+    être
     vérifiable et accessible. Format: titre | source | résumé | lien | date_vérifiée.
   agent: news_researcher
 wars_news_task:
   description: >
     Rechercher et collecter les 10 principales actualités du jour ({current_date})
     sur les conflits et guerres actuels.
-    
     CRITÈRES DE QUALITÉ OBLIGATOIRES :
-    1. Inclure Ukraine, Moyen-Orient, autres conflits armés, développements militaires et géopolitiques
+    1. Inclure Ukraine, Moyen-Orient, autres conflits armés, développements militaires
+    et géopolitiques
     2. VÉRIFIER que chaque lien est accessible et fonctionnel
     3. CONFIRMER que l'article date bien des derniers 7 jours depuis {current_date}
     4. PRIVILÉGIER les sources fiables : Reuters, AP, BBC, Defense News, etc.
     5. PRIVILÉGIER les sources neutres et factuelles sur les conflits
     6. EXCLURE les articles sans date claire ou avec liens brisés
-    
     PROCESSUS DE VALIDATION :
     - Tester chaque lien avant inclusion
     - Vérifier la date de publication dans l'article
@@ -134,21 +131,21 @@ wars_news_task:
     - S'assurer de la neutralité et fiabilité de la source
   expected_output: >
     Une liste de 10 actualités sur les conflits VÉRIFIÉES en français du {current_date},
-    avec titre, source fiable, résumé et lien FONCTIONNEL testé. Chaque entrée doit être
+    avec titre, source fiable, résumé et lien FONCTIONNEL testé. Chaque entrée doit
+    être
     vérifiable et accessible. Format: titre | source | résumé | lien | date_vérifiée.
   agent: news_researcher
 economy_news_task:
   description: >
     Rechercher et collecter les 10 principales actualités économiques du jour ({current_date}).
-    
     CRITÈRES DE QUALITÉ OBLIGATOIRES :
-    1. Inclure marchés financiers, entreprises, indicateurs économiques, crypto-monnaies, emploi
+    1. Inclure marchés financiers, entreprises, indicateurs économiques, crypto-monnaies,
+    emploi
     2. VÉRIFIER que chaque lien est accessible et fonctionnel
     3. CONFIRMER que l'article date bien des derniers 7 jours depuis {current_date}
     4. PRIVILÉGIER les sources fiables : Bloomberg, Financial Times, Les Échos, etc.
     5. Inclure des données chiffrées et indicateurs vérifiables
     6. EXCLURE les articles sans date claire ou avec liens brisés
-    
     PROCESSUS DE VALIDATION :
     - Tester chaque lien avant inclusion
     - Vérifier la date de publication dans l'article
@@ -156,22 +153,24 @@ economy_news_task:
     - S'assurer de la qualité et expertise de la source
   expected_output: >
     Une liste de 10 actualités économiques VÉRIFIÉES en français du {current_date},
-    avec titre, source fiable, résumé et lien FONCTIONNEL testé. Chaque entrée doit être
+    avec titre, source fiable, résumé et lien FONCTIONNEL testé. Chaque entrée doit
+    être
     vérifiable et accessible. Format: titre | source | résumé | lien | date_vérifiée.
   agent: news_researcher
 content_curation_task:
   description: >
     Analyser tous les articles collectés par les tâches de recherche d'actualités.
-    
     PROCESSUS DE CURATION QUALITÉ :
     1. VALIDER chaque lien : vérifier que tous les liens sont accessibles et fonctionnels
-    2. CONTRÔLER les dates : s'assurer que tous les articles datent bien des derniers 7 jours
+    2. CONTRÔLER les dates : s'assurer que tous les articles datent bien des derniers
+    7 jours
     3. VÉRIFIER les sources : confirmer la fiabilité et crédibilité de chaque source
     4. ÉLIMINER les doublons basés sur le contenu, pas seulement les titres
-    5. ORGANISER le contenu par catégorie (Suisse Romande, Suisse, France, Europe, Monde, Guerres, Économie)
-    6. SÉLECTIONNER les 10 meilleures actualités par catégorie (les plus fiables et vérifiables)
+    5. ORGANISER le contenu par catégorie (Suisse Romande, Suisse, France, Europe,
+    Monde, Guerres, Économie)
+    6. SÉLECTIONNER les 10 meilleures actualités par catégorie (les plus fiables et
+    vérifiables)
     7. EXCLURE définitivement tout article avec lien brisé ou information non vérifiable
-    
     CRITÈRES DE SÉLECTION PRIORITAIRES :
     - Liens fonctionnels et accessibles (testés)
     - Sources reconnues et fiables
@@ -179,16 +178,18 @@ content_curation_task:
     - Dates confirmées dans les derniers 7 jours
     - Pertinence géographique/thématique
   expected_output: >
-    Un rapport de curation QUALITÉ structuré en français avec 7 sections (une par région/catégorie),
+    Un rapport de curation QUALITÉ structuré en français avec 7 sections (une par
+    région/catégorie),
     chacune contenant exactement 10 actualités VALIDÉES et VÉRIFIABLES.
-    Inclure statistiques de déduplication, liens brisés éliminés, et méthodologie de validation.
-    GARANTIR que tous les liens inclus sont fonctionnels et toutes les informations vérifiables.
+    Inclure statistiques de déduplication, liens brisés éliminés, et méthodologie
+    de validation.
+    GARANTIR que tous les liens inclus sont fonctionnels et toutes les informations
+    vérifiables.
   agent: content_curator
 final_report_generation_task:
   description: >
     Consolider toutes les actualités collectées en un rapport JSON structuré qui sera
     utilisé par HtmlDesignerCrew pour la génération HTML finale.
-    
     STRUCTURE JSON OBLIGATOIRE - Respecter EXACTEMENT ce format :
     {
       "summary": "Résumé exécutif des principales actualités du jour",
@@ -209,7 +210,6 @@ final_report_generation_task:
       "economy": [...],
       "methodology": "Description des sources et processus de collecte"
     }
-    
     RÈGLES CRITIQUES :
     1. TOUJOURS utiliser des guillemets doubles (") pour les clés et valeurs JSON
     2. TOUJOURS terminer chaque ligne par une virgule sauf la dernière
@@ -217,15 +217,14 @@ final_report_generation_task:
     4. TOUJOURS valider que le JSON est syntaxiquement correct
     5. Inclure TOUTES les actualités collectées sans exception
     6. Chaque section doit contenir un tableau d'objets avec les 5 champs obligatoires
-    
     IMPORTANT: Le JSON doit être parfaitement valide et parsable.
   expected_output: >
     JSON parfaitement structuré et syntaxiquement valide contenant :
     - summary: Résumé exécutif en français
-    - 7 sections d'actualités (suisse_romande, suisse, france, europe, world, wars, economy)
+    - 7 sections d'actualités (suisse_romande, suisse, france, europe, world, wars,
+    economy)
     - Chaque actualité avec titre, source, résumé, lien et date
     - methodology: Description des sources et processus
-    
     Le JSON doit être directement parsable sans erreur de syntaxe.
   agent: content_curator
   output_file: '{output_file}'

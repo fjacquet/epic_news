@@ -17,8 +17,9 @@ Composio Setup:
 
 Note: company_news_crew.py uses the old deprecated API. Update it to use this module instead.
 """
+
 import os
-from typing import List, Optional
+from typing import Optional
 
 from composio import Composio
 from composio_crewai import CrewAIProvider
@@ -63,7 +64,7 @@ class ComposioConfig:
         # Initialize Composio client with CrewAI provider
         self.client = Composio(api_key=self.api_key, provider=CrewAIProvider())
 
-    def get_search_tools(self) -> List[BaseTool]:
+    def get_search_tools(self) -> list[BaseTool]:
         """Get search-related Composio tools from social media platforms.
 
         NOTE: Composio 1.0 has NO dedicated "SEARCH" toolkit. Search functionality
@@ -88,14 +89,14 @@ class ComposioConfig:
             try:
                 platform_tools = self.client.tools.get(user_id=self.user_id, toolkits=[platform])
                 # Filter to only search-related tools
-                search_specific = [t for t in platform_tools if 'search' in t.name.lower()]
+                search_specific = [t for t in platform_tools if "search" in t.name.lower()]
                 tools.extend(search_specific)
             except Exception as e:
                 print(f"Warning: Could not load {platform} search tools: {e}")
 
         return tools
 
-    def get_social_media_tools(self, platforms: Optional[List[str]] = None) -> List[BaseTool]:
+    def get_social_media_tools(self, platforms: Optional[list[str]] = None) -> list[BaseTool]:
         """Get social media tools for content discovery and analysis.
 
         Args:
@@ -128,7 +129,7 @@ class ComposioConfig:
 
         return tools
 
-    def get_financial_tools(self) -> List[BaseTool]:
+    def get_financial_tools(self) -> list[BaseTool]:
         """Get financial data and market analysis tools.
 
         Returns:
@@ -154,7 +155,7 @@ class ComposioConfig:
 
         return tools
 
-    def get_communication_tools(self) -> List[BaseTool]:
+    def get_communication_tools(self) -> list[BaseTool]:
         """Get communication and collaboration tools.
 
         Returns:
@@ -182,7 +183,7 @@ class ComposioConfig:
 
         return tools
 
-    def get_content_creation_tools(self) -> List[BaseTool]:
+    def get_content_creation_tools(self) -> list[BaseTool]:
         """Get content creation and storage tools.
 
         Returns:
@@ -208,7 +209,7 @@ class ComposioConfig:
 
         return tools
 
-    def get_all_tools(self) -> List[BaseTool]:
+    def get_all_tools(self) -> list[BaseTool]:
         """Get all configured Composio tools.
 
         Returns:
@@ -227,7 +228,7 @@ class ComposioConfig:
 
         return all_tools
 
-    def get_custom_tools(self, toolkits: List[str]) -> List[BaseTool]:
+    def get_custom_tools(self, toolkits: list[str]) -> list[BaseTool]:
         """Get tools for custom list of toolkits.
 
         Args:

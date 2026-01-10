@@ -10,11 +10,12 @@ stock_portfolio_analysis_task:
     STEP 2: For EACH ticker in the "Ticker" column, extract the actual ticker symbol  (remove
     "Yahoo:" prefix if present) and use your available tools to research the latest
     news and market sentiment from the last 24-48 hours since {current_date}.
-    Focus on current market conditions, recent earnings, news, and developments as of {current_date}.
+    Focus on current market conditions, recent earnings, news, and developments as
+    of {current_date}.
     STEP 3: Based on your findings, provide a clear recommendation using emojis:
-    🟢 BUY, 🔴 SELL, or 🟡 KEEP.  
-    Include a concise one-sentence justification for each recommendation.  
-    The portfolio contains 60+ stocks – analyze ALL of them.  Absolutely NO partial
+    🟢 BUY, 🔴 SELL, or 🟡 KEEP.   Include a concise one-sentence justification for each
+    recommendation.   The portfolio contains 60+ stocks – analyze ALL of them.  Absolutely
+    NO partial
     coverage disclaimers (e.g. “En raison de la taille du portefeuille…”,  “12 tickers
     ont été analysés…”) are allowed. If you cannot include every single analysis,  you
     MUST raise an explicit error instead of producing an incomplete report.
@@ -24,9 +25,10 @@ stock_portfolio_analysis_task:
   expected_output: >
     A structured report in Markdown format containing the analysis for EVERY SINGLE
     stock ticker in the CSV file (60+ entries expected). NO SAMPLING, NO SHORTCUTS.
-    Example format for EACH stock:  
-    - "**AAPL (Apple Inc.):** KEEP - Recent product announcements show strong innovation, but market is saturated."  
-    - "**TSLA (Tesla, Inc.):** SELL - Increased competition and production hurdles pose significant risks."
+    Example format for EACH stock:   - "**AAPL (Apple Inc.):** KEEP - Recent product
+    announcements show strong innovation, but market is saturated."   - "**TSLA (Tesla,
+    Inc.):** SELL - Increased competition and production hurdles pose significant
+    risks."
     Your report MUST contain 60+ individual stock analyses.
   async_execution: false
 crypto_portfolio_analysis_task:
@@ -41,7 +43,8 @@ crypto_portfolio_analysis_task:
     return an error message -  REPORT THE EXACT ERROR MESSAGE transparently in your
     output.
     For EACH token returned by KrakenAssetListTool, use BOTH YahooFinanceNewsTool
-    AND KrakenTickerInfoTool to fetch comprehensive market data from the last 24-48 hours since {current_date}.
+    AND KrakenTickerInfoTool to fetch comprehensive market data from the last 24-48
+    hours since {current_date}.
     Focus on current market conditions, recent developments, and news as of {current_date}.
     Based on your analysis, provide a clear recommendation: BUY, SELL, or KEEP.
     Include a concise one-sentence justification for each recommendation.
@@ -54,9 +57,10 @@ crypto_portfolio_analysis_task:
     crypto asset from Kraken.
     If KrakenAssetListTool fails, include the exact error details at the top of your
     report.
-    Example format for EACH crypto:  
-    - "**ADA.S (Cardano):** BUY - Strong institutional adoption and upcoming protocol upgrades are positive catalysts."  
-    - "**ETH.F (Ethereum):** KEEP - Network activity is high, but recent gas fee volatility warrants caution."
+    Example format for EACH crypto:   - "**ADA.S (Cardano):** BUY - Strong institutional
+    adoption and upcoming protocol upgrades are positive catalysts."   - "**ETH.F
+    (Ethereum):** KEEP - Network activity is high, but recent gas fee volatility warrants
+    caution."
     If Kraken fails: "**KRAKEN API ERROR:** [exact error message] - Unable to retrieve
     crypto portfolio."
     Your report MUST contain analysis for ALL available crypto holdings or transparent
@@ -81,16 +85,16 @@ stock_suggestion_task:
     opportunities right now given the market environment on {current_date}.
   expected_output: >
     A structured report in Markdown format with new stock recommendations that are
-    VERIFIED to not be in the current portfolio. Must include a section listing 
-    current holdings for verification.
+    VERIFIED to not be in the current portfolio. Must include a section listing  current
+    holdings for verification.
     Example: "**Current Holdings Verified:** [List of all 60+ current tickers]
     **New Stock Recommendations:**
-    - **VTI (Vanguard Total Stock Market Index Fund ETF):** This ETF offers broad 
-    exposure to the entire U.S. stock market, making it an excellent core holding 
-    for diversification. Given the current portfolio's concentration in specific 
-    tech stocks, VTI would reduce risk and capture growth across all sectors.
-    - **JPM (JPMorgan Chase & Co.):** A defensive financial play with consistent 
-    dividends and  strong fundamentals, providing stability during market volatility."
+    - **VTI (Vanguard Total Stock Market Index Fund ETF):** This ETF offers broad  exposure
+    to the entire U.S. stock market, making it an excellent core holding  for diversification.
+    Given the current portfolio's concentration in specific  tech stocks, VTI would
+    reduce risk and capture growth across all sectors.
+    - **JPM (JPMorgan Chase & Co.):** A defensive financial play with consistent  dividends
+    and  strong fundamentals, providing stability during market volatility."
   async_execution: false
   output_file: output/findaily/stock_suggestion.md
 crypto_suggestion_task:
@@ -111,8 +115,10 @@ crypto_suggestion_task:
     for verification.
     Example: "**Current Crypto Holdings Verified:** [List of all current crypto assets]
     **New Crypto Recommendations:**
-    - **AVAX (Avalanche):** High-throughput blockchain with strong DeFi ecosystem growth.
-    - **DOT (Polkadot):** Multi-chain interoperability protocol for cross-chain value transfer."
+    - **AVAX (Avalanche):** High-throughput blockchain with strong DeFi ecosystem
+    growth.
+    - **DOT (Polkadot):** Multi-chain interoperability protocol for cross-chain value
+    transfer."
   async_execution: false
   output_file: output/findaily/crypto_suggestion.md
 # NEW: ETF portfolio analysis task
@@ -127,7 +133,8 @@ etf_portfolio_analysis_task:
     STEP 2: For EACH ticker in the "Ticker" column, extract the actual ticker symbol
     (remove "Yahoo:" prefix if present) and use your available tools to research
     the latest news and market sentiment.
-    STEP 3: Based on your findings, provide a clear recommendation: BUY, SELL, or KEEP.
+    STEP 3: Based on your findings, provide a clear recommendation: BUY, SELL, or
+    KEEP.
     Include a concise one-sentence justification for each recommendation.
     The portfolio may contain many ETFs – analyze ALL of them. NO partial coverage
     disclaimers.
@@ -147,7 +154,8 @@ etf_suggestion_task:
     Create a comprehensive list of all current ETFs first. Then, use your financial
     research tools to identify 1-2 promising ETF investment opportunities that are
     DEFINITELY NOT in the current portfolio.
-    You MUST cross-check each suggestion against the complete holdings list to avoid duplicates.
+    You MUST cross-check each suggestion against the complete holdings list to avoid
+    duplicates.
     Focus on ETFs that would complement the existing portfolio. Provide detailed recommendations
     including ticker symbols and compelling explanations for why they are good BUY
     opportunities right now.
@@ -159,39 +167,42 @@ etf_suggestion_task:
 final_report_generation_task:
   agent: investment_strategist
   description: >
-    CRITICAL: Compile a comprehensive financial report in french using the provided context
+    CRITICAL: Compile a comprehensive financial report in french using the provided
+    context
     from all other tasks. PRESERVE ALL INDIVIDUAL TICKER RECOMMENDATIONS.
-
     The report must be structured as a JSON object conforming to the FinancialReport
     Pydantic model.
     - Create a concise `executive_summary` of the key findings.
     - For each asset class, create an `AssetAnalysis` object that INCLUDES THE COMPLETE
     LIST OF INDIVIDUAL TICKER ANALYSES with BUY/SELL/KEEP recommendations.
-    - For each asset class, create an `AssetSuggestion` object with new investment suggestions.
+    - For each asset class, create an `AssetSuggestion` object with new investment
+    suggestions.
     - Populate the `analyses` and `suggestions` lists accordingly.
-
     MANDATORY REQUIREMENTS:
-    1. PRESERVE every single ticker analysis from the context (e.g., "AAPL: 🟡 KEEP - reason", "TSLA: 🔴 SELL - reason")
+    1. PRESERVE every single ticker analysis from the context (e.g., "AAPL: 🟡 KEEP
+    - reason", "TSLA: 🔴 SELL - reason")
     2. DO NOT aggregate or summarize individual ticker recommendations
-    3. Include the complete 🟢 BUY/🔴 SELL/🟡 KEEP list for each asset class in the details array
+    3. Include the complete 🟢 BUY/🔴 SELL/🟡 KEEP list for each asset class in the details
+    array
     4. Maintain all individual justifications and reasoning
     5. The HTML output must show individual ticker recommendations, not just summaries
-    
     Structure the data in JSON format with the following sections:
     - "summary": Executive summary of the analyses
     - "stock_analysis": Complete list of individual stock 🟢 BUY/🔴 SELL/🟡 KEEP recommendations
-    - "crypto_analysis": Complete list of individual crypto 🟢 BUY/🔴 SELL/🟡 KEEP recommendations  
-    - "etf_analysis": Complete list of individual ETF 🟢 BUY/🔴 SELL/🟡 KEEP recommendations
+    - "crypto_analysis": Complete list of individual crypto 🟢 BUY/🔴 SELL/🟡 KEEP recommendations   -
+    "etf_analysis": Complete list of individual ETF 🟢 BUY/🔴 SELL/🟡 KEEP recommendations
     - "recommendations": New investment suggestions (not in current portfolio)
     - "key_metrics": Important metrics and indicators
     - "risk_assessment": Risk evaluation
-    
-    CRITICAL: Include ALL individual analyses without exception - NO SUMMARIZATION ALLOWED
+    CRITICAL: Include ALL individual analyses without exception - NO SUMMARIZATION
+    ALLOWED
     Maintain the richness of individual ticker data for later HTML generation
-    IMPORTANT: This JSON report will be used by HtmlDesignerCrew to generate the final HTML report.
+    IMPORTANT: This JSON report will be used by HtmlDesignerCrew to generate the final
+    HTML report.
   expected_output: >
     A JSON object that strictly adheres to the FinancialReport Pydantic model,
-    containing a comprehensive summary, detailed analyses, and actionable suggestions in french.
+    containing a comprehensive summary, detailed analyses, and actionable suggestions
+    in french.
   context:
     - stock_portfolio_analysis_task
     - crypto_portfolio_analysis_task

@@ -1,6 +1,8 @@
 """Centralized LLM configuration for OpenRouter."""
+
 import os
 from typing import Optional
+
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 
