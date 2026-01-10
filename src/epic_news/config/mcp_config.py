@@ -12,6 +12,7 @@ Environment Variables:
     PERPLEXITY_API_KEY: API key for Perplexity MCP server
 """
 
+import contextlib
 import os
 from typing import Optional
 
@@ -151,10 +152,7 @@ class MCPConfig:
         }
 
         # Only include Perplexity if API key is available
-        try:
+        with contextlib.suppress(ValueError):
             servers["perplexity"] = MCPConfig.get_perplexity_mcp()
-        except ValueError:
-            # Perplexity API key not set, skip it
-            pass
 
         return servers

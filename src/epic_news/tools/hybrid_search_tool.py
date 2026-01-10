@@ -185,10 +185,7 @@ class HybridSearchTool(BaseTool):
         normalized = []
 
         try:
-            if isinstance(serper_results, str):
-                serper_data = json.loads(serper_results)
-            else:
-                serper_data = serper_results
+            serper_data = json.loads(serper_results) if isinstance(serper_results, str) else serper_results
 
             # Handle organic results
             organic = serper_data.get("organic", [])
