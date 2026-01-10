@@ -81,7 +81,7 @@ class LLMConfig:
         tokens = max_tokens
         if tokens is None:
             max_tokens_str = os.getenv("LLM_MAX_TOKENS")
-            if max_tokens_str is not None:
+            if max_tokens_str is not None and max_tokens_str.strip():
                 tokens = int(max_tokens_str)
 
         return ChatOpenAI(
