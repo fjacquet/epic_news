@@ -90,7 +90,10 @@ class CompanyProfilerRenderer(BaseRenderer):
             ("Secteur d'activité", core_info.get("industry_classification")),
             ("Nombre d'employés", core_info.get("employee_count")),
             ("Chiffre d'affaires", CompanyProfilerRenderer._format_currency(core_info.get("revenue"))),
-            ("Capitalisation boursière", CompanyProfilerRenderer._format_currency(core_info.get("market_cap"))),
+            (
+                "Capitalisation boursière",
+                CompanyProfilerRenderer._format_currency(core_info.get("market_cap")),
+            ),
         ]
 
         for label, value in info_items:

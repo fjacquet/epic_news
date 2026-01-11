@@ -136,7 +136,9 @@ class WebPresenceRenderer(BaseRenderer):
         section.append(grid)
         container.append(section)
 
-    def _add_technical_infrastructure(self, soup: BeautifulSoup, container: Any, data: dict[str, Any]) -> None:
+    def _add_technical_infrastructure(
+        self, soup: BeautifulSoup, container: Any, data: dict[str, Any]
+    ) -> None:
         """Render technical infrastructure section."""
         infra = data.get("technical_infrastructure")
         if not infra:
