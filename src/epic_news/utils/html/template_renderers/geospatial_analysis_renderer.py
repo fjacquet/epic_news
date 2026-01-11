@@ -42,10 +42,20 @@ class GeospatialAnalysisRenderer(BaseRenderer):
             soup, container, data.get("risk_assessment"), "Évaluation des Risques", "⚠️", "risk-card"
         )
         self.render_list_as_cards(
-            soup, container, data.get("supply_chain_map"), "Cartographie de la Chaîne d'Approvisionnement", "🔗", "supply-card"
+            soup,
+            container,
+            data.get("supply_chain_map"),
+            "Cartographie de la Chaîne d'Approvisionnement",
+            "🔗",
+            "supply-card",
         )
         self.render_list_as_cards(
-            soup, container, data.get("mergers_and_acquisitions_insights"), "Intelligence M&A", "🤝", "ma-card"
+            soup,
+            container,
+            data.get("mergers_and_acquisitions_insights"),
+            "Intelligence M&A",
+            "🤝",
+            "ma-card",
         )
         self.add_raw_json_section(soup, container, data, "Voir les données brutes")
 

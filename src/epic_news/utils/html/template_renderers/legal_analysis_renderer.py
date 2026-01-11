@@ -40,17 +40,23 @@ class LegalAnalysisRenderer(BaseRenderer):
             soup, container, data.get("compliance_assessment"), "Évaluation de la Conformité", "✅"
         )
         self.render_dict_as_cards(
-            soup, container, data.get("ip_portfolio_analysis"), "Portefeuille de Propriété Intellectuelle", "📜"
+            soup,
+            container,
+            data.get("ip_portfolio_analysis"),
+            "Portefeuille de Propriété Intellectuelle",
+            "📜",
         )
         self.render_dict_as_cards(
-            soup, container, data.get("regulatory_risk_assessment"), "Évaluation des Risques Réglementaires", "⚠️"
+            soup,
+            container,
+            data.get("regulatory_risk_assessment"),
+            "Évaluation des Risques Réglementaires",
+            "⚠️",
         )
         self.render_list_as_cards(
             soup, container, data.get("litigation_history"), "Historique des Litiges", "📂", "litigation-card"
         )
-        self.render_dict_as_cards(
-            soup, container, data.get("ma_due_diligence"), "Due Diligence M&A", "🤝"
-        )
+        self.render_dict_as_cards(soup, container, data.get("ma_due_diligence"), "Due Diligence M&A", "🤝")
         self.add_raw_json_section(soup, container, data, "Voir les données brutes")
 
         return str(soup)

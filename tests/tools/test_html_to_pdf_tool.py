@@ -24,10 +24,12 @@ def mock_weasyprint_available(mocker):
     mock_html_class = mocker.MagicMock()
     mock_html_instance = mocker.MagicMock()
     mock_html_class.return_value = mock_html_instance
+
     # Make write_pdf create the output file
     def create_pdf(output_path):
         with open(output_path, "wb") as f:
             f.write(b"%PDF-1.4 mock pdf content")
+
     mock_html_instance.write_pdf.side_effect = create_pdf
     mocker.patch("epic_news.tools.html_to_pdf_tool.HTML", mock_html_class)
     return mock_html_class

@@ -292,11 +292,13 @@ class ComposioConfig:
 
         # Add send tools if requested
         if include_send:
-            gmail_tools_list.extend([
-                "GMAIL_SEND_EMAIL",
-                "GMAIL_SEND_DRAFT",
-                "GMAIL_REPLY_TO_THREAD",
-            ])
+            gmail_tools_list.extend(
+                [
+                    "GMAIL_SEND_EMAIL",
+                    "GMAIL_SEND_DRAFT",
+                    "GMAIL_REPLY_TO_THREAD",
+                ]
+            )
 
         try:
             tools = self.client.tools.get(user_id=self.user_id, tools=gmail_tools_list)

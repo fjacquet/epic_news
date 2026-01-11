@@ -36,12 +36,16 @@ class TechStackRenderer(BaseRenderer):
         container = soup.div
 
         self._add_styles(soup)
-        self.add_report_header(soup, container, "🔧 Analyse de la Stack Technologique", data.get("company_name"))
+        self.add_report_header(
+            soup, container, "🔧 Analyse de la Stack Technologique", data.get("company_name")
+        )
         self.render_text_section(soup, container, data.get("executive_summary"), "Résumé Exécutif", "📋")
         self._add_technology_stack(soup, container, data)
         self._add_strengths_weaknesses(soup, container, data)
         self._add_open_source(soup, container, data)
-        self.render_text_section(soup, container, data.get("talent_assessment"), "Évaluation des Talents", "👥")
+        self.render_text_section(
+            soup, container, data.get("talent_assessment"), "Évaluation des Talents", "👥"
+        )
         self._add_recommendations(soup, container, data)
         self.add_raw_json_section(soup, container, data, "Voir les données brutes")
 

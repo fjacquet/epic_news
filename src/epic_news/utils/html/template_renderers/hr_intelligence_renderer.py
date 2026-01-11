@@ -49,7 +49,11 @@ class HRIntelligenceRenderer(BaseRenderer):
             soup, container, data.get("organizational_culture"), "Culture Organisationnelle", "🏢"
         )
         self.render_dict_as_cards(
-            soup, container, data.get("talent_acquisition_strategy"), "Stratégie d'Acquisition de Talents", "🎯"
+            soup,
+            container,
+            data.get("talent_acquisition_strategy"),
+            "Stratégie d'Acquisition de Talents",
+            "🎯",
         )
         self.add_raw_json_section(soup, container, data, "Voir les données brutes")
 

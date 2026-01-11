@@ -1142,7 +1142,7 @@ class ReceptionFlow(Flow[ContentState]):
 
     @listen("go_generate_osint")
     @trace_task(tracer)
-    def generate_osint(self):
+    async def generate_osint(self):
         """
         Handles requests classified for the 'OPEN_SOURCE_INTELLIGENCE' (OSINT) crew.
 
@@ -1153,12 +1153,14 @@ class ReceptionFlow(Flow[ContentState]):
         in `self.state.osint_report`.
         """
         self.state.output_file = "output/osint/global_report.html"
-        company = self.state.to_crew_inputs().get("company") or self.state.to_crew_inputs().get("topic", "N/A")
+        company = self.state.to_crew_inputs().get("company") or self.state.to_crew_inputs().get(
+            "topic", "N/A"
+        )
         self.logger.info(f"🚀 Generating OSINT report for: {company}")
         self.logger.info("⚡ Running 6 OSINT crews in PARALLEL for maximum speed...")
 
-        # Run all OSINT crews in parallel using asyncio
-        asyncio.run(self._run_osint_parallel())
+        # Run all OSINT crews in parallel (already in async context from CrewAI flow)
+        await self._run_osint_parallel()
 
     async def _run_osint_parallel(self):
         """
@@ -1176,23 +1178,72 @@ class ReceptionFlow(Flow[ContentState]):
         # Define the 6 independent crews to run in parallel
         # Each returns (crew_name, json_file, html_file, model_class, crew_class, state_attr)
         parallel_crews = [
-            ("company_profile", "output/osint/company_profile.json", "output/osint/company_profile.html",
-             CompanyProfileReport, CompanyProfilerCrew, "company_profile", "COMPANY_PROFILE"),
-            ("tech_stack", "output/osint/tech_stack.json", "output/osint/tech_stack.html",
-             TechStackReport, TechStackCrew, "tech_stack", "TECH_STACK"),
-            ("web_presence", "output/osint/web_presence.json", "output/osint/web_presence.html",
-             WebPresenceReport, WebPresenceCrew, "web_presence_report", "WEB_PRESENCE"),
-            ("hr_intelligence", "output/osint/hr_intelligence.json", "output/osint/hr_intelligence.html",
-             HRIntelligenceReport, HRIntelligenceCrew, "hr_intelligence_report", "HR_INTELLIGENCE"),
-            ("legal_analysis", "output/osint/legal_analysis.json", "output/osint/legal_analysis.html",
-             LegalAnalysisReport, LegalAnalysisCrew, "legal_analysis_report", "LEGAL_ANALYSIS"),
-            ("geospatial_analysis", "output/osint/geospatial_analysis.json", "output/osint/geospatial_analysis.html",
-             GeospatialAnalysisReport, GeospatialAnalysisCrew, "geospatial_analysis", "GEOSPATIAL_ANALYSIS"),
+            (
+                "company_profile",
+                "output/osint/company_profile.json",
+                "output/osint/company_profile.html",
+                CompanyProfileReport,
+                CompanyProfilerCrew,
+                "company_profile",
+                "COMPANY_PROFILE",
+            ),
+            (
+                "tech_stack",
+                "output/osint/tech_stack.json",
+                "output/osint/tech_stack.html",
+                TechStackReport,
+                TechStackCrew,
+                "tech_stack",
+                "TECH_STACK",
+            ),
+            (
+                "web_presence",
+                "output/osint/web_presence.json",
+                "output/osint/web_presence.html",
+                WebPresenceReport,
+                WebPresenceCrew,
+                "web_presence_report",
+                "WEB_PRESENCE",
+            ),
+            (
+                "hr_intelligence",
+                "output/osint/hr_intelligence.json",
+                "output/osint/hr_intelligence.html",
+                HRIntelligenceReport,
+                HRIntelligenceCrew,
+                "hr_intelligence_report",
+                "HR_INTELLIGENCE",
+            ),
+            (
+                "legal_analysis",
+                "output/osint/legal_analysis.json",
+                "output/osint/legal_analysis.html",
+                LegalAnalysisReport,
+                LegalAnalysisCrew,
+                "legal_analysis_report",
+                "LEGAL_ANALYSIS",
+            ),
+            (
+                "geospatial_analysis",
+                "output/osint/geospatial_analysis.json",
+                "output/osint/geospatial_analysis.html",
+                GeospatialAnalysisReport,
+                GeospatialAnalysisCrew,
+                "geospatial_analysis",
+                "GEOSPATIAL_ANALYSIS",
+            ),
         ]
 
         # Create async tasks for all 6 crews
-        async def run_crew(crew_name: str, json_file: str, html_file: str,
-                          model_class: type, crew_class: type, state_attr: str, template_id: str) -> tuple[str, Any]:
+        async def run_crew(
+            crew_name: str,
+            json_file: str,
+            html_file: str,
+            model_class: type,
+            crew_class: type,
+            state_attr: str,
+            template_id: str,
+        ) -> tuple[str, Any]:
             """Run a single crew asynchronously."""
             crew_inputs = inputs.copy()
             crew_inputs["output_file"] = json_file
@@ -1245,7 +1296,9 @@ class ReceptionFlow(Flow[ContentState]):
         total_elapsed = time.perf_counter() - start_time
         self.logger.info(f"✅ Full OSINT pipeline completed in {total_elapsed:.2f}s")
 
-    async def _run_cross_reference_report(self, inputs: dict[str, Any], template_manager: TemplateManager) -> None:
+    async def _run_cross_reference_report(
+        self, inputs: dict[str, Any], template_manager: TemplateManager
+    ) -> None:
         """Run cross-reference report after all parallel crews complete."""
         json_file = "output/osint/global_report.json"
         html_file = "output/osint/global_report.html"

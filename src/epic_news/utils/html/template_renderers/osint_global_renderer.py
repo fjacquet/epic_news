@@ -121,7 +121,15 @@ class OSINTGlobalRenderer(BaseRenderer):
         section.append(title)
 
         # Count available reports
-        reports = ["company_profile", "tech_stack", "web_presence", "hr_intelligence", "legal_analysis", "geospatial_analysis", "cross_reference"]
+        reports = [
+            "company_profile",
+            "tech_stack",
+            "web_presence",
+            "hr_intelligence",
+            "legal_analysis",
+            "geospatial_analysis",
+            "cross_reference",
+        ]
         available = sum(1 for r in reports if data.get(r))
 
         summary_div = soup.new_tag("div", **{"class": "summary-stats"})  # type: ignore[arg-type]
@@ -146,49 +154,63 @@ class OSINTGlobalRenderer(BaseRenderer):
         section.append(summary_div)
         container.append(section)
 
-    def _add_company_profile_section(self, soup: BeautifulSoup, container: Any, data: dict[str, Any] | None) -> None:
+    def _add_company_profile_section(
+        self, soup: BeautifulSoup, container: Any, data: dict[str, Any] | None
+    ) -> None:
         if not data:
             return
         self._add_sub_report_section(
             soup, container, data, "company-profile", "Profil de l'Entreprise", CompanyProfilerRenderer()
         )
 
-    def _add_tech_stack_section(self, soup: BeautifulSoup, container: Any, data: dict[str, Any] | None) -> None:
+    def _add_tech_stack_section(
+        self, soup: BeautifulSoup, container: Any, data: dict[str, Any] | None
+    ) -> None:
         if not data:
             return
         self._add_sub_report_section(
             soup, container, data, "tech-stack", "Stack Technologique", TechStackRenderer()
         )
 
-    def _add_web_presence_section(self, soup: BeautifulSoup, container: Any, data: dict[str, Any] | None) -> None:
+    def _add_web_presence_section(
+        self, soup: BeautifulSoup, container: Any, data: dict[str, Any] | None
+    ) -> None:
         if not data:
             return
         self._add_sub_report_section(
             soup, container, data, "web-presence", "Presence Web", WebPresenceRenderer()
         )
 
-    def _add_hr_intelligence_section(self, soup: BeautifulSoup, container: Any, data: dict[str, Any] | None) -> None:
+    def _add_hr_intelligence_section(
+        self, soup: BeautifulSoup, container: Any, data: dict[str, Any] | None
+    ) -> None:
         if not data:
             return
         self._add_sub_report_section(
             soup, container, data, "hr-intelligence", "Intelligence RH", HRIntelligenceRenderer()
         )
 
-    def _add_legal_analysis_section(self, soup: BeautifulSoup, container: Any, data: dict[str, Any] | None) -> None:
+    def _add_legal_analysis_section(
+        self, soup: BeautifulSoup, container: Any, data: dict[str, Any] | None
+    ) -> None:
         if not data:
             return
         self._add_sub_report_section(
             soup, container, data, "legal-analysis", "Analyse Juridique", LegalAnalysisRenderer()
         )
 
-    def _add_geospatial_section(self, soup: BeautifulSoup, container: Any, data: dict[str, Any] | None) -> None:
+    def _add_geospatial_section(
+        self, soup: BeautifulSoup, container: Any, data: dict[str, Any] | None
+    ) -> None:
         if not data:
             return
         self._add_sub_report_section(
             soup, container, data, "geospatial", "Analyse Geospatiale", GeospatialAnalysisRenderer()
         )
 
-    def _add_cross_reference_section(self, soup: BeautifulSoup, container: Any, data: dict[str, Any] | None) -> None:
+    def _add_cross_reference_section(
+        self, soup: BeautifulSoup, container: Any, data: dict[str, Any] | None
+    ) -> None:
         if not data:
             return
         self._add_sub_report_section(
