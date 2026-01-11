@@ -108,7 +108,7 @@ Financial markets are highly dynamic. To provide accurate and timely analysis, a
 
 ### 2.2. Key Retrieval Tools
 
-- **`SerperDevTool` / `TavilyTool`**: For broad, general-purpose web searches to gather initial information.
+- **`HybridSearchTool`**: Cascading search with Perplexity (primary) → Brave → Serper fallback chain for reliable web searches.
 - **ScraperFactory-selected scraper (`get_scraper()`)**: Centralized website scraping; defaults to `ScrapeNinjaTool`. Override via `WEB_SCRAPER_PROVIDER` (`scrapeninja`, `firecrawl`). Direct Firecrawl usage is deprecated in crews.
 - **`YahooFinanceNewsTool`**: For fetching the latest financial news for a specific ticker, providing timely market-moving information.
 

@@ -7,6 +7,7 @@ from crewai_tools import FileReadTool
 from dotenv import load_dotenv
 
 from epic_news.config.llm_config import LLMConfig
+from epic_news.models.crews.post_result import PostResult
 
 # Load environment variables
 load_dotenv()
@@ -32,6 +33,7 @@ class PostCrew:
             config=cast(dict[str, Any], self.tasks_config)["distribution_task"],
             agent=self.distributor(),  # type: ignore[call-arg]
             tools=self._get_send_tools() + [FileReadTool()],
+            output_pydantic=PostResult,
         )
 
     @crew

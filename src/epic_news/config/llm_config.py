@@ -25,6 +25,13 @@ class LLMConfig:
         LLM_TIMEOUT_LONG: Timeout for complex tasks (default: 600s)
         CREW_MAX_ITER: Maximum iterations per crew (default: 5)
         CREW_MAX_RPM: Maximum requests per minute (default: 20)
+        OPENROUTER_MIDDLE_OUT: Enable middle-out compression (default: true)
+
+    OpenRouter Transforms:
+        The "middle-out" transform automatically compresses prompts that exceed
+        the model's context window by removing content from the middle while
+        preserving the beginning (system prompts) and end (recent context).
+        This is enabled by default to prevent context overflow errors.
 
     Usage:
         >>> from epic_news.config.llm_config import LLMConfig
@@ -37,6 +44,7 @@ class LLMConfig:
         model: str | None = None,
         temperature: float | None = None,
         max_tokens: int | None = None,
+        enable_middle_out: bool | None = None,
     ) -> ChatOpenAI:
         """Get ChatOpenAI instance configured for OpenRouter.
 
@@ -53,12 +61,16 @@ class LLMConfig:
                         If None, uses LLM_TEMPERATURE from .env (default: 0.7).
             max_tokens: Maximum response tokens. Limits response length.
                        If None, uses LLM_MAX_TOKENS from .env (unlimited if not set).
+            enable_middle_out: Enable OpenRouter's middle-out compression to handle
+                              context overflow. When enabled, prompts exceeding the
+                              model's context window are automatically compressed.
+                              If None, uses OPENROUTER_MIDDLE_OUT from .env (default: true).
 
         Returns:
             ChatOpenAI instance configured for OpenRouter API.
 
         Example:
-            >>> # Use default configuration
+            >>> # Use default configuration (with middle-out enabled)
             >>> llm = LLMConfig.get_openrouter_llm()
             >>>
             >>> # Override temperature for creative tasks
@@ -68,6 +80,9 @@ class LLMConfig:
             >>> opus_llm = LLMConfig.get_openrouter_llm(
             ...     model="openrouter/anthropic/claude-3.5-sonnet"
             ... )
+            >>>
+            >>> # Disable middle-out for precise context control
+            >>> precise_llm = LLMConfig.get_openrouter_llm(enable_middle_out=False)
         """
         # Get model from parameter or environment
         model_name = model or os.getenv("MODEL", "openrouter/xiaomi/mimo-v2-flash:free")
@@ -85,12 +100,26 @@ class LLMConfig:
             if max_tokens_str is not None and max_tokens_str.strip():
                 tokens = int(max_tokens_str)
 
+        # Get middle-out setting from parameter or environment (default: enabled)
+        middle_out = enable_middle_out
+        if middle_out is None:
+            middle_out_str = os.getenv("OPENROUTER_MIDDLE_OUT", "true").lower()
+            middle_out = middle_out_str in ("true", "1", "yes", "on")
+
+        # Build model_kwargs with OpenRouter-specific settings
+        # Always pass a dict (empty or with transforms) - None causes errors
+        model_kwargs: dict[str, list[str]] = {}
+        if middle_out:
+            # OpenRouter transforms: middle-out compresses prompts that exceed context
+            model_kwargs["transforms"] = ["middle-out"]
+
         return ChatOpenAI(  # type: ignore[call-arg]
             model=model_name or "openrouter/xiaomi/mimo-v2-flash:free",
             api_key=os.getenv("OPENROUTER_API_KEY"),  # type: ignore[arg-type]
             base_url="https://openrouter.ai/api/v1",
             temperature=temp,
             max_tokens=tokens,
+            model_kwargs=model_kwargs,
         )
 
     @staticmethod

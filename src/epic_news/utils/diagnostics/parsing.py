@@ -231,6 +231,78 @@ def parse_crewai_output[T: BaseModel](
                     break
             cleaned_json = "\n".join(content_lines[start_index:])
 
+    # Strip preamble text before JSON (e.g., "Thought:", "Final Answer:", etc.)
+    # Find the first occurrence of { or [ which indicates JSON start
+    json_start_brace = cleaned_json.find("{")
+    json_start_bracket = cleaned_json.find("[")
+
+    if json_start_brace == -1 and json_start_bracket == -1:
+        # No JSON content found
+        inputs_info = f" Inputs were: {inputs}" if inputs else ""
+        raise ValueError(
+            f"{model_class.__name__} crew produced no valid JSON. "
+            f"Raw output started with: {cleaned_json[:100]}...{inputs_info}"
+        )
+
+    # Determine which comes first
+    if json_start_brace == -1:
+        json_start = json_start_bracket
+    elif json_start_bracket == -1:
+        json_start = json_start_brace
+    else:
+        json_start = min(json_start_brace, json_start_bracket)
+
+    # Strip any preamble text before the JSON
+    if json_start > 0:
+        preamble = cleaned_json[:json_start].strip()
+        if preamble:
+            logger.debug(f"Stripped preamble before JSON: {preamble[:100]}...")
+        cleaned_json = cleaned_json[json_start:]
+
+    # Also strip any trailing text after the JSON (find matching closing brace/bracket)
+    def find_json_end(text: str) -> int:
+        """Find the end of a JSON object/array by matching braces/brackets."""
+        if not text:
+            return 0
+        first_char = text[0]
+        if first_char == "{":
+            open_char, close_char = "{", "}"
+        elif first_char == "[":
+            open_char, close_char = "[", "]"
+        else:
+            return len(text)
+
+        depth = 0
+        in_string = False
+        escape_next = False
+
+        for i, char in enumerate(text):
+            if escape_next:
+                escape_next = False
+                continue
+            if char == "\\":
+                escape_next = True
+                continue
+            if char == '"' and not escape_next:
+                in_string = not in_string
+                continue
+            if in_string:
+                continue
+            if char == open_char:
+                depth += 1
+            elif char == close_char:
+                depth -= 1
+                if depth == 0:
+                    return i + 1
+        return len(text)
+
+    json_end = find_json_end(cleaned_json)
+    if json_end < len(cleaned_json):
+        trailing = cleaned_json[json_end:].strip()
+        if trailing:
+            logger.debug(f"Stripped trailing text after JSON: {trailing[:100]}...")
+        cleaned_json = cleaned_json[:json_end]
+
     # --- Sanitize common issues -------------------------------------------------
     def _sanitize_json(text: str) -> str:
         """Fix common JSON issues like 1,000 style numbers and smart quotes."""

@@ -4,6 +4,7 @@ from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 
 from epic_news.config.llm_config import LLMConfig
+from epic_news.models.crews.news_daily_report import NewsDailyReport
 
 # from epic_news.tools.validation_tools import get_validation_tools
 from epic_news.tools.web_tools import get_news_tools, get_search_tools
@@ -116,6 +117,7 @@ class NewsDailyCrew:
             config=self.tasks_config["final_report_generation_task"],
             verbose=True,  # type: ignore[call-arg]
             context=[self.content_curation_task()],  # type: ignore[call-arg]
+            output_pydantic=NewsDailyReport,
         )
 
     @crew

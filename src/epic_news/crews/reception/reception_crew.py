@@ -5,6 +5,7 @@ from crewai.project import CrewBase, agent, crew, task
 from dotenv import load_dotenv
 
 from epic_news.config.llm_config import LLMConfig
+from epic_news.models.crews.routing_result import RoutingResult
 
 load_dotenv()
 
@@ -31,6 +32,7 @@ class ReceptionCrew:
         return Task(  # type: ignore[call-arg]
             config=cast(dict[str, Any], self.tasks_config)["routing_task"],
             agent=self.router(),  # type: ignore[call-arg]
+            output_pydantic=RoutingResult,
         )
 
     @crew

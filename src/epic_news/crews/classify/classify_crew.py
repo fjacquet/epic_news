@@ -5,6 +5,7 @@ from crewai.project import CrewBase, agent, crew, task
 from dotenv import load_dotenv
 
 from epic_news.config.llm_config import LLMConfig
+from epic_news.models.crews.classification_result import ClassificationResult
 
 load_dotenv()
 
@@ -33,6 +34,7 @@ class ClassifyCrew:
         return Task(  # type: ignore[call-arg]
             config=cast(dict[str, Any], self.tasks_config)["classification_task"],
             agent=self.classifier(),  # type: ignore[call-arg]
+            output_pydantic=ClassificationResult,
         )
 
     @crew
@@ -47,24 +49,28 @@ class ClassifyCrew:
 
     def parse_result(self, result, categories=None):
         """
-        Extract the selected category from the classification result
+        Extract the selected category from the classification result.
 
         Args:
-            result (CrewOutput or str): The result from the classification task
+            result (CrewOutput or ClassificationResult or str): The result from the classification task
             categories (dict, optional): Dictionary of valid categories
 
         Returns:
             str: The selected category (selected_crew)
         """
-        # Convert CrewOutput to string if needed
-        result_text = str(result)
-
-        # The format is now simplified - the category should be the first line
-        if not result_text:
-            return "UNKNOWN"
-
-        # Get the first line which should be the category
-        category = result_text.strip().split("\n")[0].strip()
+        # If result is already a ClassificationResult, extract selected_crew
+        if isinstance(result, ClassificationResult):
+            category = result.selected_crew
+        elif hasattr(result, "pydantic") and isinstance(result.pydantic, ClassificationResult):
+            # CrewAI output with pydantic attribute
+            category = result.pydantic.selected_crew
+        else:
+            # Fall back to string parsing for backwards compatibility
+            result_text = str(result)
+            if not result_text:
+                return "UNKNOWN"
+            # Get the first line which should be the category
+            category = result_text.strip().split("\n")[0].strip()
 
         # If categories provided, validate the result
         if categories and category:

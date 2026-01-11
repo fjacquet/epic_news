@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from loguru import logger
 
 from epic_news.config.llm_config import LLMConfig
+from epic_news.models.crews.meeting_prep_report import MeetingPrepReport
 from epic_news.tools.finance_tools import get_yahoo_finance_tools
 from epic_news.tools.report_tools import get_report_tools
 from epic_news.tools.web_tools import get_scrape_tools, get_search_tools
@@ -113,6 +114,7 @@ class MeetingPrepCrew:
     def meeting_preparation_task(self) -> Task:
         """
         Define the meeting preparation task for creating the final briefing.
+        Uses MeetingPrepReport Pydantic model for structured output validation.
         """
         return Task(
             config=self.tasks_config["meeting_preparation_task"],  # type: ignore[arg-type, index]
@@ -121,6 +123,7 @@ class MeetingPrepCrew:
                 self.product_alignment_task(),  # type: ignore[call-arg]
                 self.sales_strategy_task(),  # type: ignore[call-arg]
             ],
+            output_pydantic=MeetingPrepReport,
         )
 
     @crew

@@ -14,15 +14,21 @@ from .cross_reference_report_renderer import CrossReferenceReportRenderer
 from .deep_research_renderer import DeepResearchRenderer
 from .financial_renderer import FinancialRenderer
 from .generic_renderer import GenericRenderer
+from .geospatial_analysis_renderer import GeospatialAnalysisRenderer
 from .holiday_renderer import HolidayRenderer
+from .hr_intelligence_renderer import HRIntelligenceRenderer
+from .legal_analysis_renderer import LegalAnalysisRenderer
 from .meeting_prep_renderer import MeetingPrepRenderer
 from .menu_renderer import MenuRenderer
 from .news_daily_renderer import NewsDailyRenderer
+from .osint_global_renderer import OSINTGlobalRenderer
 from .poem_renderer import PoemRenderer
 from .rss_weekly_renderer import RssWeeklyRenderer
 from .saint_renderer import SaintRenderer
 from .sales_prospecting_renderer import SalesProspectingRenderer
 from .shopping_renderer import ShoppingRenderer
+from .tech_stack_renderer import TechStackRenderer
+from .web_presence_renderer import WebPresenceRenderer
 
 
 class RendererFactory:
@@ -35,23 +41,29 @@ class RendererFactory:
     # Mapping of crew types to their specific renderers
     _RENDERER_MAP: dict[str, type[BaseRenderer]] = {
         "BOOK_SUMMARY": BookSummaryRenderer,
+        "COMPANY_NEWS": CompanyNewsRenderer,
         "COMPANY_PROFILE": CompanyProfilerRenderer,
         "COOKING": CookingRenderer,
+        "CROSS_REFERENCE_REPORT": CrossReferenceReportRenderer,
         "DEEPRESEARCH": DeepResearchRenderer,
         "FINDAILY": FinancialRenderer,
         "GENERIC": GenericRenderer,
+        "GEOSPATIAL_ANALYSIS": GeospatialAnalysisRenderer,
         "HOLIDAY_PLANNER": HolidayRenderer,
+        "HR_INTELLIGENCE": HRIntelligenceRenderer,
+        "LEGAL_ANALYSIS": LegalAnalysisRenderer,
         "MEETING_PREP": MeetingPrepRenderer,
+        "OSINT_GLOBAL": OSINTGlobalRenderer,
         "MENU": MenuRenderer,
         "NEWSDAILY": NewsDailyRenderer,
         "POEM": PoemRenderer,
         "RSS_WEEKLY": RssWeeklyRenderer,
         "SAINT": SaintRenderer,
-        "SHOPPING": ShoppingRenderer,
-        "COMPANY_NEWS": CompanyNewsRenderer,
-        "CROSS_REFERENCE_REPORT": CrossReferenceReportRenderer,
-        "SALESPROSPECTING": SalesProspectingRenderer,
         "SALES_PROSPECTING": SalesProspectingRenderer,
+        "SALESPROSPECTING": SalesProspectingRenderer,
+        "SHOPPING": ShoppingRenderer,
+        "TECH_STACK": TechStackRenderer,
+        "WEB_PRESENCE": WebPresenceRenderer,
     }
 
     @classmethod

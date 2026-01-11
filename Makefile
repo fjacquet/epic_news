@@ -215,6 +215,13 @@ clean-build: ## Remove build artifacts
 	rm -rf dist/
 	rm -rf *.egg-info
 	rm -rf .uv/
+	rm -rf output/
+	rm -rf traces/
+	rm -rf cache/
+	rm -rf logs/
+	rm -rf .ruff_cache/
+	rm -rf .mypy_cache/
+	rm -rf debug/
 
 clean-all: clean-pyc clean-test clean-build ## Remove all artifacts
 	@echo "$(GREEN)✓ All artifacts removed$(RESET)"

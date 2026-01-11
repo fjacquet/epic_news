@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class CompanyCoreInfo(BaseModel):
@@ -42,13 +42,29 @@ class Financials(BaseModel):
     revenue_and_profit_trends: list[dict[str, Any]] = Field(
         ..., description="Revenue and profit trends over 3-5 years."
     )
-    key_financial_ratios: dict[str, Any] = Field(..., description="Key financial ratios (values may be numbers or notes).")
+    key_financial_ratios: dict[str, Any] = Field(
+        ..., description="Key financial ratios (values may be numbers or notes)."
+    )
     funding_rounds: list[dict[str, Any]] = Field(
         default_factory=list, description="Information on funding rounds."
     )
     major_investors: list[str] = Field(default_factory=list, description="List of major investors.")
-    debt_structure: dict[str, Any] | str | None = Field(None, description="Description of the debt structure (may be text or structured data).")
-    recent_financial_news: list[str] = Field(default_factory=list, description="Recent financial news.")
+    debt_structure: dict[str, Any] | str | None = Field(
+        None, description="Description of the debt structure (may be text or structured data)."
+    )
+    recent_financial_news: list[dict[str, Any] | str] = Field(
+        default_factory=list, description="Recent financial news (structured or text)."
+    )
+
+    @field_validator("recent_financial_news", mode="before")
+    @classmethod
+    def coerce_financial_news(cls, v: Any) -> list[dict[str, Any] | str]:
+        """Accept both structured dicts and plain strings for financial news."""
+        if isinstance(v, str):
+            return [v] if v else []
+        if isinstance(v, list):
+            return v
+        return []
 
 
 class MarketPosition(BaseModel):
@@ -65,8 +81,30 @@ class ProductsAndServices(BaseModel):
     core_product_lines: list[str] = Field(..., description="Core product or service lines.")
     recent_launches: list[str] = Field(default_factory=list, description="Recent product launches.")
     discontinued_offerings: list[str] = Field(default_factory=list, description="Discontinued products.")
-    pricing_strategy: str | None = Field(None, description="Description of the pricing strategy.")
+    pricing_strategy: str | dict[str, Any] | None = Field(
+        None, description="Description of the pricing strategy (text or structured)."
+    )
     customer_segments: list[str] = Field(..., description="Primary customer segments.")
+
+    @field_validator("discontinued_offerings", mode="before")
+    @classmethod
+    def coerce_discontinued_offerings(cls, v: Any) -> list[str]:
+        """Accept string or list for discontinued offerings."""
+        if isinstance(v, str):
+            return [v] if v and v.lower() not in ("none", "n/a", "none reported") else []
+        if isinstance(v, list):
+            return v
+        return []
+
+    @field_validator("pricing_strategy", mode="before")
+    @classmethod
+    def coerce_pricing_strategy(cls, v: Any) -> str | dict[str, Any] | None:
+        """Accept string or dict for pricing strategy."""
+        if v is None:
+            return None
+        if isinstance(v, (str, dict)):
+            return v
+        return str(v)
 
 
 class Management(BaseModel):
@@ -83,6 +121,19 @@ class LegalCompliance(BaseModel):
     compliance_history: list[str] = Field(..., description="History of compliance and violations.")
     ongoing_litigation: list[str] = Field(default_factory=list, description="Ongoing or past litigation.")
     regulatory_filings: list[str] = Field(default_factory=list, description="Recent regulatory filings.")
+
+    @field_validator("ongoing_litigation", "compliance_history", "regulatory_filings", mode="before")
+    @classmethod
+    def coerce_to_list(cls, v: Any) -> list[str]:
+        """Accept string or list, coercing string to single-item list."""
+        if isinstance(v, str):
+            # Filter out common "none" responses
+            if v.lower() in ("none", "n/a", "none reported", "no litigation", ""):
+                return []
+            return [v]
+        if isinstance(v, list):
+            return v
+        return []
 
 
 class CompanyProfileReport(BaseModel):

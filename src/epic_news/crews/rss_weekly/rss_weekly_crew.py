@@ -3,6 +3,7 @@ from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import FileReadTool
 
 from epic_news.config.llm_config import LLMConfig
+from epic_news.models.crews.rss_weekly_report import RssWeeklyReport
 
 
 @CrewBase
@@ -55,11 +56,14 @@ class RssWeeklyCrew:
 
     @task
     def translation_task(self) -> Task:
-        """Task for translating the content into French and formatting as clean JSON."""
+        """Task for translating the content into French and formatting as clean JSON.
+        Uses RssWeeklyReport Pydantic model for structured output validation.
+        """
         return Task(
             config=self.tasks_config["translation_task"],  # type: ignore[arg-type, index]
             agent=self.translator_agent(),  # type: ignore[call-arg]
             context=[self.content_reading_task()],  # type: ignore[call-arg]
+            output_pydantic=RssWeeklyReport,
         )
 
     @crew
