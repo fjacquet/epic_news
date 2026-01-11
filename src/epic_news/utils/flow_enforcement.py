@@ -69,3 +69,37 @@ def kickoff_flow(crew_or_factory: Any, context: dict[str, Any]) -> Any:
         finally:
             elapsed = time.perf_counter() - start
             logger.info("✅ Crew {} finished in %.2fs", crew_name, elapsed)
+
+
+async def akickoff_flow(crew_or_factory: Any, context: dict[str, Any]) -> Any:
+    """Async version of kickoff_flow using CrewAI's native akickoff().
+
+    Uses CrewAI's native async execution for high-concurrency workloads.
+    Ideal for running multiple crews in parallel with asyncio.gather().
+
+    - Accepts either a Crew factory (with .crew()) or a Crew instance.
+    - Ensures context is a dict.
+    - Adds basic timing + optional tracing via trace_span.
+    """
+    if not isinstance(context, dict):
+        raise ValueError("akickoff_flow context must be a dict")
+
+    crew_name = type(crew_or_factory).__name__
+    start = time.perf_counter()
+
+    with trace_span("akickoff_flow", {"crew": crew_name, "keys": sorted(context.keys())}):
+        crew = _get_crew_instance(crew_or_factory)
+        if not hasattr(crew, "akickoff"):
+            raise AttributeError(f"Object {crew!r} does not support akickoff()")
+
+        logger.info(
+            "🚀 Async kicking off crew {} with context keys: {}",
+            crew_name,
+            ", ".join(sorted(context.keys())),
+        )
+        try:
+            result = await crew.akickoff(inputs=context)
+            return result
+        finally:
+            elapsed = time.perf_counter() - start
+            logger.info("✅ Crew {} finished in %.2fs", crew_name, elapsed)

@@ -28,6 +28,7 @@ if sys.platform == "darwin":
     os.environ["DYLD_LIBRARY_PATH"] = f"/opt/homebrew/lib:{os.environ.get('DYLD_LIBRARY_PATH', '')}"
     os.environ["PKG_CONFIG_PATH"] = f"/opt/homebrew/lib/pkgconfig:{os.environ.get('PKG_CONFIG_PATH', '')}"
 
+import asyncio
 import datetime
 import json
 import re
@@ -91,7 +92,7 @@ from epic_news.utils.diagnostics import dump_crewai_state, parse_crewai_output
 from epic_news.utils.directory_utils import ensure_output_directories
 from epic_news.utils.extractors.deep_research import DeepResearchExtractor
 from epic_news.utils.extractors.factory import ContentExtractorFactory
-from epic_news.utils.flow_enforcement import kickoff_flow
+from epic_news.utils.flow_enforcement import akickoff_flow, kickoff_flow
 from epic_news.utils.html.template_manager import TemplateManager
 from epic_news.utils.logger import setup_logging
 from epic_news.utils.menu_generator import MenuGenerator
@@ -1145,334 +1146,130 @@ class ReceptionFlow(Flow[ContentState]):
         """
         Handles requests classified for the 'OPEN_SOURCE_INTELLIGENCE' (OSINT) crew.
 
-        Invokes the `OSINTCrew` to gather open-source intelligence based on the topic.
+        Runs 6 independent OSINT crews in PARALLEL using asyncio.gather() for ~5-6x speedup,
+        then runs cross-reference report sequentially.
+
         Sets `output_file` to `output/osint/global_report.html` and stores the report
-        in `self.state.osint_report`. This is often part of a parallel data gathering process.
+        in `self.state.osint_report`.
         """
         self.state.output_file = "output/osint/global_report.html"
-        self.logger.info(f"Generating OSINT report for: {self.state.to_crew_inputs().get('topic', 'N/A')}")
+        company = self.state.to_crew_inputs().get("company") or self.state.to_crew_inputs().get("topic", "N/A")
+        self.logger.info(f"🚀 Generating OSINT report for: {company}")
+        self.logger.info("⚡ Running 6 OSINT crews in PARALLEL for maximum speed...")
 
-        # return "generate_osint"
+        # Run all OSINT crews in parallel using asyncio
+        asyncio.run(self._run_osint_parallel())
 
-    @listen("generate_osint")
-    @trace_task(tracer)
-    def generate_company_profile(self):
+    async def _run_osint_parallel(self):
         """
-        Generates a company profile based on the company name.
+        Run 6 independent OSINT crews in parallel using asyncio.gather().
 
-        This method is part of the OSINT process, focusing on gathering information
-        about a company. It sets `output_file` to `output/osint/company_profile.html`
-        and stores the profile in `self.state.company_profile`.
+        This provides ~5-6x speedup compared to sequential execution.
+        After parallel crews complete, runs cross-reference report sequentially.
         """
-        self.logger.info(
-            f"Generating company profile for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}"
-        )
+        import time
 
-        # Prepare I/O paths
-        self.state.output_file = "output/osint/company_profile.json"
-        html_file = "output/osint/company_profile.html"
-
-        # Prepare inputs and enforce kickoff-only orchestration
+        start_time = time.perf_counter()
         inputs = self.state.to_crew_inputs()
-        inputs["output_file"] = self.state.output_file
-        output = kickoff_flow(CompanyProfilerCrew(), inputs)
-        dump_crewai_state(output, "COMPANY_PROFILE")
-
-        # Keep raw output in state for compatibility
-        self.state.company_profile = output
-
-        # Prefer persisted JSON; fallback to robust parser
-        try:
-            with open(self.state.output_file, encoding="utf-8") as f:
-                data = json.load(f)
-            profile_model = CompanyProfileReport.model_validate(data)
-            self.logger.info("📄 Loaded company profile model from saved JSON file")
-        except Exception:
-            profile_model = parse_crewai_output(output, CompanyProfileReport, inputs)
-
-        # Render HTML via TemplateManager (generic path for COMPANY_PROFILE)
         template_manager = TemplateManager()
-        html_content = template_manager.render_report(
-            selected_crew="COMPANY_PROFILE", content_data=profile_model.model_dump()
-        )
 
-        with open(html_file, "w", encoding="utf-8") as f:
-            f.write(html_content)
+        # Define the 6 independent crews to run in parallel
+        # Each returns (crew_name, json_file, html_file, model_class, crew_class, state_attr)
+        parallel_crews = [
+            ("company_profile", "output/osint/company_profile.json", "output/osint/company_profile.html",
+             CompanyProfileReport, CompanyProfilerCrew, "company_profile", "COMPANY_PROFILE"),
+            ("tech_stack", "output/osint/tech_stack.json", "output/osint/tech_stack.html",
+             TechStackReport, TechStackCrew, "tech_stack", "TECH_STACK"),
+            ("web_presence", "output/osint/web_presence.json", "output/osint/web_presence.html",
+             WebPresenceReport, WebPresenceCrew, "web_presence_report", "WEB_PRESENCE"),
+            ("hr_intelligence", "output/osint/hr_intelligence.json", "output/osint/hr_intelligence.html",
+             HRIntelligenceReport, HRIntelligenceCrew, "hr_intelligence_report", "HR_INTELLIGENCE"),
+            ("legal_analysis", "output/osint/legal_analysis.json", "output/osint/legal_analysis.html",
+             LegalAnalysisReport, LegalAnalysisCrew, "legal_analysis_report", "LEGAL_ANALYSIS"),
+            ("geospatial_analysis", "output/osint/geospatial_analysis.json", "output/osint/geospatial_analysis.html",
+             GeospatialAnalysisReport, GeospatialAnalysisCrew, "geospatial_analysis", "GEOSPATIAL_ANALYSIS"),
+        ]
 
-        self.logger.info(f"✅ Company profile generated and HTML written to {html_file}")
-        # return "generate_company_profile"
+        # Create async tasks for all 6 crews
+        async def run_crew(crew_name: str, json_file: str, html_file: str,
+                          model_class: type, crew_class: type, state_attr: str, template_id: str) -> tuple[str, Any]:
+            """Run a single crew asynchronously."""
+            crew_inputs = inputs.copy()
+            crew_inputs["output_file"] = json_file
 
-    @listen("generate_osint")
-    @trace_task(tracer)
-    def generate_tech_stack(self):
-        """
-        Generates a tech stack report for the company.
+            self.logger.info(f"🔄 Starting {crew_name} crew...")
+            output = await akickoff_flow(crew_class(), crew_inputs)
+            dump_crewai_state(output, template_id)
 
-        This method is part of the OSINT process, focusing on identifying the
-        technologies used by a company. It sets `output_file` to `output/osint/tech_stack.json`
-        and stores the report in `self.state.tech_stack`.
-        """
-        self.logger.info(
-            f"Generating Tech Stack for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}"
-        )
+            # Parse and render
+            try:
+                with open(json_file, encoding="utf-8") as f:
+                    data = json.load(f)
+                model = model_class.model_validate(data)
+                self.logger.info(f"📄 Loaded {crew_name} model from saved JSON file")
+            except Exception:
+                model = parse_crewai_output(output, model_class, crew_inputs)
 
-        # Prepare I/O paths
-        json_file = "output/osint/tech_stack.json"
-        html_file = "output/osint/tech_stack.html"
+            html_content = template_manager.render_report(
+                selected_crew=template_id, content_data=model.model_dump()
+            )
+            with open(html_file, "w", encoding="utf-8") as f:
+                f.write(html_content)
 
-        # Prepare inputs and enforce kickoff-only orchestration
-        inputs = self.state.to_crew_inputs()
-        inputs["output_file"] = json_file
-        output = kickoff_flow(TechStackCrew(), inputs)
-        dump_crewai_state(output, "TECH_STACK")
+            self.logger.info(f"✅ {crew_name} completed and HTML written to {html_file}")
+            return (state_attr, output)
 
-        # Keep raw output in state for compatibility
-        self.state.tech_stack = output
+        # Run all 6 crews in parallel
+        self.logger.info("⚡ Launching 6 crews in parallel with asyncio.gather()...")
+        tasks = [
+            run_crew(name, json_f, html_f, model_cls, crew_cls, state_attr, template_id)
+            for name, json_f, html_f, model_cls, crew_cls, state_attr, template_id in parallel_crews
+        ]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
 
-        # Prefer persisted JSON; fallback to robust parser
-        try:
-            with open(json_file, encoding="utf-8") as f:
-                data = json.load(f)
-            report_model = TechStackReport.model_validate(data)
-            self.logger.info("📄 Loaded tech stack model from saved JSON file")
-        except Exception:
-            report_model = parse_crewai_output(output, TechStackReport, inputs)
+        # Process results and update state
+        for result in results:
+            if isinstance(result, BaseException):
+                self.logger.error(f"❌ Crew failed with error: {result}")
+            elif isinstance(result, tuple):
+                state_attr, output = result
+                setattr(self.state, state_attr, output)
 
-        # Render HTML via TemplateManager
-        template_manager = TemplateManager()
-        html_content = template_manager.render_report(
-            selected_crew="TECH_STACK", content_data=report_model.model_dump()
-        )
+        parallel_elapsed = time.perf_counter() - start_time
+        self.logger.info(f"⚡ 6 parallel crews completed in {parallel_elapsed:.2f}s")
 
-        with open(html_file, "w", encoding="utf-8") as f:
-            f.write(html_content)
+        # Now run cross-reference report sequentially (depends on all parallel crews)
+        self.logger.info("🔗 Running cross-reference report...")
+        await self._run_cross_reference_report(inputs, template_manager)
 
-        self.logger.info(f"✅ Tech stack HTML rendered: {html_file}")
+        total_elapsed = time.perf_counter() - start_time
+        self.logger.info(f"✅ Full OSINT pipeline completed in {total_elapsed:.2f}s")
 
-    @listen("generate_osint")
-    @trace_task(tracer)
-    def generate_web_presence(self):
-        """
-        Generates a web presence report for the company.
+    async def _run_cross_reference_report(self, inputs: dict[str, Any], template_manager: TemplateManager) -> None:
+        """Run cross-reference report after all parallel crews complete."""
+        json_file = "output/osint/global_report.json"
+        html_file = "output/osint/global_report.html"
 
-        This method is part of the OSINT process, focusing on analyzing the
-        company's online presence. It sets `output_file` to `output/osint/web_presence.json`
-        and stores the report in `self.state.web_presence_report`.
-        """
-        self.logger.info(
-            f"Generating Web Presence for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}"
-        )
+        self.state.output_file = json_file
+        company = inputs.get("company") or inputs.get("topic", "N/A")
+        self.logger.info(f"Generating Cross Reference Report for: {company}")
 
-        # Prepare I/O paths
-        json_file = "output/osint/web_presence.json"
-        html_file = "output/osint/web_presence.html"
-
-        # Prepare inputs and enforce kickoff-only orchestration
-        inputs = self.state.to_crew_inputs()
-        inputs["output_file"] = json_file
-        output = kickoff_flow(WebPresenceCrew(), inputs)
-        dump_crewai_state(output, "WEB_PRESENCE")
-
-        # Keep raw output in state for compatibility
-        self.state.web_presence_report = output
-
-        # Prefer persisted JSON; fallback to robust parser
-        try:
-            with open(json_file, encoding="utf-8") as f:
-                data = json.load(f)
-            report_model = WebPresenceReport.model_validate(data)
-            self.logger.info("📄 Loaded web presence model from saved JSON file")
-        except Exception:
-            report_model = parse_crewai_output(output, WebPresenceReport, inputs)
-
-        # Render HTML via TemplateManager
-        template_manager = TemplateManager()
-        html_content = template_manager.render_report(
-            selected_crew="WEB_PRESENCE", content_data=report_model.model_dump()
-        )
-
-        with open(html_file, "w", encoding="utf-8") as f:
-            f.write(html_content)
-
-        self.logger.info(f"✅ Web presence HTML rendered: {html_file}")
-
-    @listen("generate_osint")
-    @trace_task(tracer)
-    def generate_hr_intelligence(self):
-        """
-        Generates an HR intelligence report for the company.
-
-        This method is part of the OSINT process, focusing on gathering information
-        about the company's human resources. It sets `output_file` to `output/osint/hr_intelligence.json`
-        and stores the report in `self.state.hr_intelligence_report`.
-        """
-        self.logger.info(
-            f"Generating HR Intelligence for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}"
-        )
-
-        # Prepare I/O paths
-        json_file = "output/osint/hr_intelligence.json"
-        html_file = "output/osint/hr_intelligence.html"
-
-        # Prepare inputs and enforce kickoff-only orchestration
-        inputs = self.state.to_crew_inputs()
-        inputs["output_file"] = json_file
-        output = kickoff_flow(HRIntelligenceCrew(), inputs)
-        dump_crewai_state(output, "HR_INTELLIGENCE")
-
-        # Keep raw output in state for compatibility
-        self.state.hr_intelligence_report = output
-
-        # Prefer persisted JSON; fallback to robust parser
-        try:
-            with open(json_file, encoding="utf-8") as f:
-                data = json.load(f)
-            report_model = HRIntelligenceReport.model_validate(data)
-            self.logger.info("📄 Loaded HR intelligence model from saved JSON file")
-        except Exception:
-            report_model = parse_crewai_output(output, HRIntelligenceReport, inputs)
-
-        # Render HTML via TemplateManager
-        template_manager = TemplateManager()
-        html_content = template_manager.render_report(
-            selected_crew="HR_INTELLIGENCE", content_data=report_model.model_dump()
-        )
-
-        with open(html_file, "w", encoding="utf-8") as f:
-            f.write(html_content)
-
-        self.logger.info(f"✅ HR intelligence HTML rendered: {html_file}")
-
-    @listen("generate_osint")
-    @trace_task(tracer)
-    def generate_legal_analysis(self):
-        """
-        Generates a legal analysis report for the company.
-
-        This method is part of the OSINT process, focusing on analyzing the
-        company's legal aspects. It sets `output_file` to `output/osint/legal_analysis.json`
-        and stores the report in `self.state.legal_analysis_report`.
-        """
-        self.logger.info(
-            f"Generating Legal Analysis for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}"
-        )
-
-        # Prepare I/O paths
-        json_file = "output/osint/legal_analysis.json"
-        html_file = "output/osint/legal_analysis.html"
-
-        # Prepare inputs and enforce kickoff-only orchestration
-        inputs = self.state.to_crew_inputs()
-        inputs["output_file"] = json_file
-        output = kickoff_flow(LegalAnalysisCrew(), inputs)
-        dump_crewai_state(output, "LEGAL_ANALYSIS")
-
-        # Keep raw output in state for compatibility
-        self.state.legal_analysis_report = output
-
-        # Prefer persisted JSON; fallback to robust parser
-        try:
-            with open(json_file, encoding="utf-8") as f:
-                data = json.load(f)
-            report_model = LegalAnalysisReport.model_validate(data)
-            self.logger.info("📄 Loaded legal analysis model from saved JSON file")
-        except Exception:
-            report_model = parse_crewai_output(output, LegalAnalysisReport, inputs)
-
-        # Render HTML via TemplateManager
-        template_manager = TemplateManager()
-        html_content = template_manager.render_report(
-            selected_crew="LEGAL_ANALYSIS", content_data=report_model.model_dump()
-        )
-
-        with open(html_file, "w", encoding="utf-8") as f:
-            f.write(html_content)
-
-        self.logger.info(f"✅ Legal analysis HTML rendered: {html_file}")
-
-    @listen("generate_osint")
-    @trace_task(tracer)
-    def generate_geospatial_analysis(self):
-        """
-        Generates a geospatial analysis report for the company.
-
-        This method is part of the OSINT process, focusing on analyzing the
-        company's geospatial aspects. It sets `output_file` to `output/osint/geospatial_analysis.json`
-        and stores the report in `self.state.geospatial_analysis`.
-        """
-        self.logger.info(
-            f"Generating Geospatial Analysis for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}"
-        )
-
-        # Prepare I/O paths
-        json_file = "output/osint/geospatial_analysis.json"
-        html_file = "output/osint/geospatial_analysis.html"
-
-        # Prepare inputs and enforce kickoff-only orchestration
-        inputs = self.state.to_crew_inputs()
-        inputs["output_file"] = json_file
-        output = kickoff_flow(GeospatialAnalysisCrew(), inputs)
-        dump_crewai_state(output, "GEOSPATIAL_ANALYSIS")
-
-        # Keep raw output in state for compatibility
-        self.state.geospatial_analysis = output
-
-        # Prefer persisted JSON; fallback to robust parser
-        try:
-            with open(json_file, encoding="utf-8") as f:
-                data = json.load(f)
-            report_model = GeospatialAnalysisReport.model_validate(data)
-            self.logger.info("📄 Loaded geospatial analysis model from saved JSON file")
-        except Exception:
-            report_model = parse_crewai_output(output, GeospatialAnalysisReport, inputs)
-
-        # Render HTML via TemplateManager
-        template_manager = TemplateManager()
-        html_content = template_manager.render_report(
-            selected_crew="GEOSPATIAL_ANALYSIS", content_data=report_model.model_dump()
-        )
-
-        with open(html_file, "w", encoding="utf-8") as f:
-            f.write(html_content)
-
-        self.logger.info(f"✅ Geospatial analysis HTML rendered: {html_file}")
-
-    @listen("generate_osint")
-    @trace_task(tracer)
-    def generate_cross_reference_report(self):
-        """
-        Generates a cross-reference report based on the company name.
-
-        This method is part of the OSINT process, focusing on generating a
-        comprehensive report by cross-referencing various data points.
-        It sets `output_file` to `output/osint/global_report.html` and stores
-        the report in `self.state.cross_reference_report`.
-        """
-        self.state.output_file = "output/osint/global_report.json"
-        self.logger.info(
-            f"Generating Cross Reference Report for: {self.state.to_crew_inputs().get('company') or self.state.to_crew_inputs().get('topic', 'N/A')}"
-        )
-
-        inputs = self.state.to_crew_inputs()
-        inputs["output_file"] = self.state.output_file
-        output = kickoff_flow(CrossReferenceReportCrew(), inputs)
+        crew_inputs = inputs.copy()
+        crew_inputs["output_file"] = json_file
+        output = await akickoff_flow(CrossReferenceReportCrew(), crew_inputs)
         self.state.cross_reference_report = output
 
         dump_crewai_state(output, "CROSS_REFERENCE_REPORT")
 
-        html_file = "output/osint/global_report.html"
-
-        # Prefer persisted JSON; fallback to robust parser
+        # Parse and render
         try:
-            with open(self.state.output_file, encoding="utf-8") as f:
+            with open(json_file, encoding="utf-8") as f:
                 data = json.load(f)
             report_model = CrossReferenceReport.model_validate(data)
             self.logger.info("📄 Loaded cross reference model from saved JSON file")
         except Exception:
-            report_model = parse_crewai_output(output, CrossReferenceReport, inputs)
+            report_model = parse_crewai_output(output, CrossReferenceReport, crew_inputs)
 
-        # Render via TemplateManager
-        template_manager = TemplateManager()
         html_content = template_manager.render_report(
             selected_crew="CROSS_REFERENCE_REPORT",
             content_data=report_model.model_dump(),
@@ -1480,8 +1277,10 @@ class ReceptionFlow(Flow[ContentState]):
         with open(html_file, "w", encoding="utf-8") as f:
             f.write(html_content)
 
+        self.logger.info(f"✅ Cross reference report generated: {html_file}")
+
         # Generate consolidated global OSINT report from all individual JSON files
-        self._generate_osint_consolidated_report(inputs.get("company") or inputs.get("topic"))
+        self._generate_osint_consolidated_report(company)
 
     def _generate_osint_consolidated_report(self, company_name: str | None) -> None:
         """Generate a consolidated OSINT report from all individual JSON files."""
