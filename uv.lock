@@ -1030,7 +1030,7 @@ requires-dist = [
     { name = "composio-crewai", specifier = ">=0.7.18" },
     { name = "composio-openai", specifier = ">=0.8.7" },
     { name = "coverage", specifier = ">=7.9.1" },
-    { name = "crewai", specifier = ">=0.130.0" },
+    { name = "crewai", specifier = ">=1.8.1" },
     { name = "crewai-tools", extras = ["mcp"], specifier = ">=0.47.1" },
     { name = "exa-py", specifier = ">=1.14.9" },
     { name = "faker", specifier = ">=37.4.0" },
