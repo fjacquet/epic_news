@@ -1197,17 +1197,18 @@ wheels = [
 
 [[package]]
 name = "fastapi-sso"
-version = "0.17.0"
+version = "0.19.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "fastapi" },
     { name = "httpx" },
     { name = "oauthlib" },
     { name = "pydantic", extra = ["email"] },
+    { name = "pyjwt" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/91/7b/6f3c6ca695e5850ebbea7b5c31f3a85eab6da8d54db4a5fe2a20cc4fd70b/fastapi_sso-0.17.0.tar.gz", hash = "sha256:fa0e46a2a935999ea98874669c1925f4ef02d023d95ed703c8b126419275c627", size = 17225, upload-time = "2024-11-04T14:01:33.831Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/74/fc/644bc8f82fc887fffcf9a3eab8eb3dea06ee9ea160ef20441455ed7a0001/fastapi_sso-0.19.0.tar.gz", hash = "sha256:629f00581f72ea7e57f7b8775f8d2c425629c428c194359a2b4ebaa6bcb8e12b", size = 17278, upload-time = "2025-12-17T15:18:06.721Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e1/ba/ddf5c2d7fafb503d64765b485518ad5cd49a08dfab39bdb3500d494f10f5/fastapi_sso-0.17.0-py3-none-any.whl", hash = "sha256:5acadc7e46d7a9bd7974c7046c472048dc93fb2bf7b2d496550c012fc98d0f0f", size = 25910, upload-time = "2024-11-04T14:01:32.383Z" },
+    { url = "https://files.pythonhosted.org/packages/d7/61/d2ac0800cb1f390ec2aad464ea4cc5944de285fabc8f987327da4633f17d/fastapi_sso-0.19.0-py3-none-any.whl", hash = "sha256:d958c46cd9996234c7b162e192168b4c0807a248224a55b0f877d3a82a16a930", size = 26419, upload-time = "2025-12-17T15:18:05.439Z" },
 ]
 
 [[package]]
