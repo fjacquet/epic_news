@@ -1,14 +1,14 @@
 """A tool for fetching content from Wikipedia articles."""
 
 import json
-from enum import Enum
+from enum import StrEnum
 
 import wikipedia
 from crewai.tools import BaseTool
 from pydantic import BaseModel, Field
 
 
-class ArticleAction(str, Enum):
+class ArticleAction(StrEnum):
     """Enum for actions that can be performed on a Wikipedia article."""
 
     GET_SUMMARY = "get_summary"

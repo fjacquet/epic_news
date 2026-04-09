@@ -1,6 +1,6 @@
 """Pydantic models for menu designer output validation."""
 
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -62,14 +62,14 @@ class MenuOutputValidation(BaseModel):
 # Modèles pour la planification structurée du menu hebdomadaire
 
 
-class MealType(str, Enum):
+class MealType(StrEnum):
     """Type de repas dans la journée."""
 
     DEJEUNER = "déjeuner"
     DINER = "dîner"
 
 
-class DishType(str, Enum):
+class DishType(StrEnum):
     """Type de plat dans un repas."""
 
     ENTREE = "entrée"

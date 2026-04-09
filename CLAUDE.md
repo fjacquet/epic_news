@@ -5,50 +5,61 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Critical Commands
 
 ### Package Management (ALWAYS use `uv`)
-```bash
-# Install dependencies
-uv sync
-uv pip install -e .  # Editable install (required to prevent ModuleNotFoundError)
 
-# Add/remove packages
-uv add package-name
-uv remove package-name
+```bash
+uv sync && uv pip install -e .   # Install deps + editable install (required)
+uv add package-name              # Add a package
+uv remove package-name           # Remove a package
 ```
 
 **NEVER** use `pip`, `poetry`, or other package managers. This project exclusively uses `uv`.
 
 ### Running the Application
+
 ```bash
-# ALWAYS use this command to run crews
-crewai flow kickoff
+crewai flow kickoff    # or: make run-crew
 ```
 
-**NEVER** run crews directly via Python (`python -m src.epic_news.crews...` or `python src/epic_news/main.py`). The CrewAI Flow command is the only supported execution method.
+**NEVER** run crews directly via Python. The CrewAI Flow command is the only supported execution method.
 
 ### Testing
+
 ```bash
-# Run all tests
-uv run pytest
-
-# Run specific tests
-uv run pytest tests/path/to/test_file.py
-
-# Quick mode
-uv run pytest -q
+uv run pytest                           # Run all tests (or: make test)
+uv run pytest tests/path/to/test_file.py  # Run specific test
+uv run pytest -q                        # Quick mode
+uv run pytest -v                        # Verbose (or: make test-verbose)
 ```
 
-### Linting and Formatting
+### Linting, Formatting, and Type Checking
+
 ```bash
-# Auto-fix linting issues
-uv run ruff check --fix .
-
-# Format code
-uv run ruff format .
-
-# YAML validation and formatting
-uv run yamllint -s .
-uv run yamlfix src
+uv run ruff check --fix .     # Auto-fix lint issues (or: make lint)
+uv run ruff format .          # Format code (or: make format)
+uv run yamllint -s .          # YAML validation
+uv run yamlfix src            # YAML formatting
+uv run mypy src/epic_news     # Type checking (or: make type-check)
+make fix                      # Format + lint in one shot
+make validate                 # lint + test
 ```
+
+### Pre-commit Hooks
+
+Hooks run automatically on commit: ruff lint, ruff format, yamllint, mypy. Run manually:
+
+```bash
+uv run pre-commit run --all-files   # or: make pre-commit
+```
+
+### Security Checks
+
+```bash
+make security    # Runs bandit (code) + safety (deps)
+```
+
+### Useful Makefile Targets
+
+Run `make help` to see all targets. Key ones: `install`, `dev`, `test`, `lint`, `format`, `fix`, `validate`, `coverage`, `security`, `type-check`, `clean`, `run-crew`, `run-streamlit`, `run-api`, `docker-build-all`.
 
 ## Architecture Overview
 
@@ -65,135 +76,50 @@ The application uses a **single flow orchestration** pattern (`src/epic_news/mai
 
 ### Crew Implementation Pattern
 
-Each crew follows a standard structure:
+Each crew follows: `crew_name/{config/agents.yaml, config/tasks.yaml, crew_name_crew.py}` with `@CrewBase`, `@agent`, `@task`, `@crew` decorators. See `src/epic_news/crews/CLAUDE.md` for full code examples.
 
-```
-crew_name/
-├── config/
-│   ├── agents.yaml      # Agent definitions (role, goal, backstory)
-│   └── tasks.yaml       # Task definitions
-└── crew_name_crew.py    # Python implementation
-```
+**CRITICAL**: Tools must be assigned in `@agent` methods, NEVER in `agents.yaml` (causes `KeyError`).
 
-**Python crew class**:
-```python
-@CrewBase
-class MyCrew:
-    agents_config = "config/agents.yaml"
-    tasks_config = "config/tasks.yaml"
-    
-    @agent
-    def agent_name(self) -> Agent:
-        return Agent(
-            config=self.agents_config["agent_name"],
-            tools=self.my_tools,  # Tools MUST be assigned here, NOT in YAML
-            verbose=True,
-        )
-    
-    @task
-    def task_name(self) -> Task:
-        return Task(
-            config=self.tasks_config["task_name"],
-            agent=self.agent_name(),
-            output_pydantic=MyPydanticModel,  # Structured output
-        )
-    
-    @crew
-    def crew(self) -> Crew:
-        return Crew(
-            agents=self.agents,
-            tasks=self.tasks,
-            process=Process.sequential,
-            verbose=True,
-        )
-```
+### Pydantic Models
 
-**CRITICAL**: Tools must be assigned programmatically in the `@agent` method, never in `agents.yaml`. Hybrid YAML/code tool configuration causes `KeyError` exceptions.
-
-### Pydantic Models: Modern Python 3.13 Syntax
-
-CrewAI 1.8.0+ **fully supports** Python 3.13 union syntax (PEP 604: `X | Y`).
-
-```python
-# ✅ MODERN SYNTAX (Python 3.13+) - RECOMMENDED
-field: str | None = None
-field: str | int = "default"
-
-# ✅ Legacy syntax still works but not required
-from typing import Union, Optional
-field: Optional[str] = None
-field: Union[str, int] = "default"
-```
-
-**Project standard**: Use modern Python 3.13 union syntax (`X | None`, `X | Y`) for all new code. Ruff will auto-upgrade legacy syntax with `UP007`, `UP035`, `UP045` rules enabled.
+Use Python 3.13 union syntax (`X | None`, `X | Y`) for all new code. Ruff auto-upgrades via UP007/UP035/UP045.
 
 ### HTML Report Generation: Two-Agent Pattern
 
-**Problem**: Agents with tools write action traces to output files instead of final content.
+Separate research (has tools, no `output_file`) from reporting (NO tools, has `output_file`) to avoid action traces in output. See `src/epic_news/crews/CLAUDE.md` for code examples.
 
-**Solution**: Separate research from reporting:
+### Scoped Memory
 
-1. **Research Agent(s)**: Have tools, no `output_file`, pass data via context
-2. **Reporting Agent**: NO tools, has `output_file`, generates clean HTML
+Crews that benefit from memory use `LLMConfig.get_memory_config()` with per-agent scopes:
 
 ```python
-@agent
-def researcher(self) -> Agent:
-    return Agent(
-        tools=[WikipediaTool(), SearchTool()],  # Has tools
-        # No output_file
-    )
-
-@agent
-def reporter(self) -> Agent:
-    return Agent(
-        tools=[],  # NO TOOLS = No action traces
-        output_file="output/report.html",
-    )
+self._memory = LLMConfig.get_memory_config()
+# In @agent methods:
+memory=self._memory.scope("/agent/my_agent")
+# In @crew method:
+memory=self._memory
 ```
+
+Currently enabled for: `fin_daily`, `meeting_prep`. Extend to other crews as needed.
 
 ### HTML Rendering Architecture
 
-The project uses a **deterministic Python rendering** pattern for structured outputs:
+Pipeline: Crew result → Pydantic model → `*_to_html()` factory → `TemplateManager.render_report()` → `BaseRenderer` subclass.
 
-1. **TemplateManager** (`src/epic_news/utils/html/template_manager.py`): Central rendering coordinator
-2. **Crew-specific renderers** (`src/epic_news/utils/html/template_renderers/`): Extend `BaseRenderer`
-3. **Factory functions**: Each crew has a `*_to_html()` function (e.g., `poem_to_html()`)
+See `src/epic_news/utils/CLAUDE.md` for full rendering system docs.
 
-**Pattern**:
-```python
-# 1. Execute crew
-result = MyCrew().crew().kickoff(inputs=crew_inputs)
+**Renderer rules**: `BaseRenderer` subclasses must implement `__init__` (even if empty), use `tag.attrs["class"] = [...]` (NOT `class_="..."`), use CSS variables with fallbacks, handle empty states.
 
-# 2. Parse to Pydantic model
-model = MyModel.model_validate(json.loads(result.raw))
+### Federated HTML Theme
 
-# 3. Render via factory
-my_crew_to_html(model, html_file="output/my_crew/report.html")
-```
-
-**Factory delegates to TemplateManager**:
-```python
-def my_crew_to_html(model: MyModel, html_file: str):
-    TemplateManager.render_report(
-        crew_identifier="my_crew",
-        data=model.model_dump(),
-        output_path=html_file,
-    )
-```
-
-**Important renderer notes**:
-- All `BaseRenderer` subclasses **must implement `__init__`** (even if empty)
-- Use `tag.attrs["class"] = [...]` for CSS classes, NOT `class_="..."`
-- Use CSS variables with fallbacks: `color: var(--text-color, #343a40);`
-- Handle empty states gracefully
+CSS theme variables are defined in `src/epic_news/config/ui_theme.py` (single source of truth). The template uses a `{{ theme_css_vars }}` placeholder injected by `TemplateManager` at render time. To change colors/typography, edit `ui_theme.py` — all reports update automatically.
 
 ### Information Retrieval: Real-Time, Not RAG
 
 The project uses **real-time data fetching** instead of traditional RAG:
 
 - **Rationale**: Financial markets change constantly; vector databases would be stale
-- **Approach**: Agents use live tools (SerperDev, Tavily, YahooFinance, etc.) for every execution
+- **Approach**: Agents use live tools (Perplexity, Tavily, YahooFinance, etc.) for every execution
 - **SaveToRagTool**: Used as a short-term scratchpad within a single crew execution, not permanent storage
 
 ### Tool Output Standardization
@@ -208,221 +134,50 @@ All tool `_run()` methods must return **JSON strings** parseable by `json.loads(
 
 ## LLM Configuration - OpenRouter
 
-This project uses **OpenRouter** as the primary LLM provider for cost efficiency and model flexibility.
+All config via `LLMConfig` (`src/epic_news/config/llm_config.py`):
 
-### Centralized Configuration
-
-All LLM configuration is managed through `LLMConfig` (`src/epic_news/config/llm_config.py`):
-
-```python
-from epic_news.config.llm_config import LLMConfig
-
-# Get OpenRouter LLM instance
-llm = LLMConfig.get_openrouter_llm()
-
-# Get timeouts by task type
-llm_timeout = LLMConfig.get_timeout("quick")    # 120s
-llm_timeout = LLMConfig.get_timeout("default")  # 300s
-llm_timeout = LLMConfig.get_timeout("long")     # 600s
-
-# Get crew configuration
-max_iter = LLMConfig.get_max_iter()  # default: 5
-max_rpm = LLMConfig.get_max_rpm()    # default: 20
-```
+- `LLMConfig.get_openrouter_llm()` — LLM instance (supports opt-in `reasoning_effort` for Magistral models)
+- `LLMConfig.get_timeout("quick"|"default"|"long")` — 120s / 300s / 600s
+- `LLMConfig.get_memory_config()` — Configured `Memory` instance with scoped agent memory
+- `LLMConfig.get_max_iter()` / `LLMConfig.get_max_rpm()` — crew limits (default: 5 / 20)
 
 ### Environment Variables
 
-Configure in `.env`:
-```bash
-# OpenRouter Configuration (PRIMARY LLM PROVIDER)
-OPENROUTER_API_KEY=your_openrouter_api_key_here
-MODEL=openrouter/xiaomi/mimo-v2-flash:free  # Default model
-OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
+Key `.env` settings: `OPENROUTER_API_KEY`, `MODEL` (default: `openrouter/mistralai/mistral-small-2603`), `OPENROUTER_BASE_URL`, `LLM_TEMPERATURE` (0.7), `LLM_TIMEOUT_QUICK/DEFAULT/LONG`, `LLM_REASONING_EFFORT` (opt-in, for Magistral models), `CREW_MAX_ITER`, `CREW_MAX_RPM`. Change `MODEL` in `.env` to switch models globally.
 
-# LLM Parameters
-LLM_TEMPERATURE=0.7                          # 0.0-2.0: Lower=deterministic, Higher=creative
-LLM_MAX_TOKENS=                              # Leave empty for no limit
-
-# Timeout Configuration (seconds)
-LLM_TIMEOUT_QUICK=120                        # Quick tasks (cooking, classification)
-LLM_TIMEOUT_DEFAULT=300                      # Standard tasks (research, analysis)
-LLM_TIMEOUT_LONG=600                         # Complex tasks (deep research, reports)
-
-# Crew Configuration
-CREW_MAX_ITER=5                              # Max iterations per crew
-CREW_MAX_RPM=20                              # Max requests per minute
-```
-
-### Switching Models
-
-To change models globally, update `.env`:
-```bash
-MODEL=openrouter/anthropic/claude-3.5-sonnet
-```
-All crews will use the new model on next run.
-
-### Agent Configuration Pattern
-
-**ALWAYS** use `LLMConfig` methods in agent/crew definitions:
-
-```python
-from epic_news.config.llm_config import LLMConfig
-
-@agent
-def my_agent(self) -> Agent:
-    return Agent(
-        config=self.agents_config["my_agent"],
-        llm=LLMConfig.get_openrouter_llm(),  # ✅ CORRECT
-        llm_timeout=LLMConfig.get_timeout("default"),  # ✅ CORRECT
-        verbose=True,
-    )
-
-@crew
-def crew(self) -> Crew:
-    return Crew(
-        agents=self.agents,
-        tasks=self.tasks,
-        process=Process.sequential,
-        llm_timeout=LLMConfig.get_timeout("default"),  # ✅ CORRECT
-        max_iter=LLMConfig.get_max_iter(),              # ✅ CORRECT
-        max_rpm=LLMConfig.get_max_rpm(),                # ✅ CORRECT
-        verbose=True,
-    )
-```
-
-**NEVER** hardcode model names or timeout values:
-```python
-# ❌ WRONG - Hardcoded values
-llm="gpt-4o-mini"
-llm_timeout=300
-max_iter=5
-```
+**NEVER** hardcode model names or timeout values — always use `LLMConfig` methods.
 
 ## MCP Servers
 
-The project uses MCP (Model Context Protocol) servers for advanced tool integration.
-
-### Available MCP Servers
-
-1. **Wikipedia MCP** (`wikipedia-mcp-server`): Maintained Wikipedia integration
-   - `search`: Search Wikipedia with language support
-   - `fetch`: Fetch page content by ID
-
-### Configuration
-
-MCP servers are configured in `src/epic_news/config/mcp_config.py`:
-
-```python
-from epic_news.config.mcp_config import get_wikipedia_mcp
-
-# Get Wikipedia MCP server
-wikipedia_server = get_wikipedia_mcp()
-```
-
-### Usage in Crews
-
-MCP servers are automatically available to crews that need them. The Wikipedia MCP server is primarily used by:
-- `deep_research` crew (encyclopedic research)
-- `library` crew (book context)
-- `holiday_planner` crew (destination information)
-
-**Note**: MCP integration is transparent - crews access MCP tools like any other tool.
+Wikipedia MCP (`wikipedia-mcp-server`) configured in `src/epic_news/config/mcp_config.py` via `get_wikipedia_mcp()`. Used by: `deep_research`, `library`, `holiday_planner`. MCP tools are transparent to crews.
 
 ## Composio Tools
 
-The project integrates **Composio 1.0** with 176 tools across 10 toolkits for comprehensive external service integration.
+Composio 1.0 integration via `ComposioConfig` (`src/epic_news/config/composio_config.py`):
 
-### Available Toolkits
+- `get_search_tools()` — Reddit, Twitter, HackerNews (used by: `company_news`, `news_daily`)
+- `get_communication_tools()` — Gmail, Slack, Discord, Notion (used by: `post`)
+- `get_financial_tools()` — CoinMarketCap (used by: `fin_daily`)
+- `get_content_creation_tools()` — Canva, Airtable
 
-1. **Social Platform Search**: Reddit, Twitter, HackerNews
-2. **Communication**: Gmail, Slack, Discord, Notion
-3. **Financial Data**: CoinMarketCap
-4. **Content Creation**: Canva, Airtable
-
-### Configuration
-
-All Composio tools are managed through `ComposioConfig` (`src/epic_news/config/composio_config.py`):
-
-```python
-from epic_news.config.composio_config import ComposioConfig
-
-composio = ComposioConfig()
-
-# Get tool categories
-search_tools = composio.get_search_tools()           # Reddit, Twitter, HackerNews
-comm_tools = composio.get_communication_tools()      # Gmail, Slack, Discord, Notion
-financial_tools = composio.get_financial_tools()     # CoinMarketCap
-content_tools = composio.get_content_creation_tools()  # Canva, Airtable
-```
-
-### Tool Categories
-
-**Search Tools** (5 tools):
-- `REDDIT_GET_POSTS`: Aggregate Reddit discussions
-- `TWITTER_SEARCH`: Real-time social media trends
-- `HACKERNEWS_GET_STORIES`: Tech news aggregation
-
-**Communication Tools** (Gmail, Slack, Discord, Notion):
-- Email sending, Slack messaging, Discord notifications
-- Note: Gmail in Composio 1.0 uses `CREATE_EMAIL_DRAFT` instead of deprecated `GMAIL_SEND_EMAIL`
-
-**Financial Tools**:
-- `COINMARKETCAP_GET_LISTINGS`: Cryptocurrency market data
-
-**Content Creation**:
-- Canva design integration
-- Airtable data management
-
-### Usage Pattern
-
-```python
-from epic_news.config.composio_config import ComposioConfig
-
-def __init__(self):
-    composio = ComposioConfig()
-    self.search_tools = composio.get_search_tools()
-
-@agent
-def researcher(self) -> Agent:
-    return Agent(
-        config=self.agents_config["researcher"],
-        tools=self.search_tools,  # Reddit, Twitter, HackerNews
-        verbose=True,
-    )
-```
-
-### Environment Variables
-
-Required API keys in `.env`:
-```bash
-# Composio Configuration
-COMPOSIO_API_KEY=your_composio_api_key
-
-# Optional: Individual service keys if using direct integrations
-REDDIT_CLIENT_ID=your_reddit_client_id
-REDDIT_CLIENT_SECRET=your_reddit_client_secret
-TWITTER_API_KEY=your_twitter_api_key
-```
-
-### Crew-Specific Tool Assignment
-
-Different crews use different Composio tool categories:
-- **News crews** (`company_news`, `news_daily`): Search tools (Reddit, Twitter, HackerNews)
-- **Financial crews** (`fin_daily`): Financial tools (CoinMarketCap)
-- **Communication crews** (`post`): Communication tools (Gmail, Slack)
+**Note**: Gmail uses `CREATE_EMAIL_DRAFT` (not deprecated `GMAIL_SEND_EMAIL`). Requires `COMPOSIO_API_KEY` in `.env`.
 
 ## Code Style Specifics
 
 ### Imports
+
 ALL imports must be at the top of files, never inside functions or methods.
 
 ### Whitespace
+
 - No trailing whitespace (W291)
 - No whitespace on blank lines (W293)
 - Enforced by pre-commit hooks
 
 ### Logging
+
 Use Loguru, not standard `logging`:
+
 ```python
 from loguru import logger
 
@@ -437,21 +192,26 @@ Configuration in `src/epic_news/utils/logger.py`.
 1. **Using `pip` instead of `uv`** → Always use `uv`
 2. **Running crews directly** → Always use `crewai flow kickoff`
 3. **Tools in YAML files** → Tools must be assigned in Python code
-4. **Python 3.10+ Union syntax in Pydantic** → Use `Union[X, Y]` and `Optional[X]`
+4. **Legacy Union syntax in new code** → Use modern `X | Y` and `X | None` (Python 3.13+)
 5. **Single-agent HTML reports** → Use two-agent pattern (researcher + reporter)
 6. **Constructor injection for context** → Use `.kickoff(inputs=crew_inputs)`
 7. **Using `os.makedirs()` in crews** → Use centralized `ensure_output_directories()`
 8. **Hardcoded LLM configuration** → Always use `LLMConfig.get_openrouter_llm()`, `LLMConfig.get_timeout()`, etc.
 9. **Hardcoded model names** → Use `MODEL` from `.env` via `LLMConfig`, never `llm="gpt-4o-mini"`
 
+## Python Version
+
+This project requires **Python 3.13** (`requires-python = ">=3.13,<3.14"`). The `.python-version` file is set to `3.13`.
+
 ## Development Workflow
 
-1. Setup: `uv sync && uv pip install -e .`
+1. Setup: `make dev` (or `uv sync && uv pip install -e .`)
 2. Make changes
-3. Test: `uv run pytest`
-4. Lint: `uv run ruff check --fix`
-5. Validate: `crewai flow kickoff` (end-to-end)
-6. Commit (pre-commit hooks run automatically)
+3. Test: `make test` (or `uv run pytest`)
+4. Fix: `make fix` (format + lint)
+5. Validate: `make validate` (lint + test)
+6. End-to-end: `make run-crew` (or `crewai flow kickoff`)
+7. Commit (pre-commit hooks: ruff lint, ruff format, yamllint, mypy)
 
 ## Key Documentation
 
@@ -459,3 +219,156 @@ Configuration in `src/epic_news/utils/logger.py`.
 - `docs/3_ARCHITECTURAL_PATTERNS.md`: Detailed architectural patterns
 - `docs/2_TOOLS_HANDBOOK.md`: All available tools and their usage
 - `README.md`: User-facing documentation and use cases
+
+## Subdirectory CLAUDE.md Files
+
+More detailed context exists in subdirectory CLAUDE.md files:
+
+- `src/epic_news/crews/CLAUDE.md`: Crew implementation patterns
+- `src/epic_news/tools/CLAUDE.md`: Tool development guide
+- `src/epic_news/utils/CLAUDE.md`: Utility modules and HTML rendering system
+
+<!-- rtk-instructions v2 -->
+# RTK (Rust Token Killer) - Token-Optimized Commands
+
+## Golden Rule
+
+**Always prefix commands with `rtk`**. If RTK has a dedicated filter, it uses it. If not, it passes through unchanged. This means RTK is always safe to use.
+
+**Important**: Even in command chains with `&&`, use `rtk`:
+
+```bash
+# ❌ Wrong
+git add . && git commit -m "msg" && git push
+
+# ✅ Correct
+rtk git add . && rtk git commit -m "msg" && rtk git push
+```
+
+## RTK Commands by Workflow
+
+### Build & Compile (80-90% savings)
+
+```bash
+rtk cargo build         # Cargo build output
+rtk cargo check         # Cargo check output
+rtk cargo clippy        # Clippy warnings grouped by file (80%)
+rtk tsc                 # TypeScript errors grouped by file/code (83%)
+rtk lint                # ESLint/Biome violations grouped (84%)
+rtk prettier --check    # Files needing format only (70%)
+rtk next build          # Next.js build with route metrics (87%)
+```
+
+### Test (90-99% savings)
+
+```bash
+rtk cargo test          # Cargo test failures only (90%)
+rtk vitest run          # Vitest failures only (99.5%)
+rtk playwright test     # Playwright failures only (94%)
+rtk test <cmd>          # Generic test wrapper - failures only
+```
+
+### Git (59-80% savings)
+
+```bash
+rtk git status          # Compact status
+rtk git log             # Compact log (works with all git flags)
+rtk git diff            # Compact diff (80%)
+rtk git show            # Compact show (80%)
+rtk git add             # Ultra-compact confirmations (59%)
+rtk git commit          # Ultra-compact confirmations (59%)
+rtk git push            # Ultra-compact confirmations
+rtk git pull            # Ultra-compact confirmations
+rtk git branch          # Compact branch list
+rtk git fetch           # Compact fetch
+rtk git stash           # Compact stash
+rtk git worktree        # Compact worktree
+```
+
+Note: Git passthrough works for ALL subcommands, even those not explicitly listed.
+
+### GitHub (26-87% savings)
+
+```bash
+rtk gh pr view <num>    # Compact PR view (87%)
+rtk gh pr checks        # Compact PR checks (79%)
+rtk gh run list         # Compact workflow runs (82%)
+rtk gh issue list       # Compact issue list (80%)
+rtk gh api              # Compact API responses (26%)
+```
+
+### JavaScript/TypeScript Tooling (70-90% savings)
+
+```bash
+rtk pnpm list           # Compact dependency tree (70%)
+rtk pnpm outdated       # Compact outdated packages (80%)
+rtk pnpm install        # Compact install output (90%)
+rtk npm run <script>    # Compact npm script output
+rtk npx <cmd>           # Compact npx command output
+rtk prisma              # Prisma without ASCII art (88%)
+```
+
+### Files & Search (60-75% savings)
+
+```bash
+rtk ls <path>           # Tree format, compact (65%)
+rtk read <file>         # Code reading with filtering (60%)
+rtk grep <pattern>      # Search grouped by file (75%)
+rtk find <pattern>      # Find grouped by directory (70%)
+```
+
+### Analysis & Debug (70-90% savings)
+
+```bash
+rtk err <cmd>           # Filter errors only from any command
+rtk log <file>          # Deduplicated logs with counts
+rtk json <file>         # JSON structure without values
+rtk deps                # Dependency overview
+rtk env                 # Environment variables compact
+rtk summary <cmd>       # Smart summary of command output
+rtk diff                # Ultra-compact diffs
+```
+
+### Infrastructure (85% savings)
+
+```bash
+rtk docker ps           # Compact container list
+rtk docker images       # Compact image list
+rtk docker logs <c>     # Deduplicated logs
+rtk kubectl get         # Compact resource list
+rtk kubectl logs        # Deduplicated pod logs
+```
+
+### Network (65-70% savings)
+
+```bash
+rtk curl <url>          # Compact HTTP responses (70%)
+rtk wget <url>          # Compact download output (65%)
+```
+
+### Meta Commands
+
+```bash
+rtk gain                # View token savings statistics
+rtk gain --history      # View command history with savings
+rtk discover            # Analyze Claude Code sessions for missed RTK usage
+rtk proxy <cmd>         # Run command without filtering (for debugging)
+rtk init                # Add RTK instructions to CLAUDE.md
+rtk init --global       # Add RTK to ~/.claude/CLAUDE.md
+```
+
+## Token Savings Overview
+
+| Category | Commands | Typical Savings |
+|----------|----------|-----------------|
+| Tests | vitest, playwright, cargo test | 90-99% |
+| Build | next, tsc, lint, prettier | 70-87% |
+| Git | status, log, diff, add, commit | 59-80% |
+| GitHub | gh pr, gh run, gh issue | 26-87% |
+| Package Managers | pnpm, npm, npx | 70-90% |
+| Files | ls, read, grep, find | 60-75% |
+| Infrastructure | docker, kubectl | 85% |
+| Network | curl, wget | 65-70% |
+
+Overall average: **60-90% token reduction** on common development operations.
+<!-- /rtk-instructions -->

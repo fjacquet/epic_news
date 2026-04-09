@@ -113,6 +113,7 @@ type = "flow"
 
 [tool.ruff]
 line-length = 110
+fix = true
 target-version = "py313"
 
 [tool.ruff.lint]
@@ -206,6 +207,7 @@ hyphens = { max-spaces-after = 1 }
 [dependency-groups]
 dev = [
     "pre-commit>=4.2.0",
+    "pytest-regressions>=2.10.0",
     "ruff>=0.12.1",
     "yamlfix>=1.17.0",
     "yamllint>=1.37.1",

@@ -1,4 +1,3 @@
-
 services:
   api:
     image: fjacquet/epic-news-api:latest

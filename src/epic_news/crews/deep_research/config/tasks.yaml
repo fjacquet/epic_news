@@ -56,7 +56,7 @@ information_collection_task:
     Un corpus de recherche structuré combinant sources web et encyclopédiques :
     - Un ensemble complet de données brutes (articles, statistiques, etc.) enregistré
      dans des fichiers markdown dans "output/deep_research/"
-    - Une bibliographie annotée détaillée pour CHAQUE source (web et Wikipedia), 
+    - Une bibliographie annotée détaillée pour CHAQUE source (web et Wikipedia),
       incluant OBLIGATOIREMENT:
       * Un titre descriptif
       * Une URL précise et fonctionnelle (permanente pour Wikipedia)

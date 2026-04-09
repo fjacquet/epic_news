@@ -11,6 +11,7 @@ from typing import Any
 
 from pydantic import BaseModel
 
+from epic_news.config.ui_theme import generate_theme_css
 from epic_news.models.crews.financial_report import FinancialReport
 from epic_news.utils.html.template_renderers.renderer_factory import RendererFactory
 
@@ -94,7 +95,8 @@ class TemplateManager:
             body_content = self.generate_contextual_body(content_data, selected_crew)
 
             # Replace placeholders in the template
-            html_content = template_html.replace("{{ report_title }}", title)
+            html_content = template_html.replace("{{ theme_css_vars }}", generate_theme_css())
+            html_content = html_content.replace("{{ report_title }}", title)
             html_content = html_content.replace("{{ report_body|safe }}", body_content)
             html_content = html_content.replace(
                 "{{ generation_date }}", datetime.now().strftime("%Y-%m-%d %H:%M:%S")

@@ -1256,7 +1256,7 @@ class ReceptionFlow(Flow[ContentState]):
             try:
                 with open(json_file, encoding="utf-8") as f:
                     data = json.load(f)
-                model = model_class.model_validate(data)
+                model = model_class.model_validate(data)  # type: ignore[attr-defined]
                 self.logger.info(f"📄 Loaded {crew_name} model from saved JSON file")
             except Exception:
                 model = parse_crewai_output(output, model_class, crew_inputs)
@@ -1359,7 +1359,7 @@ class ReceptionFlow(Flow[ContentState]):
                 try:
                     with open(json_path, encoding="utf-8") as f:
                         data = json.load(f)
-                    validated_data = model_class.model_validate(data)
+                    validated_data = model_class.model_validate(data)  # type: ignore[attr-defined]
                     osint_data[data_key] = validated_data.model_dump()
                     self.logger.debug(f"✅ Loaded {json_file} for consolidated report")
                 except Exception as e:
@@ -1494,7 +1494,7 @@ class ReceptionFlow(Flow[ContentState]):
             # If Composio isn't available, skip email sending gracefully
             try:
                 try:
-                    from composio_crewai import CrewAIProvider  # type: ignore
+                    from composio_crewai import CrewAIProvider
 
                     # Attempt to initialize to ensure environment is ready
                     _ = CrewAIProvider()
@@ -1534,7 +1534,8 @@ def kickoff(user_input: str | None = None):
     setup_logging()
     # If user_input is not provided, use a default value.
     request = (
-        user_input if user_input else "Complete OSINT analysis of Mistral.AI"
+        user_input if user_input else "Donne moi le saint du jour en français"
+        # else "Complete OSINT analysis of Mistral.AI"
         # else "get the daily  news report"
         # else "conduct a deep research study on a travel on the north of the italy between san remo and Genova. Give me the best hotel and restaurant options."
         # + "How to book italian train, electrical bicylce and cultural events. I will be alone for 1 week in end of july "

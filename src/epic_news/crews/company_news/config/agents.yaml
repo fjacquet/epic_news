@@ -45,7 +45,7 @@ analyst:
 #     4. Proper verification requires cross-checking information with multiple search
 #     tools
 #     5. You must use search tools (COMPOSIO_SEARCH_TAVILY_SEARCH, COMPOSIO_SEARCH_DUCK_DUCK_GO_SEARCH,
-#     etc.) 
+#     etc.)
 #        to verify claims and find reliable sources for each piece of information
 #     You carefully search for and verify content from multiple sources, confirm that
 #     the content actually discusses the topic, and include direct quotes from the sources

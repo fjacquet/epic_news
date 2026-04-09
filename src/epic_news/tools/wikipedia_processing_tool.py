@@ -1,13 +1,13 @@
 """A tool for processing content from Wikipedia articles."""
 
-from enum import Enum
+from enum import StrEnum
 
 import wikipedia
 from crewai.tools import BaseTool
 from pydantic import BaseModel, Field
 
 
-class ProcessingAction(str, Enum):
+class ProcessingAction(StrEnum):
     """Enum for processing actions on a Wikipedia article."""
 
     EXTRACT_KEY_FACTS = "extract_key_facts"

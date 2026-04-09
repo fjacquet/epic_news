@@ -4,11 +4,11 @@ from crewai_tools import (
     GithubSearchTool,
     PDFSearchTool,
     ScrapeWebsiteTool,
-    SerperDevTool,
     WebsiteSearchTool,
     YoutubeVideoSearchTool,
 )
 
+from epic_news.tools.perplexity_search_tool import PerplexitySearchTool
 from epic_news.tools.scraper_factory import get_scraper
 from epic_news.tools.web_tools import (
     get_all_web_tools,
@@ -25,18 +25,13 @@ from epic_news.tools.web_tools import (
 def test_get_search_tools():
     tools = get_search_tools()
     assert len(tools) == 1
-    serper_tool = tools[0]
-    assert isinstance(serper_tool, SerperDevTool)
-    assert serper_tool.n_results == 25
-    assert serper_tool.search_type == "search"
+    assert isinstance(tools[0], PerplexitySearchTool)
 
 
 def test_get_news_tools():
     tools = get_news_tools()
     assert len(tools) == 1
-    assert isinstance(tools[0], SerperDevTool)
-    assert tools[0].n_results == 25
-    assert tools[0].search_type == "news"
+    assert isinstance(tools[0], PerplexitySearchTool)
 
 
 def test_get_scrape_tools():
@@ -92,7 +87,7 @@ def test_get_all_web_tools():
     tool_types = {type(tool) for tool in all_tools}
     primary_scraper_type = type(get_scraper())
     expected_types = {
-        SerperDevTool,
+        PerplexitySearchTool,
         primary_scraper_type,
         ScrapeWebsiteTool,
         WebsiteSearchTool,

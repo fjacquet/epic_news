@@ -60,7 +60,7 @@ class RetryLLMWrapper(BaseLLM):
             factor: Backoff factor for exponential delay
             verbose: Whether to log detailed retry information
         """
-        super().__init__(
+        super().__init__(  # type: ignore[call-arg]
             llm=llm,
             max_retries=max_retries,
             min_seconds=min_seconds,

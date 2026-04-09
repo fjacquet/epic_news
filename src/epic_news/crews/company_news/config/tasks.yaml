@@ -39,7 +39,7 @@ analysis_task:
 #     IMPORTANT: For each news item that includes a source or claim:
 #     1. Use all available search tools (COMPOSIO_SEARCH_TAVILY_SEARCH, COMPOSIO_SEARCH_DUCK_DUCK_GO_SEARCH,
 #        COMPOSIO_SEARCH_NEWS_SEARCH, COMPOSIO_SEARCH_SEARCH) to verify the claim by
-#     searching for 
+#     searching for
 #        corroborating evidence and checking the credibility of sources
 #     2. For each source, verify that the information is current and up-to-date (from
 #     2024-2025)
