@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel, Field, model_validator
@@ -21,7 +21,7 @@ __all__ = [
 ]
 
 
-class MetricType(str, Enum):
+class MetricType(StrEnum):
     """Types of metrics that can be tracked."""
 
     NUMERIC = "numeric"
@@ -35,7 +35,7 @@ class MetricType(str, Enum):
     COUNT = "count"
 
 
-class TrendDirection(str, Enum):
+class TrendDirection(StrEnum):
     """Possible trend directions for metrics."""
 
     UP = "up"

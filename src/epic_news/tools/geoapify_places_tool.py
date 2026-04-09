@@ -7,7 +7,7 @@ points of interest by categories, conditions, and location filters.
 
 import json
 import os
-from enum import Enum
+from enum import StrEnum
 
 import requests
 from crewai.tools import BaseTool
@@ -19,7 +19,7 @@ class GeoapifyPlacesInput(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    class FilterType(str, Enum):
+    class FilterType(StrEnum):
         CIRCLE = "circle"  # lon,lat,radiusM
         RECT = "rect"  # lon1,lat1,lon2,lat2
         PLACE = "place"  # place ID
