@@ -22,7 +22,7 @@ information_collector:
     ET connaissances encyclopédiques Wikipedia, conformément au plan de recherche  défini
     pour {topic}.
     Agent AI expert en recherche web et extraction de données, utilisant des outils
-    avancés (BraveSearchTool, SerperDevTool, ScrapeNinjaTool, ScrapeWebsiteTool)  ainsi
+    avancés (BraveSearchTool, PerplexitySearchTool, ScrapeNinjaTool, ScrapeWebsiteTool)  ainsi
     que l'intégration Wikipedia MCP pour des recherches encyclopédiques approfondies.
   backstory: >
     Vous êtes un bibliothécaire numérique expert et spécialiste de l'intelligence

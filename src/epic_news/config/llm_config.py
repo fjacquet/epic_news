@@ -2,8 +2,8 @@
 
 import os
 
+from crewai import LLM, Memory
 from dotenv import load_dotenv
-from langchain_openai import ChatOpenAI
 
 load_dotenv()
 
@@ -16,7 +16,7 @@ class LLMConfig:
     provider, allowing flexible model selection while maintaining cost efficiency.
 
     Environment Variables:
-        MODEL: Model identifier (default: "openrouter/xiaomi/mimo-v2-flash:free")
+        MODEL: Model identifier (default: "openrouter/mistralai/mistral-small-2603")
         OPENROUTER_API_KEY: OpenRouter API key
         LLM_TEMPERATURE: Response randomness (0.0-2.0, default: 0.7)
         LLM_MAX_TOKENS: Maximum response tokens (optional)
@@ -45,15 +45,16 @@ class LLMConfig:
         temperature: float | None = None,
         max_tokens: int | None = None,
         enable_middle_out: bool | None = None,
-    ) -> ChatOpenAI:
-        """Get ChatOpenAI instance configured for OpenRouter.
+        reasoning_effort: str | None = None,
+    ) -> LLM:
+        """Get CrewAI LLM instance configured for OpenRouter.
 
-        This method creates a LangChain ChatOpenAI instance configured to use
+        This method creates a CrewAI LLM instance configured to use
         OpenRouter's API. It reads configuration from environment variables,
         with sensible defaults for missing values.
 
         Args:
-            model: Model name (e.g., "openrouter/xiaomi/mimo-v2-flash:free").
+            model: Model name (e.g., "openrouter/mistralai/mistral-small-2603").
                    If None, uses MODEL from .env.
             temperature: LLM temperature (0.0-2.0). Controls response randomness.
                         Lower values (0.0-0.3) are more deterministic.
@@ -65,9 +66,13 @@ class LLMConfig:
                               context overflow. When enabled, prompts exceeding the
                               model's context window are automatically compressed.
                               If None, uses OPENROUTER_MIDDLE_OUT from .env (default: true).
+            reasoning_effort: Reasoning effort level for models that support it
+                             (e.g., Mistral Magistral: "low", "medium", "high").
+                             If None, reads LLM_REASONING_EFFORT from .env.
+                             Only applied when set to a non-empty value other than "none".
 
         Returns:
-            ChatOpenAI instance configured for OpenRouter API.
+            CrewAI LLM instance configured for OpenRouter API.
 
         Example:
             >>> # Use default configuration (with middle-out enabled)
@@ -85,7 +90,7 @@ class LLMConfig:
             >>> precise_llm = LLMConfig.get_openrouter_llm(enable_middle_out=False)
         """
         # Get model from parameter or environment
-        model_name = model or os.getenv("MODEL", "openrouter/xiaomi/mimo-v2-flash:free")
+        model_name = model or os.getenv("MODEL", "openrouter/mistralai/mistral-small-2603")
 
         # Get temperature from parameter or environment
         temp = temperature
@@ -106,20 +111,25 @@ class LLMConfig:
             middle_out_str = os.getenv("OPENROUTER_MIDDLE_OUT", "true").lower()
             middle_out = middle_out_str in ("true", "1", "yes", "on")
 
-        # Build model_kwargs with OpenRouter-specific settings
-        # Always pass a dict (empty or with transforms) - None causes errors
-        model_kwargs: dict[str, list[str]] = {}
-        if middle_out:
-            # OpenRouter transforms: middle-out compresses prompts that exceed context
-            model_kwargs["transforms"] = ["middle-out"]
+        # Resolve reasoning_effort from parameter or environment (opt-in only)
+        effort = reasoning_effort
+        if effort is None:
+            effort = os.getenv("LLM_REASONING_EFFORT", "")
+        # Only apply if explicitly set to a meaningful value
+        if effort and effort.lower() in ("none", ""):
+            effort = None
 
-        return ChatOpenAI(  # type: ignore[call-arg]
-            model=model_name or "openrouter/xiaomi/mimo-v2-flash:free",
-            api_key=os.getenv("OPENROUTER_API_KEY"),  # type: ignore[arg-type]
+        # Note: OpenRouter middle-out transforms are not supported by CrewAI's
+        # native LLM class (which uses its own OpenAI client). OpenRouter handles
+        # context overflow gracefully server-side regardless.
+
+        return LLM(
+            model=model_name or "openrouter/mistralai/mistral-small-2603",
+            api_key=os.getenv("OPENROUTER_API_KEY"),
             base_url="https://openrouter.ai/api/v1",
             temperature=temp,
             max_tokens=tokens,
-            model_kwargs=model_kwargs,
+            reasoning_effort=effort,  # type: ignore[arg-type]
         )
 
     @staticmethod
@@ -164,6 +174,35 @@ class LLMConfig:
             >>> max_iter = LLMConfig.get_max_iter()  # 5
         """
         return int(os.getenv("CREW_MAX_ITER", "5"))
+
+    @staticmethod
+    def get_memory_config(
+        recency_weight: float = 0.4,
+        semantic_weight: float = 0.4,
+        importance_weight: float = 0.2,
+        query_analysis_threshold: int = 200,
+    ) -> Memory:
+        """Get a configured Memory instance for crew usage.
+
+        Args:
+            recency_weight: Weight for recency in composite score.
+            semantic_weight: Weight for semantic similarity.
+            importance_weight: Weight for importance.
+            query_analysis_threshold: Char count below which LLM analysis is skipped.
+
+        Returns:
+            Configured Memory instance.
+        """
+        return Memory(
+            recency_weight=recency_weight,
+            semantic_weight=semantic_weight,
+            importance_weight=importance_weight,
+            query_analysis_threshold=query_analysis_threshold,
+            embedder={
+                "provider": "openai",
+                "config": {"model_name": "text-embedding-3-small"},
+            },
+        )
 
     @staticmethod
     def get_max_rpm() -> int:

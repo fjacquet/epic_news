@@ -15,13 +15,16 @@ class FinDailyCrew:
 
     This crew analyzes stock, crypto, and ETF portfolios in parallel for maximum performance.
     The 6 portfolio analysis and suggestion tasks execute asynchronously, then a final report
-    consolidates all findings.
+    consolidates all findings. Uses scoped memory to reduce token explosion.
 
     Performance: ~6x faster with async execution vs sequential.
     """
 
     agents_config = "config/agents.yaml"
     tasks_config = "config/tasks.yaml"
+
+    def __init__(self):
+        self._memory = LLMConfig.get_memory_config()
 
     @agent
     def stock_analyst(self) -> Agent:
@@ -36,7 +39,7 @@ class FinDailyCrew:
             llm=LLMConfig.get_openrouter_llm(),
             llm_timeout=LLMConfig.get_timeout("default"),
             verbose=True,
-            memory=True,
+            memory=self._memory.scope("/agent/stock_analyst"),
         )
 
     @agent
@@ -52,7 +55,7 @@ class FinDailyCrew:
             llm=LLMConfig.get_openrouter_llm(),
             llm_timeout=LLMConfig.get_timeout("default"),
             verbose=True,
-            memory=True,
+            memory=self._memory.scope("/agent/crypto_analyst"),
         )
 
     @agent
@@ -63,7 +66,7 @@ class FinDailyCrew:
             llm=LLMConfig.get_openrouter_llm(),
             llm_timeout=LLMConfig.get_timeout("default"),
             verbose=True,
-            memory=True,
+            memory=self._memory.scope("/agent/investment_strategist"),
         )
 
     @task
@@ -132,5 +135,5 @@ class FinDailyCrew:
             tasks=self.tasks,  # type: ignore[attr-defined]
             process=Process.sequential,
             verbose=True,
-            memory=True,
+            memory=self._memory,
         )

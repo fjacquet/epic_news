@@ -9,10 +9,11 @@ from crewai_tools import (
     GithubSearchTool,
     PDFSearchTool,
     ScrapeWebsiteTool,
-    SerperDevTool,
     WebsiteSearchTool,
     YoutubeVideoSearchTool,
 )
+
+from epic_news.tools.perplexity_search_tool import PerplexitySearchTool
 
 
 def get_search_tools():
@@ -23,7 +24,7 @@ def get_search_tools():
         list: A list of web search tool instances.
     """
     return [
-        SerperDevTool(n_results=25, search_type="search"),
+        PerplexitySearchTool(),
     ]
 
 
@@ -35,7 +36,7 @@ def get_news_tools():
         list: A list of news search tool instances.
     """
     return [
-        SerperDevTool(n_results=25, search_type="news"),
+        PerplexitySearchTool(),
     ]
 
 

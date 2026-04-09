@@ -3,7 +3,7 @@ travel_researcher:
   role: >
     Travel Research Specialist
   goal: >
-    Leverage web search tools (e.g., SerperDevTool) for broad research, video
+    Leverage web search tools (e.g., PerplexitySearchTool) for broad research, video
     search tools (e.g., YoutubeVideoSearchTool) for visual insights, and web
     scraping tools (e.g., FirecrawlScrapeWebsiteTool) to extract detailed
     information. Research comprehensive destination information including
@@ -21,7 +21,7 @@ accommodation_specialist:
   role: >
     Accommodation & Dining Specialist
   goal: >
-    Utilize web search tools (e.g., SerperDevTool) to find and compare
+    Utilize web search tools (e.g., PerplexitySearchTool) to find and compare
     accommodation options, reviews, and dining experiences. Employ web
     scraping tools (e.g., FirecrawlScrapeWebsiteTool) to gather specific
     details from booking sites and restaurant pages. Find ideal accommodation
@@ -55,7 +55,7 @@ budget_manager:
   role: >
     Budget & Logistics Manager
   goal: >
-    Employ web search tools (e.g., SerperDevTool) to research pricing, find
+    Employ web search tools (e.g., PerplexitySearchTool) to research pricing, find
     deals, and compare costs for travel, accommodation, and activities.
     Use web scraping tools (e.g., FirecrawlScrapeWebsiteTool) if necessary to extract
     specific pricing data. Ensure all recommendations adhere to budget constraints
@@ -87,7 +87,7 @@ content_formatter:
     navigate, and directly usable by the traveler. Translate the entire guide into
     French as requested, maintaining accuracy, tone, and cultural nuances. Save a
     final summary of the created guide's key points to RAG for archival purposes.
-    Use web search tools (e.g., SerperDevTool) sparingly and only for minor
+    Use web search tools (e.g., PerplexitySearchTool) sparingly and only for minor
     clarifications or to find a missing piece of essential practical information
     (like an official emergency number) if it wasn't captured before and is critical
     for the guide's completeness.

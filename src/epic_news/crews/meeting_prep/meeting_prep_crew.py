@@ -16,10 +16,14 @@ load_dotenv()
 class MeetingPrepCrew:
     """
     MeetingPrep crew for preparing comprehensive meeting briefings.
+    Uses scoped memory to reduce token explosion.
     """
 
     agents_config = "config/agents.yaml"
     tasks_config = "config/tasks.yaml"
+
+    def __init__(self):
+        self._memory = LLMConfig.get_memory_config()
 
     @agent
     def lead_researcher_agent(self) -> Agent:
@@ -35,6 +39,7 @@ class MeetingPrepCrew:
             verbose=True,
             respect_context_window=True,
             llm_timeout=LLMConfig.get_timeout("default"),
+            memory=self._memory.scope("/agent/lead_researcher"),
         )
 
     @agent
@@ -49,6 +54,7 @@ class MeetingPrepCrew:
             verbose=True,
             respect_context_window=True,
             llm_timeout=LLMConfig.get_timeout("default"),
+            memory=self._memory.scope("/agent/product_specialist"),
         )
 
     @agent
@@ -64,6 +70,7 @@ class MeetingPrepCrew:
             verbose=True,
             respect_context_window=True,
             llm_timeout=LLMConfig.get_timeout("default"),
+            memory=self._memory.scope("/agent/sales_strategist"),
         )
 
     @agent
@@ -77,6 +84,7 @@ class MeetingPrepCrew:
             verbose=True,
             respect_context_window=True,
             llm_timeout=LLMConfig.get_timeout("default"),
+            memory=self._memory.scope("/agent/briefing_coordinator"),
         )
 
     @task
@@ -139,7 +147,7 @@ class MeetingPrepCrew:
                 llm_timeout=LLMConfig.get_timeout("default"),  # type: ignore[call-arg]
                 max_iter=LLMConfig.get_max_iter(),
                 max_rpm=10,  # Keeping existing custom value (lower than default 20)
-                memory=True,
+                memory=self._memory,
                 verbose=True,
             )
         except Exception as e:

@@ -1,7 +1,6 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import (
-    CodeInterpreterTool,
     FileReadTool,
     MCPServerAdapter,
     ScrapeWebsiteTool,
@@ -26,8 +25,6 @@ class DeepResearchCrew:
 
     agents_config = "config/agents.yaml"
     tasks_config = "config/tasks.yaml"
-
-    code_interpreter = CodeInterpreterTool(default_image_tag="fjacquet/code-interpreter:latest")
 
     # Initialize Wikipedia MCP server
     _wikipedia_mcp = None
@@ -79,7 +76,7 @@ class DeepResearchCrew:
         """Data analyst agent for synthesis and quantitative analysis with Code Interpreter."""
         return Agent(
             config=self.agents_config["data_analyst"],  # type: ignore[index]
-            tools=[self.code_interpreter, FileReadTool()],
+            tools=[FileReadTool()],
             llm=LLMConfig.get_openrouter_llm(),
             llm_timeout=LLMConfig.get_timeout("long"),
             verbose=True,

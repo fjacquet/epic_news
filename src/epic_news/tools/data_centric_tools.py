@@ -8,7 +8,6 @@ from typing import Any
 
 from crewai.tools import BaseTool
 from jinja2 import Environment, FileSystemLoader
-from langchain.tools import BaseTool as LangchainBaseTool
 
 from epic_news.models.data_metrics import (
     KPI,
@@ -419,7 +418,7 @@ class StructuredReportTool(BaseTool):
             return ensure_json_str({"error": f"Failed to generate structured report: {str(e)}"})
 
 
-def get_data_centric_tools() -> list[BaseTool | LangchainBaseTool]:
+def get_data_centric_tools() -> list[BaseTool]:
     """Get a list of all data-centric tools."""
     return [
         MetricsCalculatorTool(),
