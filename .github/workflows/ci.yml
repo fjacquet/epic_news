@@ -24,12 +24,12 @@ jobs:
     - name: create env file
       run: |
          touch .env
-         echo BASE_URL=${{ secrets.BASE_URL }} >> .env
-         echo RAPIDAPI_KEY=${{ secrets.RAPIDAPI_KEY }} >> .env
-         echo OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }} >> .env
-         echo OPENAI_MODEL_NAME=${{ secrets.OPENAI_MODEL_NAME }} >> .env
-         echo COMPOSIO_API_KEY=${{ secrets.COMPOSIO_API_KEY }} >> .env
-         echo MAIL=${{ secrets.MAIL }} >> .env
+         printf '%s\n' "BASE_URL=${{ secrets.BASE_URL }}" >> .env
+         printf '%s\n' "RAPIDAPI_KEY=${{ secrets.RAPIDAPI_KEY }}" >> .env
+         printf '%s\n' "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env
+         printf '%s\n' "OPENAI_MODEL_NAME=${{ secrets.OPENAI_MODEL_NAME }}" >> .env
+         printf '%s\n' "COMPOSIO_API_KEY=${{ secrets.COMPOSIO_API_KEY }}" >> .env
+         printf '%s\n' "MAIL=${{ secrets.MAIL }}" >> .env
 
     - name: Set up Python
       uses: actions/setup-python@v5

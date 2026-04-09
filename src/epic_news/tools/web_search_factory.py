@@ -1,3 +1,4 @@
+import os
 from typing import Literal
 
 from crewai.tools import BaseTool
@@ -14,6 +15,8 @@ class WebSearchFactory:
     def create(provider: Literal["perplexity", "serpapi", "tavily"]) -> BaseTool:
         """Create a web search tool based on the provider."""
         if provider == "perplexity":
+            if not os.getenv("PERPLEXITY_API_KEY"):
+                return TavilyTool()
             return PerplexitySearchTool()
         if provider == "serpapi":
             return SerpApiTool()
