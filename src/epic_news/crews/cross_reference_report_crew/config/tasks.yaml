@@ -57,12 +57,12 @@ intelligence_product_development:
 # investigation_quality_assurance:
 #   description: >
 #     Conduct quality assurance review of the entire investigation of {target},
-#     including: 
-#     - Verification of key facts and findings 
-#     - Assessment of source reliability and credibility 
+#     including:
+#     - Verification of key facts and findings
+#     - Assessment of source reliability and credibility
 #     - Identification of analytical biases or gaps
-#     - Evaluation of intelligence product quality 
-#     - Documentation of lessons learned 
+#     - Evaluation of intelligence product quality
+#     - Documentation of lessons learned
 #     - Recommendations for process improvements
 #     Use the RAG tools to retrieve all relevant information, analysis, and
 #     products and conduct a thorough quality assurance review. Format your QA

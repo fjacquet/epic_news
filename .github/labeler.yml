@@ -84,6 +84,6 @@ chore:
 
 # Label for PRs targeting the 'main' branch, typically releases.
 release:
- - base-branch:
-   - 'main'
-   - 'master'
+  - base-branch:
+    - 'main'
+    - 'master'

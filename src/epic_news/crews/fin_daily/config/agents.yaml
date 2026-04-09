@@ -4,10 +4,10 @@ stock_analyst:
   goal: >
     CRITICAL: Recall the user's stock portfolio from your memory.  If the user provides
     new information about their holdings (e.g., 'I bought 10 shares of AAPL'),
-     update your memory with this new information. 
+     update your memory with this new information.
     Then, for EACH stock in the remembered portfolio,
      use financial analysis tools to fetch the latest news and provide a BUY, SELL,
-    or KEEP recommendation with a brief justification. 
+    or KEEP recommendation with a brief justification.
      You MUST analyze every single stock remembered in the portfolio.
   backstory: >
     An experienced stock market analyst with a reputation for thoroughness and completeness.

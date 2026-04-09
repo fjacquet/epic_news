@@ -154,8 +154,8 @@ def test_run_serper_fallback_success(mock_env_serper_only, mocker):
     # When tool._run() calls os.getenv("GITHUB_TOKEN"), make it return ""
     # This forces the Serper path. Other os.getenv calls use the environment from mock_env_serper_only.
     mock_os_getenv_in_tool_module = mocker.patch("epic_news.tools.github_org_tool.os.getenv")
-    mock_os_getenv_in_tool_module.side_effect = (
-        lambda k, d=None: "" if k == "GITHUB_TOKEN" else os.environ.get(k, d)
+    mock_os_getenv_in_tool_module.side_effect = lambda k, d=None: (
+        "" if k == "GITHUB_TOKEN" else os.environ.get(k, d)
     )
 
     mock_make_request = mocker.patch("epic_news.tools.github_base.GitHubBaseTool._make_request")
@@ -179,8 +179,8 @@ def test_run_serper_fallback_success(mock_env_serper_only, mocker):
 def test_run_serper_fallback_not_found(mock_env_serper_only, mocker):
     tool = GitHubOrgSearchTool()
     mock_os_getenv_in_tool_module = mocker.patch("epic_news.tools.github_org_tool.os.getenv")
-    mock_os_getenv_in_tool_module.side_effect = (
-        lambda k, d=None: "" if k == "GITHUB_TOKEN" else os.environ.get(k, d)
+    mock_os_getenv_in_tool_module.side_effect = lambda k, d=None: (
+        "" if k == "GITHUB_TOKEN" else os.environ.get(k, d)
     )
 
     mock_make_request = mocker.patch("epic_news.tools.github_base.GitHubBaseTool._make_request")
@@ -199,8 +199,8 @@ def test_run_serper_fallback_not_found(mock_env_serper_only, mocker):
 def test_run_serper_fallback_api_error(mock_env_serper_only, mocker):
     tool = GitHubOrgSearchTool()
     mock_os_getenv_in_tool_module = mocker.patch("epic_news.tools.github_org_tool.os.getenv")
-    mock_os_getenv_in_tool_module.side_effect = (
-        lambda k, d=None: "" if k == "GITHUB_TOKEN" else os.environ.get(k, d)
+    mock_os_getenv_in_tool_module.side_effect = lambda k, d=None: (
+        "" if k == "GITHUB_TOKEN" else os.environ.get(k, d)
     )
 
     mock_make_request = mocker.patch("epic_news.tools.github_base.GitHubBaseTool._make_request")
