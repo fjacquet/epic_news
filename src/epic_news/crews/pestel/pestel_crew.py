@@ -35,6 +35,20 @@ class PestelCrew:
             self._wikipedia_mcp = adapter
         return adapter.tools
 
+    def close(self) -> None:
+        """Stop the Wikipedia MCP server process to release resources.
+
+        MCPServerAdapter.__init__ spawns the MCP server process; without an
+        explicit stop() it persists until garbage collection. Callers should
+        invoke close() in a finally block after crew.kickoff() completes.
+        """
+        adapter = self._wikipedia_mcp
+        if adapter is not None:
+            try:
+                adapter.stop()
+            finally:
+                self._wikipedia_mcp = None
+
     def _researcher(self, config_key: str) -> Agent:
         """Build a dimension researcher with the shared tool set."""
         return Agent(

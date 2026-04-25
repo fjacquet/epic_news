@@ -2,9 +2,18 @@
 
 from __future__ import annotations
 
-import pytest
+from pathlib import Path
 
+import pytest
+import yaml
+from pydantic import ValidationError
+
+from epic_news.crews.pestel.pestel_crew import PestelCrew
+from epic_news.models.content_state import CrewCategories
 from epic_news.models.crews.pestel_report import PestelDimension, PestelReport
+from epic_news.utils.html.template_renderers.pestel_markdown import pestel_to_markdown
+from epic_news.utils.html.template_renderers.pestel_renderer import PestelRenderer
+from epic_news.utils.html.template_renderers.renderer_factory import RendererFactory
 
 
 @pytest.fixture
@@ -37,8 +46,6 @@ def test_pestel_report_instantiation(sample_report: PestelReport) -> None:
 
 def test_pestel_report_requires_all_dimensions() -> None:
     """Every PESTEL dimension must be supplied — no silent defaults."""
-    from pydantic import ValidationError
-
     dim = PestelDimension(summary="s", impact_analysis="i")
     with pytest.raises(ValidationError):
         PestelReport(  # type: ignore[call-arg]
@@ -58,8 +65,6 @@ def test_pestel_dimension_defaults_empty_lists() -> None:
 
 
 def test_pestel_to_markdown_contains_all_sections(sample_report: PestelReport) -> None:
-    from epic_news.utils.html.template_renderers.pestel_markdown import pestel_to_markdown
-
     md = pestel_to_markdown(sample_report)
     assert "# PESTEL Analysis — Test Topic" in md
     for heading in (
@@ -77,16 +82,12 @@ def test_pestel_to_markdown_contains_all_sections(sample_report: PestelReport) -
 
 
 def test_pestel_category_registered() -> None:
-    from epic_news.models.content_state import CrewCategories
-
     assert CrewCategories.PESTEL == "PESTEL"
     assert CrewCategories.to_dict().get("PESTEL") == "PESTEL"
 
 
 def test_pestel_markdown_handles_empty_factors_and_sources() -> None:
     """Empty key_factors → '_(none identified)_'; empty sources → no Sources section."""
-    from epic_news.utils.html.template_renderers.pestel_markdown import pestel_to_markdown
-
     dim = PestelDimension(summary="s", impact_analysis="i")  # both lists default empty
     report = PestelReport(
         topic="Empty Topic",
@@ -106,8 +107,6 @@ def test_pestel_markdown_handles_empty_factors_and_sources() -> None:
 
 
 def test_pestel_markdown_preserves_french_and_unicode_characters() -> None:
-    from epic_news.utils.html.template_renderers.pestel_markdown import pestel_to_markdown
-
     dim = PestelDimension(
         summary="L'économie française évolue — voilà",
         key_factors=["taux d'intérêt", "inflation €"],
@@ -136,18 +135,7 @@ def test_pestel_markdown_preserves_french_and_unicode_characters() -> None:
 
 def test_pestel_yaml_configs_parse_cleanly() -> None:
     """agents.yaml and tasks.yaml under crews/pestel/config/ must be valid YAML."""
-    from pathlib import Path
-
-    import yaml
-
-    config_dir = (
-        Path(__file__).resolve().parents[2]
-        / "src"
-        / "epic_news"
-        / "crews"
-        / "pestel"
-        / "config"
-    )
+    config_dir = Path(__file__).resolve().parents[2] / "src" / "epic_news" / "crews" / "pestel" / "config"
     agents = yaml.safe_load((config_dir / "agents.yaml").read_text(encoding="utf-8"))
     tasks = yaml.safe_load((config_dir / "tasks.yaml").read_text(encoding="utf-8"))
 
@@ -160,9 +148,6 @@ def test_pestel_yaml_configs_parse_cleanly() -> None:
 
 def test_pestel_html_renderer_registered() -> None:
     """PESTEL must resolve to a specialized HTML renderer (not GenericRenderer)."""
-    from epic_news.utils.html.template_renderers.pestel_renderer import PestelRenderer
-    from epic_news.utils.html.template_renderers.renderer_factory import RendererFactory
-
     assert RendererFactory.has_specialized_renderer("PESTEL")
     renderer = RendererFactory.create_renderer("PESTEL")
     assert isinstance(renderer, PestelRenderer)
@@ -170,8 +155,6 @@ def test_pestel_html_renderer_registered() -> None:
 
 def test_pestel_renderer_emits_all_sections(sample_report: PestelReport) -> None:
     """The HTML output must include the topic, all six dimension headings, and sources."""
-    from epic_news.utils.html.template_renderers.pestel_renderer import PestelRenderer
-
     html = PestelRenderer().render(sample_report.model_dump())
     assert "Test Topic" in html
     for heading in ("Political", "Economic", "Social", "Technological", "Environmental", "Legal"):
@@ -184,8 +167,6 @@ def test_pestel_renderer_emits_all_sections(sample_report: PestelReport) -> None
 
 def test_pestel_renderer_handles_empty_lists() -> None:
     """Empty key_factors → empty-state paragraph; empty sources → no Sources block."""
-    from epic_news.utils.html.template_renderers.pestel_renderer import PestelRenderer
-
     dim = PestelDimension(summary="s", impact_analysis="i")
     report = PestelReport(
         topic="Empty Topic",
@@ -205,8 +186,6 @@ def test_pestel_renderer_handles_empty_lists() -> None:
 
 
 def test_pestel_crew_has_expected_members() -> None:
-    from epic_news.crews.pestel.pestel_crew import PestelCrew
-
     crew_instance = PestelCrew()
     for attr in (
         "political_researcher",

@@ -39,7 +39,7 @@ from typing import Any, cast
 from crewai.flow import Flow, listen, or_, router, start
 from dotenv import load_dotenv
 from loguru import logger
-from pydantic import PydanticDeprecatedSince20, PydanticDeprecatedSince211
+from pydantic import PydanticDeprecatedSince20, PydanticDeprecatedSince211, ValidationError
 
 # Patch CrewAI's Pydantic schema parser to support Python 3.10 ``X | Y`` unions
 from epic_news.crews.classify.classify_crew import ClassifyCrew
@@ -81,7 +81,7 @@ from epic_news.models.crews.hr_intelligence_report import HRIntelligenceReport
 from epic_news.models.crews.legal_analysis_report import LegalAnalysisReport
 from epic_news.models.crews.meeting_prep_report import MeetingPrepReport
 from epic_news.models.crews.news_daily_report import NewsDailyReport
-from epic_news.models.crews.pestel_report import PestelReport
+from epic_news.models.crews.pestel_report import PestelDimension, PestelReport
 from epic_news.models.crews.poem_report import PoemJSONOutput
 from epic_news.models.crews.saint_daily_report import SaintData
 from epic_news.models.crews.sales_prospecting_report import SalesProspectingReport
@@ -130,6 +130,30 @@ hallucination_guard = observability_tools["hallucination_guard"]
 """                                                                                      """
 """                     All the magic is here                                            """
 """                                                                                      """
+
+
+def _stub_pestel_report(topic: str, generated_at: str, error: str) -> PestelReport:
+    """Build a placeholder PestelReport when parsing crew output fails.
+
+    Ensures generate_pestel can always write report.md/.html so the email
+    step has a real attachment instead of a missing file path.
+    """
+    stub = PestelDimension(
+        summary=f"Report generation failed: {error}",
+        impact_analysis="Unavailable due to parsing error.",
+    )
+    return PestelReport(
+        topic=topic,
+        executive_summary=f"PESTEL analysis could not be generated: {error}",
+        political=stub,
+        economic=stub,
+        social=stub,
+        technological=stub,
+        environmental=stub,
+        legal=stub,
+        synthesis="Report generation failed; please retry.",
+        generated_at=generated_at,
+    )
 
 
 # Default user request for demonstration, testing, or standalone execution.
@@ -491,9 +515,7 @@ class ReceptionFlow(Flow[ContentState]):
         financial_report_model = load_or_parse_model(
             self.state.output_file, FinancialReport, output, inputs, "financial report"
         )
-        html_path = render_and_write_html(
-            "FINDAILY", financial_report_model, "output/findaily/report.html"
-        )
+        html_path = render_and_write_html("FINDAILY", financial_report_model, "output/findaily/report.html")
         self.logger.info(f"✅ Financial content generated and HTML written to {html_path}")
 
     @listen("go_generate_news_daily")
@@ -554,9 +576,7 @@ class ReceptionFlow(Flow[ContentState]):
         dump_crewai_state(output, "SAINT_DAILY")
         self.state.saint_daily_report = output
 
-        saint_model = load_or_parse_model(
-            self.state.output_file, SaintData, output, inputs, "saint daily"
-        )
+        saint_model = load_or_parse_model(self.state.output_file, SaintData, output, inputs, "saint daily")
         self.state.saint_daily_model = saint_model
         render_and_write_html("SAINT", saint_model, "output/saint_daily/report.html")
         self.logger.info("✅ Saint content generated and HTML written")
@@ -993,21 +1013,32 @@ class ReceptionFlow(Flow[ContentState]):
             f"(geo={inputs['geography']}, lang={inputs['language']})"
         )
 
-        output = kickoff_flow(PestelCrew(), inputs)
-        dump_crewai_state(output, "PESTEL")
+        pestel_crew = PestelCrew()
+        try:
+            output = kickoff_flow(pestel_crew, inputs)
+            dump_crewai_state(output, "PESTEL")
 
-        pestel_model = load_or_parse_model(
-            self.state.output_file, PestelReport, output, inputs, "PESTEL"
-        )
+            try:
+                pestel_model = load_or_parse_model(
+                    self.state.output_file, PestelReport, output, inputs, "PESTEL"
+                )
+            except (ValueError, ValidationError) as exc:
+                self.logger.error(
+                    f"⚠️ PESTEL parsing failed; emitting stub report so email step can attach a file. {exc}"
+                )
+                pestel_model = _stub_pestel_report(
+                    inputs.get("topic", "N/A"), inputs["current_date"], str(exc)
+                )
+        finally:
+            pestel_crew.close()
+
         self.state.pestel_report = pestel_model
 
         md_path = Path("output/pestel/report.md")
         md_path.parent.mkdir(parents=True, exist_ok=True)
         md_path.write_text(pestel_to_markdown(pestel_model), encoding="utf-8")
 
-        html_path = render_and_write_html(
-            "PESTEL", pestel_model, "output/pestel/report.html"
-        )
+        html_path = render_and_write_html("PESTEL", pestel_model, "output/pestel/report.html")
         self.state.output_file = str(html_path)
         self.logger.info(f"✅ PESTEL report written to {html_path} (+ {md_path})")
 
@@ -1397,7 +1428,7 @@ def kickoff(user_input: str | None = None):
     request = (
         user_input
         if user_input
-        else "Fait moi un rapport PESTLE a propos de la banque reyl en suisse aujourd'hui en français"
+        else "Fait moi un rapport PESTLE a propos de la societe Japan Tobacco International (JTI) aujourd'hui en français"
         # else "Complete OSINT analysis of Mistral.AI"
         # else "get the daily  news report"
         # else "conduct a deep research study on a travel on the north of the italy between san remo and Genova. Give me the best hotel and restaurant options."
