@@ -1385,11 +1385,17 @@ class ReceptionFlow(Flow[ContentState]):
             # Use utility function to prepare all email parameters
             email_inputs = prepare_email_params(self.state)
 
-            # Log attachment status for better visibility
-            if email_inputs.get("attachment_path"):
-                print(f"📎 Using attachment: {email_inputs['attachment_path']}")
-            else:
-                print("⚠️ No valid attachment file found. Email will be sent without attachment.")
+            self.logger.info(
+                "✉️  Email payload: recipient={} subject={!r} attachment={} output_file={}",
+                email_inputs.get("recipient_email"),
+                email_inputs.get("subject"),
+                email_inputs.get("attachment_path") or "(none)",
+                email_inputs.get("output_file") or "(none)",
+            )
+            if not email_inputs.get("attachment_path"):
+                self.logger.warning(
+                    "📎 No valid attachment file found. Email will be sent without attachment."
+                )
 
             # If Composio isn't available, skip email sending gracefully
             try:
@@ -1409,13 +1415,34 @@ class ReceptionFlow(Flow[ContentState]):
                 # Instantiate and kickoff the PostCrew (kickoff-only)
                 post_crew = PostCrew()
                 email_result = kickoff_flow(post_crew, email_inputs)
-                print(f"📧 Email sending process initiated. Result: {email_result}")
+
+                # Parse the structured PostResult to log delivery outcome explicitly
+                post_result = getattr(email_result, "pydantic", None)
+                if post_result is not None:
+                    if getattr(post_result, "status", "") == "success":
+                        self.logger.info(
+                            "📨 PostResult: status=success recipient={} subject={!r} attachment_sent={}",
+                            post_result.recipient_email,
+                            post_result.subject,
+                            post_result.attachment_sent,
+                        )
+                    else:
+                        self.logger.error(
+                            "❌ PostResult: status=failure recipient={} error_message={}",
+                            getattr(post_result, "recipient_email", "?"),
+                            getattr(post_result, "error_message", "(none)"),
+                        )
+                else:
+                    raw = getattr(email_result, "raw", "") or ""
+                    self.logger.warning(
+                        "⚠️ PostResult absent — agent did not produce structured output. raw[:500]={!r}",
+                        raw[:500],
+                    )
                 self.state.email_sent = True  # Mark email as sent to prevent duplicates
             except Exception as e:
-                self.logger.error(f"❌ Error during email sending: {e}")
-                print(f"❌ Error during email sending: {e}")
+                self.logger.exception("❌ Error during email sending: {}", e)
         else:
-            print("📧 Email already sent for this request. Skipping.")
+            self.logger.info("📧 Email already sent for this request. Skipping.")
         return "send_email"  # Implicitly returns method name
 
 
@@ -1436,7 +1463,7 @@ def kickoff(user_input: str | None = None):
     request = (
         user_input
         if user_input
-        else "Fait moi un rapport PESTLE a propos de la societe Temenos aujourd'hui en français"
+        else "Fait moi un rapport PESTLE a propos de la societe  Mistral.AI aujourd'hui en français"
         # else "Complete OSINT analysis of Mistral.AI"
         # else "get the daily  news report"
         # else "conduct a deep research study on a travel on the north of the italy between san remo and Genova. Give me the best hotel and restaurant options."
