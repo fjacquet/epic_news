@@ -47,3 +47,11 @@ class ExtractedInfo(BaseModel):
     participants: list[str] | None = Field(
         default=None, description="A list of participants for an event or meeting."
     )
+    output_language: str | None = Field(
+        default=None,
+        description=(
+            "Language the final report must be written in, detected from the "
+            "user request (e.g. 'French', 'English', 'German', 'Spanish'). "
+            "Default to 'English' when the request is in English or ambiguous."
+        ),
+    )

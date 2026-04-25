@@ -28,6 +28,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `SerperDevTool` as default search provider (kept as fallback in `HybridSearchTool` cascade)
 - `CodeInterpreterTool` usage (replaced by built-in `allow_code_execution=True`)
 - `langchain.tools.BaseTool` import (unnecessary — `crewai.tools.BaseTool` sufficient)
+- **Scoped memory feature**: Removed `LLMConfig.get_memory_config()` and all `memory=` wiring from `fin_daily` and `meeting_prep` crews. CrewAI's default `Memory` hardcoded `llm='gpt-4o-mini'`, leaking an unused OpenAI dependency. The feature was opt-in and not productively used. ReceptionFlow's auto-spawned Flow memory is now overridden with our OpenRouter LLM and `read_only=True`. ADR-002 marked Superseded.
 
 ## [0.5] — 2025-08-11
 

@@ -24,6 +24,7 @@ from epic_news.models.crews.legal_analysis_report import LegalAnalysisReport
 from epic_news.models.crews.meeting_prep_report import MeetingPrepReport
 from epic_news.models.crews.menu_designer_report import WeeklyMenuPlan
 from epic_news.models.crews.news_daily_report import NewsDailyReport
+from epic_news.models.crews.pestel_report import PestelReport
 from epic_news.models.crews.poem_report import PoemJSONOutput
 from epic_news.models.crews.rss_weekly_report import RssWeeklyReport
 from epic_news.models.crews.saint_daily_report import SaintData
@@ -50,6 +51,7 @@ class CrewCategories:
     MENU = "MENU"
     COMPANY_NEWS = "COMPANY_NEWS"
     OPEN_SOURCE_INTELLIGENCE = "OPEN_SOURCE_INTELLIGENCE"
+    PESTEL = "PESTEL"
     POEM = "POEM"
     POST_ONLY = "POST_ONLY"
     RSS = "RSS"
@@ -130,6 +132,7 @@ class ContentState(BaseModel):
     legal_analysis_report: Optional["LegalAnalysisReport"] = None
     web_presence_report: Optional["WebPresenceReport"] = None
     cross_reference_report: Optional["CrossReferenceReport"] = None
+    pestel_report: Optional["PestelReport"] = None
 
     # Content Reports
     news_report: Optional["NewsDailyReport"] = None
