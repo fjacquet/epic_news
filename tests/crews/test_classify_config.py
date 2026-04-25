@@ -16,13 +16,7 @@ import yaml
 from epic_news.models.content_state import CrewCategories
 
 CONFIG_PATH = (
-    Path(__file__).resolve().parents[2]
-    / "src"
-    / "epic_news"
-    / "crews"
-    / "classify"
-    / "config"
-    / "tasks.yaml"
+    Path(__file__).resolve().parents[2] / "src" / "epic_news" / "crews" / "classify" / "config" / "tasks.yaml"
 )
 
 

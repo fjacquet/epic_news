@@ -48,11 +48,9 @@ def pestel_flow_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
 
     output_dir = tmp_path / "output" / "pestel"
     output_dir.mkdir(parents=True, exist_ok=True)
-    (output_dir / "report.json").write_text(
-        json.dumps(_valid_pestel_payload()), encoding="utf-8"
-    )
+    (output_dir / "report.json").write_text(json.dumps(_valid_pestel_payload()), encoding="utf-8")
 
-    calls = {"kickoff": 0, "dump": 0, "pestel_init": 0}
+    calls = {"kickoff": 0, "dump": 0, "pestel_init": 0, "pestel_close": 0}
 
     def _fake_kickoff_flow(crew, inputs):
         calls["kickoff"] += 1
@@ -65,6 +63,9 @@ def pestel_flow_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     class _StubPestelCrew:
         def __init__(self) -> None:
             calls["pestel_init"] += 1
+
+        def close(self) -> None:
+            calls["pestel_close"] += 1
 
     monkeypatch.setattr(main_module, "kickoff_flow", _fake_kickoff_flow)
     monkeypatch.setattr(main_module, "dump_crewai_state", _fake_dump)
@@ -166,7 +167,7 @@ def test_generate_pestel_falls_back_to_raw_when_json_missing(
 
     monkeypatch.setattr(main_module, "kickoff_flow", _fake_kickoff_flow)
     monkeypatch.setattr(main_module, "dump_crewai_state", lambda *_a, **_kw: None)
-    monkeypatch.setattr(main_module, "PestelCrew", lambda: SimpleNamespace())
+    monkeypatch.setattr(main_module, "PestelCrew", lambda: SimpleNamespace(close=lambda: None))
 
     flow = ReceptionFlow(user_request="PESTEL fallback")
     flow.generate_pestel()

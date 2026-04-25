@@ -48,9 +48,7 @@ class PestelRenderer(BaseRenderer):
         for key, heading, icon in _DIMENSIONS:
             self._render_dimension(soup, container, data.get(key), heading, icon)
 
-        self.render_text_section(
-            soup, container, data.get("synthesis"), "Synthesis", icon="🎯"
-        )
+        self.render_text_section(soup, container, data.get("synthesis"), "Synthesis", icon="🎯")
 
         return str(soup)
 

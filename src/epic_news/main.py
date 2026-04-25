@@ -36,10 +36,13 @@ import warnings
 from pathlib import Path
 from typing import Any, cast
 
+from crewai import Memory
 from crewai.flow import Flow, listen, or_, router, start
 from dotenv import load_dotenv
 from loguru import logger
 from pydantic import PydanticDeprecatedSince20, PydanticDeprecatedSince211, ValidationError
+
+from epic_news.config.llm_config import LLMConfig
 
 # Patch CrewAI's Pydantic schema parser to support Python 3.10 ``X | Y`` unions
 from epic_news.crews.classify.classify_crew import ClassifyCrew
@@ -171,7 +174,12 @@ class ReceptionFlow(Flow[ContentState]):
     """
 
     def __init__(self, user_request: str):
-        super().__init__()
+        super().__init__(
+            memory=Memory(
+                llm=LLMConfig.get_openrouter_llm(),
+                read_only=True,
+            )
+        )
         self._user_request = user_request
         self.logger = logger
         self.tracer = tracer

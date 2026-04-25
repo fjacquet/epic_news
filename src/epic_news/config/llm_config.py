@@ -2,7 +2,7 @@
 
 import os
 
-from crewai import LLM, Memory
+from crewai import LLM
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -174,35 +174,6 @@ class LLMConfig:
             >>> max_iter = LLMConfig.get_max_iter()  # 5
         """
         return int(os.getenv("CREW_MAX_ITER", "5"))
-
-    @staticmethod
-    def get_memory_config(
-        recency_weight: float = 0.4,
-        semantic_weight: float = 0.4,
-        importance_weight: float = 0.2,
-        query_analysis_threshold: int = 200,
-    ) -> Memory:
-        """Get a configured Memory instance for crew usage.
-
-        Args:
-            recency_weight: Weight for recency in composite score.
-            semantic_weight: Weight for semantic similarity.
-            importance_weight: Weight for importance.
-            query_analysis_threshold: Char count below which LLM analysis is skipped.
-
-        Returns:
-            Configured Memory instance.
-        """
-        return Memory(
-            recency_weight=recency_weight,
-            semantic_weight=semantic_weight,
-            importance_weight=importance_weight,
-            query_analysis_threshold=query_analysis_threshold,
-            embedder={
-                "provider": "openai",
-                "config": {"model_name": "text-embedding-3-small"},
-            },
-        )
 
     @staticmethod
     def get_max_rpm() -> int:

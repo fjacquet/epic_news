@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+**Superseded (2026-04-25)** — Memory feature removed. CrewAI's default `Memory.llm='gpt-4o-mini'` was leaking an unused OpenAI dependency, and the feature was not productively used in this project. `LLMConfig.get_memory_config()` and all `memory=` wiring were removed from `fin_daily` and `meeting_prep`. ReceptionFlow's auto-spawned Flow memory is now overridden with our OpenRouter LLM and `read_only=True`.
 
 ## Context
 

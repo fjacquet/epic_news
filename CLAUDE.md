@@ -88,20 +88,6 @@ Use Python 3.13 union syntax (`X | None`, `X | Y`) for all new code. Ruff auto-u
 
 Separate research (has tools, no `output_file`) from reporting (NO tools, has `output_file`) to avoid action traces in output. See `src/epic_news/crews/CLAUDE.md` for code examples.
 
-### Scoped Memory
-
-Crews that benefit from memory use `LLMConfig.get_memory_config()` with per-agent scopes:
-
-```python
-self._memory = LLMConfig.get_memory_config()
-# In @agent methods:
-memory=self._memory.scope("/agent/my_agent")
-# In @crew method:
-memory=self._memory
-```
-
-Currently enabled for: `fin_daily`, `meeting_prep`. Extend to other crews as needed.
-
 ### HTML Rendering Architecture
 
 Pipeline: Crew result → Pydantic model → `*_to_html()` factory → `TemplateManager.render_report()` → `BaseRenderer` subclass.
@@ -138,7 +124,6 @@ All config via `LLMConfig` (`src/epic_news/config/llm_config.py`):
 
 - `LLMConfig.get_openrouter_llm()` — LLM instance (supports opt-in `reasoning_effort` for Magistral models)
 - `LLMConfig.get_timeout("quick"|"default"|"long")` — 120s / 300s / 600s
-- `LLMConfig.get_memory_config()` — Configured `Memory` instance with scoped agent memory
 - `LLMConfig.get_max_iter()` / `LLMConfig.get_max_rpm()` — crew limits (default: 5 / 20)
 
 ### Environment Variables

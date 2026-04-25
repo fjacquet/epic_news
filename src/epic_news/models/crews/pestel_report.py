@@ -17,9 +17,7 @@ class PestelDimension(BaseModel):
         default_factory=list, description="Key factors identified in this dimension"
     )
     impact_analysis: str = Field(description="Strategic impact of these factors on the topic")
-    sources: list[str] = Field(
-        default_factory=list, description="Citation URLs or reference titles"
-    )
+    sources: list[str] = Field(default_factory=list, description="Citation URLs or reference titles")
 
 
 class PestelReport(BaseModel):
@@ -33,7 +31,5 @@ class PestelReport(BaseModel):
     technological: PestelDimension
     environmental: PestelDimension
     legal: PestelDimension
-    synthesis: str = Field(
-        description="Cross-dimensional synthesis, strategic recommendations, and outlook"
-    )
+    synthesis: str = Field(description="Cross-dimensional synthesis, strategic recommendations, and outlook")
     generated_at: str = Field(description="ISO date of report generation (YYYY-MM-DD)")

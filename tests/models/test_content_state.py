@@ -63,9 +63,7 @@ def test_to_crew_inputs_maps_extracted_info_to_topic_and_company() -> None:
 
 def test_to_crew_inputs_falls_back_topic_when_field_missing() -> None:
     """If 'topic' is not directly set, main_subject_or_activity must hydrate it."""
-    state = ContentState(
-        extracted_info=ExtractedInfo(main_subject_or_activity="something interesting")
-    )
+    state = ContentState(extracted_info=ExtractedInfo(main_subject_or_activity="something interesting"))
     inputs = state.to_crew_inputs()
     assert inputs["topic"] == "something interesting"
 
