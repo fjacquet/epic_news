@@ -72,7 +72,7 @@ def test_pestel_to_markdown_contains_all_sections(sample_report: PestelReport) -
         "🎯 Synthesis",
     ):
         assert heading in md
-    assert "https://example.com" in md
+    assert "- https://example.com" in md.splitlines()
     assert "Cross-dim synthesis" in md
 
 
