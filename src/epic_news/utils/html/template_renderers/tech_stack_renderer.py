@@ -35,7 +35,6 @@ class TechStackRenderer(BaseRenderer):
         soup = self.create_soup("div", class_="tech-stack-report")
         container = soup.div
 
-        self._add_styles(soup)
         self.add_report_header(
             soup, container, "🔧 Analyse de la Stack Technologique", data.get("company_name")
         )
@@ -157,50 +156,3 @@ class TechStackRenderer(BaseRenderer):
             ul.append(li)
         section.append(ul)
         container.append(section)
-
-    @staticmethod
-    def _add_styles(soup: BeautifulSoup) -> None:
-        style = soup.new_tag("style")
-        style.string = """
-            .tech-stack-report {
-                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-                max-width: 900px;
-                margin: 2rem auto;
-                padding: 2rem;
-                background-color: var(--background-light, #ffffff);
-                border-radius: 12px;
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-                color: var(--text-light, #333);
-            }
-            .report-header { text-align: center; margin-bottom: 2.5rem; border-bottom: 1px solid var(--border-color, #e5e7eb); padding-bottom: 1rem; }
-            .report-header h1 { font-size: 2rem; font-weight: 700; color: var(--header-color, #111827); margin: 0 0 0.5rem 0; }
-            .report-header h2 { font-size: 1.25rem; font-weight: 500; color: var(--subheader-color, #6b7280); margin: 0; }
-            .report-section { margin-bottom: 2rem; }
-            .report-section h2 { font-size: 1.5rem; font-weight: 600; color: var(--header-color, #111827); margin-bottom: 1rem; border-bottom: 1px solid var(--border-color, #e5e7eb); padding-bottom: 0.5rem; }
-            .report-section p { line-height: 1.7; color: var(--text-color, #374151); }
-            .tech-category { margin-bottom: 1.5rem; }
-            .tech-category h3 { font-size: 1.125rem; color: var(--category-color, #4b5563); margin-bottom: 0.75rem; }
-            .tech-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
-            .tech-card { background: var(--card-bg, #f9fafb); border: 1px solid var(--card-border, #e5e7eb); border-radius: 8px; padding: 1rem; }
-            .tech-card h4 { margin: 0 0 0.5rem 0; color: var(--header-color, #111827); }
-            .tech-card p { margin: 0; font-size: 0.875rem; color: var(--text-muted, #6b7280); }
-            .swot-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
-            .strengths-card, .weaknesses-card { border-radius: 8px; padding: 1.5rem; }
-            .strengths-card { background: var(--success-bg, #ecfdf5); border: 1px solid var(--success-border, #10b981); }
-            .weaknesses-card { background: var(--warning-bg, #fef3c7); border: 1px solid var(--warning-border, #f59e0b); }
-            .strengths-card h3, .weaknesses-card h3 { margin: 0 0 1rem 0; }
-            .strengths-card ul, .weaknesses-card ul { margin: 0; padding-left: 1.25rem; }
-            .strengths-card li, .weaknesses-card li { margin-bottom: 0.5rem; }
-            .recommendations-list li { margin-bottom: 0.75rem; padding-left: 0.5rem; }
-            .raw-data { margin-top: 2.5rem; border-top: 1px solid var(--border-color, #e5e7eb); padding-top: 1.5rem; }
-            .raw-data summary { cursor: pointer; font-weight: 500; color: var(--summary-color, #374151); }
-            .raw-data pre { background: var(--pre-bg, #f3f4f6); padding: 1rem; border-radius: 8px; overflow-x: auto; margin-top: 1rem; }
-            @media (prefers-color-scheme: dark) {
-                .tech-stack-report { background-color: #1f2937; color: #e5e7eb; }
-                .report-header h1, .report-section h2, .tech-card h4 { color: #f9fafb; }
-                .tech-card, .raw-data pre { background: #374151; border-color: #4b5563; }
-                .strengths-card { background: #064e3b; border-color: #10b981; }
-                .weaknesses-card { background: #78350f; border-color: #f59e0b; }
-            }
-        """
-        soup.append(style)

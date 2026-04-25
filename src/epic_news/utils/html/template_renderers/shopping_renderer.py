@@ -55,8 +55,6 @@ class ShoppingRenderer(BaseRenderer):
         # Add pros and cons if available
         self._add_pros_cons(soup, container, data)
 
-        # Add styles
-        self._add_styles(soup)
 
         return str(soup)
 
@@ -266,93 +264,3 @@ class ShoppingRenderer(BaseRenderer):
 
         pros_cons_section.append(pros_cons_div)
         container.append(pros_cons_section)
-
-    def _add_styles(self, soup: BeautifulSoup) -> None:
-        """Add CSS styles to the shopping advice."""
-        style = soup.new_tag("style")
-        style.string = """
-        .shopping-advice {
-            max-width: 800px;
-            margin: 0 auto;
-            font-family: var(--body-font);
-            color: var(--text-color);
-        }
-        .error {
-            color: #dc3545;
-            padding: 1rem;
-            background: rgba(220, 53, 69, 0.1);
-            border-radius: 8px;
-            text-align: center;
-            font-weight: bold;
-        }
-        .product-overview, .price-comparison, .recommendations, .alternatives, .pros-cons {
-            margin: 2rem 0;
-            padding: 1.5rem;
-            background: var(--container-bg);
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-        }
-        .product-overview h2, .price-comparison h3, .recommendations h3, .alternatives h3, .pros-cons h3 {
-            color: var(--heading-color);
-            margin-top: 0;
-            border-bottom: 2px solid var(--accent-color);
-            padding-bottom: 0.5rem;
-            margin-bottom: 1.5rem;
-        }
-        .product-image {
-            text-align: center;
-            margin: 1.5rem 0;
-        }
-        .product-image img {
-            max-width: 100%;
-            max-height: 300px;
-            border-radius: 8px;
-        }
-        .price-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .price-table th, .price-table td {
-            padding: 0.75rem;
-            border: 1px solid var(--border-color);
-        }
-        .price-table th {
-            background: rgba(0,0,0,0.05);
-            text-align: left;
-        }
-        .price-table tr:nth-child(even) {
-            background: rgba(0,0,0,0.02);
-        }
-        .recommendation-content {
-            padding: 1rem;
-            background: rgba(40, 167, 69, 0.1);
-            border-radius: 8px;
-            border-left: 4px solid #28a745;
-        }
-        .alternatives-list {
-            list-style-type: none;
-            padding-left: 0.5rem;
-        }
-        .alternatives-list li {
-            margin: 0.75rem 0;
-            padding: 0.5rem;
-            background: rgba(0,0,0,0.03);
-            border-radius: 4px;
-        }
-        .pros-cons-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1.5rem;
-        }
-        .pros, .cons {
-            flex: 1;
-            min-width: 250px;
-        }
-        .pros h4 {
-            color: #28a745;
-        }
-        .cons h4 {
-            color: #dc3545;
-        }
-        """
-        soup.append(style)

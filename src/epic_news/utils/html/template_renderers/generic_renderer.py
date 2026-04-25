@@ -42,8 +42,6 @@ class GenericRenderer(BaseRenderer):
         # Add raw data if available
         self._add_raw_data(soup, container, data)
 
-        # Add styles
-        self._add_styles(soup)
 
         return str(soup)
 
@@ -142,69 +140,3 @@ class GenericRenderer(BaseRenderer):
         raw_div.append(pre_tag)
 
         container.append(raw_div)
-
-    def _add_styles(self, soup: BeautifulSoup) -> None:
-        """Add CSS styles for generic formatting."""
-        style_tag = soup.new_tag("style")
-        style_tag.string = """
-        .generic-report {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        .generic-header {
-            text-align: center;
-            margin-bottom: 2rem;
-            padding: 1.5rem;
-            background: var(--container-bg);
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-        }
-        .generic-header h2 {
-            color: var(--heading-color);
-            margin: 0;
-        }
-        .generic-content, .raw-data-section {
-            margin: 1.5rem 0;
-            padding: 1.5rem;
-            background: var(--container-bg);
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-        }
-        .content-section, .list-section {
-            margin: 1rem 0;
-            padding: 1rem;
-            background: rgba(108, 117, 125, 0.1);
-            border-radius: 6px;
-        }
-        .content-section h3, .list-section h3, .raw-data-section h3 {
-            color: var(--heading-color);
-            margin-bottom: 0.5rem;
-            font-size: 1.2rem;
-        }
-        .content-section p {
-            color: var(--text-color);
-            line-height: 1.5;
-            margin: 0;
-        }
-        .list-section ul {
-            margin: 0.5rem 0;
-            padding-left: 1.5rem;
-        }
-        .list-section li {
-            color: var(--text-color);
-            margin: 0.25rem 0;
-        }
-        .raw-data-section pre {
-            background: rgba(0, 0, 0, 0.05);
-            padding: 1rem;
-            border-radius: 4px;
-            overflow-x: auto;
-            margin: 0;
-        }
-        .raw-data-section code {
-            color: var(--text-color);
-            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-            font-size: 0.9rem;
-        }
-        """
-        soup.append(style_tag)

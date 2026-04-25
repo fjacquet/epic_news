@@ -58,8 +58,6 @@ class CompanyNewsRenderer(BaseRenderer):
         # Add notes if present
         self._add_notes(soup, container, data)
 
-        # Add styles
-        self._add_styles(soup)
 
         # Remove any raw/internal CrewAI fields if present (defensive, in case of legacy data)
         # This renderer does not output any fields named 'raw', 'expected_output', 'name', etc.
@@ -157,95 +155,3 @@ class CompanyNewsRenderer(BaseRenderer):
             notes_p.string = notes
             notes_div.append(notes_p)
             container.append(notes_div)
-
-    def _add_styles(self, soup):
-        style_tag = soup.new_tag("style")
-        style_tag.string = """
-        .company-news-report {
-            max-width: 900px;
-            margin: 0 auto;
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background: var(--container-bg, #fff);
-            border-radius: 12px;
-            border: 1px solid var(--border-color, #ddd);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            padding: 2rem 2.5rem;
-            color: var(--text-color, #343a40);
-        }
-        .company-news-header {
-            text-align: center;
-            margin-bottom: 2.5rem;
-        }
-        .company-news-header h2 {
-            font-size: 2rem;
-            color: var(--heading-color, #0056b3);
-            margin-bottom: 0.5rem;
-        }
-        .company-news-header p {
-            color: var(--text-color, #343a40);
-        }
-        .company-news-section {
-            margin-bottom: 2.2rem;
-        }
-        .company-news-section h3 {
-            color: var(--h2-color, #2980b9);
-            font-size: 1.3rem;
-            margin-bottom: 0.9rem;
-        }
-        .company-news-article {
-            background: var(--highlight-bg, #f8f9fa);
-            border-radius: 8px;
-            border: 1px solid var(--border-color, #dee2e6);
-            margin-bottom: 1.1rem;
-            padding: 1.1rem 1.3rem;
-            color: var(--text-color, #343a40);
-        }
-        .company-article-link {
-            font-weight: bold;
-            font-size: 1.08rem;
-            color: var(--heading-color, #0056b3);
-            text-decoration: underline;
-        }
-        .company-news-meta {
-            margin-top: 0.5rem;
-            margin-bottom: 0.5rem;
-        }
-        .company-article-date, .company-article-source {
-            margin-right: 1.2rem;
-            color: var(--text-color, #6c757d);
-            font-size: 0.97rem;
-        }
-        .company-article-citation {
-            margin-top: 0.7rem;
-            margin-bottom: 0.7rem;
-            font-style: italic;
-            color: var(--text-color, #343a40);
-            border-left: 3px solid var(--heading-color, #64b5f6);
-            padding-left: 1rem;
-            background: var(--highlight-bg, #f8f9fa);
-        }
-        .company-news-notes {
-            border-top: 1px solid var(--border-color, #dee2e6);
-            margin-top: 2.5rem;
-            padding-top: 1.2rem;
-            color: var(--text-color, #343a40);
-        }
-        .company-news-notes h4 {
-            font-size: 1.1rem;
-            color: var(--h3-color, #2c3e50);
-            margin-bottom: 0.4rem;
-        }
-        .company-news-empty {
-            text-align: center;
-            padding: 2rem;
-            color: var(--text-color, #343a40);
-            font-style: italic;
-        }
-        """
-        # Find the container and prepend the style tag
-        container = soup.find("div", class_="company-news-report")
-        if container:
-            container.insert(0, style_tag)
-        else:
-            # Fallback: append to the soup root
-            soup.append(style_tag)

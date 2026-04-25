@@ -73,8 +73,6 @@ class MeetingPrepRenderer(BaseRenderer):
         # Add additional resources
         self._add_additional_resources(soup, container, data)
 
-        # Add styles
-        self._add_styles(soup)
 
         # Now that we're using attrs["class"] instead of class_, we don't need to replace class_ with class
         return str(soup)
@@ -426,84 +424,3 @@ class MeetingPrepRenderer(BaseRenderer):
 
         section.append(resources_div)
         container.append(section)
-
-    def _add_styles(self, soup: BeautifulSoup) -> None:
-        """Add CSS styles for meeting preparation."""
-        style = soup.new_tag("style")
-        style.string = """
-        .meeting-prep-container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        .meeting-summary {
-            margin-bottom: 2rem;
-            padding: 1.5rem;
-            background: var(--highlight-bg);
-            border-left: 4px solid var(--heading-color);
-            border-radius: 4px;
-            font-size: 1.1em;
-        }
-        .meeting-section {
-            margin: 2rem 0;
-            padding: 1.5rem;
-            background: var(--container-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            box-shadow: 0 2px 4px var(--shadow-color);
-        }
-        .meeting-section h3 {
-            color: var(--heading-color);
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-        .participant {
-            margin-bottom: 1.5rem;
-            padding: 1rem;
-            background: var(--highlight-bg);
-            border-radius: 4px;
-            border-left: 3px solid var(--heading-color);
-        }
-        .participant h4 {
-            margin: 0 0 0.5rem 0;
-            color: var(--h3-color);
-        }
-        .participant-role {
-            font-weight: bold;
-            color: var(--h3-color);
-        }
-        .talking-point {
-            margin-bottom: 1.5rem;
-            padding: 1rem;
-            background: var(--highlight-bg);
-            border-left: 4px solid #007bff;
-            border-radius: 4px;
-        }
-        .questions-list {
-            margin-top: 0.5rem;
-            padding-left: 1.5rem;
-        }
-        .questions-list li {
-            margin-bottom: 0.5rem;
-        }
-        .strategic-recommendation {
-            margin-bottom: 1.5rem;
-            padding: 1rem;
-            background: #f0f9f0;
-            border-left: 4px solid #28a745;
-            border-radius: 4px;
-        }
-        .resource-item {
-            margin-bottom: 1.5rem;
-            padding: 1rem;
-            background: var(--highlight-bg);
-            border-left: 3px solid #27ae60;
-            border-radius: 4px;
-        }
-        .resource-link {
-            margin-top: 0.5rem;
-            font-size: 0.9em;
-            word-break: break-all;
-        }
-        """
-        soup.head.append(style)  # type: ignore[union-attr]
