@@ -1,0 +1,137 @@
+---
+political_research_task:
+  description: >
+    Write the entire output in {language}. Focus on {geography} when scoping
+    evidence — prioritise sources, regulators, and statistics tied to that
+    jurisdiction over generic global commentary.
+    Research the POLITICAL dimension of a PESTEL analysis for {topic}.
+    As of {current_date}, investigate:
+    - Political stability and governance quality in the relevant jurisdiction(s)
+    - Government policies and priorities directly affecting {topic}
+    - Regulatory framework and oversight bodies
+    - Trade policy, tariffs, sanctions, and geopolitical risk
+    - Upcoming elections, policy shifts, or political transitions
+    - Lobbying activity and political stakeholder mapping when relevant
+    For every finding include a short source reference (URL or publication title
+    with date). Do not speculate beyond the evidence.
+  expected_output: >
+    All free-text fields (summary, impact_analysis, key_factors) MUST be written
+    in {language}. A structured JSON object with: summary (executive summary of
+    the political dimension for {topic} in {geography}), key_factors (list of
+    5-10 specific, sourced factors), impact_analysis (strategic impact on
+    {topic}), sources (list of citation URLs or reference titles).
+  agent: political_researcher
+economic_research_task:
+  description: >
+    Write the entire output in {language}. Focus on {geography} when scoping
+    evidence.
+    Research the ECONOMIC dimension of a PESTEL analysis for {topic}.
+    As of {current_date}, investigate:
+    - Macro indicators: GDP growth, inflation, interest rates, currency trends
+    - Labor market: unemployment, wages, skills availability
+    - Sector-specific economic conditions relevant to {topic}
+    - Supply chain and raw-material cost pressures
+    - Consumer spending and purchasing power
+    - Access to capital, investment climate, and funding conditions
+    For every finding include a short source reference with date. Prefer primary
+    statistics offices, central banks, and reputable international institutions.
+  expected_output: >
+    All free-text fields MUST be written in {language}. A structured JSON object
+    with: summary, key_factors (5-10 sourced factors with numbers where
+    available), impact_analysis, sources.
+  agent: economic_researcher
+social_research_task:
+  description: >
+    Write the entire output in {language}. Focus on {geography} when scoping
+    evidence.
+    Research the SOCIAL dimension of a PESTEL analysis for {topic}.
+    As of {current_date}, investigate:
+    - Demographics and population dynamics relevant to {topic}
+    - Cultural trends, values, and consumer behavior shifts
+    - Lifestyle and health trends
+    - Education levels and workforce characteristics
+    - Attitudes and public perception toward {topic}
+    - Social-media sentiment and movements when relevant
+    Cite sources for every finding (census data, peer-reviewed studies,
+    reputable polling). Flag regional variation when it matters.
+  expected_output: >
+    All free-text fields MUST be written in {language}. A structured JSON object
+    with: summary, key_factors (5-10 sourced factors), impact_analysis, sources.
+  agent: social_researcher
+technological_research_task:
+  description: >
+    Write the entire output in {language}. Focus on {geography} when scoping
+    evidence.
+    Research the TECHNOLOGICAL dimension of a PESTEL analysis for {topic}.
+    As of {current_date}, investigate:
+    - Emerging and maturing technologies relevant to {topic}
+    - R&D activity, patents, and innovation ecosystems
+    - Adoption rates and digital transformation indicators
+    - Automation, AI, and productivity implications
+    - Technology infrastructure (connectivity, compute, platforms)
+    - Cybersecurity and technology risk
+    Cite sources for every finding. Distinguish hype from validated deployment.
+  expected_output: >
+    All free-text fields MUST be written in {language}. A structured JSON object
+    with: summary, key_factors (5-10 sourced factors), impact_analysis, sources.
+  agent: technological_researcher
+environmental_research_task:
+  description: >
+    Write the entire output in {language}. Focus on {geography} when scoping
+    evidence.
+    Research the ENVIRONMENTAL dimension of a PESTEL analysis for {topic}.
+    As of {current_date}, investigate:
+    - Climate policy, carbon pricing, and net-zero commitments affecting {topic}
+    - Resource availability, water stress, and supply-chain ecological risk
+    - ESG requirements, sustainability disclosures, and stakeholder expectations
+    - Biodiversity, circular-economy, and waste-management pressures
+    - Physical and transition climate risk exposure
+    - Environmental incidents or controversies relevant to {topic}
+    Cite sources for every finding (IPCC, national agencies, CDP/GRI). Do not
+    conflate aspirational targets with measured outcomes.
+  expected_output: >
+    All free-text fields MUST be written in {language}. A structured JSON object
+    with: summary, key_factors (5-10 sourced factors), impact_analysis, sources.
+  agent: environmental_researcher
+legal_research_task:
+  description: >
+    Write the entire output in {language}. Focus on {geography} when scoping
+    evidence — prefer statutes, regulators, and case law from that jurisdiction.
+    Research the LEGAL dimension of a PESTEL analysis for {topic}.
+    As of {current_date}, investigate:
+    - Applicable statutes and regulations directly affecting {topic}
+    - Compliance obligations (data protection, consumer, financial, employment)
+    - Litigation trends and notable cases
+    - Sector-specific licensing and regulatory authorities
+    - Upcoming or pending legislation that could change the landscape
+    - Jurisdictional scope and cross-border enforcement considerations
+    Cite sources for every finding (statute references, regulator guidance,
+    court decisions, reputable legal commentary). Note effective dates.
+  expected_output: >
+    All free-text fields MUST be written in {language}. A structured JSON object
+    with: summary, key_factors (5-10 sourced factors), impact_analysis, sources.
+  agent: legal_researcher
+format_pestel_report_task:
+  description: >
+    Write the entire output in {language}. Consolidate the six PESTEL dimension
+    research outputs into a single comprehensive report for {topic} as of
+    {current_date}, focused on {geography}.
+    Produce:
+    - topic: exactly "{topic}"
+    - executive_summary: 3-5 sentence high-level overview of the full analysis,
+      written in {language}
+    - political, economic, social, technological, environmental, legal: one
+      PestelDimension object per dimension, preserving summaries, key_factors,
+      impact_analysis, and sources exactly as provided by the researchers
+    - synthesis: cross-dimensional analysis highlighting the most important
+      interactions, strategic implications, and outlook — written in {language}
+    - generated_at: ISO date "{current_date}"
+    Do NOT invent facts, add sources, or drop citations provided by the
+    researchers. Do NOT translate URLs or proper nouns. Output MUST validate
+    against the PestelReport Pydantic schema.
+  expected_output: >
+    A single JSON object conforming exactly to the PestelReport Pydantic model,
+    with all six dimensions populated, all free-text fields written in
+    {language}, and a cross-dimensional synthesis section.
+  agent: pestel_reporter
+  output_file: output/pestel/report.json

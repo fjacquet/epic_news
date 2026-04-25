@@ -75,6 +75,7 @@ dependencies = [
     "fastapi-sso>=0.17.0",
     "crewai>=1.14.2",
     "pygments>=2.19.2",
+    "mcp>=1.26.0",
 ]
 
 [project.scripts]

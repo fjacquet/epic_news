@@ -24,6 +24,11 @@ classification_task:
     book reviews, author information, literature queries, book analysis, tell me about
     book, livre, roman, auteur
     - MEETING_PREP: For meeting preparation, agenda creation, research for meetings
+    - PESTEL: For PESTEL / PESTLE strategic analysis requests covering Political,
+    Economic, Social, Technological, Environmental, Legal dimensions on any
+    subject (company, sector, country, product). Triggers: "PESTEL", "PESTLE",
+    "analyse PESTEL", "rapport PESTEL", "PESTEL analysis", "macro-environment
+    analysis", "strategic environment".
     - And so on for other categories...
     Pay special attention to keywords like:
     - "menu", "weekly", "planner", "planning", "multiple recipes", "shopping list"
@@ -46,6 +51,10 @@ classification_task:
     → SAINT
     - "poem", "poème", "poetry", "poésie"
     → POEM
+    - "pestel", "pestle", "analyse pestel", "rapport pestel", "pestel analysis",
+    "macro-environment", "political economic social technological environmental
+    legal"
+    → PESTEL
     Provide your final classification decision along with a brief explanation
     of your reasoning.
   expected_output: >

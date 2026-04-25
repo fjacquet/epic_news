@@ -16,6 +16,7 @@ import contextlib
 import os
 
 from dotenv import load_dotenv
+from mcp import StdioServerParameters
 
 load_dotenv()
 
@@ -74,11 +75,11 @@ class MCPConfig:
                 "Please set it in your .env file."
             )
 
-        return {
-            "command": "npx",
-            "args": ["@perplexity-ai/mcp-server"],
-            "env": {"PERPLEXITY_API_KEY": api_key},
-        }
+        return StdioServerParameters(
+            command="npx",
+            args=["@perplexity-ai/mcp-server"],
+            env={"PERPLEXITY_API_KEY": api_key},
+        )
 
     @staticmethod
     def get_wikipedia_mcp():
@@ -101,11 +102,11 @@ class MCPConfig:
             >>>     # Use tools with agents
             >>>     pass
         """
-        return {
-            "command": "uvx",
-            "args": ["--from", "wikipedia-mcp-server@latest", "wikipedia-mcp"],
-            "env": {},
-        }
+        return StdioServerParameters(
+            command="uvx",
+            args=["--from", "wikipedia-mcp-server@latest", "wikipedia-mcp"],
+            env={},
+        )
 
     @staticmethod
     def get_custom_tools_mcp(project_root: str | None = None):
@@ -128,11 +129,11 @@ class MCPConfig:
             >>> mcp_config = MCPConfig.get_custom_tools_mcp()
             >>> # Use with CrewAI MCP integration
         """
-        return {
-            "command": "python",
-            "args": ["-m", "epic_news.mcp_servers.tools_server"],
-            "env": {"PROJECT_ROOT": project_root or os.getcwd()},
-        }
+        return StdioServerParameters(
+            command="python",
+            args=["-m", "epic_news.mcp_servers.tools_server"],
+            env={"PROJECT_ROOT": project_root or os.getcwd()},
+        )
 
     @staticmethod
     def get_all_mcp_servers():

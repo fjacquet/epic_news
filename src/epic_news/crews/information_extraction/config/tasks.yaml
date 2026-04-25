@@ -5,6 +5,12 @@ comprehensive_information_extraction_task:
     primary goal is to extract the main subject/activity and any specific
     entities like a company name. You must also extract other details if
     present, such as locations, dates, and traveler info.
+    ALSO detect the natural language the user is writing in (French, English,
+    German, Spanish, Italian, etc.) and put it in `output_language`. This is
+    the language the *final report* must be produced in. If the request is
+    in English or the language is ambiguous, set output_language to "English".
+    Examples: "Fait moi un rapport..." → "French"; "Trouve la recette..."
+    → "French"; "Give me a report..." → "English".
     Here is the user request you need to analyze: "{user_request}"
   expected_output: >
     A perfectly structured Pydantic object of type 'ExtractedInfo'. You MUST
@@ -23,20 +29,25 @@ comprehensive_information_extraction_task:
       - main_subject_or_activity: "holiday planning"
       - user_preferences_and_constraints: "relaxing"
       - budget_notes: "on a budget"
+      - output_language: "English"
     Example 2: - Request: "Give me an OSINT report on the company 'Tesla
     Inc.'" - Correct Output Fields:
       - target_company: "Tesla Inc."
       - company: "Tesla Inc."
       - main_subject_or_activity: "OSINT report"
+      - output_language: "English"
     Example 3: - Request: "Write me a poem about the fall of Rome" - Correct
     Output Fields:
       - main_subject_or_activity: "poem about the fall of Rome"
+      - output_language: "English"
     Example 4: - Request: "I need a recipe for a classic French ratatouille."
     - Correct Output Fields:
       - main_subject_or_activity: "recipe for classic French ratatouille"
+      - output_language: "English"
     Example 5: - Request: "Trouve la recette du cassoulet traditionnel"
     - Correct Output Fields:
       - main_subject_or_activity: "recette du cassoulet traditionnel"
+      - output_language: "French"
     Example 6: - Request: "Prepare for a meeting with ACME Corp. Participants will
     be John Doe (CEO of ACME) and Jane Smith (our Head of Sales). It's a follow-up
     to our call last week where we discussed the new X-Series product. The main goal
@@ -52,4 +63,13 @@ comprehensive_information_extraction_task:
       - prior_interactions: "Call last week, discussed X-Series product"
       - meeting_objective: "Finalize the contract terms"
       - main_subject_or_activity: "meeting preparation"
+      - output_language: "English"
+    Example 7: - Request: "Fait moi un rapport PESTLE à propos de la banque Reyl
+    en Suisse aujourd'hui en français"
+    - Correct Output Fields:
+      - target_company: "Reyl"
+      - company: "Reyl"
+      - destination_location: "Switzerland"
+      - main_subject_or_activity: "PESTEL analysis of Reyl bank in Switzerland"
+      - output_language: "French"
   agent: detailed_request_analyzer_agent
