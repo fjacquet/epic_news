@@ -22,6 +22,7 @@ from .meeting_prep_renderer import MeetingPrepRenderer
 from .menu_renderer import MenuRenderer
 from .news_daily_renderer import NewsDailyRenderer
 from .osint_global_renderer import OSINTGlobalRenderer
+from .pestel_renderer import PestelRenderer
 from .poem_renderer import PoemRenderer
 from .rss_weekly_renderer import RssWeeklyRenderer
 from .saint_renderer import SaintRenderer
@@ -56,6 +57,7 @@ class RendererFactory:
         "OSINT_GLOBAL": OSINTGlobalRenderer,
         "MENU": MenuRenderer,
         "NEWSDAILY": NewsDailyRenderer,
+        "PESTEL": PestelRenderer,
         "POEM": PoemRenderer,
         "RSS_WEEKLY": RssWeeklyRenderer,
         "SAINT": SaintRenderer,

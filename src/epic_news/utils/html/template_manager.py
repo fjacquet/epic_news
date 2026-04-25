@@ -64,6 +64,7 @@ class TemplateManager:
             "SALES_PROSPECTING": "💼 Prospection Commerciale",
             "OPEN_SOURCE_INTELLIGENCE": "🔍 Intelligence Open Source",
             "DEEPRESEARCH": "🔬 Recherche Approfondie",
+            "PESTEL": "🌐 Analyse PESTEL",
         }
 
         base_title = crew_titles.get(selected_crew, f"📄 Rapport {selected_crew}")

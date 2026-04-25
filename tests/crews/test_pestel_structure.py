@@ -158,6 +158,52 @@ def test_pestel_yaml_configs_parse_cleanly() -> None:
     assert "current_date" in tasks["political_research_task"]["description"]
 
 
+def test_pestel_html_renderer_registered() -> None:
+    """PESTEL must resolve to a specialized HTML renderer (not GenericRenderer)."""
+    from epic_news.utils.html.template_renderers.pestel_renderer import PestelRenderer
+    from epic_news.utils.html.template_renderers.renderer_factory import RendererFactory
+
+    assert RendererFactory.has_specialized_renderer("PESTEL")
+    renderer = RendererFactory.create_renderer("PESTEL")
+    assert isinstance(renderer, PestelRenderer)
+
+
+def test_pestel_renderer_emits_all_sections(sample_report: PestelReport) -> None:
+    """The HTML output must include the topic, all six dimension headings, and sources."""
+    from epic_news.utils.html.template_renderers.pestel_renderer import PestelRenderer
+
+    html = PestelRenderer().render(sample_report.model_dump())
+    assert "Test Topic" in html
+    for heading in ("Political", "Economic", "Social", "Technological", "Environmental", "Legal"):
+        assert heading in html
+    assert "Synthesis" in html
+    assert "Cross-dim synthesis" in html
+    # URL sources rendered as anchor tags
+    assert 'href="https://example.com"' in html
+
+
+def test_pestel_renderer_handles_empty_lists() -> None:
+    """Empty key_factors → empty-state paragraph; empty sources → no Sources block."""
+    from epic_news.utils.html.template_renderers.pestel_renderer import PestelRenderer
+
+    dim = PestelDimension(summary="s", impact_analysis="i")
+    report = PestelReport(
+        topic="Empty Topic",
+        executive_summary="exec",
+        political=dim,
+        economic=dim,
+        social=dim,
+        technological=dim,
+        environmental=dim,
+        legal=dim,
+        synthesis="syn",
+        generated_at="2026-04-25",
+    )
+    html = PestelRenderer().render(report.model_dump())
+    assert "No factors identified." in html
+    assert "<h3>Sources</h3>" not in html
+
+
 def test_pestel_crew_has_expected_members() -> None:
     from epic_news.crews.pestel.pestel_crew import PestelCrew
 

@@ -87,10 +87,30 @@ def test_generate_pestel_populates_state_and_markdown(pestel_flow_env) -> None:
     assert isinstance(flow.state.pestel_report, PestelReport)
     assert flow.state.pestel_report.topic == "Test Topic"
 
-    # output_file ends pointing at the markdown, not the json.
-    assert flow.state.output_file.endswith("report.md")
+    # output_file ends pointing at the html (attachment for email), and the
+    # markdown is also written alongside.
+    assert flow.state.output_file.endswith("report.html")
     md_path = tmp_path / "output" / "pestel" / "report.md"
+    html_path = tmp_path / "output" / "pestel" / "report.html"
     assert md_path.exists()
+    assert html_path.exists()
+
+
+def test_generate_pestel_writes_html_for_email_attachment(pestel_flow_env) -> None:
+    """HTML is the canonical attachment path; must be non-empty and contain the topic."""
+    tmp_path, _calls = pestel_flow_env
+
+    flow = ReceptionFlow(user_request="PESTEL email path")
+    flow.generate_pestel()
+
+    html_path = tmp_path / "output" / "pestel" / "report.html"
+    assert html_path.exists()
+    html = html_path.read_text(encoding="utf-8")
+    assert html.strip(), "HTML report must not be empty"
+    assert "Test Topic" in html
+    # output_file is project-relative (what prepare_email_params reads),
+    # not the absolute tmp_path resolution.
+    assert flow.state.output_file.endswith("output/pestel/report.html")
 
 
 def test_generate_pestel_markdown_contains_all_sections(pestel_flow_env) -> None:

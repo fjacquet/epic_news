@@ -966,8 +966,9 @@ class ReceptionFlow(Flow[ContentState]):
 
         Runs a six-dimension PESTEL analysis (Political, Economic, Social,
         Technological, Environmental, Legal) on the user's topic and writes
-        the consolidated report as Markdown. Markdown is the only output format
-        for this crew (no HTML rendering).
+        the consolidated report as both HTML and Markdown. The HTML file is
+        the attachment-of-record for the email step; the Markdown file is
+        kept as a human-readable fallback.
         """
         self.state.output_file = "output/pestel/report.json"
         inputs = self.state.to_crew_inputs()
@@ -1003,8 +1004,12 @@ class ReceptionFlow(Flow[ContentState]):
         md_path = Path("output/pestel/report.md")
         md_path.parent.mkdir(parents=True, exist_ok=True)
         md_path.write_text(pestel_to_markdown(pestel_model), encoding="utf-8")
-        self.state.output_file = str(md_path)
-        self.logger.info(f"✅ PESTEL report written to {md_path}")
+
+        html_path = render_and_write_html(
+            "PESTEL", pestel_model, "output/pestel/report.html"
+        )
+        self.state.output_file = str(html_path)
+        self.logger.info(f"✅ PESTEL report written to {html_path} (+ {md_path})")
 
     @listen("go_generate_osint")
     @trace_task(tracer)
@@ -1311,6 +1316,8 @@ class ReceptionFlow(Flow[ContentState]):
             "generate_news_daily",
             "generate_saint_daily",
             "generate_menu_designer",
+            "generate_pestel",
+            "generate_deep_research",
         )
     )
     @listen(or_("generate_cross_reference_report", "generate_html_report"))
