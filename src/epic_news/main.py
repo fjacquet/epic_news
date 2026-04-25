@@ -1436,7 +1436,7 @@ def kickoff(user_input: str | None = None):
     request = (
         user_input
         if user_input
-        else "Fait moi un rapport PESTLE a propos de la societe Japan Tobacco International (JTI) aujourd'hui en français"
+        else "Fait moi un rapport PESTLE a propos de la societe Temenos aujourd'hui en français"
         # else "Complete OSINT analysis of Mistral.AI"
         # else "get the daily  news report"
         # else "conduct a deep research study on a travel on the north of the italy between san remo and Genova. Give me the best hotel and restaurant options."

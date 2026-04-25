@@ -6,6 +6,7 @@ et expérience utilisateur cohérente.
 """
 
 from datetime import datetime
+from functools import cache
 from pathlib import Path
 from typing import Any
 
@@ -14,6 +15,14 @@ from pydantic import BaseModel
 from epic_news.config.ui_theme import generate_theme_css
 from epic_news.models.crews.financial_report import FinancialReport
 from epic_news.utils.html.template_renderers.renderer_factory import RendererFactory
+
+_CSS_PATH = Path(__file__).parent.parent.parent.parent.parent / "templates" / "css" / "report.css"
+
+
+@cache
+def _load_static_css() -> str:
+    """Read the consolidated report CSS once and cache it for the process lifetime."""
+    return _CSS_PATH.read_text(encoding="utf-8")
 
 
 class TemplateState(BaseModel):
@@ -97,6 +106,7 @@ class TemplateManager:
 
             # Replace placeholders in the template
             html_content = template_html.replace("{{ theme_css_vars }}", generate_theme_css())
+            html_content = html_content.replace("{{ static_css }}", _load_static_css())
             html_content = html_content.replace("{{ report_title }}", title)
             html_content = html_content.replace("{{ report_body|safe }}", body_content)
             html_content = html_content.replace(

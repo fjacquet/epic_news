@@ -35,7 +35,6 @@ class WebPresenceRenderer(BaseRenderer):
         soup = self.create_soup("div", class_="web-presence-report")
         container = soup.div
 
-        self._add_styles(soup)
         self.add_report_header(soup, container, "🌐 Analyse de Présence Web", data.get("company_name"))
         self.render_text_section(soup, container, data.get("executive_summary"), "Résumé Exécutif", "📋")
         self._add_website_analysis(soup, container, data)
@@ -254,69 +253,3 @@ class WebPresenceRenderer(BaseRenderer):
             section.append(card)
 
         container.append(section)
-
-    @staticmethod
-    def _add_styles(soup: BeautifulSoup) -> None:
-        style = soup.new_tag("style")
-        style.string = """
-            .web-presence-report {
-                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-                max-width: 900px;
-                margin: 2rem auto;
-                padding: 2rem;
-                background-color: var(--background-light, #ffffff);
-                border-radius: 12px;
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-                color: var(--text-light, #333);
-            }
-            .report-header { text-align: center; margin-bottom: 2.5rem; border-bottom: 1px solid var(--border-color, #e5e7eb); padding-bottom: 1rem; }
-            .report-header h1 { font-size: 2rem; font-weight: 700; margin: 0 0 0.5rem 0; }
-            .report-header h2 { font-size: 1.25rem; font-weight: 500; color: var(--subheader-color, #6b7280); margin: 0; }
-            .report-section { margin-bottom: 2rem; }
-            .report-section h2 { font-size: 1.5rem; font-weight: 600; margin-bottom: 1rem; border-bottom: 1px solid var(--border-color, #e5e7eb); padding-bottom: 0.5rem; }
-            .report-section p { line-height: 1.7; }
-            .website-card { background: var(--card-bg, #f9fafb); border: 1px solid var(--card-border, #e5e7eb); border-radius: 8px; padding: 1.5rem; }
-            .website-card .domain { font-weight: 600; font-size: 1.125rem; margin-bottom: 1rem; }
-            .social-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem; }
-            .social-card { background: var(--card-bg, #f9fafb); border: 1px solid var(--card-border, #e5e7eb); border-radius: 8px; padding: 1rem; }
-            .social-card h3 { margin: 0 0 0.5rem 0; }
-            .social-card a { color: var(--link-color, #2563eb); font-size: 0.875rem; }
-            .social-stats { display: flex; gap: 1rem; margin-top: 0.75rem; }
-            .social-stats span { font-size: 0.875rem; color: var(--text-muted, #6b7280); }
-            .notes { font-size: 0.875rem; color: var(--text-muted, #6b7280); margin-top: 0.5rem; }
-            .infra-table { width: 100%; border-collapse: collapse; }
-            .infra-table th, .infra-table td { padding: 0.75rem; text-align: left; border-bottom: 1px solid var(--border-color, #e5e7eb); }
-            .infra-table th { width: 40%; font-weight: 500; color: var(--text-muted, #6b7280); }
-            .leak-card { background: var(--card-bg, #f9fafb); border-radius: 8px; padding: 1rem; margin-bottom: 1rem; border-left: 4px solid; }
-            .leak-card.risk-high { border-color: #ef4444; background: #fef2f2; }
-            .leak-card.risk-medium { border-color: #f59e0b; background: #fffbeb; }
-            .leak-card.risk-low { border-color: #10b981; background: #ecfdf5; }
-            .leak-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
-            .leak-header h4 { margin: 0; }
-            .risk-badge { padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 500; }
-            .risk-badge.risk-high { background: #fecaca; color: #dc2626; }
-            .risk-badge.risk-medium { background: #fed7aa; color: #ea580c; }
-            .risk-badge.risk-low { background: #a7f3d0; color: #059669; }
-            .competitor-card { background: var(--card-bg, #f9fafb); border: 1px solid var(--card-border, #e5e7eb); border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem; }
-            .competitor-card h3 { margin: 0 0 0.5rem 0; }
-            .comp-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem; }
-            .comp-strengths, .comp-weaknesses { padding: 1rem; border-radius: 8px; }
-            .comp-strengths { background: #ecfdf5; }
-            .comp-weaknesses { background: #fef3c7; }
-            .comp-strengths h4, .comp-weaknesses h4 { margin: 0 0 0.5rem 0; }
-            .comp-strengths ul, .comp-weaknesses ul { margin: 0; padding-left: 1rem; }
-            .raw-data { margin-top: 2.5rem; border-top: 1px solid var(--border-color, #e5e7eb); padding-top: 1.5rem; }
-            .raw-data summary { cursor: pointer; font-weight: 500; }
-            .raw-data pre { background: var(--pre-bg, #f3f4f6); padding: 1rem; border-radius: 8px; overflow-x: auto; margin-top: 1rem; }
-            @media (prefers-color-scheme: dark) {
-                .web-presence-report { background-color: #1f2937; color: #e5e7eb; }
-                .website-card, .social-card, .competitor-card { background: #374151; border-color: #4b5563; }
-                .leak-card.risk-high { background: #7f1d1d; }
-                .leak-card.risk-medium { background: #78350f; }
-                .leak-card.risk-low { background: #064e3b; }
-                .comp-strengths { background: #064e3b; }
-                .comp-weaknesses { background: #78350f; }
-                .raw-data pre { background: #374151; }
-            }
-        """
-        soup.append(style)

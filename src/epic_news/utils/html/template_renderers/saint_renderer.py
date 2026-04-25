@@ -58,8 +58,6 @@ class SaintRenderer(BaseRenderer):
         # Add sources
         self._add_sources(soup, container, data)
 
-        # Add styles
-        self._add_styles(soup)
 
         return str(soup)
 
@@ -290,62 +288,3 @@ class SaintRenderer(BaseRenderer):
         sources_div.append(sources_ul)
 
         container.append(sources_div)
-
-    def _add_styles(self, soup: BeautifulSoup) -> None:
-        """Add CSS styles for saint formatting."""
-        style_tag = soup.new_tag("style")
-        style_tag.string = """
-        .saint-report {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        .saint-header {
-            text-align: center;
-            margin-bottom: 2rem;
-            padding: 2rem;
-            background: var(--container-bg);
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-        }
-        .saint-header h2 {
-            color: var(--heading-color);
-            margin-bottom: 0.5rem;
-            font-size: 2rem;
-        }
-        .saint-title {
-            color: var(--text-color);
-            font-style: italic;
-            font-size: 1.1rem;
-            margin: 0;
-        }
-        .saint-biography, .feast-details, .spiritual-significance, .miracles, .swiss-connection, .prayer-reflection, .sources {
-            margin: 2rem 0;
-            padding: 1.5rem;
-            background: var(--container-bg);
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-        }
-        .saint-biography h3, .feast-details h3, .spiritual-significance h3, .miracles h3, .swiss-connection h3, .prayer-reflection h3, .sources h3 {
-            color: var(--heading-color);
-            margin-bottom: 1rem;
-            font-size: 1.3rem;
-        }
-        .saint-biography p, .feast-details p, .spiritual-significance p, .miracles p, .swiss-connection p, .prayer-reflection p, .sources p {
-            color: var(--text-color);
-            line-height: 1.6;
-            margin: 0.75rem 0;
-        }
-        .feast-details strong, .spiritual-significance strong, .sources strong {
-            color: var(--heading-color);
-        }
-        .spiritual-significance ul, .sources ul {
-            margin: 1rem 0;
-            padding-left: 1.5rem;
-        }
-        .spiritual-significance li, .sources li {
-            color: var(--text-color);
-            margin: 0.5rem 0;
-            line-height: 1.5;
-        }
-        """
-        soup.append(style_tag)

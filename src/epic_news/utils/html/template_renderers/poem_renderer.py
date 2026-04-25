@@ -42,8 +42,6 @@ class PoemRenderer(BaseRenderer):
         # Add analysis
         self._add_analysis(soup, container, data)
 
-        # Add styles
-        self._add_styles(soup)
 
         return str(soup)
 
@@ -145,88 +143,3 @@ class PoemRenderer(BaseRenderer):
                 analysis_div.append(section_div)
 
         container.append(analysis_div)
-
-    def _add_styles(self, soup: BeautifulSoup) -> None:
-        """Add CSS styles for poem formatting."""
-        style_tag = soup.new_tag("style")
-        style_tag.string = """
-        .poem-report {
-            max-width: 700px;
-            margin: 0 auto;
-        }
-        .poem-header {
-            text-align: center;
-            margin-bottom: 2rem;
-            padding: 2rem;
-            background: var(--container-bg);
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-        }
-        .poem-header h2 {
-            color: var(--heading-color);
-            margin-bottom: 0.5rem;
-            font-size: 2rem;
-        }
-        .poem-theme {
-            color: var(--text-color);
-            font-style: italic;
-            margin: 0;
-        }
-        .poem-content {
-            margin: 2rem 0;
-            padding: 2rem;
-            background: var(--container-bg);
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-        }
-        .verse, .full-poem {
-            margin: 1.5rem 0;
-            padding: 1rem;
-            background: rgba(108, 117, 125, 0.05);
-            border-radius: 6px;
-            border-left: 4px solid var(--heading-color);
-        }
-        .verse h4 {
-            color: var(--heading-color);
-            margin-bottom: 1rem;
-            font-size: 1.1rem;
-        }
-        .verse-content, .full-poem {
-            font-family: 'Georgia', 'Times New Roman', serif;
-        }
-        .verse-line, .poem-line {
-            color: var(--text-color);
-            line-height: 1.8;
-            margin: 0.5rem 0;
-            padding-left: 1rem;
-            font-size: 1.1rem;
-        }
-        .poem-analysis {
-            margin: 2rem 0;
-            padding: 1.5rem;
-            background: var(--container-bg);
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-        }
-        .poem-analysis h3 {
-            color: var(--heading-color);
-            margin-bottom: 1rem;
-            font-size: 1.3rem;
-        }
-        .analysis-section {
-            margin: 1rem 0;
-            padding: 1rem;
-            background: rgba(108, 117, 125, 0.1);
-            border-radius: 6px;
-        }
-        .analysis-section h4 {
-            color: var(--heading-color);
-            margin-bottom: 0.5rem;
-        }
-        .analysis-section p {
-            color: var(--text-color);
-            line-height: 1.5;
-            margin: 0;
-        }
-        """
-        soup.append(style_tag)

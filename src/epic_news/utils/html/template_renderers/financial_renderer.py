@@ -48,8 +48,6 @@ class FinancialRenderer(BaseRenderer):
         # Add recommendations
         self._add_recommendations(soup, container, data)
 
-        # Add styles
-        self._add_styles(soup)
 
         return str(soup)
 
@@ -235,95 +233,3 @@ class FinancialRenderer(BaseRenderer):
 
         if rec_div.find_all():
             container.append(rec_div)
-
-    def _add_styles(self, soup: BeautifulSoup) -> None:
-        """Add CSS styles for financial report formatting."""
-        style_tag = soup.new_tag("style")
-        style_tag.string = """
-        .financial-report {
-            max-width: 900px;
-            margin: 0 auto;
-        }
-        .financial-header {
-            text-align: center;
-            margin-bottom: 2rem;
-            padding: 2rem;
-            background: var(--container-bg);
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-        }
-        .financial-header h2 {
-            color: var(--heading-color);
-            margin-bottom: 0.5rem;
-            font-size: 2rem;
-        }
-        .report-date {
-            color: var(--text-color);
-            font-size: 1.1rem;
-            margin: 0;
-        }
-        .executive-summary, .key-metrics, .financial-analysis, .recommendations {
-            margin: 2rem 0;
-            padding: 1.5rem;
-            background: var(--container-bg);
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-        }
-        .executive-summary h3, .key-metrics h3, .financial-analysis h3, .recommendations h3 {
-            color: var(--heading-color);
-            margin-bottom: 1rem;
-            font-size: 1.3rem;
-        }
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-        .metric-card {
-            padding: 1rem;
-            background: rgba(0, 123, 179, 0.1);
-            border-radius: 6px;
-            text-align: center;
-        }
-        .metric-card h4 {
-            color: var(--heading-color);
-            margin-bottom: 0.5rem;
-            font-size: 1rem;
-        }
-        .metric-value {
-            color: var(--text-color);
-            font-size: 1.2rem;
-            font-weight: bold;
-            margin: 0;
-        }
-        .analysis-section {
-            margin: 1rem 0;
-            padding: 1rem;
-            background: rgba(108, 117, 125, 0.1);
-            border-radius: 6px;
-            border-left: 4px solid var(--heading-color);
-        }
-        .analysis-section h4 {
-            color: var(--heading-color);
-            margin-bottom: 0.5rem;
-        }
-        .analysis-section p {
-            color: var(--text-color);
-            line-height: 1.5;
-            margin: 0;
-        }
-        .recommendations-list {
-            list-style: none;
-            padding: 0;
-        }
-        .recommendations-list li {
-            margin: 0.5rem 0;
-            padding: 0.75rem;
-            background: rgba(40, 167, 69, 0.1);
-            border-radius: 4px;
-            border-left: 3px solid #28a745;
-            color: var(--text-color);
-        }
-        """
-        soup.append(style_tag)
