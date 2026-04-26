@@ -1,0 +1,98 @@
+site_name: Epic News
+site_description: Multi-agent AI assistant for finance, news, research, recipes, and more — built on crewAI.
+site_url: https://fjacquet.github.io/epic_news/
+repo_url: https://github.com/fjacquet/epic_news
+repo_name: fjacquet/epic_news
+edit_uri: edit/master/docs/
+
+docs_dir: docs
+
+theme:
+  name: material
+  language: en
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - navigation.tracking
+    - search.highlight
+    - search.suggest
+    - content.code.copy
+    - content.action.edit
+    - toc.follow
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: blue
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: blue
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  icon:
+    repo: fontawesome/brands/github
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+plugins:
+  - search
+
+nav:
+  - Home: index.md
+  - Tutorials:
+      - tutorials/index.md
+      - User Guide: tutorials/user_guide.md
+      - Use Cases:
+          - Finance: tutorials/use_cases/finance.md
+          - News & Research: tutorials/use_cases/news_research.md
+          - Business & Intelligence: tutorials/use_cases/business_intel.md
+          - Lifestyle & Creative: tutorials/use_cases/lifestyle.md
+      - Your First Crew: tutorials/getting_started.md
+  - How-to Guides:
+      - how-to/index.md
+      - Development Setup: how-to/development_setup.md
+      - Composio Setup: how-to/composio_setup.md
+      - MCP Setup: how-to/mcp_setup.md
+      - Docker Deployment: how-to/docker_deployment.md
+      - Observability: how-to/observability.md
+      - Troubleshooting: how-to/troubleshooting.md
+      - Bug Reporting: how-to/bug_reporting.md
+  - Reference:
+      - reference/index.md
+      - Output Reference: reference/outputs.md
+  - Explanations:
+      - explanations/index.md
+      - Architecture: explanations/architecture.md
+      - Deep Research: explanations/deep_research.md
+  - Architecture Decisions:
+      - ADR Index: adr/
+  - Changelog: ../CHANGELOG.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/fjacquet/epic_news

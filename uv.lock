@@ -1036,7 +1036,7 @@ requires-dist = [
     { name = "langchain-openai", specifier = ">=0.2.14" },
     { name = "langfuse", specifier = ">=3.2.3" },
     { name = "langsmith", marker = "extra == 'test'" },
-    { name = "litellm", specifier = ">=1.75.3" },
+    { name = "litellm", specifier = ">=1.83.0" },
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "lxml", specifier = ">=6.1.0" },
     { name = "lxml-html-clean", specifier = ">=0.4.2" },
