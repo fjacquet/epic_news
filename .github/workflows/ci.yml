@@ -19,7 +19,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
 
     - name: create env file
       run: |
@@ -32,19 +32,19 @@ jobs:
          printf '%s\n' "MAIL=${{ secrets.MAIL }}" >> .env
 
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: '3.13'
 
     - name: Install the latest version of uv and activate the environment
-      uses: astral-sh/setup-uv@v6
+      uses: astral-sh/setup-uv@v8
       with:
         activate-environment: true
         enable-cache: true
         prune-cache: false
 
     - name: Install dependencies using Makefile
-      run: make install
+      run: make dev
 
     - name: Run linting checks using Makefile
       run: make lint
@@ -56,7 +56,7 @@ jobs:
       run: make coverage
 
     - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@v5
+      uses: codecov/codecov-action@v6
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         slug: fjacquet/epic_news
