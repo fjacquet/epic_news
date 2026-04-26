@@ -18,14 +18,9 @@ The observability system uses the following directory structure:
 
 ```
 epic_news/
-├── output/
-│   ├── traces/             # Contains JSON trace files (one per execution)
-│   ├── dashboard_data/     # Contains JSON metric data for dashboards
-│   └── dashboards/         # Contains generated HTML dashboard files
-└── templates/
-    ├── dashboard_template.html  # Template for dashboard generation
-    └── css/
-        └── dashboard.css        # Styles for dashboard
+└── output/
+    ├── traces/             # Contains JSON trace files (one per execution)
+    └── dashboard_data/     # Contains JSON metric data
 ```
 
 ## Tracing System
@@ -78,20 +73,16 @@ Trace files are stored in JSON format with the following structure:
 }
 ```
 
-## Dashboard System
+## Dashboard Metrics Collection
 
-The dashboard system visualizes observability data through HTML dashboards with charts and metrics.
-
-### Key Components
-
-- **Dashboard** - Collects and stores metrics for various system components
-- **DashboardGenerator** - Generates HTML dashboards from metrics data
+Metrics are collected via the in-process `Dashboard` class from `epic_news.utils.observability`.
+Visualization (the standalone `DashboardGenerator` HTML pipeline) was removed in v2.1.x;
+metrics are now consumed via traces and the loguru log stream.
 
 ### Usage
 
 ```python
 from epic_news.utils.observability import Dashboard, monitor_agent
-from epic_news.utils.dashboard_generator import generate_all_dashboards
 
 # Create a dashboard for monitoring
 dashboard = Dashboard(dashboard_id="news_crew_run_123")
@@ -109,9 +100,6 @@ dashboard.update_metric(
 def execute_agent_task(agent, task):
     # Agent execution code
     pass
-
-# Generate dashboards from all collected metrics
-generate_all_dashboards()
 ```
 
 ### Dashboard Data Format

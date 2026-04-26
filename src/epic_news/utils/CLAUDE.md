@@ -719,12 +719,6 @@ pct = format_percentage(0.452)    # "45.2%"
 num = format_large_number(1500000)  # "1.5M"
 ```
 
-### Dashboard Generator
-
-**Location**: `src/epic_news/utils/dashboard_generator.py`
-
-Generate interactive HTML dashboards from crew metrics.
-
 ## Testing Utilities
 
 ### Debug Utils

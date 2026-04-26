@@ -1,5 +1,11 @@
 # Epic News Crew
 
+[![CI](https://github.com/fjacquet/epic_news/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/fjacquet/epic_news/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/fjacquet/epic_news)](https://github.com/fjacquet/epic_news/releases/latest)
+[![Python](https://img.shields.io/badge/python-3.13-blue)](https://www.python.org/downloads/release/python-3130/)
+[![CrewAI](https://img.shields.io/badge/crewAI-1.14%2B-purple)](https://crewai.com)
+[![Code style: Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+
 Welcome to Epic News Crew — your all-in-one, natural-language-powered AI assistant for financial analysis, news, research, recipes, and more. Built on [crewAI](https://crewai.com), it’s designed for everyone: just ask in plain English or French, and let the right team of AI agents (“crews”) do the work.
 
 ---

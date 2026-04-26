@@ -46,7 +46,8 @@ Consolidate **all** component CSS into a single static file inlined at render ti
 
 - The consolidated file is large (~1100 lines). We accept this because it's all in one place and `functools.cache` ensures it's read once per process.
 - All renderer rendering snapshots (`tests/rendering/test_template_manager_rendering/*.html`) had to be regenerated — diff is ~2200+ lines per snapshot but deterministic.
-- Two old templates (`templates/css/dashboard.css`, `templates/css/menu_report.css`) left in place pending verification of zero consumers — to be removed in a follow-up.
+- The legacy `templates/css/dashboard.css` was deleted along with the entire dashboard HTML pipeline (`dashboard_template.html`, `dashboard_generator.py`) — that observability surface was unused.
+- `templates/css/menu_report.css` is still consumed by the menu_designer crew via `menu_utils.py::embed_css_in_html`. A follow-up will fold it into `report.css` under a body-class namespace; tracked separately.
 
 ## Implementation Notes
 
