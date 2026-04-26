@@ -126,7 +126,7 @@ security: ## Run security checks (bandit + safety)
 		echo "$(YELLOW)⚠ safety not installed. Install with: uv add --dev safety$(RESET)"; \
 	fi
 
-validate: lint test ## Quick validation (lint + test)
+validate: lint type-check test ## Full validation (lint + mypy + test) — matches CI
 	@echo "$(GREEN)✓ Validation complete$(RESET)"
 
 ci-checks: lint test ## Run all CI checks (lint + test)

@@ -107,50 +107,50 @@ class PestelCrew:
 
     @task
     def political_research_task(self) -> Task:
-        return Task(
-            config=self.tasks_config["political_research_task"],  # type: ignore[index]
+        return Task(  # type: ignore[call-arg]
+            config=self.tasks_config["political_research_task"],  # type: ignore[index, arg-type]
             async_execution=True,
         )
 
     @task
     def economic_research_task(self) -> Task:
-        return Task(
-            config=self.tasks_config["economic_research_task"],  # type: ignore[index]
+        return Task(  # type: ignore[call-arg]
+            config=self.tasks_config["economic_research_task"],  # type: ignore[index, arg-type]
             async_execution=True,
         )
 
     @task
     def social_research_task(self) -> Task:
-        return Task(
-            config=self.tasks_config["social_research_task"],  # type: ignore[index]
+        return Task(  # type: ignore[call-arg]
+            config=self.tasks_config["social_research_task"],  # type: ignore[index, arg-type]
             async_execution=True,
         )
 
     @task
     def technological_research_task(self) -> Task:
-        return Task(
-            config=self.tasks_config["technological_research_task"],  # type: ignore[index]
+        return Task(  # type: ignore[call-arg]
+            config=self.tasks_config["technological_research_task"],  # type: ignore[index, arg-type]
             async_execution=True,
         )
 
     @task
     def environmental_research_task(self) -> Task:
-        return Task(
-            config=self.tasks_config["environmental_research_task"],  # type: ignore[index]
+        return Task(  # type: ignore[call-arg]
+            config=self.tasks_config["environmental_research_task"],  # type: ignore[index, arg-type]
             async_execution=True,
         )
 
     @task
     def legal_research_task(self) -> Task:
-        return Task(
-            config=self.tasks_config["legal_research_task"],  # type: ignore[index]
+        return Task(  # type: ignore[call-arg]
+            config=self.tasks_config["legal_research_task"],  # type: ignore[index, arg-type]
             async_execution=True,
         )
 
     @task
     def format_pestel_report_task(self) -> Task:
         return Task(
-            config=self.tasks_config["format_pestel_report_task"],  # type: ignore[index]
+            config=self.tasks_config["format_pestel_report_task"],  # type: ignore[index, arg-type]
             agent=self.pestel_reporter(),  # type: ignore[call-arg]
             context=[
                 self.political_research_task(),  # type: ignore[call-arg]
@@ -165,7 +165,7 @@ class PestelCrew:
 
     @crew
     def crew(self) -> Crew:
-        return Crew(
+        return Crew(  # type: ignore[call-arg]
             agents=self.agents,  # type: ignore[attr-defined]
             tasks=self.tasks,  # type: ignore[attr-defined]
             process=Process.sequential,
