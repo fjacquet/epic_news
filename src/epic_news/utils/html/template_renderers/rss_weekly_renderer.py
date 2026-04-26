@@ -23,11 +23,9 @@ class RssWeeklyRenderer(BaseRenderer):
         """
         Render RSS weekly data to HTML.
 
-        Args:
-            data: Dictionary containing RSS weekly data
-
-        Returns:
-            HTML string for RSS weekly content
+        Accepts the canonical ``RssWeeklyReport`` shape (top-level ``feeds`` list
+        of ``FeedDigest``) as well as the legacy flat shapes with top-level
+        ``articles`` or ``categories``.
         """
         # Create main container
         soup = self.create_soup("div")
@@ -40,18 +38,59 @@ class RssWeeklyRenderer(BaseRenderer):
         # Add summary if available
         self._add_summary(soup, container, data)
 
-        # Add articles by category
-        self._add_articles_by_category(soup, container, data)
-
-        # Add all articles if not organized by category
-        if not data.get("categories"):
+        # Render in the shape that matches the data
+        if data.get("feeds"):
+            self._add_feeds(soup, container, data)
+        elif data.get("categories"):
+            self._add_articles_by_category(soup, container, data)
+        else:
             self._add_articles(soup, container, data)
 
         # Add sources section if available
         self._add_sources(soup, container, data)
 
-
         return str(soup)
+
+    def _add_feeds(self, soup: BeautifulSoup, container, data: dict[str, Any]) -> None:
+        """Render each feed digest with its own header + articles list."""
+        feeds = data.get("feeds", [])
+        if not feeds:
+            return
+
+        for feed in feeds:
+            feed_url = feed.get("feed_url", "")
+            feed_name = feed.get("feed_name") or feed_url or "Unknown feed"
+            articles = feed.get("articles", [])
+
+            digest_section = soup.new_tag("section")
+            digest_section.attrs["class"] = ["feed-digest"]  # type: ignore[assignment]
+
+            feed_title = soup.new_tag("h3")
+            feed_title.string = f"📡 {feed_name}"
+            digest_section.append(feed_title)
+
+            if feed_url:
+                url_p = soup.new_tag("p")
+                url_p.attrs["class"] = ["feed-url"]  # type: ignore[assignment]
+                a = soup.new_tag("a", href=feed_url)
+                a["target"] = "_blank"
+                a["rel"] = "noopener noreferrer"
+                a.string = feed_url
+                url_p.append(a)
+                digest_section.append(url_p)
+
+            count_div = soup.new_tag("div")
+            count_div.attrs["class"] = ["articles-count"]  # type: ignore[assignment]
+            count_div.string = f"{len(articles)} article(s)"
+            digest_section.append(count_div)
+
+            articles_div = soup.new_tag("div")
+            articles_div.attrs["class"] = ["articles-list"]  # type: ignore[assignment]
+            for article in articles:
+                articles_div.append(self._create_article_card(soup, article))
+            digest_section.append(articles_div)
+
+            container.append(digest_section)
 
     def _add_header(self, soup: BeautifulSoup, container, data: dict[str, Any]) -> None:
         """Add RSS weekly header with title."""
@@ -145,16 +184,16 @@ class RssWeeklyRenderer(BaseRenderer):
         container.append(articles_section)
 
     def _create_article_card(self, soup: BeautifulSoup, article: dict[str, Any]) -> Any:
-        """Create an article card."""
+        """Create an article card. Accepts canonical keys (link/published/source_feed)
+        as well as legacy keys (url/date/source)."""
         article_div = soup.new_tag("div")
-        article_div.attrs["class"] = ["article-card"]  # type: ignore[assignment]
+        article_div.attrs["class"] = ["article-summary"]  # type: ignore[assignment]
 
-        # Article title with link if URL is available
+        # Title + link (prefer canonical "link", fall back to "url")
         title = article.get("title", "")
-        url = article.get("url", "")
+        url = article.get("link") or article.get("url") or ""
 
-        title_tag = soup.new_tag("h3")
-        title_tag.attrs["class"] = ["article-title"]  # type: ignore[assignment]
+        title_tag = soup.new_tag("h4")
         if url:
             link_tag = soup.new_tag("a", href=url)
             link_tag["target"] = "_blank"
@@ -163,34 +202,26 @@ class RssWeeklyRenderer(BaseRenderer):
             title_tag.append(link_tag)
         else:
             title_tag.string = title
-
         article_div.append(title_tag)
 
-        # Source and date
-        meta_div = soup.new_tag("div")
-        meta_div.attrs["class"] = ["article-meta"]  # type: ignore[assignment]
+        # Published date (canonical "published" or legacy "date")
+        published = article.get("published") or article.get("date") or ""
+        if published:
+            date_p = soup.new_tag("p")
+            date_p.attrs["class"] = ["published-date"]  # type: ignore[assignment]
+            date_p.string = f"📅 {published}"
+            article_div.append(date_p)
 
-        source = article.get("source", "")
+        # Source feed
+        source = article.get("source_feed") or article.get("source") or ""
         if source:
-            source_span = soup.new_tag("span")
-            source_span.attrs["class"] = ["article-source"]  # type: ignore[assignment]
-            source_span.string = f"Source: {source}"
-            meta_div.append(source_span)
+            source_p = soup.new_tag("p")
+            source_p.attrs["class"] = ["article-meta"]  # type: ignore[assignment]
+            source_p.string = f"📡 {source}"
+            article_div.append(source_p)
 
-        date = article.get("date", "")
-        if date:
-            if source:
-                meta_div.append(soup.new_string(" | "))
-
-            date_span = soup.new_tag("span")
-            date_span.attrs["class"] = ["article-date"]  # type: ignore[assignment]
-            date_span.string = date
-            meta_div.append(date_span)
-
-        if meta_div.contents:
-            article_div.append(meta_div)
-
-        # Description
+        # Description (legacy "description") + summary/content. Summary often
+        # contains HTML markup so we parse it instead of escaping it as text.
         description = article.get("description", "")
         if description:
             desc_p = soup.new_tag("p")
@@ -198,14 +229,18 @@ class RssWeeklyRenderer(BaseRenderer):
             desc_p.string = description
             article_div.append(desc_p)
 
-        # Article summary or content
-        summary = article.get("summary", "")
+        summary = article.get("summary") or article.get("content") or ""
         if summary:
             summary_div = soup.new_tag("div")
-            summary_div.attrs["class"] = ["article-summary"]  # type: ignore[assignment]
-            summary_p = soup.new_tag("p")
-            summary_p.string = summary
-            summary_div.append(summary_p)
+            summary_div.attrs["class"] = ["summary"]  # type: ignore[assignment]
+            try:
+                fragment = BeautifulSoup(summary, "html.parser")
+                summary_div.append(fragment)
+            except Exception:
+                # Fall back to plain text if parsing fails
+                p = soup.new_tag("p")
+                p.string = summary
+                summary_div.append(p)
             article_div.append(summary_div)
 
         return article_div

@@ -481,12 +481,18 @@ class ReceptionFlow(Flow[ContentState]):
 
         # Step 3: Generate the final HTML report
         self.logger.info("Step 3: Generating HTML report...")
-        generate_rss_weekly_html_report(
-            json_file_path=str(translated_report_path),
-            output_html_path=str(html_report_path),
-        )
+        try:
+            generate_rss_weekly_html_report(
+                json_file_path=str(translated_report_path),
+                output_html_path=str(html_report_path),
+            )
+        except Exception as e:
+            self.logger.error("❌ RSS HTML generation failed: {}", e)
+            # Do not pretend the pipeline succeeded — leave output_file unset so
+            # the email step either skips the attachment or skips altogether.
+            return
 
-        # Store the final report path in the state
+        # Store the final report path in the state (only when HTML write actually succeeded)
         self.state.rss_weekly_report = f"Report generated at {html_report_path}"  # type: ignore[assignment]
         self.state.output_file = str(html_report_path)
         self.logger.info(f"✅ New RSS weekly pipeline complete. Report at: {html_report_path}")
@@ -1384,6 +1390,16 @@ class ReceptionFlow(Flow[ContentState]):
 
             # Use utility function to prepare all email parameters
             email_inputs = prepare_email_params(self.state)
+
+            # Drop attachment if the file doesn't exist on disk — better to send
+            # an attachment-less email than have PostCrew fail trying to read it.
+            attachment_path = email_inputs.get("attachment_path")
+            if attachment_path and not Path(attachment_path).exists():
+                self.logger.warning(
+                    "📎 Attachment {} does not exist on disk; sending email without attachment",
+                    attachment_path,
+                )
+                email_inputs["attachment_path"] = None
 
             self.logger.info(
                 "✉️  Email payload: recipient={} subject={!r} attachment={} output_file={}",
