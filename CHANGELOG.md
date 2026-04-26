@@ -4,6 +4,30 @@ All notable changes to Epic News are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [3.0.0] — 2026-04-26
+
+A modernization milestone that closes the door on accumulated infrastructure debt and re-aligns the repository with current industry conventions. No runtime API surface change; the major bump signals the operational reset (branch rename, working CI, secrets-free tests).
+
+### Changed
+
+- **Default branch renamed** `master` → `main`. All workflow triggers, README badges, and `mkdocs.yml::edit_uri` updated. Local clones must run `git branch -m master main && git fetch origin && git branch -u origin/main main`.
+- **Dependency-installation step in CI** now runs `make dev` (full extras) instead of `make install`. After v2.2.0 moved pytest/pytest-cov/pytest-asyncio/etc. into `[project.optional-dependencies] test`, the production `make install` no longer installed the test runner.
+- **`get_project_root()`** rewritten to be portable: `EPIC_NEWS_PROJECT_ROOT` env override → walk up from `__file__` for `pyproject.toml` → legacy `~/Projects/crews/epic_news` fallback. Drops the hardcoded path that broke CI (`/home/runner/work/epic_news/epic_news`).
+- **Pre-commit hooks** point at `uv run <tool>` (ruff, yamllint, mypy) so they find their executables in `.venv` instead of failing with "command not found".
+- **`make validate`** now runs lint + mypy + test (was lint + test). Matches CI exactly so failures surface locally before push.
+- **`pestel_crew.py`** — added `# type: ignore[call-arg, arg-type]` markers on the 7 `Task()` constructors and the `Crew()` constructor so mypy stops complaining about CrewAI's `@CrewBase` decorator magic (description/expected_output are injected from YAML; `max_iter` is a runtime kwarg).
+
+### Fixed
+
+- **CI hadn't run automatically since July 2025** — the workflow trigger was `branches: [ main ]` while the repo was on `master`. Now consistent on `main`.
+- **20 mypy errors** in `pestel_crew.py` that were never seen because CI was silent.
+- **GitHub Actions versions bumped** to clear Node.js 20 deprecation warnings: `actions/checkout@v6`, `actions/setup-python@v6`, `astral-sh/setup-uv@v8.1.0` (pinned — no floating `v8` major tag), `codecov/codecov-action@v6`, `actions/upload-pages-artifact@v5`, `actions/deploy-pages@v5`, `actions/labeler@v6`, `docker/build-push-action@v7`, `docker/login-action@v4`, `docker/metadata-action@v6`, `docker/setup-buildx-action@v4`.
+- **`uv.lock` version drift** that broke the four Dockerfile builds (lock recorded `epic-news==0.1.0` after the v2.1.0 bump).
+
+### Security
+
+- **Tests no longer require real API keys.** `pyproject.toml::[tool.pytest.ini_options].env` injects sentinel values for every credential at pytest startup (`OPENROUTER_API_KEY`, `OPENAI_API_KEY`, `COMPOSIO_API_KEY`, `TAVILY_API_KEY`, `EXA_API_KEY`, `FIRECRAWL_API_KEY`, `ALPHAVANTAGE_API_KEY`, `COINMARKETCAP_API_KEY`, `KRAKEN_API_KEY`, `KRAKEN_API_SECRET`, `MAIL`, `EPIC_ENABLE_EMAIL=false`). The CI `create env file` step that was passing real GitHub secrets into the test job is replaced with a stub `.env` containing only sentinels.
+
 ## [2.2.0] — 2026-04-26
 
 ### Added

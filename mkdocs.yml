@@ -3,7 +3,7 @@ site_description: Multi-agent AI assistant for finance, news, research, recipes,
 site_url: https://fjacquet.github.io/epic_news/
 repo_url: https://github.com/fjacquet/epic_news
 repo_name: fjacquet/epic_news
-edit_uri: edit/master/docs/
+edit_uri: edit/main/docs/
 
 docs_dir: docs
 

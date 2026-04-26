@@ -1,7 +1,7 @@
 # Epic News Crew
 
-[![CI](https://github.com/fjacquet/epic_news/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/fjacquet/epic_news/actions/workflows/ci.yml)
-[![Docs](https://github.com/fjacquet/epic_news/actions/workflows/docs.yml/badge.svg?branch=master)](https://fjacquet.github.io/epic_news/)
+[![CI](https://github.com/fjacquet/epic_news/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/fjacquet/epic_news/actions/workflows/ci.yml)
+[![Docs](https://github.com/fjacquet/epic_news/actions/workflows/docs.yml/badge.svg?branch=main)](https://fjacquet.github.io/epic_news/)
 [![Release](https://img.shields.io/github/v/release/fjacquet/epic_news)](https://github.com/fjacquet/epic_news/releases/latest)
 [![Python](https://img.shields.io/badge/python-3.13-blue)](https://www.python.org/downloads/release/python-3130/)
 [![CrewAI](https://img.shields.io/badge/crewAI-1.14%2B-purple)](https://crewai.com)
