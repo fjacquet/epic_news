@@ -1067,7 +1067,7 @@ requires-dist = [
     { name = "langsmith", marker = "extra == 'test'" },
     { name = "litellm", specifier = ">=1.75.3" },
     { name = "loguru", specifier = ">=0.7.3" },
-    { name = "lxml", specifier = ">=5.2.1" },
+    { name = "lxml", specifier = ">=6.1.0" },
     { name = "lxml-html-clean", specifier = ">=0.4.2" },
     { name = "matplotlib", specifier = ">=3.10.3" },
     { name = "mcp", specifier = ">=1.26.0" },
