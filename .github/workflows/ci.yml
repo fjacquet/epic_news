@@ -21,15 +21,21 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v6
 
-    - name: create env file
+    - name: Stub .env with sentinel test values
+      # CI must NEVER use real API keys for tests. pyproject.toml already
+      # injects the same sentinel values via pytest-env; this .env covers
+      # any code path that bypasses pytest and reads .env directly.
       run: |
-         touch .env
-         printf '%s\n' "BASE_URL=${{ secrets.BASE_URL }}" >> .env
-         printf '%s\n' "RAPIDAPI_KEY=${{ secrets.RAPIDAPI_KEY }}" >> .env
-         printf '%s\n' "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env
-         printf '%s\n' "OPENAI_MODEL_NAME=${{ secrets.OPENAI_MODEL_NAME }}" >> .env
-         printf '%s\n' "COMPOSIO_API_KEY=${{ secrets.COMPOSIO_API_KEY }}" >> .env
-         printf '%s\n' "MAIL=${{ secrets.MAIL }}" >> .env
+         cat > .env <<'ENVEOF'
+         POSTHOG_DISABLED=1
+         OPENROUTER_API_KEY=ci_stub_openrouter
+         OPENAI_API_KEY=ci_stub_openai
+         OPENAI_MODEL_NAME=test-model
+         COMPOSIO_API_KEY=ci_stub_composio
+         RAPIDAPI_KEY=ci_stub_rapidapi
+         MAIL=ci-test@example.com
+         EPIC_ENABLE_EMAIL=false
+         ENVEOF
 
     - name: Set up Python
       uses: actions/setup-python@v6

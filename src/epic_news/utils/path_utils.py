@@ -19,31 +19,43 @@ import pathlib
 def get_project_root() -> pathlib.Path:
     """Get the absolute path to the project root directory.
 
-    This function returns the canonical project root path, ensuring no nested Users directories.
+    Resolution order:
+    1. ``EPIC_NEWS_PROJECT_ROOT`` env var (explicit override, e.g. for sandboxed runners).
+    2. Walk upward from this file's location until a directory containing
+       ``pyproject.toml`` is found — works on every machine and CI runner.
+    3. Fall back to the legacy ``~/Projects/crews/epic_news`` if (2) fails
+       (kept for backwards compatibility with scripts that monkey-patch
+       ``pathlib.Path.home``).
 
-    Returns:
-        pathlib.Path: Absolute path to the project root directory
+    Raises:
+        FileNotFoundError: when no strategy locates a directory containing
+        ``pyproject.toml``.
     """
-    # CRITICAL FIX: Always use this hardcoded path pattern to avoid any nested paths
-    # Extract the user home directory and ensure we construct a clean path
-    home_dir = pathlib.Path.home()
+    import os
 
-    # The project is always at ~/Projects/crews/epic_news or equivalent
-    project_root = home_dir / "Projects" / "crews" / "epic_news"
+    # Strategy 1 — explicit override
+    override = os.getenv("EPIC_NEWS_PROJECT_ROOT")
+    if override:
+        candidate = pathlib.Path(override).resolve()
+        if (candidate / "pyproject.toml").exists():
+            return candidate
 
-    # Final sanity check - this can't be wrong
-    if not (project_root / "pyproject.toml").exists():
-        raise FileNotFoundError(f"Cannot locate project root at expected location: {project_root}")
+    # Strategy 2 — walk up from __file__ looking for pyproject.toml
+    current = pathlib.Path(__file__).resolve().parent
+    for parent in (current, *current.parents):
+        if (parent / "pyproject.toml").exists():
+            return parent
 
-    # Get canonical path without any duplicate /Users/ segments
-    clean_path = project_root.resolve()
+    # Strategy 3 — legacy fallback
+    legacy = (pathlib.Path.home() / "Projects" / "crews" / "epic_news").resolve()
+    if (legacy / "pyproject.toml").exists():
+        return legacy
 
-    # Extra validation to prevent pathological paths
-    path_str = str(clean_path)
-    if path_str.count("Users") > 1:
-        raise ValueError(f"Invalid nested Users in path: {path_str}")
-
-    return clean_path
+    raise FileNotFoundError(
+        "Cannot locate project root: no pyproject.toml found via "
+        "EPIC_NEWS_PROJECT_ROOT, walking up from path_utils.py, or the "
+        "legacy ~/Projects/crews/epic_news location."
+    )
 
 
 def validate_output_path(path: str) -> None:

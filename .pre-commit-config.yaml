@@ -3,25 +3,25 @@ repos:
     hooks:
       - id: ruff-lint
         name: ruff lint
-        entry: ruff
+        entry: uv run ruff
         args: ["check", "--fix"]
         language: system
         types: [python]
       - id: ruff-format
         name: ruff format
-        entry: ruff
+        entry: uv run ruff
         args: ["format"]
         language: system
         types: [python]
       - id: yamllint
         name: yamllint
-        entry: yamllint
+        entry: uv run yamllint
         args: ["-s"]
         language: system
         types: [yaml]
       - id: mypy
         name: mypy
-        entry: mypy
+        entry: uv run mypy
         args: ["src/epic_news", "--no-error-summary"]
         language: system
         types: [python]

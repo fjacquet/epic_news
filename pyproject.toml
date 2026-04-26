@@ -141,8 +141,23 @@ pythonpath = [
 ]
 env = [
     "POSTHOG_DISABLED=1",
+    # Sentinel API keys — tests must mock LLM / Composio / scraping calls so
+    # these values never reach a real provider. Set at pytest startup so they
+    # land in os.environ before any module-level client validation runs.
     "RAPIDAPI_KEY=test_rapidapi_key_for_ninja",
     "SERPAPI_API_KEY=test_serpapi_key_for_web_search",
+    "OPENROUTER_API_KEY=test_openrouter_key_for_ci",
+    "OPENAI_API_KEY=test_openai_key_for_ci",
+    "COMPOSIO_API_KEY=test_composio_key_for_ci",
+    "TAVILY_API_KEY=test_tavily_key_for_ci",
+    "EXA_API_KEY=test_exa_key_for_ci",
+    "FIRECRAWL_API_KEY=test_firecrawl_key_for_ci",
+    "ALPHAVANTAGE_API_KEY=test_alphavantage_key_for_ci",
+    "COINMARKETCAP_API_KEY=test_coinmarketcap_key_for_ci",
+    "KRAKEN_API_KEY=test_kraken_key_for_ci",
+    "KRAKEN_API_SECRET=test_kraken_secret_for_ci",
+    "MAIL=ci-test@example.com",
+    "EPIC_ENABLE_EMAIL=false",
 ]
 filterwarnings = [
     'ignore:PydanticDeprecatedSince20:',
