@@ -4,6 +4,30 @@ All notable changes to Epic News are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.1.0] — 2026-04-26
+
+### Added
+- **Consolidated report stylesheet** (`templates/css/report.css`, ~1100 lines): single source of truth for all rendered HTML reports. Inlined at render time by `TemplateManager` so reports stay self-contained for email. Replaces the inline `<style>` blocks formerly scattered across 19 renderers + the universal template (#83).
+- **Print-optimized typography** in `ui_theme.py`: Arial Nova Light (with system fallbacks) as `--font-family-base`, plus a `@media print` block that forces `html { font-size: 9pt }` and adds page-break protections on sections, tables, articles. Drastically reduces page count when printing reports (#83).
+- **Theme CSS variables**: `--accent-color`, `--link-color`, `--text-muted`, `--subheader-color` for both light and dark themes (previously referenced by renderers without fallback). All renderer-specific styles now consume these vars (#83).
+- **Email send observability** in `main.py::send_email`: payload log (recipient, subject, attachment, output_file) before kickoff, parsed `PostResult` log after kickoff (status, recipient, error_message). Replaces bare `print()` / stdlib `logging.getLogger` that bypassed the loguru sink (#84).
+- **ADR-011**: Architecture Decision Record for the consolidated CSS source pattern.
+
+### Changed
+- **`PostCrew`** now uses loguru exclusively for tool-loading and fallback diagnostics, with explicit `🔧 Loading Gmail send tools from Composio...` and `✅ Loaded N Gmail send tools: [...]` traces (#84).
+- **`generate_rss_weekly_html_report`** accepts both the canonical `RssWeeklyReport` shape and the legacy `RssFeeds` shape via runtime double-validation. Re-raises on validation failure instead of swallowing the exception (#85).
+- **`generate_rss_weekly`** wraps the HTML generation step in `try/except` and only marks `state.output_file` on actual success — no more "✅ pipeline complete" lies when the HTML write failed (#85).
+- **`send_email`** drops the attachment from `email_inputs` if the file does not exist on disk, so the email is sent body-only rather than wasting minutes in the Composio agent (#85).
+- **`pyproject.toml`** runtime dependencies trimmed from 70 → 51 entries, organized into commented logical sections (core CrewAI, pydantic/data, HTTP/web, scraping, rendering, numerical/plotting). Dev/test tooling moved into `[project.optional-dependencies] test` and `[dependency-groups] dev` (#86).
+
+### Fixed
+- **RSS weekly HTML report** rendered an empty body (only title + summary) because `RssWeeklyRenderer` did not handle the canonical `feeds` top-level shape and used wrong article keys (`url`/`date`/`source` instead of `link`/`published`/`source_feed`). Now renders all articles across all feed digests with working links and parsed HTML summaries (#85).
+- **Stdlib import shadowing risk**: removed `pathlib>=1.0.1` (deprecated Py2 backport) from runtime deps. Also removed `shutils`, `unicode`, `suppress` — declared but never imported, mostly Py2 fossils (#86).
+
+### Removed
+- Inline `<style>` blocks (~2200 lines of CSS) from 19 renderers — they now emit only semantic HTML with class names, the styling lives in `report.css` (#83).
+- 4 unused/Py2-fossil packages: `pathlib`, `shutils`, `unicode`, `suppress` (#86).
+
 ## [Unreleased] — Epic News v2.0 Migration
 
 ### Added

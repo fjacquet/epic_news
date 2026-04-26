@@ -7,7 +7,7 @@ Welcome to Epic News Crew — your all-in-one, natural-language-powered AI assis
 ## 🚀 Quick Start
 
 1. **Install prerequisites:**
-   - Python >=3.10 <3.13
+   - Python >=3.13 <3.14
    - [UV](https://docs.astral.sh/uv/) for dependency management
 
 2. **Install dependencies:**
@@ -158,7 +158,7 @@ Each “crew” is a team of specialized AI agents. Here’s what they do:
 ## ⚙️ Installation & Setup
 
 1. **Install Python and UV:**
-   - Python >=3.10 <3.13
+   - Python >=3.13 <3.14
    - [UV](https://docs.astral.sh/uv/): `pip install uv`
 2. **Install dependencies:**
    - `crewai install`
