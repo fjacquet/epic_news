@@ -565,15 +565,6 @@ wheels = [
 ]
 
 [[package]]
-name = "configparser"
-version = "7.2.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/8b/ac/ea19242153b5e8be412a726a70e82c7b5c1537c83f61b20995b2eda3dcd7/configparser-7.2.0.tar.gz", hash = "sha256:b629cc8ae916e3afbd36d1b3d093f34193d851e11998920fdcfc4552218b7b70", size = 51273, upload-time = "2025-03-08T16:04:09.339Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/09/fe/f61e7129e9e689d9e40bbf8a36fb90f04eceb477f4617c02c6a18463e81f/configparser-7.2.0-py3-none-any.whl", hash = "sha256:fee5e1f3db4156dcd0ed95bc4edfa3580475537711f67a819c966b389d09ce62", size = 17232, upload-time = "2025-03-08T16:04:07.743Z" },
-]
-
-[[package]]
 name = "contourpy"
 version = "1.3.3"
 source = { registry = "https://pypi.org/simple" }
@@ -940,22 +931,18 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "apscheduler" },
-    { name = "bandit" },
     { name = "beautifulsoup4" },
     { name = "chromadb" },
     { name = "composio" },
     { name = "composio-crewai" },
     { name = "composio-openai" },
-    { name = "coverage" },
     { name = "crewai" },
     { name = "crewai-tools", extra = ["mcp"] },
     { name = "exa-py" },
-    { name = "faker" },
     { name = "fastapi" },
     { name = "fastapi-sso" },
     { name = "feedparser" },
     { name = "firecrawl-py" },
-    { name = "freezegun" },
     { name = "gitpython" },
     { name = "httpx" },
     { name = "jinja2" },
@@ -970,70 +957,56 @@ dependencies = [
     { name = "mcp" },
     { name = "mem0ai" },
     { name = "minds-sdk" },
-    { name = "mypy" },
     { name = "newspaper3k" },
     { name = "pandas" },
-    { name = "pathlib" },
-    { name = "pendulum" },
     { name = "pyairtable" },
     { name = "pydantic" },
     { name = "pygithub" },
     { name = "pygments" },
-    { name = "pytest" },
-    { name = "pytest-asyncio" },
-    { name = "pytest-cov" },
-    { name = "pytest-env" },
-    { name = "pytest-mock" },
     { name = "python-dotenv" },
     { name = "pyyaml" },
     { name = "requests" },
     { name = "requests-cache" },
-    { name = "ruff" },
-    { name = "safety" },
     { name = "scikit-learn" },
     { name = "scipy" },
     { name = "seaborn" },
     { name = "serpapi" },
-    { name = "shutils" },
     { name = "streamlit" },
-    { name = "suppress" },
     { name = "tavily-python" },
     { name = "tenacity" },
-    { name = "unicode" },
     { name = "unidecode" },
     { name = "uvicorn" },
-    { name = "vulture" },
     { name = "watchdog" },
     { name = "weasyprint" },
     { name = "wikipedia" },
     { name = "wikipedia-mcp-server" },
-    { name = "yamllint" },
     { name = "yfinance" },
 ]
 
 [package.optional-dependencies]
-dev = [
-    { name = "pre-commit" },
-    { name = "ruff" },
-    { name = "yamllint" },
-]
 test = [
+    { name = "coverage" },
     { name = "faker" },
+    { name = "freezegun" },
     { name = "langsmith" },
     { name = "pendulum" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
     { name = "pytest-cov" },
     { name = "pytest-datadir" },
+    { name = "pytest-env" },
     { name = "pytest-mock" },
     { name = "pytest-regressions" },
 ]
 
 [package.dev-dependencies]
 dev = [
+    { name = "bandit" },
+    { name = "mypy" },
     { name = "pre-commit" },
-    { name = "pytest-regressions" },
     { name = "ruff" },
+    { name = "safety" },
+    { name = "vulture" },
     { name = "yamlfix" },
     { name = "yamllint" },
 ]
@@ -1041,23 +1014,21 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "apscheduler", specifier = ">=3.11.2" },
-    { name = "bandit", specifier = ">=1.9.2" },
     { name = "beautifulsoup4", specifier = ">=4.13.4" },
     { name = "chromadb", specifier = ">=0.5.23" },
     { name = "composio", specifier = ">=0.1.1" },
     { name = "composio-crewai", specifier = ">=0.7.18" },
     { name = "composio-openai", specifier = ">=0.8.7" },
-    { name = "coverage", specifier = ">=7.9.1" },
+    { name = "coverage", marker = "extra == 'test'", specifier = ">=7.9.1" },
     { name = "crewai", specifier = ">=1.14.2" },
     { name = "crewai-tools", extras = ["mcp"], specifier = ">=0.47.1" },
     { name = "exa-py", specifier = ">=1.14.9" },
-    { name = "faker", specifier = ">=37.4.0" },
-    { name = "faker", marker = "extra == 'test'" },
+    { name = "faker", marker = "extra == 'test'", specifier = ">=37.4.0" },
     { name = "fastapi", specifier = ">=0.115.13" },
     { name = "fastapi-sso", specifier = ">=0.17.0" },
     { name = "feedparser", specifier = ">=6.0.11" },
     { name = "firecrawl-py", specifier = ">=4.22.2" },
-    { name = "freezegun", specifier = ">=1.5.2" },
+    { name = "freezegun", marker = "extra == 'test'", specifier = ">=1.5.2" },
     { name = "gitpython", specifier = ">=3.1.44" },
     { name = "httpx", specifier = ">=0.27.2" },
     { name = "jinja2", specifier = ">=3.1.3" },
@@ -1073,63 +1044,49 @@ requires-dist = [
     { name = "mcp", specifier = ">=1.26.0" },
     { name = "mem0ai", specifier = ">=0.1.114" },
     { name = "minds-sdk", specifier = ">=1.3.3" },
-    { name = "mypy", specifier = ">=1.20.1" },
     { name = "newspaper3k", specifier = ">=0.2.8" },
     { name = "pandas", specifier = ">=2.3.0" },
-    { name = "pathlib", specifier = ">=1.0.1" },
-    { name = "pendulum", specifier = ">=3.1.0" },
-    { name = "pendulum", marker = "extra == 'test'" },
-    { name = "pre-commit", marker = "extra == 'dev'" },
+    { name = "pendulum", marker = "extra == 'test'", specifier = ">=3.1.0" },
     { name = "pyairtable", specifier = ">=3.1.1" },
     { name = "pydantic", specifier = ">=2.7.0" },
     { name = "pygithub", specifier = ">=2.9.1" },
     { name = "pygments", specifier = ">=2.19.2" },
-    { name = "pytest", specifier = ">=8.4.0" },
-    { name = "pytest", marker = "extra == 'test'" },
-    { name = "pytest-asyncio", specifier = ">=1.0.0" },
-    { name = "pytest-asyncio", marker = "extra == 'test'" },
-    { name = "pytest-cov", specifier = ">=6.2.1" },
-    { name = "pytest-cov", marker = "extra == 'test'" },
+    { name = "pytest", marker = "extra == 'test'", specifier = ">=8.4.0" },
+    { name = "pytest-asyncio", marker = "extra == 'test'", specifier = ">=1.0.0" },
+    { name = "pytest-cov", marker = "extra == 'test'", specifier = ">=6.2.1" },
     { name = "pytest-datadir", marker = "extra == 'test'" },
-    { name = "pytest-env", specifier = ">=1.1.5" },
-    { name = "pytest-mock", specifier = ">=3.14.1" },
-    { name = "pytest-mock", marker = "extra == 'test'" },
-    { name = "pytest-regressions", marker = "extra == 'test'" },
+    { name = "pytest-env", marker = "extra == 'test'", specifier = ">=1.1.5" },
+    { name = "pytest-mock", marker = "extra == 'test'", specifier = ">=3.14.1" },
+    { name = "pytest-regressions", marker = "extra == 'test'", specifier = ">=2.10.0" },
     { name = "python-dotenv", specifier = ">=1.1.0" },
     { name = "pyyaml", specifier = ">=6.0.2" },
     { name = "requests", specifier = ">=2.33.0" },
     { name = "requests-cache", specifier = ">=1.2.0" },
-    { name = "ruff", specifier = ">=0.11.13" },
-    { name = "ruff", marker = "extra == 'dev'" },
-    { name = "safety", specifier = ">=3.7.0" },
     { name = "scikit-learn", specifier = ">=1.7.0" },
     { name = "scipy", specifier = ">=1.15.3" },
     { name = "seaborn", specifier = ">=0.13.2" },
     { name = "serpapi", specifier = ">=0.1.5" },
-    { name = "shutils", specifier = ">=0.1.0" },
     { name = "streamlit", specifier = ">=1.46.0" },
-    { name = "suppress", specifier = ">=0.2.0" },
     { name = "tavily-python", specifier = ">=0.7.6" },
     { name = "tenacity", specifier = ">=8.2.3" },
-    { name = "unicode", specifier = ">=2.9" },
     { name = "unidecode", specifier = ">=1.4.0" },
     { name = "uvicorn", specifier = ">=0.34.3" },
-    { name = "vulture", specifier = ">=2.14" },
     { name = "watchdog", specifier = ">=6.0.0" },
     { name = "weasyprint", specifier = ">=65.1" },
     { name = "wikipedia", specifier = ">=1.4.0" },
     { name = "wikipedia-mcp-server", specifier = ">=1.0.1" },
-    { name = "yamllint", specifier = ">=1.37.1" },
-    { name = "yamllint", marker = "extra == 'dev'" },
     { name = "yfinance", specifier = ">=1.3.0" },
 ]
-provides-extras = ["dev", "test"]
+provides-extras = ["test"]
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "bandit", specifier = ">=1.9.2" },
+    { name = "mypy", specifier = ">=1.20.1" },
     { name = "pre-commit", specifier = ">=4.2.0" },
-    { name = "pytest-regressions", specifier = ">=2.10.0" },
     { name = "ruff", specifier = ">=0.12.1" },
+    { name = "safety", specifier = ">=3.7.0" },
+    { name = "vulture", specifier = ">=2.14" },
     { name = "yamlfix", specifier = ">=1.17.0" },
     { name = "yamllint", specifier = ">=1.37.1" },
 ]
@@ -2968,15 +2925,6 @@ wheels = [
 ]
 
 [[package]]
-name = "pathlib"
-version = "1.0.1"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/ac/aa/9b065a76b9af472437a0059f77e8f962fe350438b927cb80184c32f075eb/pathlib-1.0.1.tar.gz", hash = "sha256:6940718dfc3eff4258203ad5021090933e5c04707d5ca8cc9e73c94a7894ea9f", size = 49298, upload-time = "2014-09-03T15:41:57.18Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/78/f9/690a8600b93c332de3ab4a344a4ac34f00c8f104917061f779db6a918ed6/pathlib-1.0.1-py3-none-any.whl", hash = "sha256:f35f95ab8b0f59e6d354090350b44a80a80635d22efdedfa84c7ad1cf0a74147", size = 14363, upload-time = "2022-05-04T13:37:20.585Z" },
-]
-
-[[package]]
 name = "pathspec"
 version = "1.1.0"
 source = { registry = "https://pypi.org/simple" }
@@ -3451,15 +3399,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/62/9b/f86224847949577a523be2207315ae0fd3155b5d909cd66c274d095349a3/pymupdf-1.26.7-cp310-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:1d5106f46e1ca0d64d46bd51892372a4f82076bdc14a9678d33d630702abca36", size = 24324386, upload-time = "2025-12-12T14:58:45.483Z" },
     { url = "https://files.pythonhosted.org/packages/85/8e/a117d39092ca645fde8b903f4a941d9aa75b370a67b4f1f435f56393dc5a/pymupdf-1.26.7-cp310-abi3-win32.whl", hash = "sha256:7c9645b6f5452629c747690190350213d3e5bbdb6b2eca227d82702b327f6eee", size = 17203888, upload-time = "2025-12-12T13:59:57.613Z" },
     { url = "https://files.pythonhosted.org/packages/dd/c3/d0047678146c294469c33bae167c8ace337deafb736b0bf97b9bc481aa65/pymupdf-1.26.7-cp310-abi3-win_amd64.whl", hash = "sha256:425b1befe40d41b72eb0fe211711c7ae334db5eb60307e9dd09066ed060cceba", size = 18405952, upload-time = "2025-12-11T21:48:02.947Z" },
-]
-
-[[package]]
-name = "pymysql"
-version = "1.1.2"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/f5/ae/1fe3fcd9f959efa0ebe200b8de88b5a5ce3e767e38c7ac32fb179f16a388/pymysql-1.1.2.tar.gz", hash = "sha256:4961d3e165614ae65014e361811a724e2044ad3ea3739de9903ae7c21f539f03", size = 48258, upload-time = "2025-08-24T12:55:55.146Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/7c/4c/ad33b92b9864cbde84f259d5df035a6447f91891f5be77788e2a3892bce3/pymysql-1.1.2-py3-none-any.whl", hash = "sha256:e6b1d89711dd51f8f74b1631fe08f039e7d76cf67a42a323d3178f0f25762ed9", size = 45300, upload-time = "2025-08-24T12:55:53.394Z" },
 ]
 
 [[package]]
@@ -4188,16 +4127,6 @@ wheels = [
 ]
 
 [[package]]
-name = "shutils"
-version = "0.1.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "configparser" },
-    { name = "pymysql" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/46/1d/8c6017828045c2d510e2d1d480b563936be7755c97cff660afed947928b6/shutils-0.1.0.tar.gz", hash = "sha256:b82b4fc6854cec12eb3cf430bd1a9e371e47b1d15041545ef6f6a277b90a6781", size = 2288, upload-time = "2020-05-01T00:54:11.429Z" }
-
-[[package]]
 name = "six"
 version = "1.17.0"
 source = { registry = "https://pypi.org/simple" }
@@ -4320,15 +4249,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/03/85/7c669b3a1336d34ef39fa9760fbd343185f3b15db2ad0838fd78423d1c7f/streamlit-1.56.0.tar.gz", hash = "sha256:1176acfa89ae1318b79078e8efe689a9d02e8d58e325c00fc0e55fa2f3fe8d6a", size = 8559239, upload-time = "2026-03-31T22:29:38.59Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/e4/91/cb6f13a89e376ef179309d74f37a70ea0041d5e4b5ba5c4836dbf6e020ad/streamlit-1.56.0-py3-none-any.whl", hash = "sha256:8677a335734a30a51bc57ad0ec910e365d95f7c456fc02c60032927cd0729dc5", size = 9052089, upload-time = "2026-03-31T22:29:36.342Z" },
-]
-
-[[package]]
-name = "suppress"
-version = "0.2.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/73/6d/e41416d28f13a16f361b201091ffa9da2851706104bddbaa55183bd6aaa6/suppress-0.2.0.tar.gz", hash = "sha256:bc74f87a8f5a43ba868cbd2c8d2a57bfcb9b07043df8cd93c7adb69c88ad65f3", size = 2571, upload-time = "2024-10-02T08:36:32.971Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/7a/b5/66d8b47e99fa6d932cf9e998f5cb03be101b0da4217d4ef270174757db93/suppress-0.2.0-py2.py3-none-any.whl", hash = "sha256:b3ab9df397c6a801d8c7eb4ff5ad8b38a1c0f5c0610bf9768d6b2f61c12477bc", size = 2375, upload-time = "2024-10-02T08:36:30.153Z" },
 ]
 
 [[package]]
@@ -4620,15 +4540,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/e1/68/35c1d87e608940badbcfeb630347aa0509897284684f61fab6423d02b253/uncalled_for-0.3.1.tar.gz", hash = "sha256:5e412ac6708f04b56bef5867b5dcf6690ebce4eb7316058d9c50787492bb4bca", size = 49693, upload-time = "2026-04-07T13:05:06.462Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/11/e1/7ec67882ad8fc9f86384bef6421fa252c9cbe5744f8df6ce77afc9eca1f5/uncalled_for-0.3.1-py3-none-any.whl", hash = "sha256:074cdc92da8356278f93d0ded6f2a66dd883dbecaf9bc89437646ee2289cc200", size = 11361, upload-time = "2026-04-07T13:05:05.341Z" },
-]
-
-[[package]]
-name = "unicode"
-version = "2.9"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/a1/9d/ded8876eb5d8bed3e940943a984965b23e6158e10e1bdfd75d0a16ef2bec/unicode-2.9.tar.gz", hash = "sha256:42b6c3b953dce84a25bc9e5d11942c7d34b4d70d8e2d54b455c074770eb753b2", size = 18766, upload-time = "2022-06-03T14:47:39.71Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/8f/52/07116342a6803c1d292ce66fa9ea481e39c92b692f0a75341254072b0366/unicode-2.9-py2.py3-none-any.whl", hash = "sha256:39d67799f4795823122192a1f8dd58d476bf8b80c863fb7d530ad990dd2ebc9a", size = 14267, upload-time = "2022-06-03T14:47:37.799Z" },
 ]
 
 [[package]]
