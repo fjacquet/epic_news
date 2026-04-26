@@ -1,10 +1,10 @@
-import logging
 from typing import Any, cast
 
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai_tools import FileReadTool
 from dotenv import load_dotenv
+from loguru import logger
 
 from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.post_result import PostResult
@@ -57,6 +57,7 @@ class PostCrew:
         Returns:
             List of Gmail send tools, or empty list if not available.
         """
+        logger.info("🔧 Loading Gmail send tools from Composio...")
         try:
             from epic_news.config.composio_config import ComposioConfig
 
@@ -71,8 +72,8 @@ class PostCrew:
             gmail_send_tools = [t for t in gmail_tools if any(n in t.name for n in send_tool_names)]
 
             if gmail_send_tools:
-                logging.getLogger(__name__).info(
-                    "Loaded {} Gmail send tools: {}",
+                logger.info(
+                    "✅ Loaded {} Gmail send tools: {}",
                     len(gmail_send_tools),
                     [t.name for t in gmail_send_tools],
                 )
@@ -82,17 +83,17 @@ class PostCrew:
             gmail_draft_tools = [t for t in gmail_tools if "GMAIL_CREATE_EMAIL_DRAFT" in t.name]
 
             if gmail_draft_tools:
-                logging.getLogger(__name__).warning(
-                    "GMAIL_SEND_EMAIL not returned, falling back to GMAIL_CREATE_EMAIL_DRAFT"
+                logger.warning(
+                    "⚠️ GMAIL_SEND_EMAIL not returned, falling back to GMAIL_CREATE_EMAIL_DRAFT (email will be a draft, not sent)"
                 )
                 return gmail_draft_tools
 
-            logging.getLogger(__name__).warning("No Gmail send/draft tools available")
+            logger.warning("⚠️ No Gmail send/draft tools available — email step will be a no-op")
             return []
 
         except Exception as e:
-            logging.getLogger(__name__).warning(
-                "Composio not available; email sending tools disabled. Reason: {}",
+            logger.warning(
+                "⚠️ Composio not available; email sending tools disabled. Reason: {}",
                 e,
             )
             return []
