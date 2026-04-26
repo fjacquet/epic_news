@@ -4,6 +4,28 @@ All notable changes to Epic News are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.2.0] — 2026-04-26
+
+### Added
+- **Documentation site auto-published to GitHub Pages**: every push to `master` that touches `docs/`, `mkdocs.yml`, `README.md`, or `CHANGELOG.md` rebuilds the site at https://fjacquet.github.io/epic_news/ (Material theme, Diátaxis nav, light/dark toggle).
+- **Per-category use case pages** in `docs/tutorials/use_cases/` (finance, news_research, business_intel, lifestyle) — each lists its crews, sample prompts, and outputs.
+- **`docs/how-to/troubleshooting.md`** — diagnoses wrong crew classification, missing email, Composio Gmail connection issues, using the loguru/PostResult breadcrumbs added in v2.1.0.
+- **`docs/reference/outputs.md`** — explains where Epic News writes HTML/JSON, what each loguru emoji line means, how PostResult fields map to delivery outcomes.
+
+### Changed
+- **README slimmed** from 341 → ~50 lines: title + badges + 30-second TL;DR + a small table linking into the docs (which is now the manual). New "Docs" badge points at the published site.
+- **`docs/tutorials/user_guide.md`** rewritten as a 4-step landing page with a ToC pointing into the per-category use_case pages.
+- **`docs/tutorials/index.md`** updated to surface the new pages.
+
+### Removed
+- **Standalone HTML dashboard pipeline**: deleted `src/epic_news/utils/dashboard_generator.py`, `templates/dashboard_template.html`, `templates/css/dashboard.css`, and `tests/utils/test_dashboard_generator.py`. The metrics-collecting `Dashboard` class in `epic_news.utils.observability` is unrelated and stays.
+
+### Fixed
+- **`uv.lock` version drift**: the v2.1.0 release bumped `pyproject.toml` to `2.1.0` but the lock still referenced `epic-news==0.1.0`, breaking `uv sync --locked` in all four Dockerfile builds. Refreshed.
+
+### Security
+- **litellm 1.83.0 advisories** (CVE-2025-65039 / Critical SQLi in proxy API key verification, CVE-2025-65033 / High RCE in MCP stdio test, CVE-2025-65034 / High SSTI in `/prompts/test`): not exploitable here — Epic News uses litellm only as the SDK called by CrewAI for completions; the litellm proxy server is never run. Constraint relaxed from `>=1.75.3` to `>=1.83.0` to track future fixed releases as they become resolvable against `crewai~=1.14.x`.
+
 ## [2.1.0] — 2026-04-26
 
 ### Added
