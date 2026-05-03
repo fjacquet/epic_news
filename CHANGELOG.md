@@ -4,6 +4,11 @@ All notable changes to Epic News are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [3.1.1] — 2026-05-03
+
+### Fixed
+- **CI green again on `main`**: the v3.1.0 CSS additions (`.opportunity-card`, `.threat-card`, `.recommendation-card`, `.pestel-report` scope) drifted three `pytest-regressions` HTML snapshots — `FINDAILY`, `NEWSDAILY`, `SHOPPING` — because `TemplateManager` inlines the consolidated stylesheet into every report at render time. Snapshots regenerated with `--force-regen`; diffs are CSS-only, no HTML body changes. Full suite back to 554 passed / 5 skipped.
+
 ## [3.1.0] — 2026-05-03
 
 A focused readability upgrade for PESTEL reports. The "Impact" subsection of each dimension is now classified into three side-by-side cards (Opportunités / Risques & Menaces / Recommandations) when the LLM emits the conventional French numbered-bold structure, with a graceful fallback to flat Markdown rendering when it doesn't. Sources collapse into a `<details>` block to recover vertical space.
