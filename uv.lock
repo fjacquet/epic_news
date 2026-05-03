@@ -1022,7 +1022,7 @@ requires-dist = [
     { name = "composio-openai", specifier = ">=0.8.7" },
     { name = "coverage", marker = "extra == 'test'", specifier = ">=7.9.1" },
     { name = "crewai", specifier = ">=1.14.2" },
-    { name = "crewai-tools", extras = ["mcp"], specifier = ">=0.47.1" },
+    { name = "crewai-tools", extras = ["mcp"], specifier = ">=1.14.3" },
     { name = "exa-py", specifier = ">=1.14.9" },
     { name = "faker", marker = "extra == 'test'", specifier = ">=37.4.0" },
     { name = "fastapi", specifier = ">=0.115.13" },
