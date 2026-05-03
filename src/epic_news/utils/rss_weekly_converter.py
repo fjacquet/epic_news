@@ -5,7 +5,7 @@ from datetime import datetime
 
 from bs4 import BeautifulSoup
 
-from epic_news.models.rss_weekly_models import RssWeeklyReport
+from epic_news.models.crews.rss_weekly_report import RssWeeklyReport
 
 
 def html_to_rss_weekly_json(html_content: str) -> dict:
@@ -143,7 +143,10 @@ def json_to_rss_weekly_model(json_data: dict) -> RssWeeklyReport:
     except Exception as e:
         print(f"❌ Error creating RssWeeklyReport model: {e}")
         return RssWeeklyReport(
-            title="Erreur de Modélisation", summary=f"Erreur lors de la création du modèle: {str(e)}"
+            title="Erreur de Modélisation",
+            summary=f"Erreur lors de la création du modèle: {str(e)}",
+            total_feeds=0,
+            total_articles=0,
         )
 
 
