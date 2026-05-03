@@ -38,7 +38,7 @@ dependencies = [
     "watchdog>=6.0.0",
     "apscheduler>=3.11.2",
     # --- Data sources / scraping ---
-    "beautifulsoup4>=4.13.4",
+    "beautifulsoup4>=4.14.3",
     "lxml>=6.1.0",
     "lxml-html-clean>=0.4.2",
     "feedparser>=6.0.11",
