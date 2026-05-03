@@ -247,7 +247,7 @@ class OSINTGlobalRenderer(BaseRenderer):
             main_div = sub_soup.find("div")
             if main_div:
                 # Clone the children to avoid modifying the original
-                for child in list(main_div.children):  # type: ignore[attr-defined]
+                for child in list(main_div.children):
                     # Skip the style tag as we have our own global styles
                     if getattr(child, "name", None) != "style":
                         section.append(child)

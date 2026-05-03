@@ -132,7 +132,7 @@ validate: lint type-check test ## Full validation (lint + mypy + test) — match
 ci-checks: lint test ## Run all CI checks (lint + test)
 	@echo "$(GREEN)✓ CI checks complete$(RESET)"
 
-all: clean install lint test ## Full clean build (clean + install + lint + test)
+all: clean dev lint test ## Full clean build (clean + dev + lint + test)
 	@echo "$(GREEN)✓ Full build complete$(RESET)"
 
 ##@ Docker Operations
