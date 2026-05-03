@@ -4,6 +4,22 @@ All notable changes to Epic News are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [3.1.0] — 2026-05-03
+
+A focused readability upgrade for PESTEL reports. The "Impact" subsection of each dimension is now classified into three side-by-side cards (Opportunités / Risques & Menaces / Recommandations) when the LLM emits the conventional French numbered-bold structure, with a graceful fallback to flat Markdown rendering when it doesn't. Sources collapse into a `<details>` block to recover vertical space.
+
+### Added
+- **Markdown rendering in renderers** (`base_renderer.py::render_markdown_block`): safe-by-default `MarkdownIt("commonmark", html=False)` parser, cached via `functools.lru_cache`. `render_text_section()` gains an opt-in `as_markdown=True` flag. Used by `PestelRenderer` for the executive summary, synthesis, and per-dimension impact bodies — bullet lists and emphasis now render as real HTML instead of escaped text.
+- **PESTEL impact card classifier** (`pestel_renderer.py::_split_impact_into_buckets`): detects `N. **Title** :` headings at line start, classifies each by keyword (`opportun*` / `menace|risque` / `recommand*`), and emits `.opportunity-card` / `.threat-card` / `.recommendation-card` inside a `.cards-grid.impact-grid`. Falls back to flat Markdown when fewer than two buckets are detected or any heading fails to classify.
+- **Collapsible PESTEL sources** (`pestel_renderer.py::_render_sources`): `<details class="sources-details">` wrapping the `<ul>`, with citation count in the `<summary>`. Inline URLs auto-linkified with `target="_blank" rel="noopener"`.
+- **`markdown-it-py>=4.0.0`** runtime dependency.
+
+### Changed
+- **PESTEL CSS** (`templates/css/report.css`): new `.opportunity-card` / `.threat-card` / `.recommendation-card` classes share the existing card box model with semantic 4px left borders (green / red / blue). New `.pestel-report` scope tightens spacing, sets `h3` rhythm, narrows `.impact-grid` to `minmax(280px, 1fr)`, and styles the `.sources-details` wrapper.
+
+### Security
+- **XSS-safe Markdown rendering**: `MarkdownIt` is configured with `html=False`, so any raw `<script>` / inline HTML in LLM-emitted Markdown is escaped, not interpreted. Auto-linkified URLs in sources carry `rel="noopener"`.
+
 ## [3.0.0] — 2026-04-26
 
 A modernization milestone that closes the door on accumulated infrastructure debt and re-aligns the repository with current industry conventions. No runtime API surface change; the major bump signals the operational reset (branch rename, working CI, secrets-free tests).

@@ -13,9 +13,17 @@ Provides shared helper methods for common rendering patterns:
 
 import json
 from abc import ABC, abstractmethod
+from functools import lru_cache
 from typing import Any
 
 from bs4 import BeautifulSoup
+from markdown_it import MarkdownIt
+
+
+@lru_cache(maxsize=1)
+def _get_markdown_parser() -> MarkdownIt:
+    """Return a cached, safe-by-default MarkdownIt parser (no raw HTML)."""
+    return MarkdownIt("commonmark", {"breaks": True, "html": False, "linkify": True})
 
 
 class BaseRenderer(ABC):
@@ -262,6 +270,7 @@ class BaseRenderer(ABC):
         text: str | None,
         title: str,
         icon: str = "",
+        as_markdown: bool = False,
     ) -> None:
         """
         Render a simple text section.
@@ -272,15 +281,38 @@ class BaseRenderer(ABC):
             text: Text content
             title: Section title
             icon: Optional emoji icon
+            as_markdown: If True, parse ``text`` as Markdown and render as HTML
         """
         if not text:
             return
 
         section = self.create_section(soup, title, icon)
-        p = soup.new_tag("p")
-        p.string = text
-        section.append(p)
+        if as_markdown:
+            self.render_markdown_block(section, text)
+        else:
+            p = soup.new_tag("p")
+            p.string = text
+            section.append(p)
         container.append(section)
+
+    def render_markdown_block(
+        self,
+        container: Any,
+        text: str | None,
+    ) -> None:
+        """Convert a Markdown string to HTML elements appended to ``container``.
+
+        Uses markdown-it-py in safe mode (raw HTML disabled) to avoid XSS, and
+        appends the resulting top-level elements directly so they inherit the
+        parent's class context.
+        """
+        if not text:
+            return
+
+        html = _get_markdown_parser().render(text)
+        fragment = BeautifulSoup(html, "html.parser")
+        for child in list(fragment.contents):
+            container.append(child)
 
     def create_soup(self, tag: str = "div", **attrs) -> BeautifulSoup:
         """

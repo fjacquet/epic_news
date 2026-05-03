@@ -1477,8 +1477,10 @@ def kickoff(user_input: str | None = None):
     setup_logging()
     # If user_input is not provided, use a default value.
     request = (
-        user_input if user_input else "get the rss weekly report"
-        # else "Fait moi un rapport PESTLE a propos de la societe  Mistral.AI aujourd'hui en français"
+        user_input
+        if user_input
+        else "Fait moi un rapport PESTLE a propos de la societe ESB basé a Bienne (esb.ch) aujourd'hui en français"
+        # else "get the rss weekly report"
         # else "Complete OSINT analysis of Mistral.AI"
         # else "get the daily  news report"
         # else "conduct a deep research study on a travel on the north of the italy between san remo and Genova. Give me the best hotel and restaurant options."
