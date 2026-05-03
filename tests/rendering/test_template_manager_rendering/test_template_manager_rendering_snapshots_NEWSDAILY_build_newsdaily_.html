@@ -1469,16 +1469,20 @@ a:hover { text-decoration: underline; }
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 1rem;
 }
-.info-card, .location-card, .risk-card, .supply-card, .ma-card {
+.info-card, .location-card, .risk-card, .supply-card, .ma-card,
+.opportunity-card, .threat-card, .recommendation-card {
   background: var(--highlight-bg);
   border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 1.5rem;
 }
-.location-card { border-left: 4px solid #3b82f6; }
-.risk-card     { border-left: 4px solid #ef4444; }
-.supply-card   { border-left: 4px solid #10b981; }
-.ma-card       { border-left: 4px solid #8b5cf6; }
+.location-card        { border-left: 4px solid #3b82f6; }
+.risk-card            { border-left: 4px solid #ef4444; }
+.supply-card          { border-left: 4px solid #10b981; }
+.ma-card              { border-left: 4px solid #8b5cf6; }
+.opportunity-card     { border-left: 4px solid #10b981; }
+.threat-card          { border-left: 4px solid #ef4444; }
+.recommendation-card  { border-left: 4px solid #3b82f6; }
 .info-card h3, .location-card h3, .risk-card h3, .supply-card h3, .ma-card h3 {
   margin: 0 0 1rem 0;
   color: var(--heading-color);
@@ -1487,6 +1491,62 @@ a:hover { text-decoration: underline; }
   margin: 0.5rem 0;
   font-size: 0.9rem;
 }
+.opportunity-card h4, .threat-card h4, .recommendation-card h4 {
+  margin: 0 0 0.75rem 0;
+  font-size: 1.05rem;
+  color: var(--heading-color);
+}
+.opportunity-card ul, .threat-card ul, .recommendation-card ul {
+  margin: 0.5rem 0;
+  padding-left: 1.25rem;
+}
+.opportunity-card li, .threat-card li, .recommendation-card li {
+  margin-bottom: 0.4rem;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+.opportunity-card p, .threat-card p, .recommendation-card p {
+  margin: 0.4rem 0;
+  font-size: 0.92rem;
+}
+
+/* ---------- PESTEL ---------- */
+.pestel-report {
+  max-width: 1000px;
+  margin: 2rem auto;
+}
+.pestel-report .report-section { margin-bottom: 2.5rem; }
+.pestel-report .report-section > p { line-height: 1.7; }
+.pestel-report h3 {
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  color: var(--h3-color);
+  font-size: 1.15rem;
+}
+.pestel-report ul { line-height: 1.6; }
+.pestel-report li { margin-bottom: 0.35rem; }
+.pestel-report .impact-grid {
+  margin-top: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+.pestel-report .sources-details {
+  margin-top: 1.5rem;
+  padding: 0.75rem 1rem;
+  background: var(--highlight-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+}
+.pestel-report .sources-details summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--subheader-color);
+}
+.pestel-report .sources-details ul {
+  margin-top: 0.75rem;
+  padding-left: 1.25rem;
+  font-size: 0.88rem;
+}
+.pestel-report .sources-details li { margin-bottom: 0.5rem; word-break: break-word; }
 
 /* ---------- HR Intelligence ---------- */
 .hr-intelligence-report {
