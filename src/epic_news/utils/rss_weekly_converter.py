@@ -32,7 +32,7 @@ def html_to_rss_weekly_json(html_content: str) -> dict:
         summary = ""
         summary_section = soup.find("section", class_="executive-summary")
         if summary_section:
-            summary_p = summary_section.find("p")  # type: ignore[attr-defined]
+            summary_p = summary_section.find("p")
             if summary_p:
                 summary = summary_p.get_text().strip()
 
@@ -42,21 +42,21 @@ def html_to_rss_weekly_json(html_content: str) -> dict:
 
         for feed_section in feed_sections:
             # Extract feed name and URL
-            feed_name_elem = feed_section.find("h3")  # type: ignore[union-attr]
-            feed_name = feed_name_elem.get_text().strip() if feed_name_elem else "Source inconnue"  # type: ignore[union-attr]
+            feed_name_elem = feed_section.find("h3")
+            feed_name = feed_name_elem.get_text().strip() if feed_name_elem else "Source inconnue"
             # Remove emoji from feed name
             feed_name = re.sub(r"🌐\s*", "", feed_name)
 
-            feed_url_elem = feed_section.find("a")  # type: ignore[union-attr]
-            feed_url = feed_url_elem.get("href", "") if feed_url_elem else ""  # type: ignore[union-attr]
+            feed_url_elem = feed_section.find("a")
+            feed_url = feed_url_elem.get("href", "") if feed_url_elem else ""
 
             # Extract articles
             articles = []
-            article_sections = feed_section.find_all("article", class_="article-summary")  # type: ignore[union-attr]
+            article_sections = feed_section.find_all("article", class_="article-summary")
 
             for article_section in article_sections:
                 # Extract article title and link
-                title_elem = article_section.find("h4")  # type: ignore[union-attr]
+                title_elem = article_section.find("h4")
                 if title_elem:
                     link_elem = title_elem.find("a")
                     if link_elem:
@@ -70,13 +70,13 @@ def html_to_rss_weekly_json(html_content: str) -> dict:
                     article_link = ""
 
                 # Extract published date
-                date_elem = article_section.find("p", class_="published-date")  # type: ignore[union-attr]
+                date_elem = article_section.find("p", class_="published-date")
                 published = date_elem.get_text().strip() if date_elem else ""
                 # Remove emoji from date
                 published = re.sub(r"📅\s*", "", published)
 
                 # Extract summary
-                summary_elem = article_section.find("div", class_="summary")  # type: ignore[union-attr]
+                summary_elem = article_section.find("div", class_="summary")
                 article_summary = ""
                 if summary_elem:
                     summary_p = summary_elem.find("p")

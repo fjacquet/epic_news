@@ -28,9 +28,8 @@ class RssWeeklyRenderer(BaseRenderer):
         ``articles`` or ``categories``.
         """
         # Create main container
-        soup = self.create_soup("div")
+        soup = self.create_soup("div", **{"class": "rss-weekly-container"})
         container = soup.find("div")
-        container.attrs["class"] = ["rss-weekly-container"]  # type: ignore[union-attr]
 
         # Add header
         self._add_header(soup, container, data)

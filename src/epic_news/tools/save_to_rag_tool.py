@@ -24,8 +24,8 @@ class SaveToRagTool(BaseTool):
 
     def __init__(self, rag_tool: RagTool | None = None) -> None:
         super().__init__()  # type: ignore[call-arg]
-        self._rag_tool = rag_tool or RagTool(config=DEFAULT_RAG_CONFIG, summarize=True)  # type: ignore[arg-type]
+        self._rag_tool = rag_tool or RagTool(config=DEFAULT_RAG_CONFIG, summarize=True)
 
     def _run(self, text: str) -> str:
-        self._rag_tool.add(source=text, data_type="text")  # type: ignore[call-arg]
+        self._rag_tool.add(source=text, data_type="text")
         return json.dumps({"status": "success", "message": "stored"})

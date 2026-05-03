@@ -53,11 +53,10 @@ class CompanyNewsRenderer(BaseRenderer):
             empty_msg = soup.new_tag("p")
             empty_msg.string = "Aucune actualité vérifiable disponible pour cette période."
             empty_div.append(empty_msg)
-            container.append(empty_div)  # type: ignore[attr-defined]
+            container.append(empty_div)
 
         # Add notes if present
         self._add_notes(soup, container, data)
-
 
         # Remove any raw/internal CrewAI fields if present (defensive, in case of legacy data)
         # This renderer does not output any fields named 'raw', 'expected_output', 'name', etc.

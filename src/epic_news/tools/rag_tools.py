@@ -42,7 +42,7 @@ def get_rag_tools(collection_suffix: str | None = None) -> list[Tool]:
     collection_name = config["vectordb"]["config"]["collection_name"]  # type: ignore[index]
 
     # Create the RAG tool for retrieval with app_config to ensure collection_name is properly set
-    rag_tool = RagTool(  # type: ignore[call-arg]
+    rag_tool = RagTool(
         llm=llm,
         embedder=embedder,
         chunker_config=config["chunker"],
