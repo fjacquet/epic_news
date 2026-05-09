@@ -146,7 +146,8 @@ class HybridSearchTool(BaseTool):
         if not results["success"] and self._brave_tool:
             try:
                 logger.info("Attempting Brave Search for: {}", search_query)
-                brave_result = self._brave_tool._run(search_query)
+                # crewai-tools 1.x: BraveSearchTool._run accepts only **kwargs.
+                brave_result = self._brave_tool._run(search_query=search_query)
                 brave_data = json.loads(brave_result)
 
                 if brave_data.get("success") and not brave_data.get("fallback_needed"):
@@ -166,7 +167,8 @@ class HybridSearchTool(BaseTool):
         if not results["success"] and self._serper_tool:
             try:
                 logger.info("Using SerperDev search for: {}", search_query)
-                serper_result = self._serper_tool._run(search_query)
+                # crewai-tools 1.x: SerperDevTool._run accepts only **kwargs.
+                serper_result = self._serper_tool._run(search_query=search_query)
                 if serper_result:
                     logger.info("SerperDev search successful")
                     results["sources_used"].append("serper_dev")
@@ -184,7 +186,7 @@ class HybridSearchTool(BaseTool):
         if not results["success"] and self._serper_news_tool:
             try:
                 logger.info("Trying news-specific search for: {}", search_query)
-                news_result = self._serper_news_tool._run(search_query)
+                news_result = self._serper_news_tool._run(search_query=search_query)
                 if news_result:
                     logger.info("News search successful")
                     results["sources_used"].append("serper_news")

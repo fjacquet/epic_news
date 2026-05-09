@@ -7,6 +7,8 @@ Handles nested sections and articles as per reporting standards.
 
 from typing import Any
 
+from bs4 import Tag
+
 from .base_renderer import BaseRenderer
 
 
@@ -30,6 +32,8 @@ class CompanyNewsRenderer(BaseRenderer):
         if container is None:
             container = soup.new_tag("div", **{"class": "company-news-report"})  # type: ignore[arg-type]
             soup.append(container)
+        # bs4 4.13 stubs widen .find() to PageElement; narrow back to Tag for .append().
+        assert isinstance(container, Tag)
 
         # Add summary as header
         self._add_summary(soup, container, data)

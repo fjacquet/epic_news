@@ -5,7 +5,7 @@ from crewai.tools import BaseTool
 from crewai_tools import RagTool
 from pydantic import BaseModel, Field
 
-from epic_news.rag_config import DEFAULT_RAG_CONFIG
+from epic_news.rag_config import build_rag_tool_kwargs
 
 
 class SaveToRagInput(BaseModel):
@@ -24,8 +24,9 @@ class SaveToRagTool(BaseTool):
 
     def __init__(self, rag_tool: RagTool | None = None) -> None:
         super().__init__()  # type: ignore[call-arg]
-        self._rag_tool = rag_tool or RagTool(config=DEFAULT_RAG_CONFIG, summarize=True)
+        self._rag_tool = rag_tool or RagTool(**build_rag_tool_kwargs(), summarize=True)
 
     def _run(self, text: str) -> str:
-        self._rag_tool.add(source=text, data_type="text")
+        # crewai-tools 1.x: source is positional; ``add()`` no longer accepts ``source=``.
+        self._rag_tool.add(text, data_type="text")
         return json.dumps({"status": "success", "message": "stored"})

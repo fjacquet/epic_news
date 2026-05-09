@@ -12,7 +12,7 @@ import yfinance as yf
 from crewai_tools import RagTool
 from loguru import logger
 
-from epic_news.rag_config import DEFAULT_RAG_CONFIG
+from epic_news.rag_config import build_rag_tool_kwargs
 from epic_news.tools.save_to_rag_tool import SaveToRagTool
 
 # Configure logging
@@ -29,12 +29,10 @@ def update_market_data(tickers: list[str], collection_suffix: str | None = None)
         collection_suffix: Optional suffix for the collection name
     """
     # Create RAG tools with the appropriate collection
-    config = DEFAULT_RAG_CONFIG.copy()
-    if collection_suffix:
-        config["vectordb"]["config"] = config["vectordb"]["config"].copy()
-        config["vectordb"]["config"]["collection_name"] = f"epic_news-{collection_suffix}"
-
-    rag_tool = RagTool(config=config, summarize=True)
+    rag_tool = RagTool(
+        **build_rag_tool_kwargs(collection_suffix=collection_suffix),
+        summarize=True,
+    )
     save_tool = SaveToRagTool(rag_tool=rag_tool)
 
     current_date = datetime.datetime.now().strftime("%Y-%m-%d")

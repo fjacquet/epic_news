@@ -3,16 +3,7 @@ import json
 import pytest
 from crewai_tools import RagTool  # For type hinting and potentially mocking its instantiation
 
-# Assuming tests are run from the project root or 'src' is in PYTHONPATH
 from epic_news.tools.save_to_rag_tool import SaveToRagInput, SaveToRagTool
-
-# Mock DEFAULT_RAG_CONFIG as it's imported by save_to_rag_tool
-# We need to patch it where it's looked up by save_to_rag_tool
-MOCK_DEFAULT_RAG_CONFIG = {
-    "type": "chroma",
-    "db_path": "/tmp/mock_rag_db",
-    "collection_name": "mock_rag_collection",
-}
 
 
 @pytest.fixture
@@ -33,16 +24,20 @@ def test_save_to_rag_tool_instantiation_with_rag_tool(mock_rag_tool_instance):
 
 
 def test_save_to_rag_tool_instantiation_without_rag_tool(mocker):
-    """Test tool instantiation when no RagTool instance is provided,
-    so it creates its own."""
-    mocker.patch("epic_news.tools.save_to_rag_tool.DEFAULT_RAG_CONFIG", MOCK_DEFAULT_RAG_CONFIG)
+    """When no RagTool is provided, SaveToRagTool builds one from build_rag_tool_kwargs."""
+    mock_kwargs = {"config": {"vectordb": {"provider": "chromadb", "config": {}}}, "collection_name": "stub"}
+    mock_build = mocker.patch(
+        "epic_news.tools.save_to_rag_tool.build_rag_tool_kwargs",
+        return_value=mock_kwargs,
+    )
     mock_rag_tool_class = mocker.patch("epic_news.tools.save_to_rag_tool.RagTool")
-    mock_rag_instance = mock_rag_tool_class.return_value  # The instance RagTool() would return
+    mock_rag_instance = mock_rag_tool_class.return_value
     mock_rag_instance.add = mocker.MagicMock()
 
     tool = SaveToRagTool()
 
-    mock_rag_tool_class.assert_called_once_with(config=MOCK_DEFAULT_RAG_CONFIG, summarize=True)
+    mock_build.assert_called_once_with()
+    mock_rag_tool_class.assert_called_once_with(**mock_kwargs, summarize=True)
     assert tool._rag_tool == mock_rag_instance
     assert tool.name == "SaveToRag"
 
@@ -55,8 +50,8 @@ def test_save_to_rag_tool_run_success(mock_rag_tool_instance):
     result_json = tool._run(text=test_text)
     result = json.loads(result_json)
 
-    # Assert that the rag_tool's add method was called correctly
-    mock_rag_tool_instance.add.assert_called_once_with(source=test_text, data_type="text")
+    # crewai-tools 1.x: ``add()`` takes the source positionally.
+    mock_rag_tool_instance.add.assert_called_once_with(test_text, data_type="text")
 
     # Assert the expected JSON output
     assert result == {"status": "success", "message": "stored"}
@@ -70,5 +65,5 @@ def test_save_to_rag_tool_run_with_empty_text(mock_rag_tool_instance):
     result_json = tool._run(text=test_text)
     result = json.loads(result_json)
 
-    mock_rag_tool_instance.add.assert_called_once_with(source=test_text, data_type="text")
+    mock_rag_tool_instance.add.assert_called_once_with(test_text, data_type="text")
     assert result == {"status": "success", "message": "stored"}

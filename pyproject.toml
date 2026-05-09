@@ -1,7 +1,7 @@
 
 [project]
 name = "epic_news"
-version = "3.1.2"
+version = "3.1.3"
 description = "epic-news using crewAI"
 authors = [{ name = "Your Name", email = "you@example.com" }]
 requires-python = ">=3.13,<3.14"
@@ -38,7 +38,7 @@ dependencies = [
     "watchdog>=6.0.0",
     "apscheduler>=3.11.2",
     # --- Data sources / scraping ---
-    "beautifulsoup4>=4.14.3",
+    "beautifulsoup4>=4.13.4,<4.14",  # capped by crewai-tools>=1.14.3
     "lxml>=6.1.0",
     "lxml-html-clean>=0.4.2",
     "feedparser>=6.0.11",
