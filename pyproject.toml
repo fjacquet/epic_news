@@ -134,7 +134,6 @@ env = [
     "OPENAI_API_KEY=test_openai_key_for_ci",
     "COMPOSIO_API_KEY=test_composio_key_for_ci",
     "TAVILY_API_KEY=test_tavily_key_for_ci",
-    "EXA_API_KEY=test_exa_key_for_ci",
     "FIRECRAWL_API_KEY=test_firecrawl_key_for_ci",
     "ALPHAVANTAGE_API_KEY=test_alphavantage_key_for_ci",
     "COINMARKETCAP_API_KEY=test_coinmarketcap_key_for_ci",
