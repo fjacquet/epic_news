@@ -11,6 +11,7 @@ standard ``CREWAI_STORAGE_DIR`` env var rather than constructing a chromadb
 at runtime.
 """
 
+import copy
 import os
 from typing import Any
 
@@ -53,8 +54,6 @@ def build_rag_tool_kwargs(
     Returns:
         A dict suitable for ``RagTool(**kwargs)``.
     """
-    import copy
-
     src = copy.deepcopy(config if config is not None else DEFAULT_RAG_CONFIG)
     vectordb = src.setdefault("vectordb", {"provider": "chromadb", "config": {}})
     vdb_config: dict[str, Any] = vectordb.setdefault("config", {})
