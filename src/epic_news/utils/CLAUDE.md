@@ -659,31 +659,8 @@ Ensures crews follow proper execution patterns and state transitions.
 
 ## Performance & Reliability
 
-### CrewAI Retry Patch
-
-**Location**: `src/epic_news/utils/crewai_retry_patch.py`
-
-**Purpose**: Patches CrewAI to add automatic retry logic for transient failures.
-
-```python
-from epic_news.utils.crewai_retry_patch import apply_retry_patch
-
-# Apply patch at application startup
-apply_retry_patch(max_retries=3, backoff_factor=2)
-```
-
-### LLM Retry Logic
-
-**Location**: `src/epic_news/utils/llm_retry.py`
-
-```python
-from epic_news.utils.llm_retry import retry_on_llm_error
-
-@retry_on_llm_error(max_retries=3)
-def call_llm():
-    # LLM call that might fail
-    pass
-```
+CrewAI 1.x handles LLM retry internally — configure timeouts and retry knobs via
+`LLMConfig` (`src/epic_news/config/llm_config.py`) rather than custom wrappers.
 
 ### Tool Logging
 
