@@ -1,4 +1,3 @@
-import json
 from typing import Any
 
 from crewai.tools import BaseTool
@@ -6,6 +5,7 @@ from crewai_tools import RagTool
 from pydantic import BaseModel, Field
 
 from epic_news.rag_config import build_rag_tool_kwargs
+from epic_news.tools._json_utils import ensure_json_str
 
 
 class SaveToRagInput(BaseModel):
@@ -28,5 +28,8 @@ class SaveToRagTool(BaseTool):
 
     def _run(self, text: str) -> str:
         # crewai-tools 1.x: source is positional; ``add()`` no longer accepts ``source=``.
-        self._rag_tool.add(text, data_type="text")
-        return json.dumps({"status": "success", "message": "stored"})
+        try:
+            self._rag_tool.add(text, data_type="text")
+        except Exception as exc:
+            return ensure_json_str({"status": "error", "message": str(exc)})
+        return ensure_json_str({"status": "success", "message": "stored"})

@@ -11,7 +11,6 @@ TEST_DEFAULT_RAG_CONFIG: dict[str, Any] = {
     "vectordb": {
         "provider": "chromadb",
         "config": {
-            "persist_directory": "/tmp/test_chroma_db",
             "collection_name": "epic_news_default_collection",
         },
     },
