@@ -592,7 +592,6 @@ TODOIST_API_KEY=        # Task management
 
 # Specialized
 GOOGLE_API_KEY=         # Fact checking
-EXA_API_KEY=            # Specialized search
 BROWSERBASE_API_KEY=    # Browser automation
 ```
 

@@ -1479,7 +1479,8 @@ def kickoff(user_input: str | None = None):
     request = (
         user_input
         if user_input
-        else "Fait moi un rapport PESTLE a propos de la societe ESB basé a Bienne (esb.ch) aujourd'hui en français"
+        else "Fait moi un etat sur les dernieres actualites de la stack crewai en 2026 en français"
+        # else "Fait moi un rapport PESTLE a propos de la societe pictet aujourd'hui en français"
         # else "get the rss weekly report"
         # else "Complete OSINT analysis of Mistral.AI"
         # else "get the daily  news report"

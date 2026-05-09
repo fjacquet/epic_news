@@ -659,6 +659,8 @@ Ensures crews follow proper execution patterns and state transitions.
 
 ## Performance & Reliability
 
+### Retry Configuration
+
 CrewAI 1.x handles LLM retry internally — configure timeouts and retry knobs via
 `LLMConfig` (`src/epic_news/config/llm_config.py`) rather than custom wrappers.
 
