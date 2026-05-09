@@ -1,6 +1,6 @@
 from unittest.mock import call
 
-from epic_news.rag_config import DEFAULT_RAG_CONFIG
+from epic_news.rag_config import DEFAULT_COLLECTION_NAME
 from scripts.update_knowledge_base import main, prune_outdated_knowledge, update_market_data
 from tests.utils.context_managers import mock_knowledge_base_dependencies
 
@@ -52,10 +52,9 @@ def test_update_market_data_success(mocker):
         mocks["yf_ticker"].assert_any_call("AAPL")
         mocks["yf_ticker"].assert_any_call("MSFT")
 
-        # Assertions for RagTool instantiation
+        # Assertions for RagTool instantiation — crewai-tools 1.x: collection_name is top-level.
         mocks["rag_tool"].assert_called_once()
-        rag_config_arg = mocks["rag_tool"].call_args[1]["config"]
-        assert rag_config_arg["vectordb"]["config"]["collection_name"] == "epic_news-test_stocks"
+        assert mocks["rag_tool"].call_args.kwargs["collection_name"] == "epic_news-test_stocks"
 
         # Assertions for SaveToRagTool instantiation
         mocks["save_tool"].assert_called_once_with(rag_tool=mocks["rag_tool"].return_value)
@@ -96,12 +95,8 @@ def test_update_market_data_no_suffix(mocker):
         update_market_data(["AAPL"])
 
         mocks["rag_tool"].assert_called_once()
-        rag_config_arg = mocks["rag_tool"].call_args[1]["config"]
-        # Should use the default collection name from DEFAULT_RAG_CONFIG
-        assert (
-            rag_config_arg["vectordb"]["config"]["collection_name"]
-            == DEFAULT_RAG_CONFIG["vectordb"]["config"]["collection_name"]
-        )
+        # Should use the default collection name when no suffix is provided.
+        assert mocks["rag_tool"].call_args.kwargs["collection_name"] == DEFAULT_COLLECTION_NAME
         mocks["save_tool"].return_value._run.assert_called_once()
 
 

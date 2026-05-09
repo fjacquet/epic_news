@@ -53,9 +53,8 @@ def test_update_market_data_success(
         tickers = ["AAPL"]
         update_market_data(tickers, collection_suffix="test-stocks")
 
-        # Verify RagTool was configured correctly
-        rag_config = mocks["rag_tool"].call_args.kwargs["config"]
-        assert rag_config["vectordb"]["config"]["collection_name"] == "epic_news-test-stocks"
+        # Verify RagTool was configured correctly — crewai-tools 1.x: top-level kwarg.
+        assert mocks["rag_tool"].call_args.kwargs["collection_name"] == "epic_news-test-stocks"
 
         # Verify SaveToRagTool was called with a valid knowledge entry
         mocks["save_tool"].return_value._run.assert_called_once()

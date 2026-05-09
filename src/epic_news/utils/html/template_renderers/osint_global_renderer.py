@@ -16,7 +16,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Tag
 
 from .base_renderer import BaseRenderer
 from .company_profiler_renderer import CompanyProfilerRenderer
@@ -245,7 +245,7 @@ class OSINTGlobalRenderer(BaseRenderer):
             sub_soup = BeautifulSoup(sub_content_html, "html.parser")
             # Find the main container and append its children
             main_div = sub_soup.find("div")
-            if main_div:
+            if isinstance(main_div, Tag):
                 # Clone the children to avoid modifying the original
                 for child in list(main_div.children):
                     # Skip the style tag as we have our own global styles
