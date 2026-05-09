@@ -1,7 +1,7 @@
 
 [project]
 name = "epic_news"
-version = "3.1.3"
+version = "3.1.4"
 description = "epic-news using crewAI"
 authors = [{ name = "Your Name", email = "you@example.com" }]
 requires-python = ">=3.13,<3.14"
@@ -12,13 +12,8 @@ dependencies = [
     "mcp>=1.26.0",
     "composio>=0.1.1",
     "composio-crewai>=0.7.18",
-    "composio-openai>=0.8.7",
-    "litellm>=1.83.0",
-    "langchain-community>=0.3.25",
-    "langchain-openai>=0.2.14",
+    "litellm>=1.83.0",  # CVE fix blocked upstream: crewai 1.14.x needs pydantic<2.12, litellm 1.83.7+ needs ==2.12.5
     "langfuse>=3.2.3",
-    "mem0ai>=0.1.114",
-    "minds-sdk>=1.3.3",
     "chromadb>=0.5.23",
     # --- Pydantic / data ---
     "pydantic>=2.7.0",
@@ -32,11 +27,8 @@ dependencies = [
     "requests-cache>=1.2.0",
     "httpx>=0.27.2",
     "fastapi>=0.115.13",
-    "fastapi-sso>=0.17.0",
     "uvicorn>=0.34.3",
     "streamlit>=1.46.0",
-    "watchdog>=6.0.0",
-    "apscheduler>=3.11.2",
     # --- Data sources / scraping ---
     "beautifulsoup4>=4.13.4,<4.14",  # capped by crewai-tools>=1.14.3
     "lxml>=6.1.0",
@@ -46,23 +38,14 @@ dependencies = [
     "wikipedia>=1.4.0",
     "wikipedia-mcp-server>=1.0.1",
     "tavily-python>=0.7.24",
-    "exa-py>=1.14.9",
     "firecrawl-py>=4.22.2",
-    "serpapi>=0.1.5",
     "yfinance>=1.3.0",
     "pyairtable>=3.1.1",
-    "pygithub>=2.9.1",
-    "gitpython>=3.1.44",
     # --- Rendering / output ---
     "jinja2>=3.1.3",
     "weasyprint>=65.1",
-    "pygments>=2.19.2",
-    # --- Numerical / plotting ---
+    # --- Numerical / data ---
     "pandas>=2.3.0",
-    "matplotlib>=3.10.3",
-    "seaborn>=0.13.2",
-    "scipy>=1.15.3",
-    "scikit-learn>=1.7.0",
     "markdown-it-py>=4.0.0",
 ]
 
