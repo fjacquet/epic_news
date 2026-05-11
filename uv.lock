@@ -946,7 +946,7 @@ requires-dist = [
     { name = "composio-crewai", specifier = ">=0.7.18" },
     { name = "coverage", marker = "extra == 'test'", specifier = ">=7.9.1" },
     { name = "crewai", specifier = ">=1.14.2" },
-    { name = "crewai-tools", extras = ["mcp"], specifier = ">=1.14.3" },
+    { name = "crewai-tools", extras = ["mcp"], specifier = ">=1.14.4" },
     { name = "faker", marker = "extra == 'test'", specifier = ">=37.4.0" },
     { name = "fastapi", specifier = ">=0.115.13" },
     { name = "feedparser", specifier = ">=6.0.11" },
