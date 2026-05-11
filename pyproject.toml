@@ -70,7 +70,7 @@ test = [
     "pytest-mock>=3.14.1",
     "pytest-regressions>=2.10.0",
     "pytest-datadir",
-    "coverage>=7.9.1",
+    "coverage>=7.14.0",
     "freezegun>=1.5.2",
     "faker>=37.4.0",
     "pendulum>=3.1.0",
