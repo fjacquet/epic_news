@@ -24,7 +24,7 @@ dependencies = [
     "unidecode>=1.4.0",
     # --- HTTP / Web ---
     "requests>=2.33.0",
-    "requests-cache>=1.2.0",
+    "requests-cache>=1.3.2",
     "httpx>=0.27.2",
     "fastapi>=0.115.13",
     "uvicorn>=0.34.3",
