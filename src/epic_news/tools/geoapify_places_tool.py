@@ -162,7 +162,11 @@ class GeoapifyPlacesTool(BaseTool):
             return json.dumps({"error": "GEOAPIFY_API_KEY environment variable not set"})
 
         # Build query parameters
-        query_params = {"apiKey": api_key, "limit": params.limit, "lang": params.lang}
+        query_params: dict[str, str | int] = {
+            "apiKey": api_key,
+            "limit": params.limit,
+            "lang": params.lang,
+        }
 
         # Add categories if provided
         if params.categories:
