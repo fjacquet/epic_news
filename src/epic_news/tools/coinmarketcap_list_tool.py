@@ -66,7 +66,7 @@ class CoinMarketCapListTool(BaseTool):
                 "X-CMC_PRO_API_KEY": os.environ.get("X-CMC_PRO_API_KEY", ""),
                 "Accept": "application/json",
             }
-            params = {"limit": limit, "sort": sort_by, "convert": "USD"}
+            params: dict[str, str | int] = {"limit": limit, "sort": sort_by, "convert": "USD"}
 
             response = requests.get(
                 f"{CMC_BASE_URL}/cryptocurrency/listings/latest",

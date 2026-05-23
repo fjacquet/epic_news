@@ -43,10 +43,14 @@ class ScrapeNinjaTool(BaseTool):
         """Scrape a website using ScrapeNinja API with advanced options"""
         api_url = "https://scrapeninja.p.rapidapi.com/scrape"
 
+        api_key = self.api_key
+        if api_key is None:
+            return json.dumps({"error": "RAPIDAPI_KEY environment variable not set"})
+
         headers = {
             "Content-Type": "application/json",
             "Accept": "*/*",
-            "X-RapidAPI-Key": self.api_key,
+            "X-RapidAPI-Key": api_key,
             "X-RapidAPI-Host": "scrapeninja.p.rapidapi.com",
         }
 

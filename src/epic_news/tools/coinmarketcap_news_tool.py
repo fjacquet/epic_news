@@ -39,7 +39,7 @@ class CoinMarketCapNewsTool(BaseTool):
             }
 
             api_endpoint = f"{CMC_PRO_API_BASE_URL}/v2/news/latest"
-            params = {"limit": limit, "sort_by": "published_at"}
+            params: dict[str, str | int] = {"limit": limit, "sort_by": "published_at"}
 
             if symbol:
                 if symbol.islower() and "-" in symbol or (symbol.islower() and not symbol.isupper()):
