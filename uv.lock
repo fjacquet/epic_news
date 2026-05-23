@@ -986,7 +986,7 @@ requires-dist = [
     { name = "chromadb", specifier = ">=0.5.23" },
     { name = "composio", specifier = ">=0.1.1" },
     { name = "composio-crewai", specifier = ">=0.7.18" },
-    { name = "coverage", marker = "extra == 'test'", specifier = ">=7.9.1" },
+    { name = "coverage", marker = "extra == 'test'", specifier = ">=7.14.0" },
     { name = "crewai", specifier = ">=1.14.2" },
     { name = "crewai-tools", extras = ["mcp"], specifier = ">=1.14.3" },
     { name = "faker", marker = "extra == 'test'", specifier = ">=37.4.0" },
