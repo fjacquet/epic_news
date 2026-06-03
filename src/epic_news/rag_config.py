@@ -9,6 +9,13 @@ standard ``CREWAI_STORAGE_DIR`` env var rather than constructing a chromadb
 ``Settings`` ourselves — pydantic v1↔v2 type validation between chromadb's v1
 ``Settings`` and crewai's v2 ``ChromaDBConfig`` makes explicit overrides break
 at runtime.
+
+Security boundary: chromadb is used here strictly as an *embedded*, on-disk
+vector store via ``RagTool`` — no ChromaDB FastAPI/HTTP server is ever started
+and nothing binds a network listener. This is what keeps us out of scope for
+CVE-2026-45829 ("ChromaToast"), the pre-auth RCE that requires the FastAPI
+``create_collection`` endpoint to be reachable. Do not introduce ``chroma run``
+or a client/server (``HttpClient``) deployment without re-evaluating that CVE.
 """
 
 import copy
