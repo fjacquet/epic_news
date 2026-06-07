@@ -41,7 +41,7 @@ logger.add(StreamlitLogSink(log_queue), format="{time:YYYY-MM-DD HH:mm:ss} - {le
 
 # --- Helpers ---
 def html_to_markdown(html: str) -> str:
-    """Best-effort HTML→Markdown conversion for displaying/downloading.
+    """Best-effort HTML→plain-text conversion for displaying/downloading.
 
     Uses BeautifulSoup text extraction; returns original HTML on failure.
     """

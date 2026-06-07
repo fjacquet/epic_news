@@ -8,6 +8,9 @@ def test_html_to_markdown_extracts_text():
     assert "Hello" in result
     assert "world" in result
     assert "<" not in result  # tags stripped
+    assert (
+        result == "Title\nHello \nworld"
+    )  # exact extracted text (bs4 preserves trailing space in text node)
 
 
 def test_html_to_markdown_handles_garbage_gracefully():
