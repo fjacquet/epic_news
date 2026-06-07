@@ -18,3 +18,10 @@ def test_html_to_markdown_handles_garbage_gracefully():
     assert html_to_markdown("") == ""
     # Plain text with no tags passes through unchanged.
     assert html_to_markdown("just plain text") == "just plain text"
+
+
+def test_html_to_markdown_returns_raw_html_on_parse_failure(mocker):
+    # If the parser raises, the original HTML is returned unchanged (fallback path).
+    mocker.patch("epic_news.app.BeautifulSoup", side_effect=ValueError("boom"))
+    raw = "<p>unchanged</p>"
+    assert html_to_markdown(raw) == raw
