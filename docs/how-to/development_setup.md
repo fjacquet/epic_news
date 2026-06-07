@@ -238,24 +238,20 @@ To enhance our testing capabilities, Epic News integrates the following librarie
 
 - **`Faker`**: For generating realistic mock data (e.g., names, addresses, dates). This helps create tests that more closely resemble real-world scenarios.
 - **`pytest-mock`**: A wrapper around the standard `unittest.mock` library, providing a more convenient and pytest-friendly interface for mocking objects and functions.
-- **`pendulum`**: For precise control over date and time in tests. This is crucial for testing time-sensitive logic, allowing you to "freeze" time or travel to specific points in time.
 
 ##### Example Usage
 
 ```python
-import pendulum
 from faker import Faker
 
-def test_faker_and_pendulum():
+def test_with_faker():
     """
-    This test demonstrates the use of Faker and Pendulum.
+    This test demonstrates the use of Faker for realistic mock data.
     """
     fake = Faker()
     name = fake.name()
-    now = pendulum.now()
 
     assert isinstance(name, str)
-    assert isinstance(now, pendulum.DateTime)
 
 def test_mocking_with_pytest_mock(mocker):
     """
