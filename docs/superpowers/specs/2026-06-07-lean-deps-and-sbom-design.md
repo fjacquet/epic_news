@@ -105,7 +105,7 @@ article-extraction behavior and deserves its own change + verification.
 
 | Dep | Evidence | Action |
 |---|---|---|
-| `pendulum` | test | Used only in `tests/test_advanced_libraries.py`, which tests faker+pendulum *themselves*, not project code | Remove dep + that meta-test (optional) |
+| `pendulum` | Used only in `tests/test_advanced_libraries.py`, which tests faker+pendulum *themselves*, not project code | Remove dep + that meta-test (optional) |
 
 **1e. Keep (verified, with rationale):**
 

@@ -14,5 +14,7 @@ def test_html_to_markdown_extracts_text():
 
 
 def test_html_to_markdown_handles_garbage_gracefully():
-    # Non-HTML input must not raise.
-    assert isinstance(html_to_markdown(""), str)
+    # Empty input must not raise and returns an empty string.
+    assert html_to_markdown("") == ""
+    # Plain text with no tags passes through unchanged.
+    assert html_to_markdown("just plain text") == "just plain text"

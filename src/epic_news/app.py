@@ -3,6 +3,7 @@ from queue import Empty, Queue
 from threading import Thread
 
 import streamlit as st
+from bs4 import BeautifulSoup
 from loguru import logger
 
 from epic_news.main import kickoff
@@ -46,8 +47,6 @@ def html_to_markdown(html: str) -> str:
     Uses BeautifulSoup text extraction; returns original HTML on failure.
     """
     try:
-        from bs4 import BeautifulSoup
-
         soup = BeautifulSoup(html, "html.parser")
         # Keep basic structure using newlines
         text = soup.get_text("\n")
