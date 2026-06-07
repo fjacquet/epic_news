@@ -117,6 +117,15 @@ deps-audit: ## Audit dependencies for unused/missing/transitive issues (deptry)
 		echo "$(YELLOW)⚠ deptry not installed. Install with: uv sync --all-extras$(RESET)"; \
 	fi
 
+sbom: ## Generate a CycloneDX SBOM (sbom.cdx.json) from the uv lockfile
+	@echo "$(GREEN)Generating CycloneDX SBOM from uv.lock...$(RESET)"
+	uv export --no-dev --no-emit-project --no-hashes \
+		--format requirements.txt -o sbom-requirements.txt
+	uvx --from cyclonedx-bom cyclonedx-py requirements sbom-requirements.txt \
+		--output-format JSON --spec-version 1.6 --output-file sbom.cdx.json
+	@rm -f sbom-requirements.txt
+	@echo "$(GREEN)✓ sbom.cdx.json generated$(RESET)"
+
 security: ## Run security checks (bandit + safety)
 	@echo "$(GREEN)Checking for security issues in code...$(RESET)"
 	@if uv run python -c "import bandit" 2>/dev/null; then \
