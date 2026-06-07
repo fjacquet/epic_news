@@ -80,6 +80,12 @@ and non-import usages (CLI tools, pytest plugins/fixtures, MCP/config strings).
 |---|---|---|
 | `markdownify` | `src/epic_news/app.py:51` — optional import with an existing BeautifulSoup fallback | **Drop the optional branch** (fallback already covers it) → no new dep |
 | `tabulate` | `scripts/optimize_crews.py:18` | **Declare in `dev` group** (script-only utility) |
+| `urllib3` | `tools/email_base.py:8`, `tools/github_base.py:8`, `tools/search_base.py:8` — direct import, only transitively present via `requests` | **Declare in runtime** (zero new resolved packages; fixes latent breakage) |
+| `python-dateutil` (`dateutil`) | `tools/unified_rss_tool.py:10` — direct import, only transitively present via `pandas` | **Declare in runtime** (zero new resolved packages) |
+
+> Declaring `urllib3`/`python-dateutil` adds **no** new packages to the resolved tree (already
+> installed transitively) — it just makes the direct import honest and keeps `deptry` green
+> without DEP003 suppression.
 
 **1c. Biggest lean win (follow-up — touches scraping behavior, NOT this pass):**
 
@@ -133,18 +139,30 @@ Rewrite `.github/dependabot.yml`:
 
 ### 4. SBOM generation
 
-- Add `cyclonedx-py` to the `dev` group (or run via `uvx` — decided at plan time).
-- `make sbom` → `cyclonedx-py uv --output-format JSON -o sbom.cdx.json`.
-- `sbom.cdx.json` is a build artifact: git-ignored locally, produced fresh in CI.
+**Validated** (`cyclonedx-bom` 7.3.0 has **no** `uv` subcommand; verified end-to-end producing
+a CycloneDX 1.6 SBOM with 236 runtime components). Run `cyclonedx-py` via `uvx` (zero lockfile
+weight). `make sbom`:
 
-> **API note:** exact `cyclonedx-py` and `osv-scanner` CLI flags are validated against current
-> docs (via context7 / official docs) during implementation before code is written.
+```bash
+uv export --no-dev --no-emit-project --no-hashes --format requirements.txt -o sbom-requirements.txt
+uvx --from cyclonedx-bom cyclonedx-py requirements sbom-requirements.txt \
+    --output-format JSON --spec-version 1.6 --output-file sbom.cdx.json
+```
+
+- `--no-dev` excludes the dev group; the `test` extra is an optional-dependency not exported by
+  default → SBOM is runtime-only (the shipped surface). `sbom.cdx.json` is a build artifact:
+  git-ignored locally, produced fresh in CI. Filename **must** end `.cdx.json` (osv-scanner
+  auto-detects CycloneDX SBOMs by that suffix).
 
 ### 5. Vuln scanning (replaces `safety`)
 
-- Add `.osv-scanner.toml` with documented `[[IgnoredVulns]]` entries (id + `reason` + review
-  date), seeded with the known unfixable `litellm`/`pydantic`/`crewai` chain if it surfaces a CVE.
-- Rewrite `make security`: `bandit -r src` + `osv-scanner --sbom sbom.cdx.json`.
+**Validated** against osv-scanner v2.3.8 docs.
+
+- Add **`osv-scanner.toml`** (no leading dot — that's the auto-discovered name) with documented
+  `[[IgnoredVulns]]` entries: `id`, `reason`, optional `ignoreUntil = YYYY-MM-DD`. Seeded with the
+  known unfixable `litellm`/`pydantic`/`crewai` chain if/when it surfaces a CVE.
+- Rewrite `make security`: `bandit -r src` + `osv-scanner scan source -L sbom.cdx.json --config=osv-scanner.toml`
+  (SBOM passed via `-L`; osv-scanner exits non-zero on un-ignored findings → natural gate).
 - **Remove `safety`:** dev dependency, Makefile branches, and `safety-report.json` cleanup.
 
 ### 6. CI workflow
@@ -166,7 +184,7 @@ New `.github/workflows/security.yml`:
 
 ## Error Handling / Edge Cases
 
-- Vuln gate fails CI **only** on findings absent from `.osv-scanner.toml`. Allowlisted items
+- Vuln gate fails CI **only** on findings absent from `osv-scanner.toml`. Allowlisted items
   carry a human reason and a review date.
 - Honors the project's "no red CI" rule and the existing unfixable-upstream constraint by
   making suppression explicit and auditable rather than silently non-blocking.
@@ -181,7 +199,7 @@ New `.github/workflows/security.yml`:
 - `make security` runs `bandit` + `osv-scanner` clean against the allowlist.
 - `make deps-audit` (`deptry`) exits 0 after pruning.
 - A temporarily injected known-vuln dependency proves the gate **fires**; adding it to
-  `.osv-scanner.toml` proves suppression **works**; both reverted before merge.
+  `osv-scanner.toml` proves suppression **works**; both reverted before merge.
 - Full suite green: `make validate` (lint + mypy + test) + `make security` + `make sbom`.
 
 ## Affected Files (anticipated)
@@ -193,7 +211,7 @@ New `.github/workflows/security.yml`:
 - `.github/dependabot.yml` — groups + caps + github-actions ecosystem.
 - `.github/workflows/security.yml` — **new**.
 - `Makefile` — `sbom`, `deps-audit` targets; rewrite `security`; drop `safety` branches/cleanup.
-- `.osv-scanner.toml` — **new** (allowlist).
+- `osv-scanner.toml` — **new** (allowlist).
 - `.gitignore` — ignore `sbom.cdx.json` (build artifact).
 - `uv.lock` — regenerated.
 - **Follow-up change (separate):** `newspaper3k` → `trafilatura`, then drop `lxml` +
@@ -203,7 +221,7 @@ New `.github/workflows/security.yml`:
 
 - Confirm nothing breaks after dropping the `chromadb` direct pin (transitive via `crewai`).
 - Confirm `markdownify`-branch removal leaves `app.py` markdown handling correct (fallback path).
-- Decide whether to drop `pendulum` + its meta-test in this pass or defer.
-- Decide `cyclonedx-py` install (`dev` dep vs `uvx`) and pin policy.
-- Decide release-attach lives in `security.yml` vs a new `release.yml`.
+- ~~Decide whether to drop `pendulum`~~ → **resolved:** drop it + its meta-test this pass.
+- ~~Decide `cyclonedx-py` install~~ → **resolved:** run via `uvx --from cyclonedx-bom` (no lockfile weight).
+- Decide release-attach lives in `security.yml` vs a new `release.yml` (plan: in `security.yml`, tag-gated job using `gh release upload`).
 - Follow-up: scope the `newspaper3k`→`trafilatura` migration (extraction-quality parity check).
