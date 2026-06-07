@@ -1,0 +1,21 @@
+# OSV-Scanner vulnerability allowlist.
+# Each entry MUST carry a reason and SHOULD carry an ignoreUntil review date.
+# Format: https://google.github.io/osv-scanner/configuration/
+#
+# Template for new entries:
+# [[IgnoredVulns]]
+# id = "GHSA-xxxx-xxxx-xxxx"
+# ignoreUntil = 2026-09-01
+# reason = "<why this is safe/unavoidable; when to re-evaluate>"
+
+[[IgnoredVulns]]
+id = "GHSA-f4j7-r4q5-qw2c"  # CVE-2026-45829 — chromadb pre-auth RCE (CVSS 9.3)
+ignoreUntil = 2026-09-07
+reason = """
+Critical code-injection in ChromaDB's network SERVER API \
+(/api/v2/.../collections with trust_remote_code), affecting chromadb 1.0.0-1.5.9 \
+with NO patched version available. epic_news does not run a ChromaDB server and \
+does not import chromadb directly (0 imports); it is a forced transitive dependency \
+of crewai (chromadb~=1.1.0) used only as an embedded library, so the vulnerable \
+network endpoint is never exposed. Re-evaluate when chromadb ships a fix or crewai \
+relaxes the pin."""

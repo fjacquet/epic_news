@@ -3,6 +3,7 @@ from queue import Empty, Queue
 from threading import Thread
 
 import streamlit as st
+from bs4 import BeautifulSoup
 from loguru import logger
 
 from epic_news.main import kickoff
@@ -41,26 +42,17 @@ logger.add(StreamlitLogSink(log_queue), format="{time:YYYY-MM-DD HH:mm:ss} - {le
 
 # --- Helpers ---
 def html_to_markdown(html: str) -> str:
-    """Best-effort HTML→Markdown conversion for displaying/downloading.
+    """Best-effort HTML→plain-text conversion for displaying/downloading.
 
-    Tries `markdownify` if available; falls back to BeautifulSoup text extraction;
-    finally returns original HTML if no converters are available.
+    Uses BeautifulSoup text extraction; returns original HTML on failure.
     """
     try:
-        # Prefer markdownify when present
-        from markdownify import markdownify as md
-
-        return str(md(html, heading_style="ATX"))
+        soup = BeautifulSoup(html, "html.parser")
+        # Keep basic structure using newlines
+        text = soup.get_text("\n")
+        return text.strip()
     except Exception:
-        try:
-            from bs4 import BeautifulSoup
-
-            soup = BeautifulSoup(html, "html.parser")
-            # Keep basic structure using newlines
-            text = soup.get_text("\n")
-            return text.strip()
-        except Exception:
-            return html
+        return html
 
 
 # --- Crew Execution Logic ---

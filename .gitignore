@@ -182,3 +182,7 @@ quality-report.md
 # Project-specific directories (uncomment if not needed)
 # @/
 site/
+
+# Generated SBOM artifacts (produced fresh in CI / on demand)
+sbom.cdx.json
+sbom-requirements.txt

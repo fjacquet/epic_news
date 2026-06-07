@@ -139,7 +139,7 @@ make coverage         # Run tests with coverage
 
 **Installation & Setup**:
 - `make install` - Install production dependencies
-- `make dev` - Install development dependencies (includes mypy, bandit, safety)
+- `make dev` - Install development dependencies (includes mypy, bandit, deptry)
 - `make build` - Build package distribution
 - `make clean` - Remove all artifacts
 
@@ -155,7 +155,7 @@ make coverage         # Run tests with coverage
 
 **Advanced Quality Checks**:
 - `make type-check` - Run mypy type checking
-- `make security` - Run bandit (code security) + safety (dependency vulnerabilities)
+- `make security` - Run bandit (code security) + osv-scanner (SBOM dependency vulnerabilities)
 
 **Docker Operations**:
 - `make docker-build-api` - Build FastAPI image
@@ -229,7 +229,7 @@ make all              # clean + install + lint + test
 - **Testing**: `make test` (quick) or `make coverage` (with coverage report)
 - **Linting**: `make lint` (check) or `make fix` (auto-fix)
 - **Type Checking**: `make type-check` (requires mypy)
-- **Security**: `make security` (bandit + safety)
+- **Security**: `make security` (bandit + osv-scanner)
 - **Coverage**: Maintain comprehensive test coverage for all utilities
 
 #### Advanced Testing Libraries
@@ -238,24 +238,20 @@ To enhance our testing capabilities, Epic News integrates the following librarie
 
 - **`Faker`**: For generating realistic mock data (e.g., names, addresses, dates). This helps create tests that more closely resemble real-world scenarios.
 - **`pytest-mock`**: A wrapper around the standard `unittest.mock` library, providing a more convenient and pytest-friendly interface for mocking objects and functions.
-- **`pendulum`**: For precise control over date and time in tests. This is crucial for testing time-sensitive logic, allowing you to "freeze" time or travel to specific points in time.
 
 ##### Example Usage
 
 ```python
-import pendulum
 from faker import Faker
 
-def test_faker_and_pendulum():
+def test_with_faker():
     """
-    This test demonstrates the use of Faker and Pendulum.
+    This test demonstrates the use of Faker for realistic mock data.
     """
     fake = Faker()
     name = fake.name()
-    now = pendulum.now()
 
     assert isinstance(name, str)
-    assert isinstance(now, pendulum.DateTime)
 
 def test_mocking_with_pytest_mock(mocker):
     """

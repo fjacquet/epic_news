@@ -1,0 +1,96 @@
+---
+name: Security & SBOM
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+    tags: ["v*"]
+  schedule:
+    - cron: "0 6 * * 1"  # Mondays 06:00 UTC — catch newly-disclosed CVEs
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sbom-and-scan:
+    name: SBOM + vulnerability scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.2.0
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install 3.13
+
+      - name: Sync dependencies (locked)
+        run: uv sync --all-extras --locked
+
+      - name: Generate CycloneDX SBOM
+        run: make sbom
+
+      - name: Dependency hygiene audit (deptry)
+        run: make deps-audit
+
+      - name: Install osv-scanner (pinned, checksum-verified)
+        run: |
+          VERSION=v2.3.8
+          BASE="https://github.com/google/osv-scanner/releases/download/${VERSION}"
+          curl -sSL "${BASE}/osv-scanner_linux_amd64" -o osv-scanner_linux_amd64
+          curl -sSL "${BASE}/osv-scanner_SHA256SUMS" -o osv-scanner_SHA256SUMS
+          grep " osv-scanner_linux_amd64$" osv-scanner_SHA256SUMS | sha256sum -c -
+          chmod +x osv-scanner_linux_amd64
+          mv osv-scanner_linux_amd64 osv-scanner
+          ./osv-scanner --version
+
+      - name: Vulnerability scan (blocking, honors allowlist)
+        run: ./osv-scanner scan source -L sbom.cdx.json --config=osv-scanner.toml
+
+      - name: Upload SBOM artifact
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: sbom-cyclonedx
+          path: sbom.cdx.json
+          if-no-files-found: error
+
+  publish-sbom:
+    name: Attach SBOM to GitHub Release
+    needs: sbom-and-scan
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.2.0
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install 3.13
+
+      - name: Generate CycloneDX SBOM
+        run: make sbom
+
+      - name: Upload SBOM to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1 \
+            || gh release create "${GITHUB_REF_NAME}" --generate-notes
+          gh release upload "${GITHUB_REF_NAME}" sbom.cdx.json --clobber

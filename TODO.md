@@ -170,7 +170,7 @@ This document outlines the development roadmap, current tasks, and a history of 
   - **Documentation:** Updated the development guide to reflect the new logging standards.
 
 - **Advanced Testing Libraries:**
-  - **Dependencies:** Integrated `Faker`, `pytest-mock`, and `pendulum` to enhance the testing framework with realistic data generation, mocking, and precise time control.
+  - **Dependencies:** Integrated `Faker` and `pytest-mock` to enhance the testing framework with realistic data generation and mocking.
   - **Standards:** Created sample tests and updated the development guide to establish new testing best practices.
 
 - **Initial Dockerization Setup:**

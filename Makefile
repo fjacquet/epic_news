@@ -3,7 +3,7 @@
 # Documentation: Run 'make help' to see all available targets
 
 .PHONY: help install dev build clean test coverage lint format fix \
-        pre-commit security type-check \
+        pre-commit security type-check deps-audit sbom \
         docker-build-api docker-build-streamlit docker-build-combined \
         docker-build-code-interpreter docker-build-all \
         run-streamlit run-api run-crew update-kb \
@@ -49,7 +49,7 @@ install: ## Install production dependencies
 	uv pip install -e .
 	@echo "$(GREEN)✓ Production dependencies installed$(RESET)"
 
-dev: ## Install development dependencies (includes mypy, bandit, safety)
+dev: ## Install development dependencies (includes mypy, bandit, deptry)
 	@echo "$(GREEN)Installing development dependencies...$(RESET)"
 	uv sync --all-extras --locked
 	uv pip install -e .
@@ -109,7 +109,24 @@ type-check: ## Run type checking with mypy (requires mypy in dev deps)
 		exit 1; \
 	fi
 
-security: ## Run security checks (bandit + safety)
+deps-audit: ## Audit dependencies for unused/missing/transitive issues (deptry)
+	@echo "$(GREEN)Auditing dependencies with deptry...$(RESET)"
+	@if uv run python -c "import deptry" 2>/dev/null; then \
+		uv run deptry .; \
+	else \
+		echo "$(YELLOW)⚠ deptry not installed. Install with: uv sync --all-extras$(RESET)"; \
+	fi
+
+sbom: ## Generate a CycloneDX SBOM (sbom.cdx.json) from the uv lockfile
+	@echo "$(GREEN)Generating CycloneDX SBOM from uv.lock...$(RESET)"
+	uv export --no-dev --no-emit-project --no-hashes \
+		--format requirements.txt -o sbom-requirements.txt
+	uvx --from "cyclonedx-bom==7.3.0" cyclonedx-py requirements sbom-requirements.txt \
+		--output-format JSON --spec-version 1.6 --output-file sbom.cdx.json
+	@rm -f sbom-requirements.txt
+	@echo "$(GREEN)✓ sbom.cdx.json generated$(RESET)"
+
+security: sbom ## Run security checks (bandit + osv-scanner against the SBOM)
 	@echo "$(GREEN)Checking for security issues in code...$(RESET)"
 	@if uv run python -c "import bandit" 2>/dev/null; then \
 		uv run bandit -r $(SRC_DIR) -f json -o bandit-report.json || true; \
@@ -118,12 +135,12 @@ security: ## Run security checks (bandit + safety)
 		echo "$(YELLOW)⚠ bandit not installed. Install with: uv add --dev bandit$(RESET)"; \
 	fi
 	@echo ""
-	@echo "$(GREEN)Checking for vulnerable dependencies...$(RESET)"
-	@if uv run python -c "import safety" 2>/dev/null; then \
-		uv run safety check --json > safety-report.json || true; \
-		uv run safety check; \
+	@echo "$(GREEN)Scanning SBOM for known vulnerabilities (osv-scanner)...$(RESET)"
+	@if command -v osv-scanner >/dev/null 2>&1; then \
+		osv-scanner scan source -L sbom.cdx.json --config=osv-scanner.toml; \
 	else \
-		echo "$(YELLOW)⚠ safety not installed. Install with: uv add --dev safety$(RESET)"; \
+		echo "$(YELLOW)⚠ osv-scanner not installed. Install: brew install osv-scanner$(RESET)"; \
+		echo "$(YELLOW)  (CI installs the pinned binary automatically.)$(RESET)"; \
 	fi
 
 validate: lint type-check test ## Full validation (lint + mypy + test) — matches CI
@@ -207,7 +224,6 @@ clean-test: ## Remove test and coverage artifacts
 	rm -rf .coverage
 	rm -f coverage.xml
 	rm -f bandit-report.json
-	rm -f safety-report.json
 
 clean-build: ## Remove build artifacts
 	@echo "$(GREEN)Removing build artifacts...$(RESET)"
