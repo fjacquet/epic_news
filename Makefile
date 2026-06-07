@@ -49,7 +49,7 @@ install: ## Install production dependencies
 	uv pip install -e .
 	@echo "$(GREEN)✓ Production dependencies installed$(RESET)"
 
-dev: ## Install development dependencies (includes mypy, bandit, safety)
+dev: ## Install development dependencies (includes mypy, bandit, deptry)
 	@echo "$(GREEN)Installing development dependencies...$(RESET)"
 	uv sync --all-extras --locked
 	uv pip install -e .
