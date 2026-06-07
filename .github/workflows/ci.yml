@@ -43,7 +43,7 @@ jobs:
         python-version: '3.13'
 
     - name: Install the latest version of uv and activate the environment
-      uses: astral-sh/setup-uv@v8.1.0
+      uses: astral-sh/setup-uv@v8.2.0
       with:
         activate-environment: true
         enable-cache: true
@@ -62,7 +62,7 @@ jobs:
       run: make coverage
 
     - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@v6
+      uses: codecov/codecov-action@v7
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         slug: fjacquet/epic_news
