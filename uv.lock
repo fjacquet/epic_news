@@ -942,6 +942,7 @@ dependencies = [
     { name = "pandas" },
     { name = "pyairtable" },
     { name = "pydantic" },
+    { name = "python-dateutil" },
     { name = "python-dotenv" },
     { name = "pyyaml" },
     { name = "requests" },
@@ -950,6 +951,7 @@ dependencies = [
     { name = "tavily-python" },
     { name = "tenacity" },
     { name = "unidecode" },
+    { name = "urllib3" },
     { name = "uvicorn" },
     { name = "weasyprint" },
     { name = "wikipedia" },
@@ -978,6 +980,7 @@ dev = [
     { name = "pre-commit" },
     { name = "ruff" },
     { name = "safety" },
+    { name = "tabulate" },
     { name = "yamlfix" },
     { name = "yamllint" },
 ]
@@ -1015,6 +1018,7 @@ requires-dist = [
     { name = "pytest-env", marker = "extra == 'test'", specifier = ">=1.1.5" },
     { name = "pytest-mock", marker = "extra == 'test'", specifier = ">=3.14.1" },
     { name = "pytest-regressions", marker = "extra == 'test'", specifier = ">=2.10.0" },
+    { name = "python-dateutil", specifier = ">=2.9.0" },
     { name = "python-dotenv", specifier = ">=1.1.0" },
     { name = "pyyaml", specifier = ">=6.0.2" },
     { name = "requests", specifier = ">=2.34.0" },
@@ -1023,6 +1027,7 @@ requires-dist = [
     { name = "tavily-python", specifier = ">=0.7.24" },
     { name = "tenacity", specifier = ">=8.2.3" },
     { name = "unidecode", specifier = ">=1.4.0" },
+    { name = "urllib3", specifier = ">=2.0.0" },
     { name = "uvicorn", specifier = ">=0.48.0" },
     { name = "weasyprint", specifier = ">=69.0" },
     { name = "wikipedia", specifier = ">=1.4.0" },
@@ -1038,6 +1043,7 @@ dev = [
     { name = "pre-commit", specifier = ">=4.2.0" },
     { name = "ruff", specifier = ">=0.12.1" },
     { name = "safety", specifier = ">=3.8.1" },
+    { name = "tabulate", specifier = ">=0.9.0" },
     { name = "yamlfix", specifier = ">=1.17.0" },
     { name = "yamllint", specifier = ">=1.37.1" },
 ]
@@ -3701,6 +3707,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/91/74/20dac6d6200d6ec0e1c230fb8eeb6a1a423645eacb76e8d802adfc246456/streamlit-1.58.0.tar.gz", hash = "sha256:78a22e7085b053af7ce544442bf4b670771e68c509ba1bdaa056ba0708f49c3d", size = 8721149, upload-time = "2026-05-28T18:02:44.606Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/df/84/14c36a92fb24f8e1cea452f53b0744b5da69d52cdd2fe22e71e6fbf765d5/streamlit-1.58.0-py3-none-any.whl", hash = "sha256:4ca8a7afc5bd16a5f176ccf4be1e34e8121cad0240becd127fb58a103ea3178d", size = 9219185, upload-time = "2026-05-28T18:02:41.993Z" },
+]
+
+[[package]]
+name = "tabulate"
+version = "0.10.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/46/58/8c37dea7bbf769b20d58e7ace7e5edfe65b849442b00ffcdd56be88697c6/tabulate-0.10.0.tar.gz", hash = "sha256:e2cfde8f79420f6deeffdeda9aaec3b6bc5abce947655d17ac662b126e48a60d", size = 91754, upload-time = "2026-03-04T18:55:34.402Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/99/55/db07de81b5c630da5cbf5c7df646580ca26dfaefa593667fc6f2fe016d2e/tabulate-0.10.0-py3-none-any.whl", hash = "sha256:f0b0622e567335c8fabaaa659f1b33bcb6ddfe2e496071b743aa113f8774f2d3", size = 39814, upload-time = "2026-03-04T18:55:31.284Z" },
 ]
 
 [[package]]
