@@ -1,19 +1,3 @@
-import pendulum
-from faker import Faker
-
-
-def test_faker_and_pendulum():
-    """
-    This test demonstrates the use of Faker and Pendulum.
-    """
-    fake = Faker()
-    name = fake.name()
-    now = pendulum.now()
-
-    assert isinstance(name, str)
-    assert isinstance(now, pendulum.DateTime)
-
-
 def test_mocking_with_pytest_mock(mocker):
     """
     This test demonstrates the use of pytest-mock.

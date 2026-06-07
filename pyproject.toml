@@ -14,7 +14,6 @@ dependencies = [
     "composio-crewai>=0.7.18",
     "litellm>=1.87.0",  # CVE fix blocked upstream: crewai 1.14.x needs pydantic<2.12, litellm 1.83.7+ needs ==2.12.5
     "langfuse>=3.2.3",
-    "chromadb>=0.5.23",
     # --- Pydantic / data ---
     "pydantic>=2.7.0",
     "loguru>=0.7.3",
@@ -73,8 +72,6 @@ test = [
     "coverage>=7.14.0",
     "freezegun>=1.5.2",
     "faker>=37.4.0",
-    "pendulum>=3.1.0",
-    "langsmith",
 ]
 
 [tool.crewai]
@@ -194,7 +191,6 @@ dev = [
     "mypy>=1.20.1",
     "bandit>=1.9.2",
     "safety>=3.8.1",
-    "vulture>=2.14",
     "yamllint>=1.37.1",
     "yamlfix>=1.17.0",
 ]
