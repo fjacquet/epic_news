@@ -1,0 +1,12 @@
+# OSV-Scanner vulnerability allowlist.
+# Each entry MUST carry a reason and SHOULD carry an ignoreUntil review date.
+# Format: https://google.github.io/osv-scanner/configuration/
+#
+# Seed entry (commented) for the known unfixable upstream chain documented in
+# pyproject.toml (crewai 1.14.x <-> pydantic <-> litellm). Uncomment and set the
+# real OSV id + expiry if/when osv-scanner reports it and no fix is available.
+#
+# [[IgnoredVulns]]
+# id = "GHSA-xxxx-xxxx-xxxx"
+# ignoreUntil = 2026-09-01
+# reason = "Transitive via crewai 1.14.x pydantic/litellm pin; no compatible fix upstream yet."

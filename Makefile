@@ -126,7 +126,7 @@ sbom: ## Generate a CycloneDX SBOM (sbom.cdx.json) from the uv lockfile
 	@rm -f sbom-requirements.txt
 	@echo "$(GREEN)✓ sbom.cdx.json generated$(RESET)"
 
-security: ## Run security checks (bandit + safety)
+security: sbom ## Run security checks (bandit + osv-scanner against the SBOM)
 	@echo "$(GREEN)Checking for security issues in code...$(RESET)"
 	@if uv run python -c "import bandit" 2>/dev/null; then \
 		uv run bandit -r $(SRC_DIR) -f json -o bandit-report.json || true; \
@@ -135,12 +135,12 @@ security: ## Run security checks (bandit + safety)
 		echo "$(YELLOW)⚠ bandit not installed. Install with: uv add --dev bandit$(RESET)"; \
 	fi
 	@echo ""
-	@echo "$(GREEN)Checking for vulnerable dependencies...$(RESET)"
-	@if uv run python -c "import safety" 2>/dev/null; then \
-		uv run safety check --json > safety-report.json || true; \
-		uv run safety check; \
+	@echo "$(GREEN)Scanning SBOM for known vulnerabilities (osv-scanner)...$(RESET)"
+	@if command -v osv-scanner >/dev/null 2>&1; then \
+		osv-scanner scan source -L sbom.cdx.json --config=osv-scanner.toml; \
 	else \
-		echo "$(YELLOW)⚠ safety not installed. Install with: uv add --dev safety$(RESET)"; \
+		echo "$(YELLOW)⚠ osv-scanner not installed. Install: brew install osv-scanner$(RESET)"; \
+		echo "$(YELLOW)  (CI installs the pinned binary automatically.)$(RESET)"; \
 	fi
 
 validate: lint type-check test ## Full validation (lint + mypy + test) — matches CI
@@ -224,7 +224,6 @@ clean-test: ## Remove test and coverage artifacts
 	rm -rf .coverage
 	rm -f coverage.xml
 	rm -f bandit-report.json
-	rm -f safety-report.json
 
 clean-build: ## Remove build artifacts
 	@echo "$(GREEN)Removing build artifacts...$(RESET)"
