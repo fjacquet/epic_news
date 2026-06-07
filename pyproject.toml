@@ -250,7 +250,8 @@ DEP002 = [
     "pytest-cov", "pytest-asyncio", "pytest-env", "pytest-mock",
     "pytest-regressions", "pytest-datadir", "coverage",
 ]
-# DEP003: editable self-install shows up as transitive — it is first-party.
+# DEP003: `pip install -e .` makes epic_news appear in the resolver's transitive
+# output, so suppress it here even though known_first_party already marks it.
 DEP003 = ["epic_news"]
 
 # quoted-strings (exiger les guillemets pour les chaînes multi-lignes)

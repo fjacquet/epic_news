@@ -111,7 +111,11 @@ type-check: ## Run type checking with mypy (requires mypy in dev deps)
 
 deps-audit: ## Audit dependencies for unused/missing/transitive issues (deptry)
 	@echo "$(GREEN)Auditing dependencies with deptry...$(RESET)"
-	uv run deptry .
+	@if uv run python -c "import deptry" 2>/dev/null; then \
+		uv run deptry .; \
+	else \
+		echo "$(YELLOW)⚠ deptry not installed. Install with: uv sync --all-extras$(RESET)"; \
+	fi
 
 security: ## Run security checks (bandit + safety)
 	@echo "$(GREEN)Checking for security issues in code...$(RESET)"
