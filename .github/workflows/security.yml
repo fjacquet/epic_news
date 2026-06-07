@@ -39,12 +39,15 @@ jobs:
       - name: Dependency hygiene audit (deptry)
         run: make deps-audit
 
-      - name: Install osv-scanner (pinned)
+      - name: Install osv-scanner (pinned, checksum-verified)
         run: |
-          curl -sSL \
-            https://github.com/google/osv-scanner/releases/download/v2.3.8/osv-scanner_linux_amd64 \
-            -o osv-scanner
-          chmod +x osv-scanner
+          VERSION=v2.3.8
+          BASE="https://github.com/google/osv-scanner/releases/download/${VERSION}"
+          curl -sSL "${BASE}/osv-scanner_linux_amd64" -o osv-scanner_linux_amd64
+          curl -sSL "${BASE}/osv-scanner_SHA256SUMS" -o osv-scanner_SHA256SUMS
+          grep " osv-scanner_linux_amd64$" osv-scanner_SHA256SUMS | sha256sum -c -
+          chmod +x osv-scanner_linux_amd64
+          mv osv-scanner_linux_amd64 osv-scanner
           ./osv-scanner --version
 
       - name: Vulnerability scan (blocking, honors allowlist)
