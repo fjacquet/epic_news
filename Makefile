@@ -3,7 +3,7 @@
 # Documentation: Run 'make help' to see all available targets
 
 .PHONY: help install dev build clean test coverage lint format fix \
-        pre-commit security type-check \
+        pre-commit security type-check deps-audit sbom \
         docker-build-api docker-build-streamlit docker-build-combined \
         docker-build-code-interpreter docker-build-all \
         run-streamlit run-api run-crew update-kb \
@@ -108,6 +108,10 @@ type-check: ## Run type checking with mypy (requires mypy in dev deps)
 		echo "$(YELLOW)⚠ mypy not installed. Install with: uv add --dev mypy$(RESET)"; \
 		exit 1; \
 	fi
+
+deps-audit: ## Audit dependencies for unused/missing/transitive issues (deptry)
+	@echo "$(GREEN)Auditing dependencies with deptry...$(RESET)"
+	uv run deptry .
 
 security: ## Run security checks (bandit + safety)
 	@echo "$(GREEN)Checking for security issues in code...$(RESET)"
