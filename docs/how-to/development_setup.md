@@ -139,7 +139,7 @@ make coverage         # Run tests with coverage
 
 **Installation & Setup**:
 - `make install` - Install production dependencies
-- `make dev` - Install development dependencies (includes mypy, bandit, safety)
+- `make dev` - Install development dependencies (includes mypy, bandit, deptry)
 - `make build` - Build package distribution
 - `make clean` - Remove all artifacts
 
@@ -155,7 +155,7 @@ make coverage         # Run tests with coverage
 
 **Advanced Quality Checks**:
 - `make type-check` - Run mypy type checking
-- `make security` - Run bandit (code security) + safety (dependency vulnerabilities)
+- `make security` - Run bandit (code security) + osv-scanner (SBOM dependency vulnerabilities)
 
 **Docker Operations**:
 - `make docker-build-api` - Build FastAPI image
@@ -229,7 +229,7 @@ make all              # clean + install + lint + test
 - **Testing**: `make test` (quick) or `make coverage` (with coverage report)
 - **Linting**: `make lint` (check) or `make fix` (auto-fix)
 - **Type Checking**: `make type-check` (requires mypy)
-- **Security**: `make security` (bandit + safety)
+- **Security**: `make security` (bandit + osv-scanner)
 - **Coverage**: Maintain comprehensive test coverage for all utilities
 
 #### Advanced Testing Libraries
