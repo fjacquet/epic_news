@@ -493,7 +493,7 @@ class ReceptionFlow(Flow[ContentState]):
             return
 
         # Store the final report path in the state (only when HTML write actually succeeded)
-        self.state.rss_weekly_report = f"Report generated at {html_report_path}"  # type: ignore[assignment]
+        self.state.rss_weekly_report = f"Report generated at {html_report_path}"
         self.state.output_file = str(html_report_path)
         self.logger.info(f"✅ New RSS weekly pipeline complete. Report at: {html_report_path}")
 
@@ -748,7 +748,7 @@ class ReceptionFlow(Flow[ContentState]):
 
         if menu_structure_result is None:
             self.logger.error("❌ No menu structure available for recipe generation")
-            self.state.menu_designer_report = final_report  # type: ignore[assignment]
+            self.state.menu_designer_report = final_report
             return
 
         recipe_specs = menu_generator.parse_menu_structure(menu_structure_result)
@@ -780,7 +780,7 @@ class ReceptionFlow(Flow[ContentState]):
             except Exception as e:
                 self.logger.error(f"  ❌ Error with {recipe_code}: {e}")
 
-        self.state.menu_designer_report = final_report  # type: ignore[assignment]
+        self.state.menu_designer_report = final_report
 
     @listen("go_generate_book_summary")
     @trace_task(tracer)
@@ -848,7 +848,7 @@ class ReceptionFlow(Flow[ContentState]):
         self.state.shopping_advice_model = shopping_advice_obj
 
         # Set output file path
-        topic = self.state.extracted_info.topic or "product-recommendation"  # type: ignore[union-attr]
+        topic = self.state.extracted_info.topic or "product-recommendation"
         topic_slug = topic.lower().replace(" ", "-").replace("'", "").replace('"', "")
         html_file = f"output/shopping_advisor/shopping-advice-{topic_slug}.html"
         self.state.output_file = html_file
