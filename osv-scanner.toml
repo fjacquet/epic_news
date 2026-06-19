@@ -19,3 +19,15 @@ does not import chromadb directly (0 imports); it is a forced transitive depende
 of crewai (chromadb~=1.1.0) used only as an embedded library, so the vulnerable \
 network endpoint is never exposed. Re-evaluate when chromadb ships a fix or crewai \
 relaxes the pin."""
+
+[[IgnoredVulns]]
+id = "GHSA-p4gq-832x-fm9v"  # CVE-2026-54293 — nltk path traversal in nltk.data.load() (CVSS 7.5)
+ignoreUntil = 2026-09-07
+reason = """
+URL-encoded path traversal in nltk.data.load() via the nltk: URL scheme \
+(decode-after-check flaw) allowing arbitrary local file read. Affects ALL nltk \
+versions through 3.9.4 with NO patched version available. nltk is a forced \
+transitive dependency (pulled via crewai/langchain) — epic_news has 0 direct \
+nltk imports and never calls nltk.data.load() on attacker-controlled nltk:-scheme \
+paths, so the traversal sink is unreachable. Re-evaluate when nltk ships a fix or \
+the transitive dependency is dropped."""
