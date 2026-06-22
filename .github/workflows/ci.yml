@@ -19,7 +19,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
 
     - name: Stub .env with sentinel test values
       # CI must NEVER use real API keys for tests. pyproject.toml already
