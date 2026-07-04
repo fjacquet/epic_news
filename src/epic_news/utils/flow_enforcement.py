@@ -13,9 +13,10 @@ Usage:
 
 from __future__ import annotations
 
-import logging
 import time
 from typing import Any
+
+from loguru import logger
 
 try:
     # Local, optional tracing (no hard dependency)
@@ -26,9 +27,6 @@ except Exception:  # pragma: no cover - fallback if tracing is unavailable
     @contextmanager
     def trace_span(name: str, attrs: dict[str, Any] | None = None):
         yield
-
-
-logger = logging.getLogger(__name__)
 
 
 def _get_crew_instance(crew_or_factory: Any) -> Any:
@@ -68,7 +66,7 @@ def kickoff_flow(crew_or_factory: Any, context: dict[str, Any]) -> Any:
             return result
         finally:
             elapsed = time.perf_counter() - start
-            logger.info("✅ Crew {} finished in %.2fs", crew_name, elapsed)
+            logger.info("✅ Crew {} finished in {:.2f}s", crew_name, elapsed)
 
 
 async def akickoff_flow(crew_or_factory: Any, context: dict[str, Any]) -> Any:
@@ -102,4 +100,4 @@ async def akickoff_flow(crew_or_factory: Any, context: dict[str, Any]) -> Any:
             return result
         finally:
             elapsed = time.perf_counter() - start
-            logger.info("✅ Crew {} finished in %.2fs", crew_name, elapsed)
+            logger.info("✅ Crew {} finished in {:.2f}s", crew_name, elapsed)
