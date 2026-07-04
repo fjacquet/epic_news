@@ -1,6 +1,6 @@
 """Deterministic end-to-end tests for ReceptionFlow with stubbed crew kickoffs.
 
-No LLM calls: kickoff_flow/akickoff_flow are patched in epic_news.main.
+No LLM calls: kickoff_flow is patched in epic_news.main.
 All file output is redirected to tmp_path via monkeypatch.chdir (the flow's
 paths are cwd-relative).
 """
