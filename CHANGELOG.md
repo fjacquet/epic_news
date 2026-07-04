@@ -4,6 +4,72 @@ All notable changes to Epic News are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [3.3.0] — 2026-07-04
+
+A correctness-and-confidence release. Request classification and flow routing get real bug fixes, every crew now builds its agents through `LLMConfig` (no more drifting or hardcoded LLM wiring), CrewAI 1.15's concurrent async tasks each receive an isolated agent copy, and the test suite is substantially hardened with deterministic end-to-end flow coverage and contract-freezing ratchet tests. No public API or breaking changes.
+
+### Fixed
+- **Flow routing cleanup** (`flow_enforcement` / `ReceptionFlow`): removed dead listeners and unroutable categories, with a new wiring contract test so orphaned routes can't silently reappear.
+- **`SHOPPING` classification**: the classifier now offers the routable `SHOPPING` category instead of the orphan `SHOPPING_ADVISOR`, so shopping requests actually reach a crew. Added word-boundary category matching in the prompt guard to stop substring false-positives.
+- **CrewAI 1.15 concurrent async isolation**: concurrent async tasks each receive their own isolated agent copy (`.copy()`), fixing shared-state contention under CrewAI 1.15.
+- **Crews routed through `LLMConfig`**: `hr_reporter` plus five other crews now build their agents via `LLMConfig` instead of hardcoded/drifting configuration; added an LLM contract test and dropped the contract `xfail`.
+- **`LLMConfig` contract sentinel** (refactor): repaired dead `field_mapping` keys and a `fin_daily` wiring gap, guarded by a contract sentinel.
+- **Loguru in `flow_enforcement`**: switched from stdlib `logging` to Loguru and repaired malformed log placeholders.
+
+### Security
+- **OSV allowlist**: allowlisted `PYSEC-2026-597`, a duplicate OSV record of the already-accepted nltk advisory (`GHSA-p4gq-832x-fm9v`).
+
+### Tests
+- Deterministic end-to-end `ReceptionFlow` tests with stubbed `kickoff`.
+- Ratchet test freezing the JSON-contract violation list; characterization of `to_crew_inputs()` with full `field_mapping` coverage.
+- Deduplicated crew registry & e2e fixtures, cached scans, added a stacked-listen guard, and replaced debug prints with logger calls.
+
+### Changed
+- **Multi-arch Docker images** (`linux/amd64` + `linux/arm64`): the four image-publish workflows now build each architecture on a native runner (`ubuntu-latest` / `ubuntu-24.04-arm`, no QEMU emulation) and merge them into a single manifest list per tag, pushed to both Docker Hub and GHCR. Images now run natively on Apple Silicon instead of failing with `no matching manifest for linux/arm64/v8`.
+- **Dependencies**: updated `crewai-tools[mcp]` (#126, #128), two `python-minor-patch` groups of 9 updates each (#125, #127), and `actions/checkout` (#124); dropped unused `pytest-datadir`.
+- **Dependabot auto-merge workflow** (#123): grouped minor/patch dependency PRs auto-merge once checks pass.
+
+## [3.2.2] — 2026-06-19
+
+### Security
+- Waived the unfixable nltk advisory (`GHSA-p4gq-832x-fm9v`) in the `osv-scanner` allowlist.
+
+### Fixed
+- Dropped 4 unused `# type: ignore` comments. (#122)
+
+## [3.2.1] — 2026-06-19
+
+### Changed
+- Maintenance release: merged Dependabot dependency and security updates — `python-multipart`, `cryptography`, `starlette`, `aiohttp`, a `python-minor-patch` group of 8, and a `github-actions` group of 2. (#115, #117–#121)
+
+## [3.2.0] — 2026-06-07
+
+Official secured SBOM and a leaner dependency set. No runtime API change.
+
+### Added
+- **Official secured SBOM**: `make sbom` generates a CycloneDX 1.6 SBOM from `uv.lock` (via `uv export` + pinned `cyclonedx-bom==7.3.0`). New `.github/workflows/security.yml` generates the SBOM, runs `deptry`, and scans with a checksum-verified `osv-scanner` v2.3.8 (blocking, allowlist-gated) on PR/push/weekly; the SBOM is attached to the release.
+- **`deptry` dependency guardrail** (`make deps-audit`) to catch dependency drift.
+
+### Changed
+- Replaced the deprecated `safety` with `osv-scanner`; allowlist documented in `osv-scanner.toml`.
+- Leaner dependencies: pruned the `chromadb` direct pin, `langsmith`, `pendulum`, and `vulture`; declared previously-undeclared-but-imported `urllib3`, `python-dateutil`, and `tabulate`.
+- Dependabot now groups minor/patch updates into single weekly PRs (majors stay individual) and covers the `github-actions` ecosystem. (#114)
+
+### Security
+- Accepted risk: `chromadb` carries an unfixable upstream Critical (GHSA-f4j7-r4q5-qw2c), allowlisted in `osv-scanner.toml` — embedded use only, the vulnerable server endpoint is never exposed. Re-evaluate by 2026-09-07.
+
+## [3.1.2] — 2026-05-03
+
+Patch release restoring `make all` and clearing mypy noise after dependency bumps.
+
+### Fixed
+- **`make all` provisions a real dev environment**: the target now depends on `dev` (`--all-extras`) instead of production-only `install`, fixing ~90 `ModuleNotFoundError` collection failures caused by a stray Python 3.12 runtime.
+- **Removed 17 obsolete `# type: ignore` directives** after `beautifulsoup4 4.14.x` shipped its own type stubs; fixed a real type error in `rss_weekly_renderer.py`.
+- **Resurrected `rss_weekly_converter.py`**: corrected the import path (`epic_news.models.crews.rss_weekly_report`) and added test coverage. (#91)
+
+### Compatibility
+- No public API or behavior changes; renderer HTML output is unchanged.
+
 ## [3.1.1] — 2026-05-03
 
 ### Fixed
