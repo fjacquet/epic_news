@@ -1,6 +1,6 @@
 services:
   api:
-    image: fjacquet/epic-news-api:latest
+    image: ghcr.io/fjacquet/epic-news-api:latest
     container_name: epic-news-api
     restart: unless-stopped
     ports:
@@ -23,7 +23,7 @@ services:
       start_period: 10s
 
   streamlit:
-    image: fjacquet/epic-news-streamlit:latest
+    image: ghcr.io/fjacquet/epic-news-streamlit:latest
     container_name: epic-news-streamlit
     restart: unless-stopped
     ports:

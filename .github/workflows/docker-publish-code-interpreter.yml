@@ -87,10 +87,11 @@ jobs:
       # Export the digest so the merge job can assemble the manifest list.
       - name: Export digest
         if: github.event_name != 'pull_request'
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
         run: |
           mkdir -p "${{ runner.temp }}/digests"
-          digest="${{ steps.build.outputs.digest }}"
-          touch "${{ runner.temp }}/digests/${digest#sha256:}"
+          touch "${{ runner.temp }}/digests/${DIGEST#sha256:}"
 
       - name: Upload digest
         if: github.event_name != 'pull_request'

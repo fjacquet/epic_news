@@ -26,6 +26,7 @@ A correctness-and-confidence release. Request classification and flow routing ge
 
 ### Changed
 - **Multi-arch Docker images** (`linux/amd64` + `linux/arm64`): the four image-publish workflows now build each architecture on a native runner (`ubuntu-latest` / `ubuntu-24.04-arm`, no QEMU emulation) and merge them into a single manifest list per tag, pushed to both Docker Hub and GHCR. Images now run natively on Apple Silicon instead of failing with `no matching manifest for linux/arm64/v8`.
+- **Compose pulls from GHCR**: `docker-compose.yml` and `docker-compose.combined.yml` now reference `ghcr.io/fjacquet/…` images instead of Docker Hub, and the combined compose moves off the stale `:master` tag to `:latest`.
 - **Dependencies**: updated `crewai-tools[mcp]` (#126, #128), two `python-minor-patch` groups of 9 updates each (#125, #127), and `actions/checkout` (#124); dropped unused `pytest-datadir`.
 - **Dependabot auto-merge workflow** (#123): grouped minor/patch dependency PRs auto-merge once checks pass.
 
