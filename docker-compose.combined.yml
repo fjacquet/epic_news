@@ -1,6 +1,6 @@
 services:
   epic-news-combined:
-    image: fjacquet/epic-news-combined:master
+    image: ghcr.io/fjacquet/epic-news-combined:latest
     container_name: epic-news-combined
     restart: unless-stopped
     ports:
