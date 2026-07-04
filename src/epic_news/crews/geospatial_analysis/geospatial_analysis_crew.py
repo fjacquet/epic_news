@@ -35,6 +35,8 @@ class GeospatialAnalysisCrew:
             config=self.agents_config["geospatial_researcher"],  # type: ignore[index]
             verbose=True,
             tools=all_tools,
+            llm=LLMConfig.get_openrouter_llm(),
+            llm_timeout=LLMConfig.get_timeout("default"),
             allow_delegation=False,
             respect_context_window=True,
             reasoning=True,
@@ -49,6 +51,8 @@ class GeospatialAnalysisCrew:
             config=self.agents_config["geospatial_reporter"],  # type: ignore[index]
             verbose=True,
             tools=[],  # No tools for reporter to ensure clean output
+            llm=LLMConfig.get_openrouter_llm(),
+            llm_timeout=LLMConfig.get_timeout("default"),
             allow_delegation=False,
             respect_context_window=True,
             reasoning=True,
@@ -60,8 +64,9 @@ class GeospatialAnalysisCrew:
         """Map the company's physical locations"""
         return Task(
             config=self.tasks_config["physical_location_mapping"],  # type: ignore[arg-type, index]
+            agent=self.geospatial_researcher().copy(),  # type: ignore[call-arg]
             async_execution=True,
-            verbose=True,  # type: ignore[call-arg]
+            verbose=True,
         )
 
     @task
@@ -69,8 +74,9 @@ class GeospatialAnalysisCrew:
         """Assess geospatial risks for the company's locations"""
         return Task(
             config=self.tasks_config["geospatial_risk_assessment"],  # type: ignore[arg-type, index]
+            agent=self.geospatial_researcher().copy(),  # type: ignore[call-arg]
             async_execution=True,
-            verbose=True,  # type: ignore[call-arg]
+            verbose=True,
         )
 
     @task
@@ -78,8 +84,9 @@ class GeospatialAnalysisCrew:
         """Map the company's supply chain geospatially"""
         return Task(
             config=self.tasks_config["supply_chain_mapping"],  # type: ignore[arg-type, index]
+            agent=self.geospatial_researcher().copy(),  # type: ignore[call-arg]
             async_execution=True,
-            verbose=True,  # type: ignore[call-arg]
+            verbose=True,
         )
 
     @task

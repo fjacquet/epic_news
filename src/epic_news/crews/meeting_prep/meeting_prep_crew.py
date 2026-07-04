@@ -32,6 +32,7 @@ class MeetingPrepCrew:
             max_reasoning_attempts=3,
             verbose=True,
             respect_context_window=True,
+            llm=LLMConfig.get_openrouter_llm(),
             llm_timeout=LLMConfig.get_timeout("default"),
         )
 
@@ -46,6 +47,7 @@ class MeetingPrepCrew:
             allow_delegation=False,
             verbose=True,
             respect_context_window=True,
+            llm=LLMConfig.get_openrouter_llm(),
             llm_timeout=LLMConfig.get_timeout("default"),
         )
 
@@ -61,6 +63,7 @@ class MeetingPrepCrew:
             max_reasoning_attempts=3,
             verbose=True,
             respect_context_window=True,
+            llm=LLMConfig.get_openrouter_llm(),
             llm_timeout=LLMConfig.get_timeout("default"),
         )
 
@@ -74,6 +77,7 @@ class MeetingPrepCrew:
             tools=get_report_tools(),
             verbose=True,
             respect_context_window=True,
+            llm=LLMConfig.get_openrouter_llm(),
             llm_timeout=LLMConfig.get_timeout("default"),
         )
 

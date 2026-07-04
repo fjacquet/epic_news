@@ -9,6 +9,7 @@ competitor analysis, and generates professional HTML reports with actionable rec
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 
+from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.shopping_advice_report import ShoppingAdviceOutput
 from epic_news.tools.web_tools import get_scrape_tools, get_search_tools
 
@@ -26,6 +27,8 @@ class ShoppingAdvisorCrew:
             config=self.agents_config["product_researcher"],  # type: ignore[index]
             tools=get_search_tools() + get_scrape_tools(),
             verbose=True,
+            llm=LLMConfig.get_openrouter_llm(),
+            llm_timeout=LLMConfig.get_timeout("default"),
         )
 
     @agent
@@ -34,6 +37,8 @@ class ShoppingAdvisorCrew:
             config=self.agents_config["price_analyst"],  # type: ignore[index]
             tools=get_search_tools() + get_scrape_tools(),
             verbose=True,
+            llm=LLMConfig.get_openrouter_llm(),
+            llm_timeout=LLMConfig.get_timeout("default"),
         )
 
     @agent
@@ -42,6 +47,8 @@ class ShoppingAdvisorCrew:
             config=self.agents_config["competitor_analyst"],  # type: ignore[index]
             tools=get_search_tools() + get_scrape_tools(),
             verbose=True,
+            llm=LLMConfig.get_openrouter_llm(),
+            llm_timeout=LLMConfig.get_timeout("default"),
         )
 
     @agent
@@ -50,6 +57,8 @@ class ShoppingAdvisorCrew:
             config=self.agents_config["shopping_advisor"],  # type: ignore[index]
             tools=[],
             verbose=True,
+            llm=LLMConfig.get_openrouter_llm(),
+            llm_timeout=LLMConfig.get_timeout("default"),
         )
 
     @task

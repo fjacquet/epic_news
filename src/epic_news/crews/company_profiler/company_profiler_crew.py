@@ -61,6 +61,7 @@ class CompanyProfilerCrew:
         """Collect foundational information about the company"""
         return Task(
             config=self.tasks_config["company_core_info"],  # type: ignore
+            agent=self.company_researcher().copy(),  # type: ignore[call-arg]
             async_execution=True,
         )
 
@@ -69,6 +70,7 @@ class CompanyProfilerCrew:
         """Research and document the company history"""
         return Task(
             config=self.tasks_config["company_history"],  # type: ignore
+            agent=self.company_researcher().copy(),  # type: ignore[call-arg]
             async_execution=True,
         )
 
@@ -77,6 +79,7 @@ class CompanyProfilerCrew:
         """Analyze the company financial statements"""
         return Task(
             config=self.tasks_config["company_financials"],  # type: ignore
+            agent=self.company_researcher().copy(),  # type: ignore[call-arg]
             async_execution=True,
         )
 
@@ -85,6 +88,7 @@ class CompanyProfilerCrew:
         """Evaluate the company market position"""
         return Task(
             config=self.tasks_config["company_market_position"],  # type: ignore
+            agent=self.company_researcher().copy(),  # type: ignore[call-arg]
             async_execution=True,
         )
 
@@ -93,6 +97,7 @@ class CompanyProfilerCrew:
         """Document the company products and services"""
         return Task(
             config=self.tasks_config["company_products_services"],  # type: ignore
+            agent=self.company_researcher().copy(),  # type: ignore[call-arg]
             async_execution=True,
         )
 
@@ -101,6 +106,7 @@ class CompanyProfilerCrew:
         """Research and analyze the company management team"""
         return Task(
             config=self.tasks_config["company_management"],  # type: ignore
+            agent=self.company_researcher().copy(),  # type: ignore[call-arg]
             async_execution=True,
         )
 
@@ -109,6 +115,7 @@ class CompanyProfilerCrew:
         """Research and document any legal or regulatory issues"""
         return Task(
             config=self.tasks_config["company_legal_compliance"],  # type: ignore
+            agent=self.company_researcher().copy(),  # type: ignore[call-arg]
             async_execution=True,
         )
 

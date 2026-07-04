@@ -73,6 +73,7 @@ class CompanyNewsCrew:
             config=self.agents_config["researcher"],  # type: ignore[index]
             tools=self.search_tools,
             verbose=True,
+            llm=LLMConfig.get_openrouter_llm(),
             llm_timeout=LLMConfig.get_timeout("default"),
             reasoning=True,
             max_reasoning_attempts=3,
@@ -90,6 +91,7 @@ class CompanyNewsCrew:
             config=self.agents_config["analyst"],  # type: ignore[index]
             tools=self.search_tools,
             verbose=True,
+            llm=LLMConfig.get_openrouter_llm(),
             llm_timeout=LLMConfig.get_timeout("default"),
             reasoning=True,
             max_reasoning_attempts=3,
@@ -107,6 +109,7 @@ class CompanyNewsCrew:
             config=self.agents_config["editor"],  # type: ignore[index]
             tools=[],  # Gold standard: no tools for reporting agent
             verbose=True,
+            llm=LLMConfig.get_openrouter_llm(),
             llm_timeout=LLMConfig.get_timeout("default"),
             reasoning=True,
             max_reasoning_attempts=3,

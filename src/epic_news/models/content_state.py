@@ -8,6 +8,7 @@ import datetime
 import os
 from typing import Any, Optional
 
+from loguru import logger
 from pydantic import BaseModel, Field
 
 from epic_news.models.crews.book_summary_report import BookSummaryReport
@@ -44,22 +45,18 @@ class CrewCategories:
     COOKING = "COOKING"
     DEEPRESEARCH = "DEEPRESEARCH"
     HOLIDAY_PLANNER = "HOLIDAY_PLANNER"
-    LEAD_SCORING = "LEAD_SCORING"
     BOOK_SUMMARY = "BOOK_SUMMARY"
-    LOCATION = "LOCATION"
     MEETING_PREP = "MEETING_PREP"
     MENU = "MENU"
     COMPANY_NEWS = "COMPANY_NEWS"
     OPEN_SOURCE_INTELLIGENCE = "OPEN_SOURCE_INTELLIGENCE"
     PESTEL = "PESTEL"
     POEM = "POEM"
-    POST_ONLY = "POST_ONLY"
     RSS = "RSS"
     FINDAILY = "FINDAILY"
     NEWSDAILY = "NEWSDAILY"
     SAINT = "SAINT"
     SHOPPING = "SHOPPING"
-    SHOPPING_ADVISOR = "SHOPPING_ADVISOR"
     UNKNOWN = "UNKNOWN"
 
     @classmethod
@@ -218,9 +215,9 @@ class ContentState(BaseModel):
         extracted_data = self.extracted_info.model_dump()
 
         # DEBUG: Log extracted_data to understand the mapping issue
-        print("🔍 DEBUG _flatten_extracted_info:")
-        print(f"  extracted_data keys: {list(extracted_data.keys())}")
-        print(f"  main_subject_or_activity value: {extracted_data.get('main_subject_or_activity')}")
+        logger.debug("🔍 DEBUG _flatten_extracted_info:")
+        logger.debug(f"  extracted_data keys: {list(extracted_data.keys())}")
+        logger.debug(f"  main_subject_or_activity value: {extracted_data.get('main_subject_or_activity')}")
 
         # Mapping from Pydantic model field names to crew input keys
         field_mapping = {
@@ -233,9 +230,8 @@ class ContentState(BaseModel):
             # Map to the new explicit key used in task templates
             "user_preferences_and_constraints": "user_preferences_and_constraints",
             "participants": "participants",
-            "meeting_context": "context",
-            "meeting_objective": "objective",
-            "prior_interactions": "prior_interactions",
+            "context": "context",
+            "objective": "objective",
             # Capture the product or service we are offering
             "our_product": "our_product",
         }
@@ -244,18 +240,18 @@ class ContentState(BaseModel):
         for source_key, target_key in field_mapping.items():
             if source_key in extracted_data:
                 value = extracted_data[source_key]
-                print(f"  Mapping {source_key} -> {target_key}: {value}")
+                logger.debug(f"  Mapping {source_key} -> {target_key}: {value}")
                 # Always map the value, even if target_key already exists
                 flattened[target_key] = value
             else:
-                print(f"  Missing key: {source_key}")
+                logger.debug(f"  Missing key: {source_key}")
 
         # Special handling: if topic is null but main_subject_or_activity has a value, use it
         if flattened.get("topic") is None and extracted_data.get("main_subject_or_activity"):
             flattened["topic"] = extracted_data["main_subject_or_activity"]
-            print(f"  🔧 Fixed null topic with main_subject_or_activity: {flattened['topic']}")
+            logger.debug(f"  🔧 Fixed null topic with main_subject_or_activity: {flattened['topic']}")
 
-        print(f"  Final flattened: {flattened}")
+        logger.debug(f"  Final flattened: {flattened}")
         return flattened
 
     def _add_computed_fields(self) -> dict:
@@ -300,13 +296,13 @@ class ContentState(BaseModel):
         # Add topic_slug for recipes if needed
         if "topic_slug" not in inputs and "topic" in inputs:
             topic_slug = create_topic_slug(inputs["topic"])
-            print(f"  🏷️  Generated topic_slug from topic '{inputs['topic']}': {topic_slug}")
+            logger.debug(f"  🏷️  Generated topic_slug from topic '{inputs['topic']}': {topic_slug}")
             menu_mappings["topic_slug"] = topic_slug
         elif "topic_slug" not in inputs:
             topic_slug = create_topic_slug("recipe")
-            print(f"  🏷️  Generated fallback topic_slug: {topic_slug}")
+            logger.debug(f"  🏷️  Generated fallback topic_slug: {topic_slug}")
             menu_mappings["topic_slug"] = topic_slug
         else:
-            print(f"  🏷️  topic_slug already exists: {inputs.get('topic_slug')}")
+            logger.debug(f"  🏷️  topic_slug already exists: {inputs.get('topic_slug')}")
 
         return menu_mappings
