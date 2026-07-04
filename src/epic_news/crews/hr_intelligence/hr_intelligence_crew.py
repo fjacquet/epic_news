@@ -48,6 +48,8 @@ class HRIntelligenceCrew:
             config=self.agents_config["hr_reporter"],  # type: ignore[index]
             verbose=True,
             tools=[],  # No tools for reporter to ensure clean output
+            llm=LLMConfig.get_openrouter_llm(),
+            llm_timeout=LLMConfig.get_timeout("default"),
             allow_delegation=False,
             respect_context_window=True,
             reasoning=True,

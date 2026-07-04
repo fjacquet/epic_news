@@ -88,27 +88,11 @@ ALL_CREWS = [
 # actually fails in this environment.
 SKIP_CONSTRUCTION: dict[type, str] = {}
 
-# Crews with a genuine, pre-existing LLM-contract violation (an agent missing
-# llm=/llm_timeout=) discovered by this test but out of Task 4's fix scope
-# (the brief's Step 3 names exactly 5 files to modify, and the commit step
-# stages exactly those 6 files). Tracked here instead of silently masked so
-# the suite stays green without hiding the finding; remove the entry (and
-# fix the crew) in a follow-up task.
-KNOWN_LLM_CONTRACT_GAPS: dict[type, str] = {
-    HRIntelligenceCrew: (
-        "hr_reporter agent has no llm=/llm_timeout= (same env-fallback drift "
-        "as the 5 crews fixed in Task 4); out of Task 4's fix scope per the "
-        "brief's explicit file list - tracked as a follow-up, not fixed here."
-    ),
-}
-
 
 @pytest.mark.parametrize("crew_cls", ALL_CREWS, ids=lambda c: c.__name__)
 def test_every_agent_uses_llmconfig(crew_cls):
     if crew_cls in SKIP_CONSTRUCTION:
         pytest.skip(SKIP_CONSTRUCTION[crew_cls])
-    if crew_cls in KNOWN_LLM_CONTRACT_GAPS:
-        pytest.xfail(KNOWN_LLM_CONTRACT_GAPS[crew_cls])
     crew = crew_cls().crew()
     offenders = []
     for agent in crew.agents:
