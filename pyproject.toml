@@ -70,7 +70,6 @@ test = [
     "pytest-env>=1.1.5",
     "pytest-mock>=3.14.1",
     "pytest-regressions>=2.10.0",
-    "pytest-datadir",
     "coverage>=7.14.2",
     "freezegun>=1.5.2",
     "faker>=40.23.0",
@@ -247,7 +246,7 @@ DEP002 = [
     "wikipedia-mcp-server",  # launched via MCP config command string, not imported
     # pytest plugins / CLI tools (used via fixtures or config, never imported)
     "pytest-cov", "pytest-asyncio", "pytest-env", "pytest-mock",
-    "pytest-regressions", "pytest-datadir", "coverage",
+    "pytest-regressions", "coverage",
 ]
 # DEP003: `pip install -e .` makes epic_news appear in the resolver's transitive
 # output, so suppress it here even though known_first_party already marks it.
