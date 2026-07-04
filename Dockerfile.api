@@ -1,5 +1,9 @@
-# 1. Use the official uv image for Python 3.11
-FROM ghcr.io/astral-sh/uv:python3.11-bookworm-slim
+# 1. Use the official uv image for Python 3.13 — MUST match requires-python.
+#    With a mismatched base (e.g. 3.11), uv installs a managed 3.13 under
+#    /root/.local, which the non-root runtime user cannot traverse -> the
+#    venv's python3 symlink fails with "Permission denied". Matching the base
+#    also avoids shipping two interpreters (smaller image).
+FROM ghcr.io/astral-sh/uv:python3.13-bookworm-slim
 
 # 2. Set environment variables for Python
 ENV PYTHONDONTWRITEBYTECODE=1 \
