@@ -11,7 +11,7 @@ classification_task:
     techniques, or ingredient-focused queries
     - MENU: For requests about meal planning, weekly menus, menu design, multiple
     recipes for a period, shopping lists, or dietary planning over time
-    - SHOPPING_ADVISOR: For product purchase advice, price comparisons, product
+    - SHOPPING: For product purchase advice, price comparisons, product
     recommendations, buying guides, or consumer advice requests
     - FINDAILY: For financial advice, investment recommendations, portfolio analysis,
     stock market insights, crypto analysis, financial planning, daily financial reports
@@ -36,7 +36,7 @@ classification_task:
     - "recipe", "dish", "cooking technique", "ingredient", "single meal", "risotto"
     → COOKING
     - "achat", "acheter", "conseil", "prix", "comparaison", "recommandation", "produit"
-    → SHOPPING_ADVISOR
+    → SHOPPING
     - "financier", "finance", "investissement", "bourse", "crypto", "portefeuille",
     "conseil financier"
     → FINDAILY

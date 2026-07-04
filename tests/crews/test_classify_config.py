@@ -68,13 +68,11 @@ def test_classify_referenced_categories_exist_in_crew_categories(
     description = classify_tasks["classification_task"]["description"]
     known = set(CrewCategories.to_dict().values())
 
-    # Categories explicitly called out as routing targets in the prompt.
-    # Note: SHOPPING_ADVISOR is intentionally excluded — it was an orphan
-    # CrewCategories constant (removed in the flow-wiring fix) that the prompt
-    # text still mentions; the routable category is SHOPPING.
+    # Every category explicitly called out as a routing target in the prompt.
     referenced = {
         "COOKING",
         "MENU",
+        "SHOPPING",
         "FINDAILY",
         "NEWSDAILY",
         "COMPANY_NEWS",
