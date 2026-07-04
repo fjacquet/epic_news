@@ -31,3 +31,13 @@ transitive dependency (pulled via crewai/langchain) — epic_news has 0 direct \
 nltk imports and never calls nltk.data.load() on attacker-controlled nltk:-scheme \
 paths, so the traversal sink is unreachable. Re-evaluate when nltk ships a fix or \
 the transitive dependency is dropped."""
+
+[[IgnoredVulns]]
+id = "PYSEC-2026-597"  # Same nltk vulnerability as GHSA-p4gq-832x-fm9v / CVE-2026-54293, republished by OSV under a PYSEC id not linked as an alias
+ignoreUntil = 2026-09-07
+reason = """
+Duplicate OSV record for the nltk.data.load() path traversal already accepted \
+above (GHSA-p4gq-832x-fm9v): osv-scanner only auto-filters ids listed as aliases, \
+and this PYSEC record is not cross-linked, so it must be ignored explicitly. \
+Same assessment applies: no patched nltk exists, epic_news never calls \
+nltk.data.load(), sink unreachable. Re-evaluate with the GHSA entry."""
