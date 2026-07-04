@@ -1310,9 +1310,8 @@ class ReceptionFlow(Flow[ContentState]):
         current_inputs["output_file"] = "output/holiday/itinerary.json"
 
         if not current_inputs.get("destination"):
-            self.logger.warning("⚠️ No destination found for holiday plan. Aborting and routing to error.")
-            # TODO: Define an actual 'error' step or handle this more gracefully.
-            return "error"  # Or another appropriate error state like 'go_unknown'
+            self.logger.warning("⚠️ No destination found for holiday plan; skipping crew execution.")
+            return None
 
         # Ensure all required template variables are provided with defaults
         required_vars = {
@@ -1354,7 +1353,6 @@ class ReceptionFlow(Flow[ContentState]):
             "generate_meeting_prep",
             "generate_sales_prospecting_report",
             "generate_osint",
-            "generate_cross_reference_report",
             "generate_holiday_plan",
             "generate_rss_weekly",
             "generate_findaily",
@@ -1365,7 +1363,6 @@ class ReceptionFlow(Flow[ContentState]):
             "generate_deep_research",
         )
     )
-    @listen(or_("generate_cross_reference_report", "generate_html_report"))
     @trace_task(tracer)
     def send_email(self):
         """
