@@ -43,56 +43,63 @@ class NewsDailyCrew:
     def suisse_romande_news_task(self) -> Task:
         return Task(
             config=self.tasks_config["suisse_romande_news_task"],
+            agent=self.news_researcher().copy(),  # type: ignore[call-arg]
             async_execution=True,
-            verbose=True,  # type: ignore[call-arg]
+            verbose=True,
         )
 
     @task
     def suisse_news_task(self) -> Task:
         return Task(
             config=self.tasks_config["suisse_news_task"],
+            agent=self.news_researcher().copy(),  # type: ignore[call-arg]
             async_execution=True,
-            verbose=True,  # type: ignore[call-arg]
+            verbose=True,
         )
 
     @task
     def france_news_task(self) -> Task:
         return Task(
             config=self.tasks_config["france_news_task"],
+            agent=self.news_researcher().copy(),  # type: ignore[call-arg]
             async_execution=True,
-            verbose=True,  # type: ignore[call-arg]
+            verbose=True,
         )
 
     @task
     def europe_news_task(self) -> Task:
         return Task(
             config=self.tasks_config["europe_news_task"],
+            agent=self.news_researcher().copy(),  # type: ignore[call-arg]
             async_execution=True,
-            verbose=True,  # type: ignore[call-arg]
+            verbose=True,
         )
 
     @task
     def world_news_task(self) -> Task:
         return Task(
             config=self.tasks_config["world_news_task"],
+            agent=self.news_researcher().copy(),  # type: ignore[call-arg]
             async_execution=True,
-            verbose=True,  # type: ignore[call-arg]
+            verbose=True,
         )
 
     @task
     def wars_news_task(self) -> Task:
         return Task(
             config=self.tasks_config["wars_news_task"],
+            agent=self.news_researcher().copy(),  # type: ignore[call-arg]
             async_execution=True,
-            verbose=True,  # type: ignore[call-arg]
+            verbose=True,
         )
 
     @task
     def economy_news_task(self) -> Task:
         return Task(
             config=self.tasks_config["economy_news_task"],
+            agent=self.news_researcher().copy(),  # type: ignore[call-arg]
             async_execution=True,
-            verbose=True,  # type: ignore[call-arg]
+            verbose=True,
         )
 
     @task

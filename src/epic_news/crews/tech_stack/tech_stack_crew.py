@@ -60,8 +60,9 @@ class TechStackCrew:
         """Identify the company's tech stack"""
         return Task(
             config=self.tasks_config["tech_stack_identification"],  # type: ignore[arg-type, index]
+            agent=self.tech_researcher().copy(),  # type: ignore[call-arg]
             async_execution=True,
-            verbose=True,  # type: ignore[call-arg]
+            verbose=True,
         )
 
     @task
@@ -69,8 +70,9 @@ class TechStackCrew:
         """Analyze the company's tech stack"""
         return Task(
             config=self.tasks_config["tech_stack_analysis"],  # type: ignore[arg-type, index]
+            agent=self.tech_researcher().copy(),  # type: ignore[call-arg]
             async_execution=True,
-            verbose=True,  # type: ignore[call-arg]
+            verbose=True,
         )
 
     @task
@@ -78,8 +80,9 @@ class TechStackCrew:
         """Analyze the company's open source contributions"""
         return Task(
             config=self.tasks_config["open_source_contributions"],  # type: ignore[arg-type, index]
+            agent=self.tech_researcher().copy(),  # type: ignore[call-arg]
             async_execution=True,
-            verbose=True,  # type: ignore[call-arg]
+            verbose=True,
         )
 
     @task
@@ -87,8 +90,9 @@ class TechStackCrew:
         """Assess the company's tech talent"""
         return Task(
             config=self.tasks_config["tech_talent_assessment"],  # type: ignore[arg-type, index]
+            agent=self.tech_researcher().copy(),  # type: ignore[call-arg]
             async_execution=True,
-            verbose=True,  # type: ignore[call-arg]
+            verbose=True,
         )
 
     @task

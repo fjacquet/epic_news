@@ -60,6 +60,7 @@ class WebPresenceCrew:
         """Conduct a comprehensive audit of the target's web presence"""
         return Task(  # type: ignore[call-arg]
             config=self.tasks_config["web_presence_audit"],  # type: ignore[index, arg-type]
+            agent=self.web_researcher().copy(),  # type: ignore[call-arg]
             async_execution=True,
         )
 
@@ -68,6 +69,7 @@ class WebPresenceCrew:
         """Analyze the target's social media footprint across platforms"""
         return Task(  # type: ignore[call-arg]
             config=self.tasks_config["social_media_footprint"],  # type: ignore[index, arg-type]
+            agent=self.web_researcher().copy(),  # type: ignore[call-arg]
             async_execution=True,
         )
 
@@ -76,6 +78,7 @@ class WebPresenceCrew:
         """Analyze the target's domain infrastructure and technical footprint"""
         return Task(  # type: ignore[call-arg]
             config=self.tasks_config["domain_infrastructure_analysis"],  # type: ignore[index, arg-type]
+            agent=self.web_researcher().copy(),  # type: ignore[call-arg]
             async_execution=True,
         )
 
@@ -84,6 +87,7 @@ class WebPresenceCrew:
         """Analyze potential data leaks and breaches related to the target"""
         return Task(  # type: ignore[call-arg]
             config=self.tasks_config["data_leak_analysis"],  # type: ignore[index, arg-type]
+            agent=self.web_researcher().copy(),  # type: ignore[call-arg]
             async_execution=True,
         )
 
@@ -92,6 +96,7 @@ class WebPresenceCrew:
         """Analyze the web presence of competitors to identify best practices"""
         return Task(  # type: ignore[call-arg]
             config=self.tasks_config["competitive_web_presence_analysis"],  # type: ignore[index, arg-type]
+            agent=self.web_researcher().copy(),  # type: ignore[call-arg]
             async_execution=True,
         )
 

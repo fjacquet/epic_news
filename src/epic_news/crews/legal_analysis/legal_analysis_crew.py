@@ -61,8 +61,9 @@ class LegalAnalysisCrew:
         """Assess the company's legal compliance status"""
         return Task(
             config=self.tasks_config["legal_compliance_assessment"],  # type: ignore[arg-type, index]
+            agent=self.legal_researcher().copy(),  # type: ignore[call-arg]
             async_execution=True,
-            verbose=True,  # type: ignore[call-arg]
+            verbose=True,
         )
 
     @task
@@ -70,8 +71,9 @@ class LegalAnalysisCrew:
         """Analyze the company's intellectual property portfolio"""
         return Task(
             config=self.tasks_config["intellectual_property_analysis"],  # type: ignore[arg-type, index]
+            agent=self.legal_researcher().copy(),  # type: ignore[call-arg]
             async_execution=True,
-            verbose=True,  # type: ignore[call-arg]
+            verbose=True,
         )
 
     @task
@@ -79,8 +81,9 @@ class LegalAnalysisCrew:
         """Assess the company's regulatory risks"""
         return Task(
             config=self.tasks_config["regulatory_risk_assessment"],  # type: ignore[arg-type, index]
+            agent=self.legal_researcher().copy(),  # type: ignore[call-arg]
             async_execution=True,
-            verbose=True,  # type: ignore[call-arg]
+            verbose=True,
         )
 
     @task
@@ -88,8 +91,9 @@ class LegalAnalysisCrew:
         """Analyze the company's litigation history"""
         return Task(
             config=self.tasks_config["litigation_history_analysis"],  # type: ignore[arg-type, index]
+            agent=self.legal_researcher().copy(),  # type: ignore[call-arg]
             async_execution=True,
-            verbose=True,  # type: ignore[call-arg]
+            verbose=True,
         )
 
     @task

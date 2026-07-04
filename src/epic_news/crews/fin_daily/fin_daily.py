@@ -82,6 +82,9 @@ class FinDailyCrew:
     def etf_portfolio_analysis_task(self) -> Task:
         return Task(  # type: ignore[call-arg]
             config=self.tasks_config["etf_portfolio_analysis_task"],  # type: ignore[index, arg-type]
+            # Own agent instance: shares the stock_analyst role with the stock analysis
+            # task, so needs a distinct executor to run concurrently (CrewAI 1.15+).
+            agent=self.stock_analyst().copy(),  # type: ignore[call-arg]
             async_execution=True,  # Independent task, can run in parallel
         )
 
@@ -89,21 +92,27 @@ class FinDailyCrew:
     def stock_suggestion_task(self) -> Task:
         return Task(  # type: ignore[call-arg]
             config=self.tasks_config["stock_suggestion_task"],  # type: ignore[index, arg-type]
-            async_execution=True,  # Independent task, can run in parallel
+            # Depends on stock_portfolio_analysis_task (async) via context; an async task
+            # may not have an async task in its context (CrewAI 1.15+), so run it sync.
+            async_execution=False,
         )
 
     @task
     def etf_suggestion_task(self) -> Task:
         return Task(  # type: ignore[call-arg]
             config=self.tasks_config["etf_suggestion_task"],  # type: ignore[index, arg-type]
-            async_execution=True,  # Independent task, can run in parallel
+            # Depends on etf_portfolio_analysis_task (async) via context; an async task
+            # may not have an async task in its context (CrewAI 1.15+), so run it sync.
+            async_execution=False,
         )
 
     @task
     def crypto_suggestion_task(self) -> Task:
         return Task(  # type: ignore[call-arg]
             config=self.tasks_config["crypto_suggestion_task"],  # type: ignore[index, arg-type]
-            async_execution=True,  # Independent task, can run in parallel
+            # Depends on crypto_portfolio_analysis_task (async) via context; an async task
+            # may not have an async task in its context (CrewAI 1.15+), so run it sync.
+            async_execution=False,
         )
 
     @task

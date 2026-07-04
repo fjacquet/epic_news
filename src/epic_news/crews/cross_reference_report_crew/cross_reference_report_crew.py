@@ -68,6 +68,7 @@ class CrossReferenceReportCrew:
             config=self.tasks_config["intelligence_requirements_planning"],  # type: ignore[index,arg-type]
             description="Develop comprehensive intelligence requirements",
             expected_output="A structured JSON object outlining intelligence requirements",
+            agent=self.osint_researcher().copy(),  # type: ignore[call-arg]
             async_execution=True,
         )
 
@@ -78,6 +79,7 @@ class CrossReferenceReportCrew:
             config=self.tasks_config["intelligence_collection_coordination"],  # type: ignore[index,arg-type]
             description="Coordinate intelligence collection activities",
             expected_output="A comprehensive JSON object detailing collection coordination",
+            agent=self.osint_researcher().copy(),  # type: ignore[call-arg]
             async_execution=True,
         )
 
@@ -88,6 +90,7 @@ class CrossReferenceReportCrew:
             config=self.tasks_config["intelligence_analysis_integration"],  # type: ignore[index,arg-type]
             description="Integrate intelligence analysis from all specialized crews",
             expected_output="A comprehensive JSON object integrating intelligence analysis",
+            agent=self.osint_researcher().copy(),  # type: ignore[call-arg]
             async_execution=True,
         )
 
@@ -98,6 +101,7 @@ class CrossReferenceReportCrew:
             config=self.tasks_config["intelligence_product_development"],  # type: ignore[index,arg-type]
             description="Develop final intelligence products",
             expected_output="A comprehensive JSON object serving as final intelligence products",
+            agent=self.osint_researcher().copy(),  # type: ignore[call-arg]
             async_execution=True,
         )
 
@@ -120,8 +124,9 @@ class CrossReferenceReportCrew:
     @task
     def html_report_generation(self) -> Task:
         """Generate an HTML report from the cross-reference report."""
+        # Note: no "html_report_generation" entry exists in tasks.yaml; all required
+        # fields (description, expected_output, agent, context) are provided here.
         return Task(
-            config=self.tasks_config["html_report_generation"],  # type: ignore[index,arg-type]
             description="Generate an HTML report from the cross-reference report",
             expected_output="A professional HTML report document",
             agent=self.osint_reporter(),  # type: ignore[call-arg]

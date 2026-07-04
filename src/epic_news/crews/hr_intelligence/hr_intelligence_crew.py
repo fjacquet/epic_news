@@ -58,8 +58,9 @@ class HRIntelligenceCrew:
         """Assess the company's leadership team"""
         return Task(
             config=self.tasks_config["leadership_team_assessment"],  # type: ignore[arg-type, index]
+            agent=self.hr_researcher().copy(),  # type: ignore[call-arg]
             async_execution=True,
-            verbose=True,  # type: ignore[call-arg]
+            verbose=True,
         )
 
     @task
@@ -67,8 +68,9 @@ class HRIntelligenceCrew:
         """Analyze employee reviews and sentiment"""
         return Task(
             config=self.tasks_config["employee_sentiment_analysis"],  # type: ignore[arg-type, index]
+            agent=self.hr_researcher().copy(),  # type: ignore[call-arg]
             async_execution=True,
-            verbose=True,  # type: ignore[call-arg]
+            verbose=True,
         )
 
     @task
@@ -76,8 +78,9 @@ class HRIntelligenceCrew:
         """Assess the company's organizational culture"""
         return Task(
             config=self.tasks_config["organizational_culture_assessment"],  # type: ignore[arg-type, index]
+            agent=self.hr_researcher().copy(),  # type: ignore[call-arg]
             async_execution=True,
-            verbose=True,  # type: ignore[call-arg]
+            verbose=True,
         )
 
     @task
@@ -85,8 +88,9 @@ class HRIntelligenceCrew:
         """Analyze the company's talent acquisition strategy"""
         return Task(
             config=self.tasks_config["talent_acquisition_strategy"],  # type: ignore[arg-type, index]
+            agent=self.hr_researcher().copy(),  # type: ignore[call-arg]
             async_execution=True,
-            verbose=True,  # type: ignore[call-arg]
+            verbose=True,
         )
 
     @task

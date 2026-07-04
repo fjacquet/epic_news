@@ -60,8 +60,9 @@ class GeospatialAnalysisCrew:
         """Map the company's physical locations"""
         return Task(
             config=self.tasks_config["physical_location_mapping"],  # type: ignore[arg-type, index]
+            agent=self.geospatial_researcher().copy(),  # type: ignore[call-arg]
             async_execution=True,
-            verbose=True,  # type: ignore[call-arg]
+            verbose=True,
         )
 
     @task
@@ -69,8 +70,9 @@ class GeospatialAnalysisCrew:
         """Assess geospatial risks for the company's locations"""
         return Task(
             config=self.tasks_config["geospatial_risk_assessment"],  # type: ignore[arg-type, index]
+            agent=self.geospatial_researcher().copy(),  # type: ignore[call-arg]
             async_execution=True,
-            verbose=True,  # type: ignore[call-arg]
+            verbose=True,
         )
 
     @task
@@ -78,8 +80,9 @@ class GeospatialAnalysisCrew:
         """Map the company's supply chain geospatially"""
         return Task(
             config=self.tasks_config["supply_chain_mapping"],  # type: ignore[arg-type, index]
+            agent=self.geospatial_researcher().copy(),  # type: ignore[call-arg]
             async_execution=True,
-            verbose=True,  # type: ignore[call-arg]
+            verbose=True,
         )
 
     @task
