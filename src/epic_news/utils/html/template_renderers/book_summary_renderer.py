@@ -52,7 +52,6 @@ class BookSummaryRenderer(BaseRenderer):
         # Add references
         self._add_references_section(soup, container, data)
 
-
         return soup.prettify()
 
     def _add_book_header(self, soup: BeautifulSoup, container, data: dict[str, Any]) -> None:
@@ -106,11 +105,11 @@ class BookSummaryRenderer(BaseRenderer):
         title_tag.string = "📋 Résumé"
         summary_div.append(title_tag)
 
-        # Summary text
-        summary_p = soup.new_tag("p")
-        summary_p["class"] = "summary-text"
-        summary_p.string = summary
-        summary_div.append(summary_p)
+        # Summary text (Markdown -> HTML)
+        summary_wrapper = soup.new_tag("div")
+        summary_wrapper["class"] = "summary-text"
+        self.render_markdown_block(summary_wrapper, summary)
+        summary_div.append(summary_wrapper)
 
         container.append(summary_div)
 
@@ -176,11 +175,9 @@ class BookSummaryRenderer(BaseRenderer):
                 ch_h4.string = f"📚 Chapitre {ch_num}: {ch_title}"
                 chapter_div.append(ch_h4)
 
-                # Chapter focus
+                # Chapter focus (Markdown -> HTML)
                 if ch_focus:
-                    ch_p = soup.new_tag("p")
-                    ch_p.string = ch_focus
-                    chapter_div.append(ch_p)
+                    self.render_markdown_block(chapter_div, ch_focus)
 
                 chapters_div.append(chapter_div)
 
@@ -217,10 +214,8 @@ class BookSummaryRenderer(BaseRenderer):
                 sec_h4.string = f"🔍 {sec_title}"
                 section_div.append(sec_h4)
 
-                # Section content
-                sec_p = soup.new_tag("p")
-                sec_p.string = sec_content
-                section_div.append(sec_p)
+                # Section content (Markdown -> HTML; headings, lists, tables, bold)
+                self.render_markdown_block(section_div, sec_content)
 
                 analysis_div.append(section_div)
 
