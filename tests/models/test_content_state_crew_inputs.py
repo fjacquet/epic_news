@@ -68,21 +68,17 @@ def test_no_stdout_noise(capsys):
 
 
 def test_participants_and_product_field_mapping():
-    """Covers the remaining field_mapping entries that have real ExtractedInfo sources.
-
-    field_mapping also lists "meeting_context" -> "context", "meeting_objective" ->
-    "objective", and "prior_interactions" -> "prior_interactions", but ExtractedInfo
-    has no fields named meeting_context, meeting_objective, or prior_interactions
-    (it only defines "context" and "objective" directly, which are not the mapping's
-    source keys). Those three field_mapping entries are dead: the `source_key in
-    extracted_data` check can never be true, so they are not exercised here.
-    """
+    """Covers the remaining field_mapping entries that have real ExtractedInfo sources."""
     inputs = ContentState(
         user_request="Prep the meeting",
         extracted_info=ExtractedInfo(
             participants=["Ana <ana@example.com> - CEO"],
             our_product="PowerFlex",
+            context="Quarterly review",
+            objective="Renew contract",
         ),
     ).to_crew_inputs()
     assert inputs["participants"] == ["Ana <ana@example.com> - CEO"]
     assert inputs["our_product"] == "PowerFlex"
+    assert inputs["context"] == "Quarterly review"
+    assert inputs["objective"] == "Renew contract"

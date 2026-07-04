@@ -230,9 +230,8 @@ class ContentState(BaseModel):
             # Map to the new explicit key used in task templates
             "user_preferences_and_constraints": "user_preferences_and_constraints",
             "participants": "participants",
-            "meeting_context": "context",
-            "meeting_objective": "objective",
-            "prior_interactions": "prior_interactions",
+            "context": "context",
+            "objective": "objective",
             # Capture the product or service we are offering
             "our_product": "our_product",
         }

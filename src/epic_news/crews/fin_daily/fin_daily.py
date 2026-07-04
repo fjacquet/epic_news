@@ -13,11 +13,11 @@ from epic_news.tools.scraper_factory import get_scraper
 class FinDailyCrew:
     """FinDaily crew for comprehensive financial portfolio analysis.
 
-    This crew analyzes stock, crypto, and ETF portfolios in parallel for maximum performance.
-    The 6 portfolio analysis and suggestion tasks execute asynchronously, then a final report
-    consolidates all findings.
-
-    Performance: ~6x faster with async execution vs sequential.
+    This crew analyzes stock, crypto, and ETF portfolios. The 3 portfolio-analysis
+    tasks (stock, crypto, ETF) run asynchronously in parallel. The 3 suggestion
+    tasks run synchronously: each depends via context on its async analysis task,
+    and an async task may not have an async task in its context (CrewAI 1.15+).
+    A final report task then consolidates all findings.
     """
 
     agents_config = "config/agents.yaml"
@@ -92,8 +92,8 @@ class FinDailyCrew:
     def stock_suggestion_task(self) -> Task:
         return Task(  # type: ignore[call-arg]
             config=self.tasks_config["stock_suggestion_task"],  # type: ignore[index, arg-type]
-            # Depends on stock_portfolio_analysis_task (async) via context; an async task
-            # may not have an async task in its context (CrewAI 1.15+), so run it sync.
+            # Sync: depends on stock_portfolio_analysis_task (async) via context, and
+            # an async task may not have an async task in its context (CrewAI 1.15+).
             async_execution=False,
         )
 
@@ -101,8 +101,7 @@ class FinDailyCrew:
     def etf_suggestion_task(self) -> Task:
         return Task(  # type: ignore[call-arg]
             config=self.tasks_config["etf_suggestion_task"],  # type: ignore[index, arg-type]
-            # Depends on etf_portfolio_analysis_task (async) via context; an async task
-            # may not have an async task in its context (CrewAI 1.15+), so run it sync.
+            # Sync: see note on stock_suggestion_task.
             async_execution=False,
         )
 
@@ -110,8 +109,7 @@ class FinDailyCrew:
     def crypto_suggestion_task(self) -> Task:
         return Task(  # type: ignore[call-arg]
             config=self.tasks_config["crypto_suggestion_task"],  # type: ignore[index, arg-type]
-            # Depends on crypto_portfolio_analysis_task (async) via context; an async task
-            # may not have an async task in its context (CrewAI 1.15+), so run it sync.
+            # Sync: see note on stock_suggestion_task.
             async_execution=False,
         )
 

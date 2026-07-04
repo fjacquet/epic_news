@@ -123,7 +123,7 @@ class LLMConfig:
         # native LLM class (which uses its own OpenAI client). OpenRouter handles
         # context overflow gracefully server-side regardless.
 
-        return LLM(
+        llm = LLM(
             model=model_name or "openrouter/mistralai/mistral-small-2603",
             api_key=os.getenv("OPENROUTER_API_KEY"),
             base_url="https://openrouter.ai/api/v1",
@@ -131,6 +131,10 @@ class LLMConfig:
             max_tokens=tokens,
             reasoning_effort=effort,  # type: ignore[arg-type]
         )
+        # Contract marker asserted by tests/crews/test_agent_llm_contract.py —
+        # distinguishes LLMConfig-configured agents from CrewAI env-fallback LLMs.
+        llm.configured_via_llmconfig = True
+        return llm
 
     @staticmethod
     def get_timeout(task_type: str = "default") -> int:
