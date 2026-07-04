@@ -118,7 +118,10 @@ class LLMConfig:
         effort = reasoning_effort
         if effort is None:
             effort = os.getenv("LLM_REASONING_EFFORT", "")
-        if not effort or effort.strip().lower() in ("none", ""):
+        # Normalize the value itself (not just the sentinel check): LiteLLM
+        # validates against a lowercase Literal, so "LOW"/" Low " must become "low".
+        effort = effort.strip().lower() if effort else ""
+        if effort in ("none", ""):
             effort = None
 
         # Note: OpenRouter middle-out transforms are not supported by CrewAI's
