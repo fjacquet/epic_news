@@ -22,8 +22,12 @@ from markdown_it import MarkdownIt
 
 @lru_cache(maxsize=1)
 def _get_markdown_parser() -> MarkdownIt:
-    """Return a cached, safe-by-default MarkdownIt parser (no raw HTML)."""
-    return MarkdownIt("commonmark", {"breaks": True, "html": False, "linkify": True})
+    """Return a cached, safe-by-default MarkdownIt parser.
+
+    Raw HTML stays disabled (XSS-safe); GFM tables are enabled so pipe tables
+    in crew Markdown render as real ``<table>`` elements instead of literal text.
+    """
+    return MarkdownIt("commonmark", {"breaks": True, "html": False, "linkify": True}).enable("table")
 
 
 class BaseRenderer(ABC):

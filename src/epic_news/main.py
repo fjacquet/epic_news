@@ -362,7 +362,9 @@ class ReceptionFlow(Flow[ContentState]):
         dump_crewai_state(output, "POEM")
 
         poem_model = load_or_parse_model(self.state.output_file, PoemJSONOutput, output, inputs, "poem")
-        render_and_write_html("POEM", poem_model, "output/poem/poem.html")
+        html_file = "output/poem/poem.html"
+        render_and_write_html("POEM", poem_model, html_file)
+        self.state.output_file = html_file
 
     @listen("go_generate_news_company")
     @trace_task(tracer)
@@ -383,7 +385,9 @@ class ReceptionFlow(Flow[ContentState]):
         news_model = load_or_parse_model(
             self.state.output_file, CompanyNewsReport, output, crew_inputs, "company news"
         )
-        render_and_write_html("COMPANY_NEWS", news_model, "output/company_news/report.html")
+        html_file = "output/company_news/report.html"
+        render_and_write_html("COMPANY_NEWS", news_model, html_file)
+        self.state.output_file = html_file
         self.state.company_news_report = output
 
     @listen("go_generate_rss_weekly")
@@ -530,6 +534,7 @@ class ReceptionFlow(Flow[ContentState]):
             self.state.output_file, FinancialReport, output, inputs, "financial report"
         )
         html_path = render_and_write_html("FINDAILY", financial_report_model, "output/findaily/report.html")
+        self.state.output_file = str(html_path)
         self.logger.info(f"✅ Financial content generated and HTML written to {html_path}")
 
     @listen("go_generate_news_daily")
@@ -592,7 +597,9 @@ class ReceptionFlow(Flow[ContentState]):
 
         saint_model = load_or_parse_model(self.state.output_file, SaintData, output, inputs, "saint daily")
         self.state.saint_daily_model = saint_model
-        render_and_write_html("SAINT", saint_model, "output/saint_daily/report.html")
+        html_file = "output/saint_daily/report.html"
+        render_and_write_html("SAINT", saint_model, html_file)
+        self.state.output_file = html_file
         self.logger.info("✅ Saint content generated and HTML written")
 
     @listen("go_generate_recipe")
@@ -804,7 +811,12 @@ class ReceptionFlow(Flow[ContentState]):
         book_summary_model = load_or_parse_model(
             inputs["output_file"], BookSummaryReport, output, inputs, "book summary"
         )
-        render_and_write_html("BOOK_SUMMARY", book_summary_model, "output/library/book_summary.html")
+        html_file = "output/library/book_summary.html"
+        render_and_write_html("BOOK_SUMMARY", book_summary_model, html_file)
+        # Record the rendered report path so the Streamlit UI / API can locate it
+        # (app.py reads flow.state.output_file). Every other generate_* method
+        # sets this; without it the finished report can't be displayed.
+        self.state.output_file = html_file
 
     @listen("go_generate_shopping_advice")
     @trace_task(tracer)
@@ -886,7 +898,9 @@ class ReceptionFlow(Flow[ContentState]):
             current_inputs["output_file"], MeetingPrepReport, output, current_inputs, "meeting prep"
         )
         self.state.meeting_prep_report = meeting_model
-        render_and_write_html("MEETING_PREP", meeting_model, "output/meeting/meeting_preparation.html")
+        html_file = "output/meeting/meeting_preparation.html"
+        render_and_write_html("MEETING_PREP", meeting_model, html_file)
+        self.state.output_file = html_file
 
     @listen("go_generate_sales_prospecting_report")
     @trace_task(tracer)
@@ -1339,7 +1353,9 @@ class ReceptionFlow(Flow[ContentState]):
             current_inputs,
             "holiday planner",
         )
-        render_and_write_html("HOLIDAY_PLANNER", holiday_model, "output/holiday/itinerary.html")
+        html_file = "output/holiday/itinerary.html"
+        render_and_write_html("HOLIDAY_PLANNER", holiday_model, html_file)
+        self.state.output_file = html_file
         self.state.holiday_plan = holiday_plan
         return "generate_holiday_plan"
 

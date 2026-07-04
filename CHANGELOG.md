@@ -4,6 +4,20 @@ All notable changes to Epic News are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [3.3.2] — 2026-07-04
+
+A crew-execution hotfix release. Crews were unable to run against OpenRouter because CrewAI 1.15's native provider sent strict schemas that upstream models reject; routing now goes through LiteLLM. Also fixes the book-summary report never displaying in the UI and a Loguru crash in the Streamlit error handler.
+
+### Fixed
+- **CrewAI 1.15 native-provider strict-schema rejection** (`LLMConfig`): CrewAI 1.15's native `OpenAICompatibleCompletion` provider (auto-selected for `openrouter/…` models) sends tool **and** response-format schemas with OpenAI strict-mode (`strict: true`), generated from our Pydantic models. Those schemas aren't strict-compliant (`title`/`default`/`anyOf`, no `additionalProperties:false`), so OpenRouter's upstream providers reject them — Mistral with `400 "Invalid structured output syntax"` (code 3051), OpenAI with `Invalid schema for function 'render_report_tool'`. `LLMConfig.get_openrouter_llm()` now passes `is_litellm=True`, routing through LiteLLM which sends the same schemas **without** strict-mode; verified that `mistral-small-2603` accepts the identical tool schema this way. Proven it was never a model-capability issue.
+- **`reasoning_effort` normalization** (`LLMConfig`): the LiteLLM `LLM` class validates `reasoning_effort` against a lowercase `Literal['none','low','medium','high']`; the value is now stripped/lowercased (so `LLM_REASONING_EFFORT=LOW` works) and normalized to `None` when empty/`none` — the old native provider silently tolerated `""`.
+- **Reports not displayed in the UI (7 flows)**: several `generate_*` flow methods left `self.state.output_file` pointing at the intermediate **JSON** path (or never set it) while rendering the report to **HTML** — `generate_book_summary`, `generate_poem`, `generate_news_company`, `generate_findaily`, `generate_saint_daily`, `generate_meeting_prep`, and `generate_holiday_plan`. Since the Streamlit UI / API locate the report via `flow.state.output_file`, they showed raw JSON or failed the existence check. All now set `output_file` to the rendered HTML path after `render_and_write_html`.
+- **Loguru crash in Streamlit error handler** (`app.py`): the crew-thread error handler f-string-interpolated an exception whose message contained `{...}`, which Loguru re-parsed as format fields and raised `KeyError`. Switched to `logger.opt(exception=True).error("…: {}", e)`.
+- **Book-summary report rendered raw Markdown**: `BookSummaryRenderer` inserted section content, the summary, and chapter focus as literal text (`tag.string = …`), so Markdown headings/lists/bold/tables showed as raw `##` / `|…|` markup instead of formatted HTML. These now go through `render_markdown_block`, and the shared safe Markdown parser (`base_renderer._get_markdown_parser`) gains GFM table support — raw HTML stays disabled for XSS safety.
+
+### Tests
+- `test_agent_llm_contract.py` now also accepts `is_litellm is True` as a copy-stable LLMConfig signal: the `configured_via_llmconfig` sentinel is a non-field attribute that Pydantic `model_copy` drops when CrewAI copies agents during crew assembly.
+
 ## [3.3.1] — 2026-07-04
 
 ### Fixed

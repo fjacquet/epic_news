@@ -72,7 +72,7 @@ def run_crew_thread(user_request: str, log_queue: Queue):
             log_queue.put(("ERROR", error_message))
 
     except Exception as e:
-        logger.error(f"An error occurred in the crew thread: {e}", exc_info=True)
+        logger.opt(exception=True).error("An error occurred in the crew thread: {}", e)
         log_queue.put(("ERROR", str(e)))
     finally:
         log_queue.put(("END", "Crew execution finished."))
