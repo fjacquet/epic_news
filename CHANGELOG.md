@@ -4,6 +4,19 @@ All notable changes to Epic News are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [3.3.2] — 2026-07-04
+
+A crew-execution hotfix release. Crews were unable to run against OpenRouter because CrewAI 1.15's native provider sent strict schemas that upstream models reject; routing now goes through LiteLLM. Also fixes the book-summary report never displaying in the UI and a Loguru crash in the Streamlit error handler.
+
+### Fixed
+- **CrewAI 1.15 native-provider strict-schema rejection** (`LLMConfig`): CrewAI 1.15's native `OpenAICompatibleCompletion` provider (auto-selected for `openrouter/…` models) sends tool **and** response-format schemas with OpenAI strict-mode (`strict: true`), generated from our Pydantic models. Those schemas aren't strict-compliant (`title`/`default`/`anyOf`, no `additionalProperties:false`), so OpenRouter's upstream providers reject them — Mistral with `400 "Invalid structured output syntax"` (code 3051), OpenAI with `Invalid schema for function 'render_report_tool'`. `LLMConfig.get_openrouter_llm()` now passes `is_litellm=True`, routing through LiteLLM which sends the same schemas **without** strict-mode; verified that `mistral-small-2603` accepts the identical tool schema this way. Proven it was never a model-capability issue.
+- **`reasoning_effort` empty-string rejection** (`LLMConfig`): the LiteLLM `LLM` class validates `reasoning_effort` against `Literal['none','low','medium','high']` and rejects `""`; now normalized to `None` when unset (the native provider silently tolerated `""`).
+- **Book-summary report never displayed**: `generate_book_summary` rendered `output/library/book_summary.html` but was the only `generate_*` flow method that never set `self.state.output_file`, so the Streamlit UI / API (which locates the report via `flow.state.output_file`) could not find it. Now recorded like every other flow method.
+- **Loguru crash in Streamlit error handler** (`app.py`): the crew-thread error handler f-string-interpolated an exception whose message contained `{...}`, which Loguru re-parsed as format fields and raised `KeyError`. Switched to `logger.opt(exception=True).error("…: {}", e)`.
+
+### Tests
+- `test_agent_llm_contract.py` now also accepts `is_litellm is True` as a copy-stable LLMConfig signal: the `configured_via_llmconfig` sentinel is a non-field attribute that Pydantic `model_copy` drops when CrewAI copies agents during crew assembly.
+
 ## [3.3.1] — 2026-07-04
 
 ### Fixed

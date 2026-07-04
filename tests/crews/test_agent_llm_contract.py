@@ -14,16 +14,24 @@ def test_every_agent_uses_llmconfig(crew_cls):
     crew = build_crew(crew_cls)
     offenders = []
     for agent in crew.agents:
-        # configured_via_llmconfig is set explicitly by
-        # LLMConfig.get_openrouter_llm() (src/epic_news/config/llm_config.py)
-        # after constructing the LLM instance. CrewAI's own env-fallback LLM
-        # construction (crewai.utilities.llm_utils.
-        # _llm_via_environment_or_fallback) never sets this attribute, even
-        # though it can resolve the same OpenRouter base_url from provider
-        # defaults for "openrouter/"-prefixed MODEL values when llm= was
-        # never passed to Agent(). The sentinel is therefore what actually
-        # discriminates "configured via LLMConfig" from "env fallback" here.
-        if not getattr(agent.llm, "configured_via_llmconfig", False):
+        # LLMConfig.get_openrouter_llm() marks its LLMs two ways:
+        #
+        # 1. configured_via_llmconfig — a plain instance attribute set after
+        #    construction. Fast, explicit, but a NON-field attribute that
+        #    Pydantic's model_copy()/deepcopy drops. CrewAI copies agents (and
+        #    their LLMs) while assembling some crews, which strips it.
+        # 2. is_litellm=True — a real Pydantic field (survives copy) that
+        #    LLMConfig sets to force LiteLLM routing (see llm_config.py for why:
+        #    CrewAI 1.15's native provider sends strict tool schemas OpenRouter
+        #    rejects). CrewAI's env-fallback construction
+        #    (crewai.utilities.llm_utils._llm_via_environment_or_fallback)
+        #    yields the NATIVE provider with is_litellm=False for our
+        #    "openrouter/"-prefixed MODEL, so is_litellm=True reliably means
+        #    "built by LLMConfig" here and, unlike the sentinel, survives copy.
+        via_llmconfig = getattr(agent.llm, "configured_via_llmconfig", False) or (
+            getattr(agent.llm, "is_litellm", False) is True
+        )
+        if not via_llmconfig:
             offenders.append(f"{agent.role!r} (llm={agent.llm!r})")
     assert not offenders, (
         f"{crew_cls.__name__}: agents not configured via LLMConfig.get_openrouter_llm(): {offenders}"

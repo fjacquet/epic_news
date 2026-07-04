@@ -804,7 +804,12 @@ class ReceptionFlow(Flow[ContentState]):
         book_summary_model = load_or_parse_model(
             inputs["output_file"], BookSummaryReport, output, inputs, "book summary"
         )
-        render_and_write_html("BOOK_SUMMARY", book_summary_model, "output/library/book_summary.html")
+        html_file = "output/library/book_summary.html"
+        render_and_write_html("BOOK_SUMMARY", book_summary_model, html_file)
+        # Record the rendered report path so the Streamlit UI / API can locate it
+        # (app.py reads flow.state.output_file). Every other generate_* method
+        # sets this; without it the finished report can't be displayed.
+        self.state.output_file = html_file
 
     @listen("go_generate_shopping_advice")
     @trace_task(tracer)

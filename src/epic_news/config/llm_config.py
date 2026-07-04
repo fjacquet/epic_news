@@ -111,20 +111,31 @@ class LLMConfig:
             middle_out_str = os.getenv("OPENROUTER_MIDDLE_OUT", "true").lower()
             middle_out = middle_out_str in ("true", "1", "yes", "on")
 
-        # Resolve reasoning_effort from parameter or environment (opt-in only)
+        # Resolve reasoning_effort from parameter or environment (opt-in only).
+        # Normalize empty/"none" to None: the LiteLLM LLM class validates this
+        # against Literal['none','low','medium','high'] and rejects "" (the old
+        # native provider silently tolerated the empty string).
         effort = reasoning_effort
         if effort is None:
             effort = os.getenv("LLM_REASONING_EFFORT", "")
-        # Only apply if explicitly set to a meaningful value
-        if effort and effort.lower() in ("none", ""):
+        if not effort or effort.strip().lower() in ("none", ""):
             effort = None
 
         # Note: OpenRouter middle-out transforms are not supported by CrewAI's
         # native LLM class (which uses its own OpenAI client). OpenRouter handles
         # context overflow gracefully server-side regardless.
 
+        # is_litellm=True forces routing through LiteLLM instead of CrewAI 1.15's
+        # native OpenAICompatibleCompletion provider. The native provider sends
+        # tool/response schemas with OpenAI strict-mode (`strict: true`) generated
+        # from our Pydantic models, which are not strict-compliant (title/default/
+        # anyOf, no additionalProperties:false). OpenRouter's upstream providers
+        # then reject them: Mistral -> 400 "Invalid structured output syntax"
+        # (code 3051); OpenAI -> "Invalid schema for function ...". LiteLLM sends
+        # the same schemas without strict-mode, which every provider accepts.
         llm = LLM(
             model=model_name or "openrouter/mistralai/mistral-small-2603",
+            is_litellm=True,
             api_key=os.getenv("OPENROUTER_API_KEY"),
             base_url="https://openrouter.ai/api/v1",
             temperature=temp,
