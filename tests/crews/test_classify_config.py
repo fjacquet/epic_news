@@ -8,6 +8,7 @@ These tests guard the classification YAML against silent regressions:
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import pytest
@@ -83,7 +84,9 @@ def test_classify_referenced_categories_exist_in_crew_categories(
         "SAINT",
         "POEM",
     }
-    actually_in_prompt = {cat for cat in referenced if cat in description}
+    actually_in_prompt = {
+        cat for cat in referenced if re.search(rf"(?<![A-Z_]){re.escape(cat)}\b(?!_)", description)
+    }
     drift = actually_in_prompt - known
     assert not drift, (
         f"Prompt references categories not in CrewCategories: {drift}. "
