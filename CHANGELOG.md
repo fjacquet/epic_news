@@ -4,6 +4,11 @@ All notable changes to Epic News are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [3.3.1] — 2026-07-04
+
+### Fixed
+- **api/streamlit Docker images crash-looped as non-root**: the Dockerfiles used a Python **3.11** base while the project requires **3.13**, so `uv` installed a managed 3.13 interpreter under `/root/.local`. The venv's `python3` symlinked into `/root` (mode `0700`), which the non-root `myuser` runtime user couldn't traverse — every start failed with `failed to canonicalize path '/app/.venv/bin/python3': Permission denied` and the container restart-looped. (`combined` was unaffected; it runs as root.) Fixed by switching all three image Dockerfiles to `ghcr.io/astral-sh/uv:python3.13-bookworm-slim`, so the venv uses the world-readable system interpreter at `/usr/local`, which also drops the redundant second interpreter from the image.
+
 ## [3.3.0] — 2026-07-04
 
 A correctness-and-confidence release. Request classification and flow routing get real bug fixes, every crew now builds its agents through `LLMConfig` (no more drifting or hardcoded LLM wiring), CrewAI 1.15's concurrent async tasks each receive an isolated agent copy, and the test suite is substantially hardened with deterministic end-to-end flow coverage and contract-freezing ratchet tests. No public API or breaking changes.
