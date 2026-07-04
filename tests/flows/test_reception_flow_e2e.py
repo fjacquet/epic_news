@@ -17,8 +17,6 @@ class FakeCrewOutput:
     def __init__(self, raw: str = "", pydantic=None):
         self.raw = raw
         self.pydantic = pydantic
-        self.tasks_output = []
-        self.json_dict = None
 
     def __str__(self) -> str:
         return self.raw
@@ -52,14 +50,6 @@ def _fake_kickoff_factory(classification: str, poem_json: str):
 
 
 def test_poem_route_end_to_end(tmp_path, monkeypatch):
-    monkeypatch.chdir(tmp_path)
-    monkeypatch.setenv("EPIC_ENABLE_EMAIL", "false")
-    # epic_news.utils.observability creates "traces/" once at import time,
-    # relative to the cwd active then (the repo root, not tmp_path). The
-    # @trace_task decorator on every flow method writes into that directory
-    # by relative path, so after chdir it must be recreated here.
-    (tmp_path / "traces").mkdir()
-
     poem_json = json.dumps({"title": "Ode to Tests", "poem": "Lines of green.\nNo flakes seen."})
     monkeypatch.setattr("epic_news.main.kickoff_flow", _fake_kickoff_factory("POEM", poem_json))
 
@@ -75,13 +65,6 @@ def test_poem_route_end_to_end(tmp_path, monkeypatch):
 
 
 def test_unknown_category_routes_to_error_report(tmp_path, monkeypatch):
-    monkeypatch.chdir(tmp_path)
-    monkeypatch.setenv("EPIC_ENABLE_EMAIL", "false")
-    # See comment in test_poem_route_end_to_end: traces/ must be recreated
-    # under tmp_path since observability.py only creates it once at import
-    # time, relative to the original cwd.
-    (tmp_path / "traces").mkdir()
-
     monkeypatch.setattr(
         "epic_news.main.kickoff_flow",
         _fake_kickoff_factory("GIBBERISH_NO_CATEGORY", "{}"),

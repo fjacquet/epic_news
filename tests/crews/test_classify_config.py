@@ -84,6 +84,8 @@ def test_classify_referenced_categories_exist_in_crew_categories(
         "SAINT",
         "POEM",
     }
+    # Word-boundary match so a category can't hide inside a longer name (the old
+    # SHOPPING/SHOPPING_ADVISOR drift).
     actually_in_prompt = {
         cat for cat in referenced if re.search(rf"(?<![A-Z_]){re.escape(cat)}\b(?!_)", description)
     }

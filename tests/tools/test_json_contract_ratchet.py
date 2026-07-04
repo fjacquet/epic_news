@@ -6,6 +6,7 @@ to freeze the legacy list so it only shrinks. Remove a file from
 KNOWN_LEGACY when you fix it; never add to it.
 """
 
+from functools import lru_cache
 from pathlib import Path
 
 TOOLS_DIR = Path(__file__).resolve().parents[2] / "src" / "epic_news" / "tools"
@@ -31,6 +32,7 @@ KNOWN_LEGACY: set[str] = {
 }
 
 
+@lru_cache(maxsize=1)
 def _violators() -> set[str]:
     found = set()
     for path in sorted(TOOLS_DIR.glob("*.py")):

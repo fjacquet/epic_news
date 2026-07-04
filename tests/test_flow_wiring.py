@@ -4,6 +4,8 @@ Introspects CrewAI 1.15 flow metadata (__flow_method_definition__) without
 running the flow. Zero LLM calls.
 """
 
+from crewai.flow.flow_wrappers import FlowMethod
+
 from epic_news.main import ReceptionFlow
 from epic_news.models.content_state import CrewCategories
 
@@ -111,3 +113,15 @@ def test_every_category_is_routable():
     }
     unroutable = flow_source_categories - routed
     assert not unroutable, f"Categories with no router branch: {unroutable}"
+
+
+def test_no_stacked_flow_decorators():
+    """CrewAI keeps only the outermost @listen/@router condition when
+    decorators are stacked — the inner one is silently discarded. Forbid
+    stacking entirely."""
+    stacked = [
+        name
+        for name, member in _flow_methods().items()
+        if isinstance(getattr(member, "_meth", None), FlowMethod)
+    ]
+    assert not stacked, f"Stacked flow decorators (inner condition lost): {stacked}"
