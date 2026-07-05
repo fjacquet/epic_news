@@ -80,11 +80,16 @@ class HolidayPlannerCrew:
 
     @task
     def research_destination(self) -> Task:
-        return Task(config=self.tasks_config["research_destination"], async_execution=True)  # type: ignore[call-arg, arg-type, index]
+        # Sequential (async_execution=False): CrewAI 1.15's concurrent async task
+        # path can leak a tool-call into TaskOutput.raw (which must be a str),
+        # crashing the crew ("Input should be a valid string ... ChatCompletion
+        # MessageToolCall"). Running these sequentially avoids the concurrency and
+        # actually improves data flow (accommodation now sees the research output).
+        return Task(config=self.tasks_config["research_destination"], async_execution=False)  # type: ignore[call-arg, arg-type, index]
 
     @task
     def recommend_accommodation_and_dining(self) -> Task:
-        return Task(config=self.tasks_config["recommend_accommodation_and_dining"], async_execution=True)  # type: ignore[call-arg, arg-type, index]
+        return Task(config=self.tasks_config["recommend_accommodation_and_dining"], async_execution=False)  # type: ignore[call-arg, arg-type, index]
 
     @task
     def plan_itinerary(self) -> Task:
