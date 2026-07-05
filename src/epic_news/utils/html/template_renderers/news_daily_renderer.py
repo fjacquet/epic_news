@@ -64,9 +64,9 @@ class NewsDailyRenderer(BaseRenderer):
 
             summary_content = soup.new_tag("div")
             summary_content.attrs["class"] = ["summary-content"]  # type: ignore[assignment]
-            summary_p = soup.new_tag("p")
-            summary_p.string = summary
-            summary_content.append(summary_p)
+            # Crew fills this free-text field with Markdown (bold, lists, tables) —
+            # render it to HTML instead of dumping literal **/##/| markup.
+            self.render_markdown_block(summary_content, summary)
             summary_div.append(summary_content)
             header_div.append(summary_div)
 
@@ -162,9 +162,7 @@ class NewsDailyRenderer(BaseRenderer):
         if summary:
             summary_div = soup.new_tag("div")
             summary_div.attrs["class"] = ["news-summary"]  # type: ignore[assignment]
-            summary_p = soup.new_tag("p")
-            summary_p.string = summary
-            summary_div.append(summary_p)
+            self.render_markdown_block(summary_div, summary)
             article_div.append(summary_div)
 
         parent.append(article_div)
@@ -184,10 +182,7 @@ class NewsDailyRenderer(BaseRenderer):
 
         content_div = soup.new_tag("div")
         content_div.attrs["class"] = ["methodology-content"]  # type: ignore[assignment]
-        content_p = soup.new_tag("p")
-        content_p.string = methodology
-        content_div.append(content_p)
+        self.render_markdown_block(content_div, methodology)
         method_div.append(content_div)
 
         container.append(method_div)
-

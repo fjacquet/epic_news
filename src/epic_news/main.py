@@ -569,6 +569,9 @@ class ReceptionFlow(Flow[ContentState]):
         html_path = render_and_write_html(
             "NEWSDAILY", news_daily_model, "output/news_daily/final_report.html"
         )
+        # Point output_file at the rendered HTML (was the intermediate JSON) so the
+        # email attaches — and the UI displays — the report, not raw JSON.
+        self.state.output_file = str(html_path)
         self.state.news_daily_model = news_daily_model
         self.logger.info(f"✅ News content generated and HTML written to {html_path}")
 

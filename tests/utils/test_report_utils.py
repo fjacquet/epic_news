@@ -6,6 +6,7 @@ import pytest
 from faker import Faker
 
 from epic_news.utils.report_utils import (
+    _FALLBACK_RECIPIENT,
     prepare_email_params,
     setup_crew_output_directory,
 )
@@ -28,10 +29,10 @@ def mock_state():
 
 def test_prepare_email_params_defaults(mocker, mock_state):
     """Test prepare_email_params with minimal state."""
-    # Test with default recipient (when sendto is not set)
+    # When sendto is absent, fall back to the known-good recipient (not a crash).
     params = prepare_email_params(mock_state)
 
-    assert params["recipient_email"] == "test-ia@fjaquet.fr"
+    assert params["recipient_email"] == _FALLBACK_RECIPIENT
     assert params["subject"] == f"Epic News Report: {mock_state.selected_crew} - {mock_state.user_request}"
     assert params["body"] == f"Please find the report for '{mock_state.user_request}' attached."
     assert params["attachment_path"] == mock_state.output_file
@@ -43,6 +44,24 @@ def test_prepare_email_params_defaults(mocker, mock_state):
     mock_state.sendto = test_email
     params = prepare_email_params(mock_state)
     assert params["recipient_email"] == test_email
+
+
+@pytest.mark.parametrize(
+    "bad_sendto",
+    ["", "   ", "not-an-email", "@no-local.com", "no-at-sign", "missing@tld", "a b@c.com"],
+)
+def test_prepare_email_params_invalid_recipient_falls_back(mock_state, bad_sendto):
+    """A missing/empty/malformed MAIL must fall back, not reach the email tool."""
+    mock_state.sendto = bad_sendto
+    params = prepare_email_params(mock_state)
+    assert params["recipient_email"] == _FALLBACK_RECIPIENT
+
+
+def test_prepare_email_params_trims_valid_recipient(mock_state):
+    """A valid but whitespace-padded address is accepted and trimmed."""
+    mock_state.sendto = "  user@example.com  "
+    params = prepare_email_params(mock_state)
+    assert params["recipient_email"] == "user@example.com"
 
 
 def test_setup_crew_output_directory_exists(mocker):

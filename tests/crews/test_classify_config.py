@@ -40,6 +40,16 @@ def test_classify_prompt_mentions_pestel_triggers(classify_tasks: dict) -> None:
         assert token in description, f"PESTEL trigger '{token}' missing from prompt"
 
 
+def test_classify_prompt_mentions_deepresearch_guidance(classify_tasks: dict) -> None:
+    """Regression guard: topic/tech research ("what's new in framework X") must be
+    routable to DEEPRESEARCH rather than swallowed by NEWSDAILY's news keywords."""
+    description = classify_tasks["classification_task"]["description"]
+    assert "DEEPRESEARCH" in description, "DEEPRESEARCH routing guidance missing from prompt"
+    lowered = description.lower()
+    for token in ("framework", "state of the art"):
+        assert token in lowered, f"DEEPRESEARCH trigger '{token}' missing from prompt"
+
+
 def test_classify_prompt_references_core_categories(classify_tasks: dict) -> None:
     """Each category we route on must be discoverable in the prompt — at minimum
     the high-traffic ones. Missing categories cause silent misrouting."""

@@ -15,10 +15,16 @@ classification_task:
     recommendations, buying guides, or consumer advice requests
     - FINDAILY: For financial advice, investment recommendations, portfolio analysis,
     stock market insights, crypto analysis, financial planning, daily financial reports
-    - NEWSDAILY: For daily news summaries, current events, news analysis, breaking
-    news
+    - NEWSDAILY: For GENERAL daily news digests spanning many topics — world and
+    current events, breaking news, the day's headlines. NOT for research about one
+    specific subject, technology, product, or software framework (use DEEPRESEARCH).
     - COMPANY_NEWS: For company-specific news, corporate updates, business intelligence
     about specific companies or organizations
+    - DEEPRESEARCH: For in-depth research on ONE specific subject — a technology,
+    software framework, library, SDK, programming language, scientific concept,
+    method, or the question "what's new / latest developments / state of the art
+    in X". Prefer this over NEWSDAILY whenever the request targets a specific topic
+    rather than general current events.
     - HOLIDAY_PLANNER: For vacation planning, travel itineraries, destination research
     - BOOK_SUMMARY: For book summaries, reading recommendations, literary analysis,
     book reviews, author information, literature queries, book analysis, tell me about
@@ -46,6 +52,10 @@ classification_task:
     - "company news", "corporate news", "news for company", "enterprise news", "business
     updates", "company updates"
     → COMPANY_NEWS
+    - "nouveautés d'un framework/langage/librairie", "framework", "librairie", "SDK",
+    "latest features", "developments in", "state of the art", "deep dive",
+    "veille technologique", "recherche approfondie", "crewai", "python framework"
+    → DEEPRESEARCH
     - "book", "livre", "roman", "auteur", "author", "tell me about",  → BOOK_SUMMARY
     - "saint", "saint du jour", "daily saint", "saint daily"
     → SAINT

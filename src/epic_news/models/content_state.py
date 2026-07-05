@@ -68,7 +68,9 @@ class CrewCategories:
 
 
 # Default values
-DEFAULT_EMAIL = os.getenv("MAIL", "fred.jacquet@gmail.com")
+# `or` (not getenv's default) so a set-but-empty MAIL ("MAIL=") still falls back
+# to a valid address instead of an empty string that breaks the email send.
+DEFAULT_EMAIL = os.getenv("MAIL") or "fred.jacquet@gmail.com"
 DEFAULT_PARTICIPANTS = [
     "John Doe <john.doe@pictet.com> - CEO",
     "Jane Smith <jane.smith@pictet.com> - CTO",
