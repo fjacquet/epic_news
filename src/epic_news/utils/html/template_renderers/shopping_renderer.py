@@ -55,6 +55,13 @@ class ShoppingRenderer(BaseRenderer):
         self._add_recommendations(soup, container, data)
         self._add_user_context(soup, container, data)
 
+        # Empty-state: if a degenerate payload produced no sections, signal it
+        # visibly instead of returning a silently blank wrapper.
+        if not container.find(True):  # type: ignore[union-attr]
+            empty = soup.new_tag("div", attrs={"class": "empty-state"})
+            empty.string = "Aucune donnée d'achat disponible."
+            container.append(empty)  # type: ignore[union-attr]
+
         return str(soup)
 
     @staticmethod
@@ -179,8 +186,11 @@ class ShoppingRenderer(BaseRenderer):
             retailer_td = soup.new_tag("td")
             retailer = price_item.get("retailer") or ""
             url = price_item.get("url")
-            if url:
-                link = soup.new_tag("a", attrs={"href": url, "target": "_blank", "rel": "noopener"})
+            # Only hyperlink safe http(s) schemes; a javascript:/data: URL from
+            # crew output would be a clickable XSS vector (HTML-escaping does not
+            # neutralise the scheme). Otherwise show the retailer as plain text.
+            if isinstance(url, str) and url.strip().lower().startswith(("http://", "https://")):
+                link = soup.new_tag("a", attrs={"href": url.strip(), "target": "_blank", "rel": "noopener"})
                 link.string = retailer
                 retailer_td.append(link)
             else:

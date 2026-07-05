@@ -89,8 +89,14 @@ class TemplateManager:
             return base_title
         if selected_crew == "NEWS" and content_data.get("main_topic"):
             return f"{base_title} - {content_data['main_topic']}"
-        if selected_crew == "SHOPPING" and content_data.get("product_name"):
-            return f"🛒 {content_data['product_name']} - Conseil d'Achat"
+        if selected_crew == "SHOPPING":
+            # SHOPPING carries the name in product_info.name (model_dump); keep the
+            # flat product_name as a legacy fallback.
+            product_info = content_data.get("product_info")
+            name = product_info.get("name") if isinstance(product_info, dict) else None
+            name = name or content_data.get("product_name")
+            if name:
+                return f"🛒 {name} - Conseil d'Achat"
 
         return base_title
 
