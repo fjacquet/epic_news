@@ -102,6 +102,9 @@ def test_full_model_via_template_manager_renders_all_sections():
     assert "Acheter le X chez Digitec." in html
     assert "Budget 300 CHF, logement 2 pièces." in html
 
+    # Report <title> derives from product_info.name, not the generic fallback.
+    assert "🛒 Aspirateur X - Conseil d'Achat" in html
+
 
 def test_regression_model_dump_is_not_blank():
     """The exact production shape must produce real content, not an empty wrapper."""
@@ -117,10 +120,26 @@ def test_error_key_renders_error_only():
     assert "<section" not in html
 
 
-def test_empty_dict_renders_wrapper_without_crash():
+def test_empty_dict_renders_empty_state_not_blank():
     html = ShoppingRenderer().render({})
     assert '<div class="shopping-advice">' in html
     assert "<section" not in html
+    # A degenerate payload is signalled visibly, not returned silently blank.
+    assert 'class="empty-state"' in html
+
+
+def test_unsafe_url_scheme_is_not_hyperlinked():
+    """A javascript:/data: retailer URL must render as plain text, never an href."""
+    model = _full_model().model_dump()
+    model["switzerland_prices"][0]["url"] = "javascript:alert(1)"
+    model["france_prices"][0]["url"] = "data:text/html,<script>x</script>"
+    html = ShoppingRenderer().render(model)
+    assert "javascript:" not in html
+    assert "data:text/html" not in html
+    assert "<a " not in html  # neither retailer is hyperlinked now
+    # Retailers still shown as plain text.
+    assert "Digitec" in html
+    assert "Fnac" in html
 
 
 def test_price_row_without_url_is_plain_text():
