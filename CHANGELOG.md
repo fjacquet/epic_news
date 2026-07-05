@@ -4,6 +4,28 @@ All notable changes to Epic News are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [3.3.3] — 2026-07-05
+
+A bug-fix, security-hardening, and test-coverage release. Fixes HTML renderers that produced broken or blank reports, a JSON-repair correctness bug, and two stored-XSS vectors; removes legacy dead code; and lands a large test-coverage increase (63% → 82%).
+
+### Fixed
+- **Systemic `class_=` broken CSS across 6 renderers** (menu, cooking, generic, shopping, poem, financial): `soup.new_tag(..., class_="X")` emitted a literal `class_="X"` attribute instead of `class="X"`, so those reports rendered **unstyled**. 85 call sites corrected to `attrs={"class": "X"}` (BeautifulSoup's `new_tag` does not special-case the trailing underscore, unlike `create_soup`).
+- **SHOPPING report rendered blank in production**: `ShoppingRenderer` read flat keys the `ShoppingAdviceOutput` model never produces (`product_name`, `price_comparison`, `recommendation`, `alternatives`, top-level `pros`/`cons`), so every section guard failed silently and the report was an empty wrapper. Rewrote the renderer to consume the real model contract (product overview, CH/FR price tables, competitors, best deals, recommendations); the report `<title>` now reads `product_info.name`; removed the unused `ShoppingExtractor`; added an empty-state for degenerate payloads.
+- **Saint's name never displayed**: `SaintRenderer` read `data["name"]`, but the model field is `saint_name` → always the generic "✨ Saint" fallback. Now resolves `saint_name` (with a legacy `name` fallback).
+- **OSINT table of contents never linked the geospatial section**: the TOC derived `geospatial` from the section id while the data key is `geospatial_analysis`. Fixed via a targeted key mapping.
+- **`FinancialRenderer` ignored the report `title`** (header was hardcoded) and could silently drop metric/analysis sections on unusable input; also removed a large legacy dead-code surface (fields the current `FinancialReport` model doesn't provide).
+- **JSON-repair mangled Python literals**: `diagnostics.parsing._attempt_json_repair` turned `True`/`False`/`None` into quoted strings with a stray trailing `", "` (e.g. `{"a": True}` → `{"a": "true, "}`), because a later bare-string-quoting pass re-wrapped the lowercased tokens. A negative lookahead now preserves them as JSON `true`/`false`/`null`.
+- **Holiday planner crashed at runtime** with `ValidationError for TaskOutput / raw: Input should be a valid string [input_value=[ChatCompletionMessageToolCall(...)]]`: CrewAI 1.15's concurrent-async path leaked a tool-calling agent's final turn into `TaskOutput.raw` (which must be a `str`). The two `async_execution=True` tasks now run sequentially.
+- **`news_daily` final report showed raw Markdown** and tech-topic research requests misrouted to `NEWSDAILY` instead of `DEEPRESEARCH`; the email recipient path is hardened against empty/malformed `MAIL` values.
+
+### Security
+- **Stored-XSS in `cross_reference_report_renderer`**: data-derived fields (`target`, `executive_summary`, findings, gaps, …) were interpolated into raw f-string HTML without escaping. All seven interpolation sites now go through `html.escape`.
+- **Stored-XSS in `shopping_renderer` retailer links**: an unvalidated `javascript:`/`data:` retailer URL from crew output became a clickable vector (HTML-escaping does not neutralise the scheme). Retailer links are now restricted to `http(s)://`; other schemes render as plain text.
+
+### Changed / Internal
+- **Test coverage 63% → 82%** (+206 tests, ~2,200 lines newly covered) across 16 renderer / parsing / observability modules, authored via parallel subagents.
+- Removed the unused `ShoppingExtractor` and the `FinancialRenderer` legacy dead-code branches.
+
 ## [3.3.2] — 2026-07-04
 
 A crew-execution hotfix release. Crews were unable to run against OpenRouter because CrewAI 1.15's native provider sent strict schemas that upstream models reject; routing now goes through LiteLLM. Also fixes the book-summary report never displaying in the UI and a Loguru crash in the Streamlit error handler.
