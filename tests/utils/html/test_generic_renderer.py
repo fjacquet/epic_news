@@ -7,19 +7,6 @@ header generation, common free-text fields, list-of-scalars and
 list-of-dicts sections (including falsy-value filtering), the raw-data
 debug section (with its per-type formatting branches), and empty-state
 handling.
-
-NOTE (suspected pre-existing bug, not fixed here): ``_add_header``,
-``_add_content_sections`` and ``_add_raw_data`` create child tags via
-``soup.new_tag("div", class_="...")`` directly instead of the
-``create_soup()``/``tag.attrs["class"] = [...]`` pattern documented in
-``src/epic_news/utils/CLAUDE.md``. BeautifulSoup's ``new_tag()`` does not
-special-case the ``class_`` keyword the way the ``Tag`` constructor sugar
-does elsewhere in this codebase, so it renders a literal ``class_="..."``
-attribute (not ``class="..."``) on every div created this way. Only the
-outer container (built via ``self.create_soup(...)``, which does strip the
-trailing underscore) gets a real ``class="generic-report"`` attribute.
-Tests below assert this actual (broken) behavior rather than the intended
-one.
 """
 
 from bs4 import BeautifulSoup
@@ -194,24 +181,23 @@ def test_via_template_manager_unmapped_identifier_falls_back_to_generic():
     assert "generic-report" in html
 
 
-def test_child_tags_use_broken_class_attribute_not_real_class():
-    """Documents the suspected pre-existing bug described in the module
-    docstring: child divs built with `soup.new_tag("div", class_="...")`
-    render a literal `class_="..."` attribute instead of `class="..."`,
-    unlike the outer container (built via `create_soup`, which does strip
-    the trailing underscore correctly)."""
+def test_child_tags_use_real_class_attribute():
+    """Child divs built with `soup.new_tag("div", attrs={"class": "..."})`
+    must render a real `class="..."` attribute (not a literal `class_="..."`),
+    same as the outer container (built via `create_soup`)."""
     html = _render({"summary": "x"})
 
     # outer container: class handled correctly by create_soup()
     assert 'class="generic-report"' in html
 
-    # child divs: broken class_ attribute (pre-existing bug, not fixed here)
-    assert 'class_="generic-header"' in html
-    assert 'class_="generic-content"' in html
-    assert 'class_="content-section"' in html
-    assert 'class_="raw-data-section"' in html
+    # child divs: real class attribute, no literal class_= anywhere
+    assert 'class="generic-header"' in html
+    assert 'class="generic-content"' in html
+    assert 'class="content-section"' in html
+    assert 'class="raw-data-section"' in html
+    assert "class_=" not in html
 
-    # and, as a consequence, BeautifulSoup does NOT expose these divs under
-    # a real "class" attribute at all
+    # and, as a consequence, BeautifulSoup DOES expose these divs under a
+    # real "class" attribute, findable via the standard bs4 search API
     soup = BeautifulSoup(html, "html.parser")
-    assert soup.find("div", class_="generic-header") is None
+    assert soup.find("div", class_="generic-header") is not None

@@ -7,6 +7,8 @@ suite), plus a couple of direct-renderer calls for branches that are not
 reachable through the full template pipeline (see notes below).
 """
 
+from html import escape
+
 import pytest
 
 from epic_news.models.crews.cross_reference_report import CrossReferenceReport
@@ -155,3 +157,59 @@ def test_invalid_data_format_returns_error_paragraph(bad_data):
     result = renderer.render(bad_data)
 
     assert result == "<p>Invalid data format for Cross-Reference Report.</p>"
+
+
+# --- Stored-XSS regression --------------------------------------------------
+
+
+def test_data_derived_strings_are_html_escaped():
+    """Malicious/markup-laden crew output must be escaped, never injected raw.
+
+    Every data-derived field (target, executive_summary, detailed_findings
+    keys/values, confidence_assessment, information_gaps items) is exercised
+    with a `<script>` payload, a `<b>` tag, and a bare `&`. The renderer must
+    HTML-escape all of them so no raw `<script>`, `<b>`, or unescaped `&`
+    reaches the output.
+    """
+    script_payload = "<script>alert(1)</script>"
+    bold_payload = "<b>bold</b>"
+    malicious_key = "malicious_key<script>alert(1)</script>"
+    renderer = CrossReferenceReportRenderer()
+
+    data = {
+        "target": script_payload,
+        "executive_summary": f"Summary {script_payload} and {bold_payload} & co",
+        "detailed_findings": {
+            malicious_key: bold_payload,
+            "nested": {script_payload: bold_payload},
+            "items": [script_payload, bold_payload, "plain & text"],
+        },
+        "confidence_assessment": script_payload,
+        "information_gaps": [script_payload, "plain & simple gap"],
+    }
+
+    html = renderer.render(data)
+
+    # No raw dangerous markup anywhere in the output. Case-insensitive because
+    # dict keys additionally go through `.title()` before escaping.
+    lowered = html.lower()
+    assert "<script>" not in lowered
+    assert "</script>" not in lowered
+    assert "<b>bold</b>" not in lowered
+
+    # Values are escaped as-is (not title-cased): target, confidence_assessment,
+    # information_gaps items, and detailed_findings list items/values.
+    assert escape(script_payload) in html
+    assert escape(bold_payload) in html
+
+    # Bare `&` is escaped in every context: plain text, list items.
+    assert "&amp; co" in html  # executive_summary
+    assert "plain &amp; simple gap" in html  # top-level information_gaps item
+    assert "plain &amp; text" in html  # nested detailed_findings list item
+
+    # Dict keys (top-level and nested) are escaped too, after the existing
+    # `.replace('_', ' ').title()` humanization step.
+    expected_malicious_key = escape(malicious_key.replace("_", " ").title())
+    expected_nested_key = escape(script_payload.replace("_", " ").title())
+    assert expected_malicious_key in html
+    assert expected_nested_key in html

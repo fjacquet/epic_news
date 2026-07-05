@@ -35,7 +35,7 @@ class ShoppingRenderer(BaseRenderer):
 
         # Handle error case
         if "error" in data:
-            error_div = soup.new_tag("div", class_="error")
+            error_div = soup.new_tag("div", attrs={"class": "error"})
             error_div.string = f"⚠️ {data['error']}"
             container.append(error_div)  # type: ignore[union-attr]
             return str(soup)
@@ -55,7 +55,6 @@ class ShoppingRenderer(BaseRenderer):
         # Add pros and cons if available
         self._add_pros_cons(soup, container, data)
 
-
         return str(soup)
 
     def _add_product_overview(self, soup: BeautifulSoup, container, data: dict[str, Any]) -> None:
@@ -66,7 +65,7 @@ class ShoppingRenderer(BaseRenderer):
         if not (product_name and product_overview):
             return
 
-        overview_section = soup.new_tag("section", class_="product-overview")
+        overview_section = soup.new_tag("section", attrs={"class": "product-overview"})
 
         # Title with product name
         title_tag = soup.new_tag("h2")
@@ -81,7 +80,7 @@ class ShoppingRenderer(BaseRenderer):
         # Add product image if available
         product_image = data.get("product_image")
         if product_image:
-            img_div = soup.new_tag("div", class_="product-image")
+            img_div = soup.new_tag("div", attrs={"class": "product-image"})
             img_tag = soup.new_tag("img", src=product_image, alt=product_name)
             img_tag["loading"] = "lazy"
             img_div.append(img_tag)
@@ -95,7 +94,7 @@ class ShoppingRenderer(BaseRenderer):
         if not prices:
             return
 
-        price_section = soup.new_tag("section", class_="price-comparison")
+        price_section = soup.new_tag("section", attrs={"class": "price-comparison"})
 
         # Title
         price_title = soup.new_tag("h3")
@@ -103,7 +102,7 @@ class ShoppingRenderer(BaseRenderer):
         price_section.append(price_title)
 
         # Create table for price comparison
-        table = soup.new_tag("table", class_="price-table")
+        table = soup.new_tag("table", attrs={"class": "price-table"})
 
         # Add table header
         thead = soup.new_tag("thead")
@@ -160,13 +159,13 @@ class ShoppingRenderer(BaseRenderer):
         if not recommendation:
             return
 
-        rec_section = soup.new_tag("section", class_="recommendations")
+        rec_section = soup.new_tag("section", attrs={"class": "recommendations"})
 
         rec_title = soup.new_tag("h3")
         rec_title.string = "🌟 Recommandation"
         rec_section.append(rec_title)
 
-        rec_div = soup.new_tag("div", class_="recommendation-content")
+        rec_div = soup.new_tag("div", attrs={"class": "recommendation-content"})
 
         rec_p = soup.new_tag("p")
         rec_strong = soup.new_tag("strong")
@@ -188,13 +187,13 @@ class ShoppingRenderer(BaseRenderer):
         if not alternatives:
             return
 
-        alt_section = soup.new_tag("section", class_="alternatives")
+        alt_section = soup.new_tag("section", attrs={"class": "alternatives"})
 
         alt_title = soup.new_tag("h3")
         alt_title.string = "🔄 Alternatives"
         alt_section.append(alt_title)
 
-        alt_list = soup.new_tag("ul", class_="alternatives-list")
+        alt_list = soup.new_tag("ul", attrs={"class": "alternatives-list"})
 
         for alt in alternatives:
             alt_name = alt.get("name", "")
@@ -222,17 +221,17 @@ class ShoppingRenderer(BaseRenderer):
         if not (pros or cons):
             return
 
-        pros_cons_section = soup.new_tag("section", class_="pros-cons")
+        pros_cons_section = soup.new_tag("section", attrs={"class": "pros-cons"})
 
         pros_cons_title = soup.new_tag("h3")
         pros_cons_title.string = "✅ Avantages et ❌ Inconvénients"
         pros_cons_section.append(pros_cons_title)
 
-        pros_cons_div = soup.new_tag("div", class_="pros-cons-container")
+        pros_cons_div = soup.new_tag("div", attrs={"class": "pros-cons-container"})
 
         # Add pros
         if pros:
-            pros_div = soup.new_tag("div", class_="pros")
+            pros_div = soup.new_tag("div", attrs={"class": "pros"})
             pros_title = soup.new_tag("h4")
             pros_title.string = "✅ Avantages"
             pros_div.append(pros_title)
@@ -248,7 +247,7 @@ class ShoppingRenderer(BaseRenderer):
 
         # Add cons
         if cons:
-            cons_div = soup.new_tag("div", class_="cons")
+            cons_div = soup.new_tag("div", attrs={"class": "cons"})
             cons_title = soup.new_tag("h4")
             cons_title.string = "❌ Inconvénients"
             cons_div.append(cons_title)

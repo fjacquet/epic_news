@@ -18,14 +18,11 @@ the renderer's own defensive code expects, but never as real production
 data would look coming from the model. This is flagged as a data-key/model
 mismatch in the test docstrings below rather than "fixed".
 
-Known renderer bug (NOT fixed here, per instructions): most nested tags are
-built with ``soup.new_tag(tag, class_="...")``. BeautifulSoup's ``new_tag``
-does NOT special-case a trailing underscore the way ``create_soup`` (in
-``BaseRenderer``) does, so these tags literally render as a
-``class_="..."`` attribute (with the underscore) instead of ``class="..."``.
-Only the outermost container (built via ``create_soup``) gets a correct
-``class="financial-report"`` attribute. Tests below assert the *actual*
-(broken) output.
+Nested tags are built with ``soup.new_tag(tag, attrs={"class": "..."})``,
+which correctly produces a ``class="..."`` attribute (unlike the old,
+now-fixed, ``class_="..."`` kwarg form that BeautifulSoup's ``new_tag``
+does not special-case). Tests below assert the correct ``class="..."``
+output.
 """
 
 from epic_news.models.crews.financial_report import (
@@ -47,7 +44,7 @@ CREW_IDENTIFIER = "FINDAILY"
 def test_full_report_via_template_manager():
     """Full FinancialReport with multiple analyses/suggestions renders expected content."""
     report = FinancialReport(
-        title="Ignored Title",  # renderer never reads `title` -- see mismatch test below
+        title="Custom Title",
         executive_summary="Les marchés ont connu une semaine volatile.",
         analyses=[
             AssetAnalysis(
@@ -73,8 +70,8 @@ def test_full_report_via_template_manager():
 
     html = TemplateManager().render_report(CREW_IDENTIFIER, report.model_dump())
 
-    # Header
-    assert "💰 Rapport Financier" in html
+    # Header uses the report's `title` field
+    assert "💰 Custom Title" in html
     assert "📅 2026-07-04" in html
 
     # Executive summary
@@ -92,8 +89,8 @@ def test_full_report_via_template_manager():
     assert "[Crypto] Acheter du Bitcoin" in html
     assert "→ Momentum haussier confirmé." in html
 
-    # Ignored `title` field must NOT leak into the rendered header
-    assert "Ignored Title" not in html
+    # The fallback header text must NOT appear since a custom title was given.
+    assert "Rapport Financier" not in html
 
     # Empty details list for the "Obligations" analysis produces no stray <ul>
     # for that section -- but the "Actions" section's details did produce one.
@@ -110,8 +107,9 @@ def test_minimal_valid_report_via_template_manager_no_crash():
 
     html = TemplateManager().render_report(CREW_IDENTIFIER, report.model_dump())
 
-    # Non-trivial HTML: header + executive summary always present.
-    assert "💰 Rapport Financier" in html
+    # Non-trivial HTML: header (using the model's default `title`) + executive
+    # summary always present.
+    assert "💰 Daily Financial Report" in html
     assert "Résumé minimal." in html
 
     # Empty analyses/suggestions must suppress the corresponding sections entirely.
@@ -134,18 +132,14 @@ def test_root_container_class_attribute_is_correct():
     assert '<div class="financial-report">' in html
 
 
-def test_nested_tags_have_broken_class_attribute():
-    """Known bug: soup.new_tag(..., class_=...) leaks a literal `class_` attribute.
-
-    Documented, not fixed, per task instructions.
-    """
+def test_nested_tags_have_correct_class_attribute():
+    """Nested tags use ``attrs={"class": ...}``, producing a correct `class=` attribute."""
     html = FinancialRenderer().render({"summary": "x"})
-    # The broken attribute is present verbatim...
-    assert 'class_="financial-header"' in html
-    assert 'class_="executive-summary"' in html
-    # ...and the correct `class=` attribute is absent for these nested tags.
-    assert 'class="financial-header"' not in html
-    assert 'class="executive-summary"' not in html
+    assert 'class="financial-header"' in html
+    assert 'class="executive-summary"' in html
+    # The old, broken literal-underscore attribute must never appear.
+    assert 'class_="financial-header"' not in html
+    assert 'class_="executive-summary"' not in html
 
 
 def test_header_date_key_precedence_and_fallback():
@@ -184,7 +178,7 @@ def test_key_metrics_dict_renders_metric_cards():
     assert "Portfolio Value" in html
     assert "10000 EUR" in html
     assert "Risk Score" in html
-    assert '<p class_="metric-value">7</p>' in html
+    assert '<p class="metric-value">7</p>' in html
 
 
 def test_key_metrics_fallback_key():
@@ -194,13 +188,12 @@ def test_key_metrics_fallback_key():
     assert "500 EUR" in html
 
 
-def test_key_metrics_truthy_non_dict_silently_produces_no_section():
-    """BUG (documented, not fixed): a truthy non-dict `metrics` value renders NOTHING.
+def test_key_metrics_truthy_non_dict_explicitly_skips_section():
+    """A truthy but non-dict `metrics` value (e.g. a list) is explicitly skipped.
 
-    `_add_key_metrics` only appends the section if `metrics_grid.find_all()`
-    finds children, which only happens when `metrics` is a dict. A list or
-    string value is truthy (passes the initial guard) but produces an empty
-    grid, so the whole section -- including its title -- is silently dropped.
+    `_add_key_metrics` checks `isinstance(metrics, dict)` up front, so a list
+    or string value never produces an empty, title-only section -- the whole
+    section is cleanly skipped before any tags are created.
     """
     html = FinancialRenderer().render({"metrics": ["not", "a", "dict"]})
     assert "Métriques Clés" not in html
@@ -232,7 +225,7 @@ def test_analysis_old_format_list_with_key_fallbacks():
     assert "Section B" in html
     assert "Content B" in html
     # 3 analysis-section divs total (including the empty one).
-    assert html.count('class_="analysis-section"') == 3
+    assert html.count('class="analysis-section"') == 3
 
 
 def test_analysis_old_format_detailed_analysis_fallback_key():
@@ -245,12 +238,12 @@ def test_analysis_old_format_detailed_analysis_fallback_key():
 
 
 def test_analysis_old_format_non_dict_items_drop_entire_section():
-    """BUG (documented, not fixed): a list of non-dict analysis items renders NO section.
+    """A list of non-dict analysis items explicitly skips the whole section.
 
-    Each non-dict item is skipped (`isinstance(item, dict)` check), so no
-    <p>/<div> children ever get added under `analysis_div` besides its own
-    <h3> title -- and the final `find_all("p") or find_all("div")` gate then
-    fails, dropping the section (including its title) entirely.
+    `_add_analysis_sections` checks up front whether `analysis` (or
+    `analyses`) contains at least one dict item; since none of the items here
+    are dicts, the section -- including its title -- is skipped cleanly
+    before any tags are created.
     """
     html = FinancialRenderer().render({"analysis": ["just a plain string", 42]})
     assert "Analyse Détaillée" not in html
@@ -365,8 +358,8 @@ def test_recommendations_old_and_new_format_combined_produce_two_lists():
     )
     assert "<li>Old rec</li>" in html
     assert "[Crypto] New sugg" in html
-    # Both lists share the same (broken) class attribute.
-    assert html.count('class_="recommendations-list"') == 2
+    # Both lists share the same class attribute.
+    assert html.count('class="recommendations-list"') == 2
 
 
 def test_recommendations_dict_type_silently_produces_title_only_section():

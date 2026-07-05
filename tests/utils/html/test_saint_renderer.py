@@ -68,9 +68,9 @@ def test_full_data_from_pydantic_model():
     assert 'class="prayer-reflection"' in html
     assert 'class="sources"' in html
 
-    # The model has no "name"/"title"/"epithet" fields, so the header falls back
-    # to the default name and no subtitle is rendered.
-    assert "✨ Saint" in html
+    # The header must render the model's "saint_name" field. The model has no
+    # "title"/"epithet" fields, so no subtitle is rendered.
+    assert "✨ Saint Nicolas de Flüe" in html
     assert 'class="saint-title"' not in html
 
     # Content fed in

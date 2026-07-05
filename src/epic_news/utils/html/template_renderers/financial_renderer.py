@@ -48,21 +48,21 @@ class FinancialRenderer(BaseRenderer):
         # Add recommendations
         self._add_recommendations(soup, container, data)
 
-
         return str(soup)
 
     def _add_header(self, soup: BeautifulSoup, container, data: dict[str, Any]) -> None:
         """Add financial report header."""
-        header_div = soup.new_tag("div", class_="financial-header")
+        header_div = soup.new_tag("div", attrs={"class": "financial-header"})
 
         title_tag = soup.new_tag("h2")
-        title_tag.string = "💰 Rapport Financier"
+        title = data.get("title")
+        title_tag.string = f"💰 {title}" if title else "💰 Rapport Financier"
         header_div.append(title_tag)
 
         # Add date if available
         date = data.get("date") or data.get("report_date")
         if date:
-            date_p = soup.new_tag("p", class_="report-date")
+            date_p = soup.new_tag("p", attrs={"class": "report-date"})
             date_p.string = f"📅 {date}"
             header_div.append(date_p)
 
@@ -74,7 +74,7 @@ class FinancialRenderer(BaseRenderer):
         if not summary:
             return
 
-        summary_div = soup.new_tag("div", class_="executive-summary")
+        summary_div = soup.new_tag("div", attrs={"class": "executive-summary"})
 
         title_tag = soup.new_tag("h3")
         title_tag.string = "📋 Résumé Exécutif"
@@ -89,44 +89,54 @@ class FinancialRenderer(BaseRenderer):
     def _add_key_metrics(self, soup: BeautifulSoup, container, data: dict[str, Any]) -> None:
         """Add key financial metrics."""
         metrics = data.get("key_metrics") or data.get("metrics")
-        if not metrics:
+        # Explicit up-front skip: only a non-empty dict is renderable. A
+        # truthy-but-non-dict value (e.g. a list) must not produce an empty,
+        # title-only section.
+        if not isinstance(metrics, dict) or not metrics:
             return
 
-        metrics_div = soup.new_tag("div", class_="key-metrics")
+        metrics_div = soup.new_tag("div", attrs={"class": "key-metrics"})
 
         title_tag = soup.new_tag("h3")
         title_tag.string = "📊 Métriques Clés"
         metrics_div.append(title_tag)
 
-        metrics_grid = soup.new_tag("div", class_="metrics-grid")
+        metrics_grid = soup.new_tag("div", attrs={"class": "metrics-grid"})
 
-        if isinstance(metrics, dict):
-            for metric_name, metric_value in metrics.items():
-                metric_card = soup.new_tag("div", class_="metric-card")
+        for metric_name, metric_value in metrics.items():
+            metric_card = soup.new_tag("div", attrs={"class": "metric-card"})
 
-                metric_title = soup.new_tag("h4")
-                metric_title.string = metric_name.replace("_", " ").title()
-                metric_card.append(metric_title)
+            metric_title = soup.new_tag("h4")
+            metric_title.string = metric_name.replace("_", " ").title()
+            metric_card.append(metric_title)
 
-                metric_val = soup.new_tag("p", class_="metric-value")
-                metric_val.string = str(metric_value)
-                metric_card.append(metric_val)
+            metric_val = soup.new_tag("p", attrs={"class": "metric-value"})
+            metric_val.string = str(metric_value)
+            metric_card.append(metric_val)
 
-                metrics_grid.append(metric_card)
+            metrics_grid.append(metric_card)
 
-        if metrics_grid.find_all():
-            metrics_div.append(metrics_grid)
-            container.append(metrics_div)
+        metrics_div.append(metrics_grid)
+        container.append(metrics_div)
 
     def _add_analysis_sections(self, soup: BeautifulSoup, container, data: dict[str, Any]) -> None:
         """Add analysis sections, supporting both 'analysis' and 'analyses' fields."""
         # Support both singular and plural fields
         analysis = data.get("analysis") or data.get("detailed_analysis")
         analyses = data.get("analyses")
-        if not analysis and not analyses:
+
+        # Explicit up-front skip: determine whether either field has genuinely
+        # renderable content before creating any tags, so a truthy-but-unusable
+        # value (e.g. a list of non-dict items) skips the whole section --
+        # title included -- instead of silently falling through to an empty one.
+        analysis_has_content = (isinstance(analysis, str) and bool(analysis)) or (
+            isinstance(analysis, list) and any(isinstance(item, dict) for item in analysis)
+        )
+        analyses_has_content = isinstance(analyses, list) and any(isinstance(item, dict) for item in analyses)
+        if not analysis_has_content and not analyses_has_content:
             return
 
-        analysis_div = soup.new_tag("div", class_="financial-analysis")
+        analysis_div = soup.new_tag("div", attrs={"class": "financial-analysis"})
 
         title_tag = soup.new_tag("h3")
         title_tag.string = "🔍 Analyse Détaillée"
@@ -141,7 +151,7 @@ class FinancialRenderer(BaseRenderer):
             elif isinstance(analysis, list):
                 for item in analysis:
                     if isinstance(item, dict):
-                        section_div = soup.new_tag("div", class_="analysis-section")
+                        section_div = soup.new_tag("div", attrs={"class": "analysis-section"})
                         section_title = item.get("title") or item.get("category")
                         if section_title:
                             section_h4 = soup.new_tag("h4")
@@ -157,7 +167,7 @@ class FinancialRenderer(BaseRenderer):
         if analyses:
             for item in analyses:
                 if isinstance(item, dict):
-                    section_div = soup.new_tag("div", class_="analysis-section")
+                    section_div = soup.new_tag("div", attrs={"class": "analysis-section"})
                     asset_class = item.get("asset_class")
                     summary = item.get("summary")
                     details = item.get("details")
@@ -178,8 +188,7 @@ class FinancialRenderer(BaseRenderer):
                         section_div.append(details_ul)
                     analysis_div.append(section_div)
 
-        if analysis_div.find_all("p") or analysis_div.find_all("div"):
-            container.append(analysis_div)
+        container.append(analysis_div)
 
     def _add_recommendations(self, soup: BeautifulSoup, container, data: dict[str, Any]) -> None:
         """Add recommendations section, supporting both 'recommendations' and 'suggestions'."""
@@ -188,7 +197,7 @@ class FinancialRenderer(BaseRenderer):
         if not recommendations and not suggestions:
             return
 
-        rec_div = soup.new_tag("div", class_="recommendations")
+        rec_div = soup.new_tag("div", attrs={"class": "recommendations"})
 
         title_tag = soup.new_tag("h3")
         title_tag.string = "💡 Recommandations"
@@ -197,7 +206,7 @@ class FinancialRenderer(BaseRenderer):
         # Old format: list or string
         if recommendations:
             if isinstance(recommendations, list):
-                rec_ul = soup.new_tag("ul", class_="recommendations-list")
+                rec_ul = soup.new_tag("ul", attrs={"class": "recommendations-list"})
                 for rec in recommendations:
                     li = soup.new_tag("li")
                     if isinstance(rec, dict):
@@ -213,7 +222,7 @@ class FinancialRenderer(BaseRenderer):
                 rec_div.append(rec_p)
         # New format: suggestions (each with asset_class, suggestion, rationale)
         if suggestions:
-            sugg_ul = soup.new_tag("ul", class_="recommendations-list")
+            sugg_ul = soup.new_tag("ul", attrs={"class": "recommendations-list"})
             for sugg in suggestions:
                 if isinstance(sugg, dict):
                     li = soup.new_tag("li")

@@ -58,14 +58,13 @@ class SaintRenderer(BaseRenderer):
         # Add sources
         self._add_sources(soup, container, data)
 
-
         return str(soup)
 
     def _add_header(self, soup: BeautifulSoup, container, data: dict[str, Any]) -> None:
         """Add saint header."""
         header_div = soup.new_tag("div", attrs={"class": "saint-header"})
 
-        name = data.get("name", "Saint")
+        name = data.get("saint_name") or data.get("name") or "Saint"
         title_tag = soup.new_tag("h2")
         title_tag.string = f"✨ {name}"
         header_div.append(title_tag)

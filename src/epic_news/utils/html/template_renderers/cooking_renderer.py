@@ -51,30 +51,29 @@ class CookingRenderer(BaseRenderer):
         # Add nutritional info if available
         self._add_nutritional_info(soup, container, data)
 
-
         return str(soup)
 
     def _add_header(self, soup: BeautifulSoup, container, data: dict[str, Any]) -> None:
         """Add recipe header with title and description."""
-        header = soup.new_tag("header", class_="recipe-header")
+        header = soup.new_tag("header", attrs={"class": "recipe-header"})
 
         # Title
         title = data.get("recipe_title", data.get("name", "Recette"))
-        title_tag = soup.new_tag("h1", class_="recipe-title")
+        title_tag = soup.new_tag("h1", attrs={"class": "recipe-title"})
         title_tag.string = f"🍽️ {title}"
         header.append(title_tag)
 
         # Description
         description = data.get("description", "")
         if description:
-            desc_tag = soup.new_tag("p", class_="recipe-description")
+            desc_tag = soup.new_tag("p", attrs={"class": "recipe-description"})
             desc_tag.string = description
             header.append(desc_tag)
 
         # Add recipe type badge if available
         recipe_type = data.get("type", data.get("category", ""))
         if recipe_type:
-            badge = soup.new_tag("span", class_="recipe-badge")
+            badge = soup.new_tag("span", attrs={"class": "recipe-badge"})
             badge.string = recipe_type
             header.append(badge)
 
@@ -82,12 +81,12 @@ class CookingRenderer(BaseRenderer):
 
     def _add_metadata(self, soup: BeautifulSoup, container, data: dict[str, Any]) -> None:
         """Add recipe metadata (prep time, cook time, servings, etc.)."""
-        meta_div = soup.new_tag("div", class_="recipe-meta")
+        meta_div = soup.new_tag("div", attrs={"class": "recipe-meta"})
 
         # Add preparation time if available
         prep_time = data.get("prep_time", "")
         if prep_time:
-            prep_div = soup.new_tag("div", class_="meta-item")
+            prep_div = soup.new_tag("div", attrs={"class": "meta-item"})
             prep_strong = soup.new_tag("strong")
             prep_strong.string = "⏱️ Préparation: "
             prep_div.append(prep_strong)
@@ -97,7 +96,7 @@ class CookingRenderer(BaseRenderer):
         # Add cooking time if available
         cook_time = data.get("cook_time", "")
         if cook_time:
-            cook_div = soup.new_tag("div", class_="meta-item")
+            cook_div = soup.new_tag("div", attrs={"class": "meta-item"})
             cook_strong = soup.new_tag("strong")
             cook_strong.string = "🔥 Cuisson: "
             cook_div.append(cook_strong)
@@ -107,7 +106,7 @@ class CookingRenderer(BaseRenderer):
         # Add servings if available
         servings = data.get("servings", "")
         if servings:
-            serv_div = soup.new_tag("div", class_="meta-item")
+            serv_div = soup.new_tag("div", attrs={"class": "meta-item"})
             serv_strong = soup.new_tag("strong")
             serv_strong.string = "👥 Portions: "
             serv_div.append(serv_strong)
@@ -127,7 +126,7 @@ class CookingRenderer(BaseRenderer):
                 "hard": "🔴 Difficile",
             }.get(difficulty.lower(), difficulty)
 
-            diff_div = soup.new_tag("div", class_="meta-item")
+            diff_div = soup.new_tag("div", attrs={"class": "meta-item"})
             diff_strong = soup.new_tag("strong")
             diff_strong.string = "📊 Difficulté: "
             diff_div.append(diff_strong)
@@ -137,7 +136,7 @@ class CookingRenderer(BaseRenderer):
         # Add category if available
         category = data.get("category", "")
         if category:
-            cat_div = soup.new_tag("div", class_="meta-item")
+            cat_div = soup.new_tag("div", attrs={"class": "meta-item"})
             cat_strong = soup.new_tag("strong")
             cat_strong.string = "🏷️ Catégorie: "
             cat_div.append(cat_strong)
@@ -153,7 +152,7 @@ class CookingRenderer(BaseRenderer):
         if not ingredients:
             return
 
-        ingredients_section = soup.new_tag("section", class_="recipe-ingredients")
+        ingredients_section = soup.new_tag("section", attrs={"class": "recipe-ingredients"})
 
         # Add section title
         ing_title = soup.new_tag("h2")
@@ -161,7 +160,7 @@ class CookingRenderer(BaseRenderer):
         ingredients_section.append(ing_title)
 
         # Create ingredients list
-        ing_list = soup.new_tag("ul", class_="ingredients-list")
+        ing_list = soup.new_tag("ul", attrs={"class": "ingredients-list"})
         for ingredient in ingredients:
             ing_item = soup.new_tag("li")
             ing_item.string = f"🥄 {ingredient}"
@@ -176,7 +175,7 @@ class CookingRenderer(BaseRenderer):
         if not instructions:
             return
 
-        instructions_section = soup.new_tag("section", class_="recipe-instructions")
+        instructions_section = soup.new_tag("section", attrs={"class": "recipe-instructions"})
 
         # Add section title
         ins_title = soup.new_tag("h2")
@@ -184,7 +183,7 @@ class CookingRenderer(BaseRenderer):
         instructions_section.append(ins_title)
 
         # Create instructions list
-        ins_list = soup.new_tag("ol", class_="instructions-list")
+        ins_list = soup.new_tag("ol", attrs={"class": "instructions-list"})
         for instruction in instructions:
             ins_item = soup.new_tag("li")
             ins_item.string = instruction
@@ -199,7 +198,7 @@ class CookingRenderer(BaseRenderer):
         if not chef_notes:
             return
 
-        notes_section = soup.new_tag("section", class_="chef-notes")
+        notes_section = soup.new_tag("section", attrs={"class": "chef-notes"})
 
         notes_title = soup.new_tag("h3")
         notes_title.string = "👨‍🍳 Notes du Chef"
@@ -207,7 +206,7 @@ class CookingRenderer(BaseRenderer):
 
         # Handle both string and list inputs
         if isinstance(chef_notes, list):
-            notes_list = soup.new_tag("ul", class_="notes-list")
+            notes_list = soup.new_tag("ul", attrs={"class": "notes-list"})
             for note in chef_notes:
                 note_item = soup.new_tag("li")
                 note_item.string = str(note)
@@ -226,7 +225,7 @@ class CookingRenderer(BaseRenderer):
         if not nutritional_info:
             return
 
-        nutrition_section = soup.new_tag("section", class_="nutritional-info")
+        nutrition_section = soup.new_tag("section", attrs={"class": "nutritional-info"})
 
         nutrition_title = soup.new_tag("h3")
         nutrition_title.string = "🥗 Information Nutritionnelle"
@@ -234,7 +233,7 @@ class CookingRenderer(BaseRenderer):
 
         # Handle both string and dictionary inputs
         if isinstance(nutritional_info, dict):
-            nutrition_list = soup.new_tag("ul", class_="nutrition-list")
+            nutrition_list = soup.new_tag("ul", attrs={"class": "nutrition-list"})
             for key, value in nutritional_info.items():
                 nutrition_item = soup.new_tag("li")
                 nutrition_item.string = f"{key.replace('_', ' ').title()}: {value}"

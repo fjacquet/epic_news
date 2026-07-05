@@ -2,6 +2,8 @@
 This module contains the renderer for the Cross-Reference Report.
 """
 
+from html import escape
+
 from epic_news.utils.html.template_renderers.base_renderer import BaseRenderer
 
 
@@ -25,19 +27,19 @@ class CrossReferenceReportRenderer(BaseRenderer):
         confidence = data.get("confidence_assessment", "N/A")
         gaps = data.get("information_gaps", [])
 
-        html = f"<h1>Cross-Reference Intelligence Report: {report_target}</h1>"
-        html += f"<h2>Executive Summary</h2><p>{executive_summary}</p>"
+        html = f"<h1>Cross-Reference Intelligence Report: {escape(str(report_target))}</h1>"
+        html += f"<h2>Executive Summary</h2><p>{escape(str(executive_summary))}</p>"
 
         html += "<h2>Detailed Findings</h2>"
         html += self._render_dict(detailed_findings)
 
-        html += f"<h2>Confidence Assessment</h2><p>{confidence}</p>"
+        html += f"<h2>Confidence Assessment</h2><p>{escape(str(confidence))}</p>"
 
         html += "<h2>Information Gaps</h2>"
         if gaps:
             html += "<ul>"
             for gap in gaps:
-                html += f"<li>{gap}</li>"
+                html += f"<li>{escape(str(gap))}</li>"
             html += "</ul>"
         else:
             html += "<p>No information gaps identified.</p>"
@@ -48,13 +50,14 @@ class CrossReferenceReportRenderer(BaseRenderer):
         """Renders a dictionary into an HTML list."""
         html = "<ul>"
         for key, value in data.items():
-            html += f"<li><strong>{key.replace('_', ' ').title()}:</strong>"
+            safe_key = escape(str(key).replace("_", " ").title())
+            html += f"<li><strong>{safe_key}:</strong>"
             if isinstance(value, dict):
                 html += self._render_dict(value)
             elif isinstance(value, list):
                 html += self._render_list(value)
             else:
-                html += f" {value}"
+                html += f" {escape(str(value))}"
             html += "</li>"
         html += "</ul>"
         return html
@@ -69,7 +72,7 @@ class CrossReferenceReportRenderer(BaseRenderer):
             elif isinstance(item, list):
                 html += self._render_list(item)
             else:
-                html += str(item)
+                html += escape(str(item))
             html += "</li>"
         html += "</ul>"
         return html

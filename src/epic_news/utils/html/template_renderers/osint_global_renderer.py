@@ -99,10 +99,15 @@ class OSINTGlobalRenderer(BaseRenderer):
             ("cross-reference", "Rapport de Synthese"),
         ]
 
+        # Some section ids don't map 1:1 onto their data key via a simple
+        # dash-to-underscore substitution (e.g. "geospatial" section holds
+        # the "geospatial_analysis" data). List those overrides here.
+        data_key_overrides = {"geospatial": "geospatial_analysis"}
+
         ul = soup.new_tag("ul")
         for section_id, section_name in sections:
             # Check if section has data
-            data_key = section_id.replace("-", "_")
+            data_key = data_key_overrides.get(section_id, section_id.replace("-", "_"))
             if data_key == "executive_summary" or data.get(data_key):
                 li = soup.new_tag("li")
                 link = soup.new_tag("a", href=f"#{section_id}")

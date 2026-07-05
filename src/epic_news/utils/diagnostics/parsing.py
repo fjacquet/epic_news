@@ -84,8 +84,11 @@ def _attempt_json_repair(json_str: str) -> str:
     repaired = re.sub(r"'([^']*)'\s*:", r'"\1":', repaired)
     repaired = re.sub(r":\s*'([^']*)'([,}])", r':"\1"\2', repaired)
 
-    # Fix missing quotes around string values
-    repaired = re.sub(r":\s*([a-zA-Z][a-zA-Z0-9_]*)\s*([,}])", r':"\1"\2', repaired)
+    # Fix missing quotes around string values.
+    # Excludes the JSON literals true/false/null (already unquoted keywords at this
+    # point) so booleans/None survive as JSON literals instead of being re-wrapped
+    # into string values by this bare-identifier-quoting step.
+    repaired = re.sub(r":\s*(?!true\b|false\b|null\b)([a-zA-Z][a-zA-Z0-9_]*)\s*([,}])", r':"\1"\2', repaired)
 
     # Fix trailing commas in JSON objects and arrays
     repaired = re.sub(r",\s*}", "}", repaired)

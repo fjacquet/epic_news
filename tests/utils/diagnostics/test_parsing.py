@@ -336,16 +336,13 @@ def test_repair_strips_trailing_comma_after_final_closing_brace():
     assert json.loads(repaired) == {"a": 1}
 
 
-def test_repair_mangles_python_style_booleans_and_none_bug():
-    """Documents a genuine quirk: after True/False/None -> true/false/null
-    substitution, the later "missing quotes around string values" regex
-    re-wraps those bare keyword tokens (plus the following comma) into a
-    single malformed string value instead of leaving them as JSON literals.
-    This means booleans/None surrounded by commas do NOT round-trip as
-    booleans/null through _attempt_json_repair."""
+def test_repair_converts_python_style_booleans_and_none_to_json_literals():
+    """Python-style True/False/None must round-trip as JSON literals
+    (true/false/null), not get re-wrapped into string values by the later
+    "missing quotes around string values" repair step."""
     repaired = _attempt_json_repair('{"a": True, "b": False, "c": None}')
     parsed = json.loads(repaired)
-    assert parsed == {"a": "true, ", "b": "false, ", "c": "null, "}
+    assert parsed == {"a": True, "b": False, "c": None}
 
 
 # ---------------------------------------------------------------------------
