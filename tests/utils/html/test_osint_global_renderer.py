@@ -229,21 +229,12 @@ def test_osint_global_full_data_renders_all_sections():
     ]:
         assert f'id="{section_id}"' in html
 
-    # Table of contents links to every section, EXCEPT "geospatial": see the
-    # KNOWN BUG note below -- reused verbatim in the partial-data test.
+    # Table of contents links to every section, including "geospatial" (whose
+    # data lives under the "geospatial_analysis" key -- see
+    # _add_table_of_contents' data_key_overrides mapping).
     for section_id in _SECTION_IDS.values():
-        if section_id == "geospatial":
-            continue
         assert f'href="#{section_id}"' in html
     assert 'href="#executive-summary"' in html
-
-    # KNOWN BUG (pre-existing, not fixed here): _add_table_of_contents derives
-    # data_key = section_id.replace("-", "_"), so for section_id="geospatial"
-    # it looks up data.get("geospatial") -- but the actual data key is
-    # "geospatial_analysis". The TOC link to #geospatial is therefore NEVER
-    # added, even though the "geospatial" *section itself* (added separately
-    # via _add_geospatial_section) renders fine below.
-    assert 'href="#geospatial"' not in html
 
     # Back-to-top links: one per sub-report section (7)
     assert html.count("Retour au sommaire") == 7
@@ -313,10 +304,9 @@ def test_osint_global_partial_data_mixes_present_and_absent_sections():
     assert 'id="company-profile"' in html
     assert 'id="geospatial"' in html
     assert 'href="#company-profile"' in html
-    # KNOWN BUG (see full-data test): the TOC never links to "#geospatial"
-    # because of a data-key mismatch in _add_table_of_contents, even though
-    # the geospatial section itself is rendered (asserted above).
-    assert 'href="#geospatial"' not in html
+    # The TOC links to "#geospatial" whenever "geospatial_analysis" data is
+    # present, despite the section id/data key naming mismatch.
+    assert 'href="#geospatial"' in html
 
     # Absent sections
     for missing_id in ["tech-stack", "web-presence", "hr-intelligence", "legal-analysis", "cross-reference"]:

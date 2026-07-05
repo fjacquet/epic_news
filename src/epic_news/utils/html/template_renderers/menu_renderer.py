@@ -48,30 +48,29 @@ class MenuRenderer(BaseRenderer):
         # Add nutritional information if available
         self._add_nutritional_info(soup, container, data)
 
-
         return str(soup)
 
     def _add_header(self, soup: BeautifulSoup, container, data: dict[str, Any]) -> None:
         """Add menu planner header with title."""
-        header = soup.new_tag("header", class_="menu-header")
+        header = soup.new_tag("header", attrs={"class": "menu-header"})
 
         # Title
         title = data.get("title", "Menu Hebdomadaire")
-        title_tag = soup.new_tag("h1", class_="menu-title")
+        title_tag = soup.new_tag("h1", attrs={"class": "menu-title"})
         title_tag.string = f"🍽️ {title}"
         header.append(title_tag)
 
         # Date range if available
         date_range = data.get("date_range", "")
         if date_range:
-            date_tag = soup.new_tag("p", class_="menu-date-range")
+            date_tag = soup.new_tag("p", attrs={"class": "menu-date-range"})
             date_tag.string = date_range
             header.append(date_tag)
 
         # Description if available
         description = data.get("description", "")
         if description:
-            desc_tag = soup.new_tag("p", class_="menu-description")
+            desc_tag = soup.new_tag("p", attrs={"class": "menu-description"})
             desc_tag.string = description
             header.append(desc_tag)
 
@@ -83,7 +82,7 @@ class MenuRenderer(BaseRenderer):
         if not overview:
             return
 
-        overview_div = soup.new_tag("section", class_="menu-overview")
+        overview_div = soup.new_tag("section", attrs={"class": "menu-overview"})
 
         overview_title = soup.new_tag("h2")
         overview_title.string = "📋 Aperçu de la semaine"
@@ -102,12 +101,12 @@ class MenuRenderer(BaseRenderer):
             # Fallback to content if structured data not available
             content = data.get("content", "")
             if content:
-                content_div = soup.new_tag("div", class_="menu-content")
+                content_div = soup.new_tag("div", attrs={"class": "menu-content"})
                 content_div.string = content
                 container.append(content_div)
             return
 
-        daily_plans_section = soup.new_tag("section", class_="daily-plans")
+        daily_plans_section = soup.new_tag("section", attrs={"class": "daily-plans"})
 
         plans_title = soup.new_tag("h2")
         plans_title.string = "🗓️ Menus Quotidiens"
@@ -129,10 +128,10 @@ class MenuRenderer(BaseRenderer):
 
     def _create_day_plan(self, soup: BeautifulSoup, day: str, meals: dict[str, Any]) -> Tag:
         """Create a daily meal plan card."""
-        day_div = soup.new_tag("div", class_="day-plan")
+        day_div = soup.new_tag("div", attrs={"class": "day-plan"})
 
         # Day header
-        day_header = soup.new_tag("div", class_="day-header")
+        day_header = soup.new_tag("div", attrs={"class": "day-header"})
 
         # Add day emoji based on day name
         day_emoji = {
@@ -159,7 +158,7 @@ class MenuRenderer(BaseRenderer):
         day_div.append(day_header)
 
         # Meals container
-        meals_div = soup.new_tag("div", class_="day-meals")
+        meals_div = soup.new_tag("div", attrs={"class": "day-meals"})
 
         # Standard meal types and their emojis
         meal_types = {
@@ -179,18 +178,18 @@ class MenuRenderer(BaseRenderer):
         if isinstance(meals, dict):
             # Create sections for each meal type
             for meal_type, meal_content in meals.items():
-                meal_div = soup.new_tag("div", class_="meal")
+                meal_div = soup.new_tag("div", attrs={"class": "meal"})
 
                 meal_name = meal_types.get(meal_type.lower(), f"🍽️ {meal_type}")
-                meal_type_h4 = soup.new_tag("h4", class_="meal-type")
+                meal_type_h4 = soup.new_tag("h4", attrs={"class": "meal-type"})
                 meal_type_h4.string = meal_name
                 meal_div.append(meal_type_h4)
 
                 if isinstance(meal_content, list):
                     # Create list of dishes
-                    dishes_list = soup.new_tag("ul", class_="dishes-list")
+                    dishes_list = soup.new_tag("ul", attrs={"class": "dishes-list"})
                     for dish in meal_content:
-                        dish_item = soup.new_tag("li", class_="dish-item")
+                        dish_item = soup.new_tag("li", attrs={"class": "dish-item"})
                         dish_item.string = dish
                         dishes_list.append(dish_item)
                     meal_div.append(dishes_list)
@@ -198,7 +197,7 @@ class MenuRenderer(BaseRenderer):
                     # Handle new 'dishes' array format or old structured meal format
                     if isinstance(meal_content, dict) and "dishes" in meal_content:
                         # New format: meal_content = {"dishes": [{"name": "...", "dish_type": "..."}]}
-                        dishes_list = soup.new_tag("ul", class_="dishes-list")
+                        dishes_list = soup.new_tag("ul", attrs={"class": "dishes-list"})
                         dishes = meal_content.get("dishes", [])
 
                         # Map dish types to emojis
@@ -217,7 +216,7 @@ class MenuRenderer(BaseRenderer):
                                 dish_type = dish.get("dish_type", "").lower()
 
                                 if dish_name:
-                                    dish_li = soup.new_tag("li", class_="dish-item")
+                                    dish_li = soup.new_tag("li", attrs={"class": "dish-item"})
                                     emoji = dish_type_emojis.get(dish_type, "🍽️")
                                     # Capitalize dish type for display
                                     display_type = dish_type.capitalize() if dish_type else "Plat"
@@ -230,7 +229,7 @@ class MenuRenderer(BaseRenderer):
                         k in meal_content for k in ("starter", "main_course", "dessert")
                     ):
                         # Old format: backward compatibility
-                        sub_dishes_ul = soup.new_tag("ul", class_="dishes-list")
+                        sub_dishes_ul = soup.new_tag("ul", attrs={"class": "dishes-list"})
                         sub_map = {
                             "starter": "🥗 Entrée",
                             "main_course": "🍽️ Plat principal",
@@ -240,7 +239,7 @@ class MenuRenderer(BaseRenderer):
                             sub_val = meal_content.get(sub_key)
                             if not sub_val:
                                 continue
-                            dish_li = soup.new_tag("li", class_="dish-item")
+                            dish_li = soup.new_tag("li", attrs={"class": "dish-item"})
                             if isinstance(sub_val, dict):
                                 dish_name = sub_val.get("name") or str(sub_val)
                             else:
@@ -250,22 +249,22 @@ class MenuRenderer(BaseRenderer):
                         meal_div.append(sub_dishes_ul)
                     else:
                         # Single dish or text description
-                        meal_text = soup.new_tag("p", class_="meal-text")
+                        meal_text = soup.new_tag("p", attrs={"class": "meal-text"})
                         meal_text.string = str(meal_content)
                         meal_div.append(meal_text)
 
                 meals_div.append(meal_div)
         elif isinstance(meals, list):
             # Simple list of meals for the day
-            dishes_list = soup.new_tag("ul", class_="dishes-list")
+            dishes_list = soup.new_tag("ul", attrs={"class": "dishes-list"})
             for meal in meals:
-                dish_item = soup.new_tag("li", class_="dish-item")
+                dish_item = soup.new_tag("li", attrs={"class": "dish-item"})
                 dish_item.string = meal
                 dishes_list.append(dish_item)
             meals_div.append(dishes_list)
         else:
             # Plain text content
-            meal_text = soup.new_tag("p", class_="meal-text")
+            meal_text = soup.new_tag("p", attrs={"class": "meal-text"})
             meal_text.string = str(meals)
             meals_div.append(meal_text)
 
@@ -278,7 +277,7 @@ class MenuRenderer(BaseRenderer):
         if not shopping_list:
             return
 
-        shopping_section = soup.new_tag("section", class_="shopping-list")
+        shopping_section = soup.new_tag("section", attrs={"class": "shopping-list"})
 
         shopping_title = soup.new_tag("h2")
         shopping_title.string = "🛒 Liste de courses"
@@ -287,7 +286,7 @@ class MenuRenderer(BaseRenderer):
         # Group items by category if the data is structured that way
         if isinstance(shopping_list, dict):
             for category, items in shopping_list.items():
-                category_div = soup.new_tag("div", class_="shopping-category")
+                category_div = soup.new_tag("div", attrs={"class": "shopping-category"})
 
                 category_title = soup.new_tag("h3")
                 category_title.string = category
@@ -319,7 +318,7 @@ class MenuRenderer(BaseRenderer):
         if not nutrition:
             return
 
-        nutrition_section = soup.new_tag("section", class_="nutritional-info")
+        nutrition_section = soup.new_tag("section", attrs={"class": "nutritional-info"})
 
         nutrition_title = soup.new_tag("h2")
         nutrition_title.string = "🥗 Information Nutritionnelle"
@@ -327,7 +326,7 @@ class MenuRenderer(BaseRenderer):
 
         if isinstance(nutrition, dict):
             # Detailed nutritional information
-            nutrition_table = soup.new_tag("table", class_="nutrition-table")
+            nutrition_table = soup.new_tag("table", attrs={"class": "nutrition-table"})
 
             # Table header
             thead = soup.new_tag("thead")

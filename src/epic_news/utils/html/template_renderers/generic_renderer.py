@@ -42,12 +42,11 @@ class GenericRenderer(BaseRenderer):
         # Add raw data if available
         self._add_raw_data(soup, container, data)
 
-
         return str(soup)
 
     def _add_header(self, soup: BeautifulSoup, container, crew_type: str) -> None:
         """Add generic header."""
-        header_div = soup.new_tag("div", class_="generic-header")
+        header_div = soup.new_tag("div", attrs={"class": "generic-header"})
 
         title_tag = soup.new_tag("h2")
         title_tag.string = f"📄 Rapport {crew_type}"
@@ -57,7 +56,7 @@ class GenericRenderer(BaseRenderer):
 
     def _add_content_sections(self, soup: BeautifulSoup, container, data: dict[str, Any]) -> None:
         """Add content sections based on available data."""
-        content_div = soup.new_tag("div", class_="generic-content")
+        content_div = soup.new_tag("div", attrs={"class": "generic-content"})
 
         # Handle common fields
         common_fields = ["title", "summary", "content", "description", "text"]
@@ -65,7 +64,7 @@ class GenericRenderer(BaseRenderer):
         for field in common_fields:
             value = data.get(field)
             if value and isinstance(value, str) and value.strip():
-                section_div = soup.new_tag("div", class_="content-section")
+                section_div = soup.new_tag("div", attrs={"class": "content-section"})
 
                 # Section title
                 title_tag = soup.new_tag("h3")
@@ -82,7 +81,7 @@ class GenericRenderer(BaseRenderer):
         # Handle lists
         for key, value in data.items():
             if isinstance(value, list) and value:
-                section_div = soup.new_tag("div", class_="list-section")
+                section_div = soup.new_tag("div", attrs={"class": "list-section"})
 
                 # Section title
                 title_tag = soup.new_tag("h3")
@@ -112,7 +111,7 @@ class GenericRenderer(BaseRenderer):
         if not data:
             return
 
-        raw_div = soup.new_tag("div", class_="raw-data-section")
+        raw_div = soup.new_tag("div", attrs={"class": "raw-data-section"})
 
         # Title
         title_tag = soup.new_tag("h3")

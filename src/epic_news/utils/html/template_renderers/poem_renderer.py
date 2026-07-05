@@ -42,12 +42,11 @@ class PoemRenderer(BaseRenderer):
         # Add analysis
         self._add_analysis(soup, container, data)
 
-
         return str(soup)
 
     def _add_header(self, soup: BeautifulSoup, container, data: dict[str, Any]) -> None:
         """Add poem header."""
-        header_div = soup.new_tag("div", class_="poem-header")
+        header_div = soup.new_tag("div", attrs={"class": "poem-header"})
 
         title = data.get("title", "Poème")
         title_tag = soup.new_tag("h2")
@@ -57,7 +56,7 @@ class PoemRenderer(BaseRenderer):
         # Add theme if available
         theme = data.get("theme")
         if theme:
-            theme_p = soup.new_tag("p", class_="poem-theme")
+            theme_p = soup.new_tag("p", attrs={"class": "poem-theme"})
             theme_p.string = f"Thème: {theme}"
             header_div.append(theme_p)
 
@@ -65,19 +64,19 @@ class PoemRenderer(BaseRenderer):
 
     def _add_poem_content(self, soup: BeautifulSoup, container, data: dict[str, Any]) -> None:
         """Add poem verses and content."""
-        content_div = soup.new_tag("div", class_="poem-content")
+        content_div = soup.new_tag("div", attrs={"class": "poem-content"})
 
         # Handle verses
         verses = data.get("verses", [])
         if verses:
             for i, verse in enumerate(verses, 1):
-                verse_div = soup.new_tag("div", class_="verse")
+                verse_div = soup.new_tag("div", attrs={"class": "verse"})
 
                 verse_title = soup.new_tag("h4")
                 verse_title.string = f"Strophe {i}"
                 verse_div.append(verse_title)
 
-                verse_content = soup.new_tag("div", class_="verse-content")
+                verse_content = soup.new_tag("div", attrs={"class": "verse-content"})
 
                 if isinstance(verse, dict):
                     verse_text = verse.get("content") or verse.get("text", "")
@@ -88,7 +87,7 @@ class PoemRenderer(BaseRenderer):
                 lines = verse_text.split("\n")
                 for _, line in enumerate(lines):
                     if line.strip():
-                        line_p = soup.new_tag("p", class_="verse-line")
+                        line_p = soup.new_tag("p", attrs={"class": "verse-line"})
                         line_p.string = line.strip()
                         verse_content.append(line_p)
 
@@ -98,12 +97,12 @@ class PoemRenderer(BaseRenderer):
         # Handle full poem text if no verses
         elif data.get("poem") or data.get("content"):
             poem_text = data.get("poem") or data.get("content")
-            poem_div = soup.new_tag("div", class_="full-poem")
+            poem_div = soup.new_tag("div", attrs={"class": "full-poem"})
 
             lines = str(poem_text).split("\n")
             for line in lines:
                 if line.strip():
-                    line_p = soup.new_tag("p", class_="poem-line")
+                    line_p = soup.new_tag("p", attrs={"class": "poem-line"})
                     line_p.string = line.strip()
                     poem_div.append(line_p)
 
@@ -118,7 +117,7 @@ class PoemRenderer(BaseRenderer):
         if not analysis:
             return
 
-        analysis_div = soup.new_tag("div", class_="poem-analysis")
+        analysis_div = soup.new_tag("div", attrs={"class": "poem-analysis"})
 
         title_tag = soup.new_tag("h3")
         title_tag.string = "🔍 Analyse Poétique"
@@ -130,7 +129,7 @@ class PoemRenderer(BaseRenderer):
             analysis_div.append(analysis_p)
         elif isinstance(analysis, dict):
             for key, value in analysis.items():
-                section_div = soup.new_tag("div", class_="analysis-section")
+                section_div = soup.new_tag("div", attrs={"class": "analysis-section"})
 
                 section_title = soup.new_tag("h4")
                 section_title.string = key.replace("_", " ").title()

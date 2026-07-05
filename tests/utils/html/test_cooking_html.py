@@ -12,16 +12,6 @@ def _render(data: dict) -> str:
     return TemplateManager().render_report("COOKING", data)
 
 
-# NOTE (pre-existing renderer bug, not fixed here): every soup.new_tag(...) call in
-# CookingRenderer *except* the root container (built via create_soup, which strips the
-# trailing underscore) passes `class_="..."` directly to BeautifulSoup's new_tag(). BS4
-# does not special-case that kwarg, so the emitted markup literally contains a
-# `class_="..."` attribute instead of `class="..."` (violates the project's own
-# BaseRenderer convention documented in src/epic_news/utils/CLAUDE.md: use
-# `tag.attrs["class"] = [...]`, not `class_="..."`). These CSS classes are therefore
-# never applied by a browser. Tests below assert on the *actual* `class_="..."` output.
-
-
 def test_full_recipe_renders_all_sections():
     """Full recipe data should render every section with the exact content fed in."""
     data = {
@@ -67,27 +57,26 @@ def test_full_recipe_renders_all_sections():
     assert "Patisserie" in html
 
     # Ingredients section + exact items
-    # NOTE: renderer emits a literal `class_="..."` attribute here (see bug note above).
-    assert 'class_="recipe-ingredients"' in html
+    assert 'class="recipe-ingredients"' in html
     assert "🧂 Ingrédients" in html
     assert "🥄 6 pommes Golden" in html
     assert "🥄 150 g de sucre" in html
     assert "🥄 1 pate feuilletee" in html
 
     # Instructions section + exact steps
-    assert 'class_="recipe-instructions"' in html
+    assert 'class="recipe-instructions"' in html
     assert "📝 Instructions" in html
     assert "Eplucher et couper les pommes." in html
     assert "Faire un caramel avec le sucre." in html
     assert "Cuire au four 45 minutes." in html
 
     # Chef notes (list branch)
-    assert 'class_="chef-notes"' in html
+    assert 'class="chef-notes"' in html
     assert "Utiliser un moule qui va au four" in html
     assert "Laisser tiedir avant de demouler" in html
 
     # Nutritional info (dict branch) - keys are humanized via replace('_',' ').title()
-    assert 'class_="nutritional-info"' in html
+    assert 'class="nutritional-info"' in html
     assert "320 kcal" in html
     assert "28 g" in html
 
@@ -102,12 +91,12 @@ def test_minimal_data_renders_without_crash():
     assert "🍽️ Recette" in html
 
     # No optional sections should appear at all.
-    assert 'class_="recipe-ingredients"' not in html
-    assert 'class_="recipe-instructions"' not in html
-    assert 'class_="chef-notes"' not in html
-    assert 'class_="nutritional-info"' not in html
+    assert 'class="recipe-ingredients"' not in html
+    assert 'class="recipe-instructions"' not in html
+    assert 'class="chef-notes"' not in html
+    assert 'class="nutritional-info"' not in html
     # Metadata div only appended when it has content - with no fields at all it's skipped.
-    assert 'class_="recipe-meta"' not in html
+    assert 'class="recipe-meta"' not in html
 
     # Still a non-trivial, well-formed HTML document.
     assert len(html) > 200
@@ -125,7 +114,7 @@ def test_badge_uses_category_when_type_missing():
     html = _render({"recipe_title": "Ratatouille", "category": "Plat Principal"})
 
     assert "Plat Principal" in html
-    assert 'class_="recipe-meta"' in html
+    assert 'class="recipe-meta"' in html
     assert "🏷️ Catégorie:" in html
 
 
@@ -153,9 +142,9 @@ def test_chef_notes_as_plain_string_renders_paragraph_not_list():
     renderer = CookingRenderer()
     html = renderer.render({"recipe_title": "Quiche", "chef_notes": "Servir tiede."})
 
-    assert 'class_="chef-notes"' in html
+    assert 'class="chef-notes"' in html
     assert "Servir tiede." in html
-    assert 'class_="notes-list"' not in html
+    assert 'class="notes-list"' not in html
     assert "<p>Servir tiede.</p>" in html
 
 
@@ -164,9 +153,9 @@ def test_nutritional_info_as_plain_string_renders_paragraph_not_list():
     renderer = CookingRenderer()
     html = renderer.render({"recipe_title": "Quiche", "nutritional_info": "Environ 400 kcal par part."})
 
-    assert 'class_="nutritional-info"' in html
+    assert 'class="nutritional-info"' in html
     assert "Environ 400 kcal par part." in html
-    assert 'class_="nutrition-list"' not in html
+    assert 'class="nutrition-list"' not in html
 
 
 def test_single_ingredient_and_instruction_still_render_list_structures():
@@ -180,8 +169,8 @@ def test_single_ingredient_and_instruction_still_render_list_structures():
         }
     )
 
-    assert 'class_="ingredients-list"' in html
-    assert 'class_="instructions-list"' in html
+    assert 'class="ingredients-list"' in html
+    assert 'class="instructions-list"' in html
     assert "🥄 1 oeuf" in html
     assert "Cuire 10 minutes dans l'eau bouillante." in html
 
@@ -191,5 +180,5 @@ def test_missing_ingredients_and_instructions_skip_their_sections():
     renderer = CookingRenderer()
     html = renderer.render({"recipe_title": "Recette Vide"})
 
-    assert 'class_="recipe-ingredients"' not in html
-    assert 'class_="recipe-instructions"' not in html
+    assert 'class="recipe-ingredients"' not in html
+    assert 'class="recipe-instructions"' not in html

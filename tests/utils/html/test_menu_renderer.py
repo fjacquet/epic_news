@@ -94,13 +94,13 @@ def test_menu_full_kitchen_sink_all_sections(full_menu_data):
 
     # Structural markers
     assert "<!DOCTYPE html>" in html
-    assert 'class_="menu-header"' in html
-    assert 'class_="menu-overview"' in html
-    assert 'class_="daily-plans"' in html
-    assert 'class_="shopping-list"' in html
-    assert 'class_="nutritional-info"' in html
-    assert 'class_="nutrition-table"' in html
-    assert html.count('class_="day-plan"') == 3
+    assert 'class="menu-header"' in html
+    assert 'class="menu-overview"' in html
+    assert 'class="daily-plans"' in html
+    assert 'class="shopping-list"' in html
+    assert 'class="nutritional-info"' in html
+    assert 'class="nutrition-table"' in html
+    assert html.count('class="day-plan"') == 3
 
     # Header (title + date range + description)
     assert "🍽️ Menu de la Semaine Test" in html
@@ -166,16 +166,16 @@ def test_menu_minimal_data_no_crash_default_title():
 
     assert "<!DOCTYPE html>" in html
     assert "🍽️ Menu Hebdomadaire" in html  # default title fallback
-    assert 'class_="menu-header"' in html
+    assert 'class="menu-header"' in html
 
     # All optional sections/branches must be entirely absent
-    assert 'class_="menu-date-range"' not in html
-    assert 'class_="menu-description"' not in html
-    assert 'class_="menu-overview"' not in html
-    assert 'class_="daily-plans"' not in html
-    assert 'class_="menu-content"' not in html
-    assert 'class_="shopping-list"' not in html
-    assert 'class_="nutritional-info"' not in html
+    assert 'class="menu-date-range"' not in html
+    assert 'class="menu-description"' not in html
+    assert 'class="menu-overview"' not in html
+    assert 'class="daily-plans"' not in html
+    assert 'class="menu-content"' not in html
+    assert 'class="shopping-list"' not in html
+    assert 'class="nutritional-info"' not in html
 
 
 def test_menu_shopping_list_simple_list_and_content_fallback():
@@ -187,17 +187,17 @@ def test_menu_shopping_list_simple_list_and_content_fallback():
     }
     html = TemplateManager().render_report("MENU", data)
 
-    assert 'class_="menu-content"' in html
+    assert 'class="menu-content"' in html
     assert "Menu libre : improvisez selon vos envies cette semaine !" in html
     # daily_plans absent -> no daily-plans section, only the content fallback div
-    assert 'class_="daily-plans"' not in html
+    assert 'class="daily-plans"' not in html
 
-    assert 'class_="shopping-list"' in html
+    assert 'class="shopping-list"' in html
     assert "Pain" in html
     assert "Lait" in html
     assert "Oeufs" in html
     # Simple (non-dict) shopping list must not create category subdivisions
-    assert 'class_="shopping-category"' not in html
+    assert 'class="shopping-category"' not in html
 
 
 def test_menu_nutritional_info_as_text_and_unknown_dish_type_fallback():
@@ -216,9 +216,9 @@ def test_menu_nutritional_info_as_text_and_unknown_dish_type_fallback():
     }
     html = TemplateManager().render_report("MENU", data)
 
-    assert 'class_="nutritional-info"' in html
+    assert 'class="nutritional-info"' in html
     assert "Environ 2000 kcal par jour, riche en fibres et protéines." in html
-    assert 'class_="nutrition-table"' not in html  # plain-text branch, not the table branch
+    assert 'class="nutrition-table"' not in html  # plain-text branch, not the table branch
 
     assert "3️⃣ Mercredi" in html
     # Unrecognized dish_type "surprise" falls back to the generic emoji + capitalized type
