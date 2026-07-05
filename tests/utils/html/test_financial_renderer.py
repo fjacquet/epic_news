@@ -1,28 +1,17 @@
 """Tests for the FinancialRenderer (crew_identifier: FINDAILY).
 
-FinancialRenderer supports two independent data shapes:
-
-* "new format" -- the actual ``FinancialReport`` Pydantic model fields
-  (``executive_summary``, ``analyses``, ``suggestions``, ``report_date``).
-* "old format" -- legacy free-form keys (``summary``, ``analysis``,
-  ``detailed_analysis``, ``recommendations``, ``advice``, ``date``,
-  ``key_metrics``/``metrics``) that do NOT exist on ``FinancialReport`` at
-  all and are therefore unreachable when data flows through the real
-  ``TemplateManager`` -> ``FinancialReport.model_validate`` -> ``model_dump``
-  pipeline (extra/unknown keys are dropped by ``model_dump``, and the model
-  has no ``summary``/``analysis``/``recommendations``/``metrics`` fields).
-
-To reach those "old format" branches for coverage we must instantiate
-``FinancialRenderer`` directly and feed it hand-built dicts -- exactly as
-the renderer's own defensive code expects, but never as real production
-data would look coming from the model. This is flagged as a data-key/model
-mismatch in the test docstrings below rather than "fixed".
+The renderer consumes exactly the ``FinancialReport`` model contract:
+``title``, ``executive_summary``, ``analyses`` (list of ``AssetAnalysis``),
+``suggestions`` (list of ``AssetSuggestion``), ``report_date``. Data always
+reaches it as ``FinancialReport.model_dump()`` through ``TemplateManager``
+(the legacy fallback path runs ``FinancialReport.model_validate`` first,
+which drops unknown keys), so the previously-present free-form legacy keys
+(``summary``, ``analysis``, ``detailed_analysis``, ``recommendations``,
+``advice``, ``date``, ``key_metrics``/``metrics``) were unreachable dead code
+and have been removed.
 
 Nested tags are built with ``soup.new_tag(tag, attrs={"class": "..."})``,
-which correctly produces a ``class="..."`` attribute (unlike the old,
-now-fixed, ``class_="..."`` kwarg form that BeautifulSoup's ``new_tag``
-does not special-case). Tests below assert the correct ``class="..."``
-output.
+producing a correct ``class="..."`` attribute; tests assert that form.
 """
 
 from epic_news.models.crews.financial_report import (
@@ -37,7 +26,7 @@ CREW_IDENTIFIER = "FINDAILY"
 
 
 # ---------------------------------------------------------------------------
-# Full pipeline tests via TemplateManager (mirrors tests/utils/html style)
+# Full pipeline tests via TemplateManager (real FinancialReport model)
 # ---------------------------------------------------------------------------
 
 
@@ -77,7 +66,7 @@ def test_full_report_via_template_manager():
     # Executive summary
     assert "Les marchés ont connu une semaine volatile." in html
 
-    # Analyses (new format)
+    # Analyses (asset_class heading, summary, details list)
     assert "Actions" in html
     assert "Les actions technologiques ont surperformé." in html
     assert "NVDA +5%" in html
@@ -85,15 +74,14 @@ def test_full_report_via_template_manager():
     assert "Obligations" in html
     assert "Les taux se sont stabilisés." in html
 
-    # Suggestions (new format) combine asset_class/suggestion/rationale
+    # Suggestions combine asset_class/suggestion/rationale
     assert "[Crypto] Acheter du Bitcoin" in html
     assert "→ Momentum haussier confirmé." in html
 
     # The fallback header text must NOT appear since a custom title was given.
     assert "Rapport Financier" not in html
 
-    # Empty details list for the "Obligations" analysis produces no stray <ul>
-    # for that section -- but the "Actions" section's details did produce one.
+    # Only the "Actions" section's non-empty details produced a <ul>.
     assert html.count("<ul>") == 1
 
 
@@ -107,12 +95,11 @@ def test_minimal_valid_report_via_template_manager_no_crash():
 
     html = TemplateManager().render_report(CREW_IDENTIFIER, report.model_dump())
 
-    # Non-trivial HTML: header (using the model's default `title`) + executive
-    # summary always present.
+    # Header (using the model's default `title`) + executive summary always present.
     assert "💰 Daily Financial Report" in html
     assert "Résumé minimal." in html
 
-    # Empty analyses/suggestions must suppress the corresponding sections entirely.
+    # Empty analyses/suggestions suppress the corresponding sections entirely.
     assert "Analyse Détaillée" not in html
     assert "Recommandations" not in html
     # No report_date supplied -> no date paragraph.
@@ -120,21 +107,19 @@ def test_minimal_valid_report_via_template_manager_no_crash():
 
 
 # ---------------------------------------------------------------------------
-# Direct FinancialRenderer tests targeting branches unreachable through the
-# real FinancialReport model (legacy "old format" keys and defensive/dead
-# code paths). See module docstring for why these bypass TemplateManager.
+# Direct FinancialRenderer tests (using the real model's field names)
 # ---------------------------------------------------------------------------
 
 
 def test_root_container_class_attribute_is_correct():
-    """The outer container uses create_soup(), which DOES fix class_ -> class."""
+    """The outer container uses create_soup(), producing class="financial-report"."""
     html = FinancialRenderer().render({})
     assert '<div class="financial-report">' in html
 
 
 def test_nested_tags_have_correct_class_attribute():
-    """Nested tags use ``attrs={"class": ...}``, producing a correct `class=` attribute."""
-    html = FinancialRenderer().render({"summary": "x"})
+    """Nested tags use ``attrs={"class": ...}``, producing correct ``class=`` attributes."""
+    html = FinancialRenderer().render({"executive_summary": "x"})
     assert 'class="financial-header"' in html
     assert 'class="executive-summary"' in html
     # The old, broken literal-underscore attribute must never appear.
@@ -142,133 +127,55 @@ def test_nested_tags_have_correct_class_attribute():
     assert 'class_="executive-summary"' not in html
 
 
-def test_header_date_key_precedence_and_fallback():
-    """`date` takes precedence over `report_date`; missing both omits the date line."""
-    html_date = FinancialRenderer().render({"date": "2026-01-01", "report_date": "2099-12-31"})
-    assert "📅 2026-01-01" in html_date
-    assert "2099-12-31" not in html_date
-
-    html_report_date_only = FinancialRenderer().render({"report_date": "2026-02-02"})
-    assert "📅 2026-02-02" in html_report_date_only
+def test_header_date_from_report_date_and_absence():
+    """`report_date` renders the date line; its absence omits it."""
+    html = FinancialRenderer().render({"report_date": "2026-02-02"})
+    assert "📅 2026-02-02" in html
 
     html_no_date = FinancialRenderer().render({})
     assert "📅" not in html_no_date
 
 
-def test_executive_summary_fallback_key_and_absence():
-    """`executive_summary` takes precedence over `summary`; absence skips the section."""
-    html_primary = FinancialRenderer().render(
-        {"executive_summary": "Primary summary", "summary": "Should not appear"}
-    )
-    assert "Primary summary" in html_primary
-    assert "Should not appear" not in html_primary
+def test_header_title_fallback_when_absent_or_empty():
+    """Missing or empty `title` falls back to the default header text."""
+    assert "💰 Rapport Financier" in FinancialRenderer().render({})
+    assert "💰 Rapport Financier" in FinancialRenderer().render({"title": ""})
+    assert "💰 My Report" in FinancialRenderer().render({"title": "My Report"})
 
-    html_fallback = FinancialRenderer().render({"summary": "Fallback summary"})
-    assert "Fallback summary" in html_fallback
-    assert "📋 Résumé Exécutif" in html_fallback
+
+def test_executive_summary_present_and_absent():
+    """`executive_summary` renders the section; its absence skips it."""
+    html_present = FinancialRenderer().render({"executive_summary": "Primary summary"})
+    assert "Primary summary" in html_present
+    assert "📋 Résumé Exécutif" in html_present
 
     html_absent = FinancialRenderer().render({})
     assert "Résumé Exécutif" not in html_absent
 
 
-def test_key_metrics_dict_renders_metric_cards():
-    """Metrics dict renders one card per key, with underscore->title-case names."""
-    html = FinancialRenderer().render({"key_metrics": {"portfolio_value": "10000 EUR", "risk_score": 7}})
-    assert "📊 Métriques Clés" in html
-    assert "Portfolio Value" in html
-    assert "10000 EUR" in html
-    assert "Risk Score" in html
-    assert '<p class="metric-value">7</p>' in html
-
-
-def test_key_metrics_fallback_key():
-    """`metrics` is used when `key_metrics` is absent."""
-    html = FinancialRenderer().render({"metrics": {"cash": "500 EUR"}})
-    assert "Cash" in html
-    assert "500 EUR" in html
-
-
-def test_key_metrics_truthy_non_dict_explicitly_skips_section():
-    """A truthy but non-dict `metrics` value (e.g. a list) is explicitly skipped.
-
-    `_add_key_metrics` checks `isinstance(metrics, dict)` up front, so a list
-    or string value never produces an empty, title-only section -- the whole
-    section is cleanly skipped before any tags are created.
-    """
-    html = FinancialRenderer().render({"metrics": ["not", "a", "dict"]})
-    assert "Métriques Clés" not in html
-
-    html_absent = FinancialRenderer().render({})
-    assert "Métriques Clés" not in html_absent
-
-
-def test_analysis_old_format_string():
-    """`analysis` as a plain string renders a single paragraph."""
-    html = FinancialRenderer().render({"analysis": "Marché haussier sur les actions."})
-    assert "🔍 Analyse Détaillée" in html
-    assert "Marché haussier sur les actions." in html
-
-
-def test_analysis_old_format_list_with_key_fallbacks():
-    """List-of-dict analysis items support title/category and content/description fallbacks."""
-    html = FinancialRenderer().render(
-        {
-            "analysis": [
-                {"title": "Section A", "content": "Content A"},
-                {"category": "Section B", "description": "Content B"},
-                {},  # no title/content at all -- still produces an (empty) section div
-            ]
-        }
-    )
-    assert "Section A" in html
-    assert "Content A" in html
-    assert "Section B" in html
-    assert "Content B" in html
-    # 3 analysis-section divs total (including the empty one).
-    assert html.count('class="analysis-section"') == 3
-
-
-def test_analysis_old_format_detailed_analysis_fallback_key():
-    """`detailed_analysis` is used when `analysis` is absent."""
-    html = FinancialRenderer().render(
-        {"detailed_analysis": [{"title": "From detailed_analysis", "content": "Body"}]}
-    )
-    assert "From detailed_analysis" in html
-    assert "Body" in html
-
-
-def test_analysis_old_format_non_dict_items_drop_entire_section():
-    """A list of non-dict analysis items explicitly skips the whole section.
-
-    `_add_analysis_sections` checks up front whether `analysis` (or
-    `analyses`) contains at least one dict item; since none of the items here
-    are dicts, the section -- including its title -- is skipped cleanly
-    before any tags are created.
-    """
-    html = FinancialRenderer().render({"analysis": ["just a plain string", 42]})
-    assert "Analyse Détaillée" not in html
-
-
-def test_analysis_new_format_full_fields():
-    """`analyses` (new format) renders asset_class heading, summary, and details list."""
+def test_analyses_full_fields():
+    """`analyses` renders asset_class heading, summary, and details list."""
     html = FinancialRenderer().render(
         {
             "analyses": [
+                "ignored-non-dict-item",  # mixed-in non-dict is skipped, not rendered
                 {
                     "asset_class": "ETFs",
                     "summary": "Diversification correcte.",
                     "details": ["Detail X", "Detail Y"],
-                }
+                },
             ]
         }
     )
+    assert "🔍 Analyse Détaillée" in html
+    assert "ignored-non-dict-item" not in html
     assert "<h4>ETFs</h4>" in html
     assert "Diversification correcte." in html
     assert "<li>Detail X</li>" in html
     assert "<li>Detail Y</li>" in html
 
 
-def test_analysis_new_format_missing_and_non_list_details():
+def test_analyses_missing_and_non_list_details_skip_ul():
     """Missing `details`, or `details` that isn't a list, both skip the <ul>."""
     html_missing = FinancialRenderer().render({"analyses": [{"asset_class": "Cash", "summary": "Stable."}]})
     assert "<h4>Cash</h4>" in html_missing
@@ -280,103 +187,42 @@ def test_analysis_new_format_missing_and_non_list_details():
     assert "<ul>" not in html_non_list
 
 
-def test_analysis_old_and_new_format_combined():
-    """Both `analysis` (old) and `analyses` (new) present render both blocks."""
-    html = FinancialRenderer().render(
-        {
-            "analysis": "Old format text.",
-            "analyses": [{"asset_class": "Crypto", "summary": "New format summary."}],
-        }
-    )
-    assert "Old format text." in html
-    assert "New format summary." in html
-    assert "<h4>Crypto</h4>" in html
+def test_analyses_empty_or_non_dict_items_skip_section():
+    """An empty list, or a list with no dict items, skips the whole section."""
+    assert "Analyse Détaillée" not in FinancialRenderer().render({"analyses": []})
+    assert "Analyse Détaillée" not in FinancialRenderer().render({"analyses": ["just a string", 42]})
 
 
-def test_analysis_absent_entirely_skips_section():
-    """No `analysis`, `detailed_analysis`, or `analyses` at all skips the section."""
+def test_analyses_absent_entirely_skips_section():
+    """No `analyses` at all skips the section."""
     html = FinancialRenderer().render({"executive_summary": "only summary"})
     assert "Analyse Détaillée" not in html
 
 
-def test_recommendations_old_format_string():
-    """`recommendations` as a plain string renders a single paragraph."""
-    html = FinancialRenderer().render({"recommendations": "Diversifiez votre portefeuille."})
-    assert "💡 Recommandations" in html
-    assert "Diversifiez votre portefeuille." in html
-
-
-def test_recommendations_old_format_list_variants():
-    """List items: plain string, dict with 'text', dict with 'recommendation', dict with neither."""
-    html = FinancialRenderer().render(
-        {
-            "recommendations": [
-                "Plain string advice",
-                {"text": "Text-key advice"},
-                {"recommendation": "Recommendation-key advice"},
-                {"other": "no matching key"},
-            ]
-        }
-    )
-    assert "<li>Plain string advice</li>" in html
-    assert "<li>Text-key advice</li>" in html
-    assert "<li>Recommendation-key advice</li>" in html
-    # Neither 'text' nor 'recommendation' present -> falls back to str(dict).
-    assert "{'other': 'no matching key'}" in html
-
-
-def test_recommendations_advice_fallback_key():
-    """`advice` is used when `recommendations` is absent."""
-    html = FinancialRenderer().render({"advice": ["Advice item"]})
-    assert "<li>Advice item</li>" in html
-
-
-def test_recommendations_new_format_suggestions_partial_fields():
-    """Suggestions combine asset_class/suggestion/rationale; missing parts are simply omitted."""
+def test_suggestions_partial_fields():
+    """Suggestions combine asset_class/suggestion/rationale; missing parts are omitted."""
     html = FinancialRenderer().render(
         {
             "suggestions": [
+                "ignored-non-dict-suggestion",  # mixed-in non-dict is skipped
                 {"asset_class": "Or", "suggestion": "Acheter", "rationale": "Valeur refuge"},
                 {"suggestion": "Vendre sans classe d'actif"},
                 {"asset_class": "Actions"},  # neither suggestion nor rationale
             ]
         }
     )
+    assert "💡 Recommandations" in html
     assert "[Or] Acheter" in html
     assert "→ Valeur refuge" in html
     assert "<li>Vendre sans classe d'actif</li>" in html
     assert "<li>[Actions] </li>" in html
+    assert 'class="recommendations-list"' in html
 
 
-def test_recommendations_old_and_new_format_combined_produce_two_lists():
-    """Both `recommendations` and `suggestions` present render two separate <ul> lists."""
-    html = FinancialRenderer().render(
-        {
-            "recommendations": ["Old rec"],
-            "suggestions": [{"asset_class": "Crypto", "suggestion": "New sugg"}],
-        }
-    )
-    assert "<li>Old rec</li>" in html
-    assert "[Crypto] New sugg" in html
-    # Both lists share the same class attribute.
-    assert html.count('class="recommendations-list"') == 2
-
-
-def test_recommendations_dict_type_silently_produces_title_only_section():
-    """BUG (documented, not fixed): a dict `recommendations` value (neither list nor str)
-    still renders the section (because its <h3> title alone satisfies the final
-    `rec_div.find_all()` gate), but with no actual recommendation content.
-    """
-    html = FinancialRenderer().render({"recommendations": {"a": 1}})
-    assert "💡 Recommandations" in html
-    assert "<ul" not in html
-    assert "<li>" not in html
-
-
-def test_recommendations_absent_entirely_skips_section():
-    """No `recommendations`, `advice`, or `suggestions` at all skips the section."""
-    html = FinancialRenderer().render({"executive_summary": "only summary"})
-    assert "Recommandations" not in html
+def test_suggestions_empty_or_absent_skips_section():
+    """An empty `suggestions` list, or none at all, skips the section."""
+    assert "Recommandations" not in FinancialRenderer().render({"suggestions": []})
+    assert "Recommandations" not in FinancialRenderer().render({"executive_summary": "only summary"})
 
 
 def test_empty_data_renders_header_only_without_crash():
@@ -384,6 +230,7 @@ def test_empty_data_renders_header_only_without_crash():
     html = FinancialRenderer().render({})
     assert "💰 Rapport Financier" in html
     assert "Résumé Exécutif" not in html
-    assert "Métriques Clés" not in html
     assert "Analyse Détaillée" not in html
     assert "Recommandations" not in html
+    # The removed key-metrics section must never appear.
+    assert "Métriques Clés" not in html
