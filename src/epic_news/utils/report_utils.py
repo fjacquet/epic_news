@@ -6,6 +6,7 @@ from typing import Any
 from loguru import logger
 from pydantic import ValidationError
 
+from epic_news.models.content_state import FALLBACK_EMAIL
 from epic_news.models.crews.rss_weekly_report import (
     ArticleSummary,
     FeedDigest,
@@ -93,8 +94,11 @@ def generate_rss_weekly_html_report(
 
 
 # Guaranteed-valid final fallback so a missing/empty/typo'd MAIL env var never
-# hard-fails the send with a confusing "invalid recipient" from the email tool.
-_FALLBACK_RECIPIENT = "fred.jacquet@gmail.com"
+# hard-fails the send with a confusing "invalid recipient". Shares the single
+# literal with content_state (no drift) but stays independent of MAIL: a malformed
+# non-empty MAIL taints DEFAULT_EMAIL, so the fallback must be the bare constant,
+# not DEFAULT_EMAIL.
+_FALLBACK_RECIPIENT = FALLBACK_EMAIL
 _EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 
@@ -123,13 +127,16 @@ def prepare_email_params(state: Any) -> dict[str, Any]:
     # dead code because the field always exists, so a missing/empty/malformed MAIL
     # would otherwise reach the email tool and fail with a confusing "invalid
     # recipient". Validate and fall back to a known-good address instead.
-    recipient = _valid_email(getattr(state, "sendto", None))
+    raw_sendto = getattr(state, "sendto", None)
+    recipient = _valid_email(raw_sendto)
     if recipient is None:
+        # Log only the failure category, never the raw value — an invalid recipient
+        # can be user-supplied and would otherwise persist an email address (PII).
+        reason = "empty" if not (isinstance(raw_sendto, str) and raw_sendto.strip()) else "malformed"
         logger.warning(
-            "✉️  Email recipient from state.sendto/MAIL is missing or malformed "
-            "({!r}); falling back to {}. Set a valid MAIL env var to control it.",
-            getattr(state, "sendto", None),
-            _FALLBACK_RECIPIENT,
+            "✉️  Email recipient from state.sendto/MAIL is {} (value not logged); "
+            "using fallback. Set a valid MAIL env var to control it.",
+            reason,
         )
         recipient = _FALLBACK_RECIPIENT
     subject = f"Epic News Report: {state.selected_crew} - {state.user_request}"
