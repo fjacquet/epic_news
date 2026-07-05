@@ -27,6 +27,19 @@ def test_daily_news_to_html(sample_news_daily_data, tmp_path):
     assert "Test article in Suisse Romande" in html_content
 
 
+def test_daily_news_summary_renders_markdown_as_html():
+    """Regression: free-text fields render Markdown to HTML, not literal markup.
+
+    Crews emit Markdown (bold, lists, tables) in ``summary``/``resume``; the
+    renderer previously inserted it via ``tag.string`` so ``**x**`` showed raw.
+    """
+    data = NewsDailyReport(summary="Un point **capital** ici.").model_dump()
+    html = TemplateManager().render_report("NEWSDAILY", data)
+
+    assert "<strong>capital</strong>" in html
+    assert "**capital**" not in html
+
+
 @pytest.mark.skip(reason="Renderer is abstract class and can't be instantiated directly")
 def test_news_daily_renderer(sample_news_daily_data):
     """Test the NewsDailyRenderer directly."""

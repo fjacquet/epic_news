@@ -68,7 +68,13 @@ class CrewCategories:
 
 
 # Default values
-DEFAULT_EMAIL = os.getenv("MAIL", "fred.jacquet@gmail.com")
+# Hard-coded last-resort recipient: the default when MAIL is unset, and (via
+# report_utils) the guaranteed-valid fallback when a set MAIL is malformed.
+# Single source of truth for the literal so the two use sites can't drift.
+FALLBACK_EMAIL = "fred.jacquet@gmail.com"
+# `or` (not getenv's default) so a set-but-empty MAIL ("MAIL=") still falls back
+# to a valid address instead of an empty string that breaks the email send.
+DEFAULT_EMAIL = os.getenv("MAIL") or FALLBACK_EMAIL
 DEFAULT_PARTICIPANTS = [
     "John Doe <john.doe@pictet.com> - CEO",
     "Jane Smith <jane.smith@pictet.com> - CTO",

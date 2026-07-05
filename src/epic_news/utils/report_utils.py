@@ -1,10 +1,12 @@
 import json
 import os
+import re
 from typing import Any
 
 from loguru import logger
 from pydantic import ValidationError
 
+from epic_news.models.content_state import FALLBACK_EMAIL
 from epic_news.models.crews.rss_weekly_report import (
     ArticleSummary,
     FeedDigest,
@@ -15,9 +17,7 @@ from epic_news.utils.directory_utils import ensure_output_directory
 from epic_news.utils.html.template_manager import TemplateManager
 
 
-def _transform_rss_feeds_to_report(
-    rss_feeds_model: RssFeeds, report_title: str
-) -> RssWeeklyReport:
+def _transform_rss_feeds_to_report(rss_feeds_model: RssFeeds, report_title: str) -> RssWeeklyReport:
     """Convert a low-level RssFeeds payload into the RssWeeklyReport renderer model."""
     report_feeds = []
     for feed_data in rss_feeds_model.rss_feeds:
@@ -93,6 +93,23 @@ def generate_rss_weekly_html_report(
     logger.info("✅ HTML report successfully generated at: {}", output_html_path)
 
 
+# Guaranteed-valid final fallback so a missing/empty/typo'd MAIL env var never
+# hard-fails the send with a confusing "invalid recipient". Shares the single
+# literal with content_state (no drift) but stays independent of MAIL: a malformed
+# non-empty MAIL taints DEFAULT_EMAIL, so the fallback must be the bare constant,
+# not DEFAULT_EMAIL.
+_FALLBACK_RECIPIENT = FALLBACK_EMAIL
+_EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
+
+def _valid_email(value: Any) -> str | None:
+    """Return the trimmed address if it looks like a valid email, else None."""
+    if not isinstance(value, str):
+        return None
+    value = value.strip()
+    return value if _EMAIL_RE.match(value) else None
+
+
 def prepare_email_params(state: Any) -> dict[str, Any]:
     """
     Prepares the parameters for sending an email based on the application state.
@@ -105,7 +122,23 @@ def prepare_email_params(state: Any) -> dict[str, Any]:
         A dictionary with email parameters including recipient,
         subject, body, and attachment path.
     """
-    recipient = getattr(state, "sendto", "test-ia@fjaquet.fr")
+    # The recipient is driven entirely by the MAIL env var (ContentState.sendto
+    # defaults to DEFAULT_EMAIL = os.getenv("MAIL") or ...). A getattr default is
+    # dead code because the field always exists, so a missing/empty/malformed MAIL
+    # would otherwise reach the email tool and fail with a confusing "invalid
+    # recipient". Validate and fall back to a known-good address instead.
+    raw_sendto = getattr(state, "sendto", None)
+    recipient = _valid_email(raw_sendto)
+    if recipient is None:
+        # Log only the failure category, never the raw value — an invalid recipient
+        # can be user-supplied and would otherwise persist an email address (PII).
+        reason = "empty" if not (isinstance(raw_sendto, str) and raw_sendto.strip()) else "malformed"
+        logger.warning(
+            "✉️  Email recipient from state.sendto/MAIL is {} (value not logged); "
+            "using fallback. Set a valid MAIL env var to control it.",
+            reason,
+        )
+        recipient = _FALLBACK_RECIPIENT
     subject = f"Epic News Report: {state.selected_crew} - {state.user_request}"
     body = f"Please find the report for '{state.user_request}' attached."
     attachment_path = getattr(state, "output_file", None)

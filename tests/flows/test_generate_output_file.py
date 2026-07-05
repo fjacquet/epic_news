@@ -23,6 +23,7 @@ CASES = [
     ("generate_meeting_prep", "output/meeting/meeting_preparation.html"),
     ("generate_book_summary", "output/library/book_summary.html"),
     ("generate_holiday_plan", "output/holiday/itinerary.html"),
+    ("generate_news_daily", "output/news_daily/final_report.html"),
 ]
 
 
