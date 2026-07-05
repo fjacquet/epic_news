@@ -7,6 +7,12 @@ from epic_news.models.crews.financial_report import (
     AssetSuggestion,
     FinancialReport,
 )
+from epic_news.models.crews.shopping_advice_report import (
+    CompetitorInfo,
+    PriceInfo,
+    ProductInfo,
+    ShoppingAdviceOutput,
+)
 from epic_news.utils.html.template_manager import TemplateManager
 
 
@@ -67,16 +73,53 @@ def build_newsdaily():
 
 
 def build_shopping():
-    return {
-        "product_name": "Robot de cuisine",
-        "product_overview": "Un robot polyvalent pour la cuisine quotidienne.",
-        "price_comparison": [{"vendor": "Boutique A", "price": "199€", "availability": "En stock"}],
-        "recommendation": "Acheter",
-        "recommendation_rationale": "Bon rapport qualité/prix",
-        "alternatives": [{"name": "Modèle B", "reason": "Moins cher"}],
-        "pros": ["Silencieux", "Facile à nettoyer"],
-        "cons": ["Accessoires limités"],
-    }
+    # Mirrors production input to render_report: main.generate_shopping_advice ->
+    # render_and_write_html("SHOPPING", model) passes model.model_dump().
+    return ShoppingAdviceOutput(
+        product_info=ProductInfo(
+            name="Robot de cuisine",
+            overview="Un robot polyvalent pour la cuisine quotidienne.",
+            key_specifications=["1000 W", "Bol 5 L", "10 vitesses"],
+            pros=["Silencieux", "Facile à nettoyer"],
+            cons=["Accessoires limités"],
+            target_audience="Familles cuisinant au quotidien",
+            common_issues=["Joint du bol à remplacer après 2 ans"],
+        ),
+        switzerland_prices=[
+            PriceInfo(
+                retailer="Boutique A",
+                price="199 CHF",
+                url="https://example.ch/a",
+                shipping_cost="0 CHF",
+                total_cost="199 CHF",
+                notes="En stock",
+            )
+        ],
+        france_prices=[
+            PriceInfo(
+                retailer="Boutique B",
+                price="189 €",
+                url=None,
+                shipping_cost="5 €",
+                total_cost="194 €",
+                notes="Livraison 48h",
+            )
+        ],
+        competitors=[
+            CompetitorInfo(
+                name="Modèle B",
+                price_range="150-180 €",
+                key_features=["Compact", "Moins cher"],
+                pros=["Prix attractif"],
+                cons=["Moins puissant"],
+                target_audience="Petits budgets",
+            )
+        ],
+        executive_summary="Le Robot de cuisine offre le meilleur rapport qualité/prix.",
+        final_recommendations="Acheter en Suisse chez Boutique A.",
+        best_deals=["Boutique A — 199 CHF port gratuit"],
+        user_preferences_context="Budget max 250 CHF, usage familial.",
+    ).model_dump()
 
 
 @pytest.mark.parametrize(
