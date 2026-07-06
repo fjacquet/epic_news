@@ -12,8 +12,8 @@ dependencies = [
     "mcp>=1.26.0",
     "composio>=0.15.0",
     "composio-crewai>=0.15.0",
-    "litellm>=1.90.0",  # CVE fix blocked upstream: crewai 1.14.x needs pydantic<2.12, litellm 1.83.7+ needs ==2.12.5
-    "langfuse>=4.12.0",
+    "litellm>=1.91.0",  # CVE fix blocked upstream: crewai 1.14.x needs pydantic<2.12, litellm 1.83.7+ needs ==2.12.5
+    "langfuse>=4.13.0",
     # --- Pydantic / data ---
     "pydantic>=2.7.0",
     "loguru>=0.7.3",
@@ -24,10 +24,10 @@ dependencies = [
     # --- HTTP / Web ---
     "urllib3>=2.0.0",
     "requests>=2.34.0",
-    "requests-cache>=1.3.2",
+    "requests-cache>=1.3.3",
     "httpx>=0.27.2",
-    "fastapi>=0.138.2",
-    "uvicorn>=0.49.0",
+    "fastapi>=0.139.0",
+    "uvicorn>=0.50.2",
     "streamlit>=1.46.0",
     # --- Data sources / scraping ---
     "python-dateutil>=2.9.0",
@@ -39,7 +39,7 @@ dependencies = [
     "wikipedia>=1.4.0",
     "wikipedia-mcp-server>=1.0.1",
     "tavily-python>=0.7.26",
-    "firecrawl-py>=4.30.3",
+    "firecrawl-py>=4.31.0",
     "yfinance>=1.5.1",
     "pyairtable>=3.1.1",
     # --- Rendering / output ---
@@ -70,9 +70,9 @@ test = [
     "pytest-env>=1.1.5",
     "pytest-mock>=3.14.1",
     "pytest-regressions>=2.10.0",
-    "coverage>=7.14.3",
+    "coverage>=7.15.0",
     "freezegun>=1.5.2",
-    "faker>=40.23.0",
+    "faker>=40.28.1",
 ]
 
 [tool.crewai]
