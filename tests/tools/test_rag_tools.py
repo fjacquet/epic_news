@@ -1,10 +1,10 @@
 import copy
 from typing import Any
 
+from crewai_custom_tools import SaveToRagTool
 from crewai_tools import RagTool
 
 from epic_news.tools.rag_tools import get_rag_tools
-from epic_news.tools.save_to_rag_tool import SaveToRagTool
 
 # Mirror the production DEFAULT_RAG_CONFIG shape (crewai-tools 1.x).
 TEST_DEFAULT_RAG_CONFIG: dict[str, Any] = {

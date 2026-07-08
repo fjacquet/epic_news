@@ -9,11 +9,11 @@ with fresh financial data and prune outdated information.
 import datetime
 
 import yfinance as yf
+from crewai_custom_tools import SaveToRagTool
 from crewai_tools import RagTool
 from loguru import logger
 
 from epic_news.rag_config import build_rag_tool_kwargs
-from epic_news.tools.save_to_rag_tool import SaveToRagTool
 
 # Configure logging
 # logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
