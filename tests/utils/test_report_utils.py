@@ -68,7 +68,10 @@ def test_setup_crew_output_directory_exists(mocker):
     """Test setup_crew_output_directory when directory already exists."""
     # Setup
     crew_name = fake.word()
-    expected_path = os.path.join("output", crew_name)
+    # setup_crew_output_directory lowercases the crew name, so the expected
+    # path must too. fake.word() is unseeded and occasionally returns a
+    # capitalized token (e.g. "American"), which made this assertion flaky.
+    expected_path = os.path.join("output", crew_name.lower())
 
     # Mock dependencies
     mock_ensure_output_directory = mocker.patch("epic_news.utils.report_utils.ensure_output_directory")
@@ -86,7 +89,7 @@ def test_setup_crew_output_directory_create(mocker):
     """Test setup_crew_output_directory when directory needs to be created."""
     # Setup
     crew_name = fake.word()
-    expected_path = os.path.join("output", crew_name)
+    expected_path = os.path.join("output", crew_name.lower())
 
     # Mock dependencies
     mock_ensure_output_directory = mocker.patch("epic_news.utils.report_utils.ensure_output_directory")
