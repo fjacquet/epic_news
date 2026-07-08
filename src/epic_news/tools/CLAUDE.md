@@ -2,78 +2,31 @@
 
 This directory contains all custom tools and tool factories for the Epic News system. Tools extend agent capabilities with web scraping, data retrieval, API integration, and specialized processing.
 
-## Directory Contents (62 Tools)
+## Directory Contents
+
+**Note (post tools-migration cleanup)**: most standalone per-provider tools
+(web search/scrape, finance/crypto quotes, GitHub, email/OSINT lookup, RAG
+persistence) now live in the sibling `crewai_custom_tools` package, e.g.
+`from crewai_custom_tools import ScrapeNinjaTool, SaveToRagTool`. The files
+below are what remains in `src/epic_news/tools/`.
 
 ### Tool Categories
 
-**Search & Web** (14 tools):
-- brave_search_tool.py, serp api_tool.py, tavily_tool.py
-- web_search_factory.py (centralizes search provider selection)
-- web_tools.py (factory for web-related tools)
-- scraper_factory.py, scrape_ninja_tool.py, firecrawl_tool.py
-- batch_article_scraper_tool.py
-- search_base.py (base class for search tools)
+**Factories** (select/assemble tools by provider or feature flag):
+- web_tools.py, web_search_factory.py — web search/scrape tool selection
+- finance_tools.py — Yahoo Finance / stock / crypto / ETF tool bundles
+- github_tools.py, location_tools.py, rag_tools.py, report_tools.py — per-domain factory functions
+- scraper_factory.py — scraper provider selection (delegates to `crewai_custom_tools`)
+- fact_checking_factory.py, email_search.py — remaining OSINT/fact-check factories
 
-**Financial** (12 tools):
-- Yahoo Finance: yahoo_finance_*.py (news, ticker, company, history, etf_holdings)
-- alpha_vantage_tool.py
-- CoinMarketCap: coinmarketcap_*.py (list, info, news, historical)
-- kraken_api_tool.py
-- exchange_rate_tool.py
-- finance_tools.py (factory)
-
-**Wikipedia** (3 tools):
-- wikipedia_search_tool.py
-- wikipedia_article_tool.py
-- wikipedia_processing_tool.py
-
-**RSS & Feeds** (3 tools):
-- rss_feed_tool.py
-- rss_feed_parser_tool.py
-- unified_rss_tool.py
-- opml_parser_tool.py
-
-**GitHub** (4 tools):
-- github_tools.py (factory)
-- github_base.py
-- github_search_tool.py
-- github_org_tool.py
-
-**Location & Weather** (3 tools):
-- location_tools.py (factory)
-- geoapify_places_tool.py
-- accuweather_tool.py
-
-**Email** (3 tools):
-- email_base.py
-- email_search.py
-- serper_email_search_tool.py
-
-**RAG & Data** (4 tools):
-- rag_tools.py (factory)
-- save_to_rag_tool.py
-- hybrid_search_tool.py
-- data_centric_tools.py
-
-**HTML & Reporting** (5 tools):
-- html_generator_tool.py
-- html_to_pdf_tool.py
-- render_report_tool.py
-- reporting_tool.py
-- report_tools.py (factory)
-- universal_report_tool.py
-
-**Miscellaneous** (11 tools):
-- airtable_tool.py
-- todoist_tool.py
-- fact_checking_factory.py
-- google_fact_check_tool.py
-- hunter_io_tool.py
-- tech_stack_tool.py
+**Data & Reporting** (Group-2, kept in-repo):
+- data_centric_tools.py (MetricsCalculatorTool, KPITrackerTool, DataVisualizationTool, StructuredReportTool)
+- coinmarketcap_tool.py
+- html_generator_tool.py, html_to_pdf_tool.py, render_report_tool.py, reporting_tool.py, universal_report_tool.py
 - utility_tools.py
-- custom_tool.py
-- cache_manager.py
-- _json_utils.py
+
+**Shared**:
+- _json_utils.py (JSON-output helpers: `ensure_json_str`, etc.)
 
 ## Tool Implementation Patterns
 
@@ -344,19 +297,10 @@ uv run pytest tests/tools/ -v
 
 ### 1. Search Tools
 
-Base class: `src/epic_news/tools/search_base.py`
-
-```python
-from epic_news.tools.search_base import SearchBase
-
-class MySearchTool(SearchBase):
-    name = "My Search"
-    description = "Searches my data source"
-    
-    def _execute_search(self, query: str) -> dict:
-        # Implementation
-        return {"results": [...]}
-```
+Search tools now live in `crewai_custom_tools` (the `search_base.py` base
+class was removed from this directory in the tools migration). Import the
+concrete tool you need, e.g. `from crewai_custom_tools import TavilyTool`,
+rather than subclassing a local base class.
 
 ### 2. Financial Data Tools
 
@@ -402,7 +346,7 @@ class MyScrapingTool(BaseTool):
 Short-term scratchpad pattern (not permanent storage):
 
 ```python
-from epic_news.tools.save_to_rag_tool import SaveToRagTool
+from crewai_custom_tools import SaveToRagTool
 
 # In crew __init__
 self.rag_tool = SaveToRagTool()
@@ -428,24 +372,10 @@ def researcher(self) -> Agent:
 
 ### Caching
 
-**Cache manager**: `src/epic_news/tools/cache_manager.py`
-
-```python
-from epic_news.tools.cache_manager import CacheManager
-
-cache = CacheManager(ttl=3600)  # 1 hour
-
-def _run(self, query: str) -> str:
-    # Check cache first
-    cached = cache.get(query)
-    if cached:
-        return cached
-    
-    # Fetch and cache
-    result = self._fetch(query)
-    cache.set(query, result)
-    return result
-```
+`cache_manager.py` was removed from this directory in the tools migration
+(its only consumers were migrated/deleted tools). Tools that still need
+caching should implement it locally or rely on caching provided by
+`crewai_custom_tools`.
 
 **When to cache**:
 - Expensive API calls

@@ -13,9 +13,10 @@ TOOLS_DIR = Path(__file__).resolve().parents[2] / "src" / "epic_news" / "tools"
 
 JSON_MARKERS = ("json.dumps", "ensure_json_str", "model_dump_json", "to_json")
 
-# Seeded from the state of the codebase on 2026-07-04. Shrink-only.
+# Seeded from the state of the codebase on 2026-07-04, rescoped 2026-07-09
+# after the tools-migration cleanup (Task 6) to surviving epic_news-owned
+# tools only. Shrink-only.
 KNOWN_LEGACY: set[str] = {
-    "custom_tool.py",
     "html_generator_tool.py",
     "html_to_pdf_tool.py",
     "render_report_tool.py",
