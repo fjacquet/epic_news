@@ -9,12 +9,12 @@ from __future__ import annotations
 
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
+from crewai_custom_tools import HybridSearchTool
 from crewai_tools import MCPServerAdapter, ScrapeWebsiteTool
 
 from epic_news.config.llm_config import LLMConfig
 from epic_news.config.mcp_config import MCPConfig
 from epic_news.models.crews.pestel_report import PestelReport
-from epic_news.tools.hybrid_search_tool import HybridSearchTool
 
 
 @CrewBase

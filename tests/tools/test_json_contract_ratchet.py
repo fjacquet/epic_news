@@ -18,17 +18,12 @@ KNOWN_LEGACY: set[str] = {
     "accuweather_tool.py",
     "custom_tool.py",
     "exchange_rate_tool.py",
-    "google_fact_check_tool.py",
     "html_generator_tool.py",
     "html_to_pdf_tool.py",
-    "opml_parser_tool.py",
     "render_report_tool.py",
     "reporting_tool.py",
-    "tavily_tool.py",
     "todoist_tool.py",
-    "unified_rss_tool.py",
     "universal_report_tool.py",
-    "wikipedia_processing_tool.py",
 }
 
 

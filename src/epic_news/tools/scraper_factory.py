@@ -15,7 +15,7 @@ from __future__ import annotations
 import os
 from typing import Any
 
-from epic_news.tools.scrape_ninja_tool import ScrapeNinjaTool
+from crewai_custom_tools import ScrapeNinjaTool
 
 
 def get_scraper() -> Any:
@@ -31,7 +31,7 @@ def get_scraper() -> Any:
 
     if provider == "firecrawl":
         # Lazy import to avoid requiring Firecrawl SDK when not used
-        from epic_news.tools.firecrawl_tool import FirecrawlTool
+        from crewai_custom_tools import FirecrawlTool
 
         return FirecrawlTool()
 

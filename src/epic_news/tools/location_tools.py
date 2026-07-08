@@ -6,8 +6,7 @@ for location-based searches and operations.
 """
 
 from crewai.tools import BaseTool
-
-from epic_news.tools.geoapify_places_tool import GeoapifyPlacesTool
+from crewai_custom_tools import GeoapifyPlacesTool
 
 
 def get_location_tools() -> list[BaseTool]:

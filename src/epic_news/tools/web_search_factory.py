@@ -1,11 +1,8 @@
 import os
-from typing import Literal
+from typing import Literal, cast
 
 from crewai.tools import BaseTool
-
-from epic_news.tools.perplexity_search_tool import PerplexitySearchTool
-from epic_news.tools.serpapi_tool import SerpApiTool
-from epic_news.tools.tavily_tool import TavilyTool
+from crewai_custom_tools import PerplexitySearchTool, SerpApiTool, TavilyTool
 
 
 class WebSearchFactory:
@@ -14,12 +11,14 @@ class WebSearchFactory:
     @staticmethod
     def create(provider: Literal["perplexity", "serpapi", "tavily"]) -> BaseTool:
         """Create a web search tool based on the provider."""
+        # crewai_custom_tools ships without a py.typed marker, so mypy sees its
+        # exports as `Any`; cast() documents that these are BaseTool subclasses.
         if provider == "perplexity":
             if not os.getenv("PERPLEXITY_API_KEY"):
-                return TavilyTool()
-            return PerplexitySearchTool()
+                return cast(BaseTool, TavilyTool())
+            return cast(BaseTool, PerplexitySearchTool())
         if provider == "serpapi":
-            return SerpApiTool()
+            return cast(BaseTool, SerpApiTool())
         if provider == "tavily":
-            return TavilyTool()
+            return cast(BaseTool, TavilyTool())
         raise ValueError(f"Unknown web search provider: {provider}")
