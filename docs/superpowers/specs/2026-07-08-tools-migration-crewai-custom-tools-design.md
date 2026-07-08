@@ -1,54 +1,66 @@
 # Design: Migrate epic_news tools to the shared `crewai_custom_tools` package
 
 **Date:** 2026-07-08
-**Status:** Approved design — ready for implementation planning
+**Status:** Approved design (revised after 5-domain behavioral-parity audit) — ready for implementation planning
 **Predecessor:** `docs/superpowers/plans/2026-07-04-validate-implementation.md` (the pre-refactor test safety net this refactor depends on)
 
 ## Goal
 
-Stop maintaining ~50 duplicated tool implementations inside `src/epic_news/tools/`. Source every **pure API-wrapper tool** (web, finance, OSINT, enterprise) from the shared, independently-tested `crewai-custom-tools` package instead, deleting the in-repo copies. epic_news keeps only the glue and the report-rendering tools that are coupled to its own models and federated HTML theme.
-
-This is the "structural refactor" the `2026-07-04-validate-implementation` plan was written to protect.
+Stop maintaining ~40 duplicated tool implementations inside `src/epic_news/tools/`. Source every **pure API-wrapper tool** (web, finance, OSINT, enterprise) from the shared, independently-tested `crewai-custom-tools` package instead, deleting the in-repo copies. epic_news keeps only the glue (factories/selectors/infra) and the report-rendering tools that are coupled to its own models and federated HTML theme.
 
 ## Decisions (locked)
 
 | # | Decision | Choice |
 |---|---|---|
-| 1 | End state | **Full rip-and-replace** of pure-wrapper tool implementations: delete the files, import classes directly from the package at call sites. |
-| 2 | Reporting + data-centric tools (Group 2) | **Keep epic_news's versions.** They are coupled to `epic_news.models` and the `utils/html` federated-theme pipeline; the package's own renderers differ. Carve them OUT of the migration. |
-| 3 | Dependency form | **Git-pinned tag from day one:** `crewai-custom-tools @ git+https://github.com/fjacquet/crewai-custom-tools.git@v0.2.0`. Reproducible in Docker/CI. (`v0.2.0` is tagged and pushed; verified.) |
-| 4 | Sequencing | **Run + commit the validate-implementation safety net first**, then migrate. Characterization tests catch swap regressions. |
+| 1 | End state | **Full rip-and-replace** of Group-1 tool implementations: delete the files, import classes directly from the package. |
+| 2 | Reporting + data-centric tools (Group 2) | **Keep epic_news's versions.** Coupled to `epic_news.models` + the `utils/html` federated-theme pipeline (TemplateManager + ~20 renderers + `ui_theme`), which is epic_news product identity, not a generic tool. Out of scope for the package. |
+| 3 | Dependency form | **Git-pinned tag:** `crewai-custom-tools @ git+https://github.com/fjacquet/crewai-custom-tools.git@<tag>`. Reproducible in Docker/CI. Bumped to the new tag (below) after the upstream fixes. |
+| 4 | Sequencing | **Safety net first**, then **upstream fixes**, then epic_news migration. |
+| 5 | Tier-C regressions | **Upstream-fix the package to a true superset, re-release, then migrate 100% of Group 1.** No permanent Group-1 tool left in epic_news. |
+
+## The behavioral-parity audit (why this design is not a naive find-replace)
+
+`crewai_custom_tools` v0.2.0 is a **simplifying rewrite** of epic_news's tools, not a faithful port. A 5-domain read-both-implementations audit classified all 41 Group-1 tools:
+
+- **Tier A — true drop-in** (~14): identical `name`, `args_schema`, and inner data keys; only the harmless `{success,data,error}` envelope wraps the payload. Perplexity, Tavily, Geoapify, WikipediaSearch, RssFeedParser, Yahoo Ticker/News/CompanyInfo/History, CoinMarketCapInfo, Airtable (reader+writer), AccuWeather, HunterIO.
+- **Tier B — swap + minor, agent-transparent reconciliation** (~24): a `name` rename, a dropped/renamed data key, or a cache removal — none of which break agent invocation (the agent calls the tool's live `name` from its runtime tool list and reads output as text). Accept and update the two prose prompts + delete the old tool tests. Includes: SerpApi (drops `page`), TechStack (`detailed_analysis→by_category`), GoogleFactCheck, WikipediaProcessing, OpmlParser, RSSFeedTool (per-article key renames), WikipediaArticle (drops unused `get_links`/`get_related_topics`), CMC List/News/Historical, ExchangeRate (string→JSON), Kraken ×2 (cache dropped), YahooETFHoldings (drops `shares`; actually a fix), GitHubSearch/OrgSearch, SerperEmailSearch (list→object), DelegatingEmailSearch, Todoist (name), Brave (arg renames `search_query→query`,`n_results→count`), AlphaVantage (name + curated output + cache).
+- **Tier C — genuine regression / contract break** (3): handled per Decision 5 (upstream fix or drop). See below.
+
+**YAGNI check on the borderline losses** — verified against actual epic_news usage, all UNUSED, so they need **no** upstream work: ScrapeNinja's 9 advanced params (never passed), HybridSearch's `country`/`n_results`/`prefer_brave` (never passed), AlphaVantage raw fields (no consumer reads `MarketCapitalization`/`EPS`/`PERatio`), WikipediaArticle `get_links`/`get_related_topics` (no prompt uses them), CMC `cover_image_url`/`percent_change_24h` (no renderer consumes them). Brave's arg renames matter only at the schema level and are agent-transparent.
+
+### Tier C — resolution
+
+| Tool | Finding | Resolution |
+|---|---|---|
+| **BatchArticleScraperTool** | Input contract changed (`rss_feeds`→`urls`), BUT used **only by its own test** — dead code in src. | **Drop** the tool + its test. No upstream, no wiring. |
+| **SaveToRagTool** | Package class dropped `__init__(rag_tool=...)`; instantiates a bare default `RagTool()` in `_run` → writes to the wrong chromadb collection/embeddings → save→retrieve silently returns nothing. Used by `get_rag_tools()` → crews. | **Upstream:** add optional `rag_tool` constructor injection (`__init__(rag_tool=None)`, `_run` uses `self._rag_tool or RagTool()`). epic_news keeps its own `rag_config` + retrieval `RagTool` + `get_rag_tools(collection_suffix)`; only the class moves. |
+| **UnifiedRssTool** | Package version dropped content-scraping, the saved `RssFeeds` JSON **output file**, invalid-source tracking, and the `output_file_path` arg. Invoked **programmatically** by `utils/rss_utils.py` as `._run(opml_file_path, days, output_file_path)` (from `main.py:111`); the real output is the written file. | **Upstream:** restore the `(opml_file_path, days, output_file_path)` `_run` signature + JSON-file writing + article content-scraping + invalid-source tracking (reusing the package's own scraper tools; keep it pure-Python-friendly per the package's Universal-Monolith ADR). |
 
 ## Out of scope
 
-- The `HolidayPlannerCrew` OpenRouter `APIError` ("Unable to get json response") — that is an LLM/output-parsing issue with `mistral-small-2603` on the final report task, unrelated to which tools are wired in. Tracked separately.
-- Replacing Group 2 (reporting/data-centric) tools (Decision 2).
-- Publishing `crewai-custom-tools` to PyPI (the git-pin makes this unnecessary for now).
-- Adopting any of the package's ~37 net-new tools (Fear/Greed, GDELT, Sherlock, etc.) — additive follow-up, not this migration.
+- The `HolidayPlannerCrew` OpenRouter `APIError` ("Unable to get json response") — an LLM/output-parsing issue with `mistral-small-2603`, unrelated to tools.
+- Group 2 (reporting/data-centric) tools (Decision 2).
+- Adopting the package's ~37 net-new tools (Fear/Greed, GDELT, Sherlock, …) — additive follow-up.
+- Restoring the YAGNI-verified unused features listed above.
 
 ## Architecture
 
-### The two tool groups (the central distinction)
+### Two workstreams
 
-**Group 1 — pure API-wrapper tools → REPLACE (delete file, import from package).**
-Their output is only ever consumed by an LLM agent as text; no epic_news Python code parses a Group-1 tool's return value (verified: the only `._run()` call sites in `src/` are inside `email_search.py`, which is itself replaced). Therefore the package's `{success, data, error}` envelope is a **prompt-level** change (agents see different text), **not a code break**.
+**Workstream 1 — `crewai_custom_tools` repo (blocking prerequisite).** Make the package a true superset for epic_news's needs, then release a new tag.
+- W1.1 `SaveToRagTool`: optional `rag_tool` constructor injection.
+- W1.2 `UnifiedRssTool`: restore output-file writing + `(opml, days, output_file_path)` signature + content-scraping + invalid-source tracking.
+- W1.3 Version bump → **v0.3.0**, CHANGELOG, tag + push (its CI/Docker publishes on tag).
 
-Group-1 inventory (40 exact-name matches + 1 rename = 41 tools; the other 9 of the package's 49 exact-name matches are Group 2, kept):
+**Workstream 2 — `epic_news` repo (after v0.3.0).** The rip-and-replace.
 
-- **Web/search:** `PerplexitySearchTool`, `ScrapeNinjaTool`, `FirecrawlTool`, `BatchArticleScraperTool`, `WikipediaSearchTool`, `WikipediaArticleTool`, `WikipediaProcessingTool`, `RssFeedParserTool`, `OpmlParserTool`, `RSSFeedTool`, `UnifiedRssTool`, `GoogleFactCheckTool`, `GeoapifyPlacesTool`, `TechStackTool`, `BraveSearchTool`, `TavilyTool`, `SerpApiTool`, `HybridSearchTool`
-- **Finance:** `YahooFinanceTickerInfoTool`, `YahooFinanceNewsTool`, `YahooFinanceCompanyInfoTool`, `YahooFinanceETFHoldingsTool`, `YahooFinanceHistoryTool`, `CoinMarketCapInfoTool`, `CoinMarketCapListTool`, `CoinMarketCapNewsTool`, `CoinMarketCapHistoricalTool`, `KrakenTickerInfoTool`, `KrakenAssetListTool`, `ExchangeRateTool`, and the **rename** `AlphaVantageCompanyOverviewTool → AlphaVantageOverviewTool`
-- **OSINT/email:** `GitHubSearchTool`, `GitHubOrgSearchTool`, `HunterIOTool`, `SerperEmailSearchTool`, `DelegatingEmailSearchTool`
-- **Enterprise:** `TodoistTool`, `AirtableReaderTool`, `AirtableTool`, `AccuWeatherTool`, `SaveToRagTool`
-- **Drop:** `MyCustomTool` (`custom_tool.py`) — CrewAI scaffold stub, no equivalent, delete.
+### What stays in epic_news (the package does not own these)
 
-**Group 2 — reporting & data-centric tools → KEEP in epic_news.**
-Coupled to epic_news internals: `render_report_tool.py` binds `epic_news.models.report_models.RenderReportToolSchema`; `data_centric_tools.py` binds `epic_news.models.data_metrics` and `_json_utils`. The package ships rewritten versions with different schemas and its own Jinja renderers that are **not** epic_news's federated `utils/html/` + `ui_theme` pipeline. Kept files: `render_report_tool.py`, `html_to_pdf_tool.py`, `universal_report_tool.py`, `reporting_tool.py`, `html_generator_tool.py`, `data_centric_tools.py`, `report_tools.py`, `utility_tools.py` (deprecated shim).
-
-### What else stays in epic_news (the package does not own these)
-
-- **Factory functions** (`get_*`) — most crews import factories, not raw classes. They also assemble **official `crewai_tools`** (`ScrapeWebsiteTool`, `YoutubeVideoSearchTool`, `WebsiteSearchTool`, `PDFSearchTool`, `GithubSearchTool`, `RagTool`) which the package does not provide. Factory bodies get rewritten to import Group-1 classes *from the package* while retaining the `crewai_tools` and config-selection pieces. Files: `web_tools.py`, `finance_tools.py`, `coinmarketcap_tool.py`, `location_tools.py`, `github_tools.py`, `rag_tools.py`, plus the factory portion of `email_search.py`.
-- **Config-driven selectors:** `scraper_factory.py` (`get_scraper()` via `WEB_SCRAPER_PROVIDER`), `web_search_factory.py` (`WebSearchFactory`), `fact_checking_factory.py` (`FactCheckingToolsFactory`).
-- **Infrastructure:** `_json_utils.py`, `cache_manager.py`, `search_base.py`, `github_base.py`, `email_base.py` (retained where still referenced; removed only if a delete makes them unused).
+- **Factory functions** (`get_*`) — most crews import factories, not raw classes; they also assemble official `crewai_tools` (`ScrapeWebsiteTool`, `YoutubeVideoSearchTool`, `WebsiteSearchTool`, `PDFSearchTool`, `GithubSearchTool`, `RagTool`) which the package does not provide. Factory bodies get rewritten to import Group-1 classes from the package while retaining the `crewai_tools` and config-selection pieces. Files: `web_tools.py`, `finance_tools.py`, `coinmarketcap_tool.py`, `location_tools.py`, `github_tools.py`, `rag_tools.py` (injects epic_news's configured `RagTool` into the package `SaveToRagTool`), and `email_search.py`'s `get_email_search_tools()`.
+- **Config-driven selectors:** `scraper_factory.py` (`WEB_SCRAPER_PROVIDER`), `web_search_factory.py`, `fact_checking_factory.py`.
+- **RAG config:** `rag_config.py` (`build_rag_tool_kwargs`, chromadb collection, `text-embedding-3-large`, `summarize`).
+- **Group 2 reporting/data-centric tools** + the entire `utils/html/` rendering pipeline.
+- **Infrastructure** still referenced after deletions: `_json_utils.py`, `cache_manager.py` (only where kept tools use it), `search_base.py`, `github_base.py`, `email_base.py` — removed only if a delete leaves them genuinely unused.
 
 ### Dependency integration
 
@@ -56,42 +68,40 @@ Coupled to epic_news internals: `render_report_tool.py` binds `epic_news.models.
 # epic_news/pyproject.toml
 [project]
 dependencies = [
-  # ...
-  "crewai-custom-tools @ git+https://github.com/fjacquet/crewai-custom-tools.git@v0.2.0",
+  "crewai-custom-tools @ git+https://github.com/fjacquet/crewai-custom-tools.git@v0.3.0",
 ]
 ```
 
-Add via `uv add`, then `uv sync --all-extras && uv pip install -e .`. Import form at all call sites is the **top-level** package only: `from crewai_custom_tools import PerplexitySearchTool`. A prefix-only rewrite that keeps epic_news's flat file stems (e.g. `crewai_custom_tools.tools.perplexity_search_tool`) will `ModuleNotFoundError` — the package's real modules are nested by domain.
+Import form at all call sites is the **top-level** package only: `from crewai_custom_tools import PerplexitySearchTool`. A prefix-only rewrite that keeps epic_news's flat file stems will `ModuleNotFoundError` — the package's real modules are nested by domain.
 
-## Migration phases (sequenced to keep the suite green)
+## Migration phases
 
-**Phase 0 — Safety net + dependency.** Execute and commit the `2026-07-04-validate-implementation` plan to a green suite. Add the git-pinned `crewai-custom-tools` dependency; smoke-test `python -c "import crewai_custom_tools"` and that a sample class instantiates.
+**Phase 0 — Safety net.** Execute and commit `2026-07-04-validate-implementation` to a green suite. (Scope its tool JSON-contract ratchet to epic_news-owned tools only — see Phase 4.)
 
-**Phase 1 — Repoint Group-1 imports.** At every call site (src + tests), rewrite `from epic_news.tools.<file> import <Class>` → `from crewai_custom_tools import <Class>`. Apply the `AlphaVantageCompanyOverviewTool → AlphaVantageOverviewTool` rename at imports **and** usages (incl. `finance_tools.get_stock_research_tools`). Remove `MyCustomTool` references.
+**Phase 1 — Upstream fixes (Workstream 1).** Implement W1.1/W1.2 in `crewai_custom_tools` with tests; release v0.3.0. Smoke-verify from epic_news: `python -c "import crewai_custom_tools"` and that `SaveToRagTool(rag_tool=...)` and `UnifiedRssTool()._run(opml, days, out)` behave as epic_news expects.
 
-**Phase 2 — Rewrite factory bodies.** Point `web_tools.py`, `finance_tools.py`, `coinmarketcap_tool.py`, `location_tools.py`, `github_tools.py`, `rag_tools.py`, and `email_search.py`'s factory at package classes; keep official `crewai_tools` + selector logic. Keep public factory signatures identical so crew call sites are untouched.
+**Phase 2 — Add dependency + repoint imports.** Pin `@v0.3.0`; `uv sync --all-extras && uv pip install -e .`. Rewrite Group-1 class imports at all call sites (src + tests) → `from crewai_custom_tools import X`. Apply `AlphaVantageCompanyOverviewTool → AlphaVantageOverviewTool` at imports **and** usages (incl. `finance_tools.get_stock_research_tools`). Update the two prose prompts referencing tool names (`shopping_advisor`, `deep_research` YAML). Remove `MyCustomTool`.
 
-**Phase 3 — Delete orphaned Group-1 files + tests.** Remove the ~45 replaced tool implementation files and any tests that tested epic_news-internal behavior of those implementations (the package owns that testing now). Prune now-unused infra modules only if genuinely unreferenced. Run `uv run pytest -q`, `uv run mypy src/epic_news`, `uv run ruff check`.
+**Phase 3 — Rewrite factory bodies.** Point `web_tools.py`, `finance_tools.py`, `coinmarketcap_tool.py`, `location_tools.py`, `github_tools.py`, `rag_tools.py`, `email_search.py` factories at package classes; keep official `crewai_tools` + selector logic; keep factory signatures identical so crew call sites are untouched. `rag_tools.get_rag_tools` injects the configured `RagTool` into the package `SaveToRagTool`.
 
-**Phase 4 — Contract + prompt reconciliation.** Scope the JSON-contract ratchet test (from validate-implementation Task 7) to **epic_news-owned** tools only (Group 2 + infra), not package tools. Scan agent `tasks.yaml`/`agents.yaml` descriptions for any that describe old tool output shape and update wording to the `{success, data, error}` envelope where an agent is instructed to read a tool's raw result.
+**Phase 4 — Delete orphans + reconcile.** Delete the ~40 replaced Group-1 tool files, the dead `batch_article_scraper_tool.py`, and the tool tests that assert epic_news-internal behavior/names (the package owns that testing now). Scope the JSON-contract ratchet to epic_news-owned tools. Prune now-unused infra. Run `uv run pytest -q`, `uv run mypy src/epic_news`, `uv run ruff check`.
 
 ## Risks & mitigations
 
 | Risk | Likelihood | Mitigation |
 |---|---|---|
-| Module-layout mismatch breaks imports | High if naive | Rewrite to **top-level** `from crewai_custom_tools import X` only; lint for `crewai_custom_tools.tools.*` deep imports. |
-| The one rename (`AlphaVantage…`) missed at a usage site | Medium | Grep both symbol and all `AlphaVantageCompanyOverviewTool(` calls; type-check catches the rest. |
-| Envelope change confuses an agent that reads raw tool text | Low | Phase 4 prompt scan; characterization/e2e tests from the safety net catch behavioral drift. |
-| A package tool's behavior differs from epic_news's despite name match | Low–Med | Trust exact-name matches but rely on Phase 0–3 test suite; spot-check high-traffic tools (Perplexity, scraper, Yahoo) against a live/mocked call. |
-| Git-pin unavailable offline / in CI without network | Low | `uv.lock` pins the resolved commit; document the tag. |
+| Upstream v0.3.0 fixes don't match epic_news's exact contract (UnifiedRss file/signature, SaveToRag injection) | Med | Phase 1 smoke-verify against `rss_utils.py` and `rag_tools.py` before proceeding; the two are the only programmatic tool-output consumers. |
+| Module-layout mismatch breaks imports | High if naive | Rewrite to **top-level** `from crewai_custom_tools import X`; lint for deep `crewai_custom_tools.tools.*` imports. |
+| The AlphaVantage rename missed at a usage site | Med | Grep the symbol + all `AlphaVantageCompanyOverviewTool(` calls; mypy catches the rest. |
+| An agent-transparent Tier-B change (name/key) surprises a crew | Low | Characterization + mocked-e2e tests from the safety net; the two prose-prompt updates. |
+| Cache removal (Kraken/AlphaVantage) raises live-API/rate-limit exposure | Low | Accept; these are read-mostly and rate limits are generous. Revisit if 429s appear. |
 
 ## Testing & verification
 
-- Full `uv run pytest -q` green after Phase 1, 2, and 3 (incremental, never a big-bang red).
-- `uv run mypy src/epic_news` clean (catches missed renames / dangling imports).
-- The mocked e2e flow test (`tests/flows/test_reception_flow_e2e.py`, from the safety net) must still pass — proves routing → parsing → HTML rendering → email gating unchanged.
-- Manual smoke: `crewai flow kickoff` on one crew per domain (a search crew, a finance crew) to confirm tools resolve and run.
+- Package (Workstream 1): the package's own pytest suite green for the two modified tools; new tests for `rag_tool` injection and UnifiedRss file output.
+- epic_news: full `uv run pytest -q` green after Phases 2, 3, 4 (incremental, never big-bang red); `uv run mypy src/epic_news` clean; the mocked e2e flow test (`tests/flows/test_reception_flow_e2e.py`) still passes.
+- Manual smoke: `crewai flow kickoff` on one crew per domain (a search crew, a finance crew, the RSS/news path) to confirm tools resolve and the RSS output file is still written.
 
 ## Rollback
 
-Each phase is an isolated commit. Reverting the dependency line + the phase commits restores the in-repo tools. The git-pin means no local-path state to clean up.
+Workstream 1 is a separate repo/release — epic_news pins the tag, so reverting the pin restores prior behavior. Each epic_news phase is an isolated commit; reverting the dependency line + phase commits restores the in-repo tools.
