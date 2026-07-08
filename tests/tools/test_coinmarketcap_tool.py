@@ -1,9 +1,12 @@
 import os
 
-from epic_news.tools.coinmarketcap_historical_tool import CoinMarketCapHistoricalTool
-from epic_news.tools.coinmarketcap_info_tool import CoinMarketCapInfoTool
-from epic_news.tools.coinmarketcap_list_tool import CoinMarketCapListTool
-from epic_news.tools.coinmarketcap_news_tool import CoinMarketCapNewsTool
+from crewai_custom_tools import (
+    CoinMarketCapHistoricalTool,
+    CoinMarketCapInfoTool,
+    CoinMarketCapListTool,
+    CoinMarketCapNewsTool,
+)
+
 from epic_news.tools.coinmarketcap_tool import get_coinmarketcap_tools
 
 TEST_CMC_API_KEY = "test_cmc_api_key_for_loader"

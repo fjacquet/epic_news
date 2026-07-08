@@ -17,7 +17,6 @@ JSON_MARKERS = ("json.dumps", "ensure_json_str", "model_dump_json", "to_json")
 KNOWN_LEGACY: set[str] = {
     "accuweather_tool.py",
     "custom_tool.py",
-    "exchange_rate_tool.py",
     "html_generator_tool.py",
     "html_to_pdf_tool.py",
     "render_report_tool.py",
