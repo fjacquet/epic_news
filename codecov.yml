@@ -1,0 +1,17 @@
+# Codecov configuration.
+#
+# The project status uses a small tolerance so that routine, non-regressive
+# coverage fluctuations do not fail CI — most notably deleting well-covered dead
+# code (e.g. the migration cruft sweep), which lowers the overall percentage
+# even though no kept code lost coverage. The patch status keeps diff coverage
+# honest at the auto target.
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 1%
+    patch:
+      default:
+        target: auto
+        threshold: 0%
