@@ -9,6 +9,7 @@ dependencies = [
     # --- Core runtime (CrewAI + integrations) ---
     "crewai>=1.15.1",
     "crewai-tools[mcp]>=1.15.1",
+    "crewai-custom-tools @ git+https://github.com/fjacquet/crewai-custom-tools.git@v0.3.0",
     "mcp>=1.26.0",
     "composio>=0.15.0",
     "composio-crewai>=0.15.0",
@@ -247,6 +248,23 @@ DEP002 = [
     # pytest plugins / CLI tools (used via fixtures or config, never imported)
     "pytest-cov", "pytest-asyncio", "pytest-env", "pytest-mock",
     "pytest-regressions", "coverage",
+    # Runtime backends of the API-wrapper tools now sourced from
+    # crewai-custom-tools (the in-repo tools that imported these were deleted in
+    # the tools migration). epic_news no longer imports them directly but keeps
+    # them pinned so those tools have their backends available at runtime —
+    # several are optional/lazy imports in the package. A future dependency
+    # sweep can hand ownership of these to the package entirely.
+    "feedparser",       # RSS parsing (UnifiedRssTool)
+    "newspaper3k",      # article content scraping (RSS)
+    "python-dateutil",  # RSS date fallback parsing
+    "wikipedia",        # Wikipedia tools
+    "tavily-python",    # Tavily search
+    "firecrawl-py",     # Firecrawl scraper (optional provider)
+    "yfinance",         # Yahoo Finance tools
+    "pandas",           # required transitively by yfinance at runtime
+    "pyairtable",       # Airtable tools
+    "requests",         # HTTP backend for the above (also via requests-cache)
+    "urllib3",          # transitive HTTP backend (requests)
 ]
 # DEP003: `pip install -e .` makes epic_news appear in the resolver's transitive
 # output, so suppress it here even though known_first_party already marks it.

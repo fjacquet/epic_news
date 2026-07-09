@@ -1,7 +1,8 @@
 import asyncio
 import os
 
-from epic_news.tools.unified_rss_tool import UnifiedRssTool
+from crewai_custom_tools import UnifiedRssTool
+
 from epic_news.utils.directory_utils import ensure_output_directory
 
 

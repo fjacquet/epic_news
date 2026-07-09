@@ -1,5 +1,6 @@
 import os
 
+from crewai_custom_tools import PerplexitySearchTool
 from crewai_tools import (
     GithubSearchTool,
     PDFSearchTool,
@@ -8,7 +9,6 @@ from crewai_tools import (
     YoutubeVideoSearchTool,
 )
 
-from epic_news.tools.perplexity_search_tool import PerplexitySearchTool
 from epic_news.tools.scraper_factory import get_scraper
 from epic_news.tools.web_tools import (
     get_all_web_tools,

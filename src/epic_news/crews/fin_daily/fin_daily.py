@@ -1,11 +1,11 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
+from crewai_custom_tools import KrakenAssetListTool, KrakenTickerInfoTool
 from crewai_tools import DirectoryReadTool, FileReadTool
 
 from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.financial_report import FinancialReport
 from epic_news.tools.finance_tools import get_crypto_research_tools, get_stock_research_tools
-from epic_news.tools.kraken_api_tool import KrakenAssetListTool, KrakenTickerInfoTool
 from epic_news.tools.scraper_factory import get_scraper
 
 

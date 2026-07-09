@@ -2,7 +2,8 @@
 Tests for location tools factory functions.
 """
 
-from epic_news.tools.geoapify_places_tool import GeoapifyPlacesTool
+from crewai_custom_tools import GeoapifyPlacesTool
+
 from epic_news.tools.location_tools import get_location_tools
 
 

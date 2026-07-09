@@ -3,9 +3,8 @@
 import os
 
 from crewai.tools import BaseTool
+from crewai_custom_tools import GitHubSearchTool
 from dotenv import load_dotenv
-
-from .github_search_tool import GitHubSearchTool
 
 # Load environment variables from .env file
 load_dotenv()

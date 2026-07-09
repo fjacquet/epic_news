@@ -1,10 +1,6 @@
-import importlib
-import sys
-import types
-
 import pytest
+from crewai_custom_tools import ScrapeNinjaTool
 
-from epic_news.tools.scrape_ninja_tool import ScrapeNinjaTool
 from epic_news.tools.scraper_factory import get_scraper
 
 
@@ -47,31 +43,13 @@ def test_get_scraper_tavily_valueerror(monkeypatch):
 
 
 def test_get_scraper_firecrawl_with_stub(monkeypatch):
-    """
-    Provide a stub FirecrawlTool in sys.modules so scraper_factory can import it
-    without requiring external SDK or API key. Ensures the firecrawl branch works.
-    """
-    # Create stub module and class
-    module_name = "epic_news.tools.firecrawl_tool"
-    stub_module = types.ModuleType(module_name)
+    """Patch FirecrawlTool where scraper_factory imports it (package top-level)."""
 
-    class StubFirecrawlTool:  # no init requirements
+    class StubFirecrawlTool:
         def __init__(self, **kwargs):
             pass
 
-    stub_module.FirecrawlTool = StubFirecrawlTool
-
-    # Inject into sys.modules
-    sys.modules[module_name] = stub_module
-
-    # Ensure future imports see the stub
-    importlib.invalidate_caches()
-
-    try:
-        monkeypatch.setenv("WEB_SCRAPER_PROVIDER", "firecrawl")
-        scraper = get_scraper()
-        assert isinstance(scraper, StubFirecrawlTool)
-    finally:
-        # Cleanup stub
-        sys.modules.pop(module_name, None)
-        importlib.invalidate_caches()
+    monkeypatch.setattr("crewai_custom_tools.FirecrawlTool", StubFirecrawlTool)
+    monkeypatch.setenv("WEB_SCRAPER_PROVIDER", "firecrawl")
+    scraper = get_scraper()
+    assert isinstance(scraper, StubFirecrawlTool)

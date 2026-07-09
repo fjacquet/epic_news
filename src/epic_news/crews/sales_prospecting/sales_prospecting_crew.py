@@ -1,12 +1,12 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
+from crewai_custom_tools import HybridSearchTool
 from crewai_tools import DirectoryReadTool, FileReadTool, ScrapeWebsiteTool
 from dotenv import load_dotenv
 
 from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.sales_prospecting_report import SalesProspectingReport
 from epic_news.tools.data_centric_tools import get_data_centric_tools
-from epic_news.tools.hybrid_search_tool import HybridSearchTool
 from epic_news.tools.report_tools import get_report_tools
 
 load_dotenv()

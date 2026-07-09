@@ -22,6 +22,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libharfbuzz0b \
     libgdk-pixbuf-2.0-0 \
     shared-mime-info \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
 # 5. Copy dependency definitions

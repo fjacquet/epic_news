@@ -6,10 +6,10 @@ to enable crews to store and retrieve knowledge across sessions.
 """
 
 from crewai.tools import BaseTool as Tool
+from crewai_custom_tools import SaveToRagTool
 from crewai_tools import RagTool
 
 from epic_news.rag_config import build_rag_tool_kwargs
-from epic_news.tools.save_to_rag_tool import SaveToRagTool
 
 
 def get_rag_tools(collection_suffix: str | None = None) -> list[Tool]:

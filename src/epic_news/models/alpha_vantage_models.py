@@ -4,6 +4,6 @@ from pydantic import BaseModel, Field
 
 
 class CompanyOverviewInput(BaseModel):
-    """Input schema for the AlphaVantageCompanyOverviewTool."""
+    """Input schema for the AlphaVantageOverviewTool."""
 
     ticker: str = Field(..., description="The stock ticker symbol to get information for.")

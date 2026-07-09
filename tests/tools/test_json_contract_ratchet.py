@@ -13,22 +13,15 @@ TOOLS_DIR = Path(__file__).resolve().parents[2] / "src" / "epic_news" / "tools"
 
 JSON_MARKERS = ("json.dumps", "ensure_json_str", "model_dump_json", "to_json")
 
-# Seeded from the state of the codebase on 2026-07-04. Shrink-only.
+# Seeded from the state of the codebase on 2026-07-04, rescoped 2026-07-09
+# after the tools-migration cleanup (Task 6) to surviving epic_news-owned
+# tools only. Shrink-only.
 KNOWN_LEGACY: set[str] = {
-    "accuweather_tool.py",
-    "custom_tool.py",
-    "exchange_rate_tool.py",
-    "google_fact_check_tool.py",
     "html_generator_tool.py",
     "html_to_pdf_tool.py",
-    "opml_parser_tool.py",
     "render_report_tool.py",
     "reporting_tool.py",
-    "tavily_tool.py",
-    "todoist_tool.py",
-    "unified_rss_tool.py",
     "universal_report_tool.py",
-    "wikipedia_processing_tool.py",
 }
 
 

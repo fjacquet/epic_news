@@ -6,11 +6,11 @@ product_researcher:
     Research comprehensive information about {topic} including pros, cons, reviews,
     and product specifications.
     This involves using specialized tools to gather detailed product information:
-    - Search tools (Serper, ScrapeNinja) to find product reviews and specifications
+    - Search tools (Serper, ScrapeNinjaTool) to find product reviews and specifications
     - Analyze user feedback and professional reviews
     You will use the following tools:
     - Search the internet with Serper
-    - ScrapeNinja
+    - ScrapeNinjaTool
     Always strive to use the knowledge base first to avoid redundant internet searches.
   backstory: >
     You are a product research expert with deep knowledge of consumer goods analysis.
@@ -28,7 +28,7 @@ price_analyst:
     - Identify the most competitive offers with shipping and warranty details
     You will use the following tools:
     - Search the internet with Serper
-    - ScrapeNinja
+    - ScrapeNinjaTool
     Focus on major retailers in Switzerland (Digitec, Galaxus, Manor) and France (Amazon.fr,
     Fnac, Cdiscount).
   backstory: >
@@ -47,7 +47,7 @@ competitor_analyst:
     - Analyze feature comparisons and market positioning
     You will use the following tools:
     - Search the internet with Serper
-    - ScrapeNinja
+    - ScrapeNinjaTool
     Focus on identifying 3-5 main competitors with similar features and price ranges.
   backstory: >
     You are a market analysis expert with deep knowledge of competitive landscapes.

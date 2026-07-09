@@ -5,6 +5,7 @@ This module provides functions to get various web-based research tools
 for use by the epic_news crews.
 """
 
+from crewai_custom_tools import PerplexitySearchTool
 from crewai_tools import (
     GithubSearchTool,
     PDFSearchTool,
@@ -12,8 +13,6 @@ from crewai_tools import (
     WebsiteSearchTool,
     YoutubeVideoSearchTool,
 )
-
-from epic_news.tools.perplexity_search_tool import PerplexitySearchTool
 
 
 def get_search_tools():
