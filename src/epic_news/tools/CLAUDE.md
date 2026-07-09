@@ -15,13 +15,12 @@ below are what remains in `src/epic_news/tools/`.
 **Factories** (select/assemble tools by provider or feature flag):
 - web_tools.py, web_search_factory.py — web search/scrape tool selection
 - finance_tools.py — Yahoo Finance / stock / crypto / ETF tool bundles
-- github_tools.py, location_tools.py, rag_tools.py, report_tools.py — per-domain factory functions
+- github_tools.py, location_tools.py, rag_tools.py, report_tools.py, coinmarketcap_tool.py — per-domain factory functions
 - scraper_factory.py — scraper provider selection (delegates to `crewai_custom_tools`)
 - fact_checking_factory.py, email_search.py — remaining OSINT/fact-check factories
 
 **Data & Reporting** (Group-2, kept in-repo):
 - data_centric_tools.py (MetricsCalculatorTool, KPITrackerTool, DataVisualizationTool, StructuredReportTool)
-- coinmarketcap_tool.py
 - html_generator_tool.py, html_to_pdf_tool.py, render_report_tool.py, reporting_tool.py, universal_report_tool.py
 - utility_tools.py
 
