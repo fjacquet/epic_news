@@ -17,6 +17,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from bs4 import BeautifulSoup
+
 from .base_renderer import BaseRenderer
 
 
@@ -32,7 +34,7 @@ class HRIntelligenceRenderer(BaseRenderer):
         soup = self.create_soup("div", class_="hr-intelligence-report")
         container = soup.div
 
-        self.add_report_header(soup, container, "👥 Intelligence RH", data.get("company_name"))
+        self._add_report_header(soup, container, "👥 Intelligence RH", data.get("company_name"))
         self.render_text_section(
             soup, container, data.get("summary_and_recommendations"), "Résumé et Recommandations", "📋"
         )
@@ -55,3 +57,17 @@ class HRIntelligenceRenderer(BaseRenderer):
         self.add_raw_json_section(soup, container, data, "Voir les données brutes")
 
         return str(soup)
+
+    def _add_report_header(
+        self, soup: BeautifulSoup, container: Any, title: str, subtitle: str | None
+    ) -> None:
+        """Like ``add_report_header``, but renders ``subtitle`` (agent-authored company name) as Markdown."""
+        header = soup.new_tag("div", **{"class": "report-header"})  # type: ignore[arg-type]
+        h1 = soup.new_tag("h1")
+        h1.string = title
+        header.append(h1)
+        if subtitle:
+            h2 = soup.new_tag("h2")
+            self.render_markdown_inline(h2, subtitle)
+            header.append(h2)
+        container.append(header)

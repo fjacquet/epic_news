@@ -94,12 +94,7 @@ class PestelRenderer(BaseRenderer):
 
         topic = data.get("topic") or "Subject"
         generated_at = data.get("generated_at") or ""
-        self.add_report_header(
-            soup,
-            container,
-            f"PESTEL Analysis — {topic}",
-            subtitle=f"Generated: {generated_at}" if generated_at else None,
-        )
+        self._add_report_header(soup, container, topic, generated_at)
 
         self.render_text_section(
             soup,
@@ -124,6 +119,19 @@ class PestelRenderer(BaseRenderer):
 
         return str(soup)
 
+    def _add_report_header(self, soup: BeautifulSoup, container: Any, topic: str, generated_at: str) -> None:
+        """Like ``add_report_header``, but renders ``topic`` (agent-authored) as Markdown."""
+        header = soup.new_tag("div", **{"class": "report-header"})  # type: ignore[arg-type]
+        h1 = soup.new_tag("h1")
+        h1.append("PESTEL Analysis — ")
+        self.render_markdown_inline(h1, topic)
+        header.append(h1)
+        if generated_at:
+            h2 = soup.new_tag("h2")
+            h2.string = f"Generated: {generated_at}"
+            header.append(h2)
+        container.append(header)
+
     def _render_dimension(
         self,
         soup: BeautifulSoup,
@@ -141,7 +149,7 @@ class PestelRenderer(BaseRenderer):
             strong = soup.new_tag("strong")
             strong.string = "Summary: "
             p.append(strong)
-            p.append(summary)
+            self.append_prose(p, summary)
             section.append(p)
 
         factors = dim.get("key_factors") or []
@@ -152,7 +160,7 @@ class PestelRenderer(BaseRenderer):
             ul = soup.new_tag("ul")
             for factor in factors:
                 li = soup.new_tag("li")
-                li.string = str(factor)
+                self.append_prose(li, factor)
                 ul.append(li)
             section.append(ul)
         else:
@@ -214,7 +222,7 @@ class PestelRenderer(BaseRenderer):
                 # Render the prefix text, then the link
                 prefix = src_text[: url_match.start()].rstrip(" ,:")
                 if prefix:
-                    li.append(prefix + " ")
+                    self.render_markdown_inline(li, prefix + " ")
                 a = soup.new_tag("a", href=url)
                 a.string = url
                 a.attrs["target"] = "_blank"
@@ -222,9 +230,9 @@ class PestelRenderer(BaseRenderer):
                 li.append(a)
                 suffix = src_text[url_match.start() + len(url_match.group(0)) :]
                 if suffix:
-                    li.append(suffix)
+                    self.render_markdown_inline(li, suffix)
             else:
-                li.string = src_text
+                self.append_prose(li, src_text)
             ul.append(li)
         details.append(ul)
         section.append(details)

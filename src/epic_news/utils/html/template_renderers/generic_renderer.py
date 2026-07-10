@@ -71,10 +71,8 @@ class GenericRenderer(BaseRenderer):
                 title_tag.string = field.title()
                 section_div.append(title_tag)
 
-                # Section content
-                content_p = soup.new_tag("p")
-                content_p.string = value
-                section_div.append(content_p)
+                # Section content (agent-authored prose may contain Markdown)
+                self.render_markdown_block(section_div, value)
 
                 content_div.append(section_div)
 
@@ -93,11 +91,19 @@ class GenericRenderer(BaseRenderer):
                 for item in value:
                     li = soup.new_tag("li")
                     if isinstance(item, dict):
-                        # Handle dict items
-                        item_str = ", ".join([f"{k}: {v}" for k, v in item.items() if v])
-                        li.string = item_str
+                        # Handle dict items: keys are labels (literal), values are
+                        # agent-authored prose that may contain Markdown.
+                        first = True
+                        for k, v in item.items():
+                            if not v:
+                                continue
+                            if not first:
+                                li.append(", ")
+                            li.append(f"{k}: ")
+                            self.append_prose(li, v)
+                            first = False
                     else:
-                        li.string = str(item)
+                        self.append_prose(li, item)
                     ul.append(li)
 
                 section_div.append(ul)

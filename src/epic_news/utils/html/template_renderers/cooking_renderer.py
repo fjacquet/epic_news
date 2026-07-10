@@ -60,14 +60,15 @@ class CookingRenderer(BaseRenderer):
         # Title
         title = data.get("recipe_title", data.get("name", "Recette"))
         title_tag = soup.new_tag("h1", attrs={"class": "recipe-title"})
-        title_tag.string = f"🍽️ {title}"
+        title_tag.append("🍽️ ")
+        self.append_prose(title_tag, title)
         header.append(title_tag)
 
         # Description
         description = data.get("description", "")
         if description:
             desc_tag = soup.new_tag("p", attrs={"class": "recipe-description"})
-            desc_tag.string = description
+            self.append_prose(desc_tag, description)
             header.append(desc_tag)
 
         # Add recipe type badge if available
@@ -163,7 +164,8 @@ class CookingRenderer(BaseRenderer):
         ing_list = soup.new_tag("ul", attrs={"class": "ingredients-list"})
         for ingredient in ingredients:
             ing_item = soup.new_tag("li")
-            ing_item.string = f"🥄 {ingredient}"
+            ing_item.append("🥄 ")
+            self.append_prose(ing_item, ingredient)
             ing_list.append(ing_item)
 
         ingredients_section.append(ing_list)
@@ -186,7 +188,7 @@ class CookingRenderer(BaseRenderer):
         ins_list = soup.new_tag("ol", attrs={"class": "instructions-list"})
         for instruction in instructions:
             ins_item = soup.new_tag("li")
-            ins_item.string = instruction
+            self.append_prose(ins_item, instruction)
             ins_list.append(ins_item)
 
         instructions_section.append(ins_list)
@@ -209,12 +211,12 @@ class CookingRenderer(BaseRenderer):
             notes_list = soup.new_tag("ul", attrs={"class": "notes-list"})
             for note in chef_notes:
                 note_item = soup.new_tag("li")
-                note_item.string = str(note)
+                self.append_prose(note_item, note)
                 notes_list.append(note_item)
             notes_section.append(notes_list)
         else:
             notes_content = soup.new_tag("p")
-            notes_content.string = str(chef_notes)
+            self.append_prose(notes_content, chef_notes)
             notes_section.append(notes_content)
 
         container.append(notes_section)
@@ -236,12 +238,13 @@ class CookingRenderer(BaseRenderer):
             nutrition_list = soup.new_tag("ul", attrs={"class": "nutrition-list"})
             for key, value in nutritional_info.items():
                 nutrition_item = soup.new_tag("li")
-                nutrition_item.string = f"{key.replace('_', ' ').title()}: {value}"
+                nutrition_item.append(f"{key.replace('_', ' ').title()}: ")
+                self.append_prose(nutrition_item, value)
                 nutrition_list.append(nutrition_item)
             nutrition_section.append(nutrition_list)
         else:
             nutrition_content = soup.new_tag("p")
-            nutrition_content.string = str(nutritional_info)
+            self.append_prose(nutrition_content, nutritional_info)
             nutrition_section.append(nutrition_content)
 
         container.append(nutrition_section)

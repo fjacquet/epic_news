@@ -65,7 +65,8 @@ class RssWeeklyRenderer(BaseRenderer):
             digest_section.attrs["class"] = ["feed-digest"]  # type: ignore[assignment]
 
             feed_title = soup.new_tag("h3")
-            feed_title.string = f"📡 {feed_name}"
+            feed_title.append("📡 ")
+            self.append_prose(feed_title, feed_name)
             digest_section.append(feed_title)
 
             if feed_url:
@@ -100,7 +101,8 @@ class RssWeeklyRenderer(BaseRenderer):
         title = data.get("title", "RSS Weekly")
         title_tag = soup.new_tag("h1")
         title_tag.attrs["class"] = ["rss-title"]  # type: ignore[assignment]
-        title_tag.string = f"📰 {title}"
+        title_tag.append("📰 ")
+        self.append_prose(title_tag, title)
         header.append(title_tag)
 
         # Date if available
@@ -126,9 +128,7 @@ class RssWeeklyRenderer(BaseRenderer):
         summary_title.string = "📋 Résumé de la semaine"
         summary_div.append(summary_title)
 
-        summary_p = soup.new_tag("p")
-        summary_p.string = summary
-        summary_div.append(summary_p)
+        self.render_markdown_block(summary_div, summary)
 
         container.append(summary_div)
 
@@ -197,10 +197,10 @@ class RssWeeklyRenderer(BaseRenderer):
             link_tag = soup.new_tag("a", href=url)
             link_tag["target"] = "_blank"
             link_tag["rel"] = "noopener noreferrer"
-            link_tag.string = title
+            self.append_prose(link_tag, title)
             title_tag.append(link_tag)
         else:
-            title_tag.string = title
+            self.append_prose(title_tag, title)
         article_div.append(title_tag)
 
         # Published date (canonical "published" or legacy "date")
@@ -225,7 +225,7 @@ class RssWeeklyRenderer(BaseRenderer):
         if description:
             desc_p = soup.new_tag("p")
             desc_p.attrs["class"] = ["article-description"]  # type: ignore[assignment]
-            desc_p.string = description
+            self.append_prose(desc_p, description)
             article_div.append(desc_p)
 
         summary = article.get("summary") or article.get("content") or ""
@@ -270,10 +270,10 @@ class RssWeeklyRenderer(BaseRenderer):
                     link_tag = soup.new_tag("a", href=source_url)
                     link_tag["target"] = "_blank"
                     link_tag["rel"] = "noopener noreferrer"
-                    link_tag.string = source_name
+                    self.append_prose(link_tag, source_name)
                     source_item.append(link_tag)
                 else:
-                    source_item.string = source_name
+                    self.append_prose(source_item, source_name)
 
                 sources_list.append(source_item)
 

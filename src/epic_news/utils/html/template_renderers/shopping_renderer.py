@@ -64,15 +64,14 @@ class ShoppingRenderer(BaseRenderer):
 
         return str(soup)
 
-    @staticmethod
-    def _bullet_list(soup: BeautifulSoup, items: Any, css_class: str | None = None):
+    def _bullet_list(self, soup: BeautifulSoup, items: Any, css_class: str | None = None):
         """Build a ``<ul>`` from a list of scalars, or return None if empty."""
         if not (isinstance(items, list) and items):
             return None
         ul = soup.new_tag("ul", attrs={"class": css_class}) if css_class else soup.new_tag("ul")
         for item in items:
             li = soup.new_tag("li")
-            li.string = str(item)
+            self.append_prose(li, item)
             ul.append(li)
         return ul
 
@@ -91,12 +90,13 @@ class ShoppingRenderer(BaseRenderer):
 
         if name:
             title_tag = soup.new_tag("h2")
-            title_tag.string = f"🛍️ {name}"
+            title_tag.append("🛍️ ")
+            self.append_prose(title_tag, name)
             section.append(title_tag)
 
         if overview:
             overview_p = soup.new_tag("p")
-            overview_p.string = overview
+            self.append_prose(overview_p, overview)
             section.append(overview_p)
 
         target_audience = product.get("target_audience")
@@ -105,7 +105,7 @@ class ShoppingRenderer(BaseRenderer):
             aud_strong = soup.new_tag("strong")
             aud_strong.string = "Public cible : "
             aud_p.append(aud_strong)
-            aud_p.append(soup.new_string(target_audience))
+            self.append_prose(aud_p, target_audience)
             section.append(aud_p)
 
         specs = self._bullet_list(soup, product.get("key_specifications"), "product-specs")
@@ -135,7 +135,7 @@ class ShoppingRenderer(BaseRenderer):
         title_tag.string = "📝 Résumé"
         section.append(title_tag)
         summary_p = soup.new_tag("p")
-        summary_p.string = summary
+        self.append_prose(summary_p, summary)
         section.append(summary_p)
         container.append(section)
 
@@ -197,10 +197,14 @@ class ShoppingRenderer(BaseRenderer):
                 retailer_td.string = retailer
             row.append(retailer_td)
 
-            for key in ("price", "shipping_cost", "total_cost", "notes"):
+            for key in ("price", "shipping_cost", "total_cost"):
                 cell = soup.new_tag("td")
                 cell.string = str(price_item.get(key) or "")
                 row.append(cell)
+
+            notes_cell = soup.new_tag("td")
+            self.append_prose(notes_cell, price_item.get("notes") or "")
+            row.append(notes_cell)
 
             tbody.append(row)
         table.append(tbody)
@@ -265,7 +269,9 @@ class ShoppingRenderer(BaseRenderer):
             price_range = comp.get("price_range")
             if name:
                 heading = soup.new_tag("h4")
-                heading.string = f"{name} ({price_range})" if price_range else name
+                self.append_prose(heading, name)
+                if price_range:
+                    heading.append(f" ({price_range})")
                 card.append(heading)
 
             features = self._bullet_list(soup, comp.get("key_features"))
@@ -278,7 +284,7 @@ class ShoppingRenderer(BaseRenderer):
                 aud_strong = soup.new_tag("strong")
                 aud_strong.string = "Public cible : "
                 aud_p.append(aud_strong)
-                aud_p.append(soup.new_string(target_audience))
+                self.append_prose(aud_p, target_audience)
                 card.append(aud_p)
 
             section.append(card)
@@ -311,7 +317,7 @@ class ShoppingRenderer(BaseRenderer):
 
         content_div = soup.new_tag("div", attrs={"class": "recommendation-content"})
         rec_p = soup.new_tag("p")
-        rec_p.string = recommendation
+        self.append_prose(rec_p, recommendation)
         content_div.append(rec_p)
         section.append(content_div)
         container.append(section)
@@ -327,6 +333,6 @@ class ShoppingRenderer(BaseRenderer):
         title_tag.string = "👤 Contexte pris en compte"
         section.append(title_tag)
         context_p = soup.new_tag("p")
-        context_p.string = context
+        self.append_prose(context_p, context)
         section.append(context_p)
         container.append(section)

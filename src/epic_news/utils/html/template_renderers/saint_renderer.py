@@ -66,14 +66,15 @@ class SaintRenderer(BaseRenderer):
 
         name = data.get("saint_name") or data.get("name") or "Saint"
         title_tag = soup.new_tag("h2")
-        title_tag.string = f"✨ {name}"
+        title_tag.append("✨ ")
+        self.append_prose(title_tag, name)
         header_div.append(title_tag)
 
         # Add subtitle if available
         title = data.get("title") or data.get("epithet")
         if title:
             subtitle_p = soup.new_tag("p", attrs={"class": "saint-title"})
-            subtitle_p.string = title
+            self.append_prose(subtitle_p, title)
             header_div.append(subtitle_p)
 
         container.append(header_div)
@@ -90,9 +91,7 @@ class SaintRenderer(BaseRenderer):
         title_tag.string = "📖 Biographie"
         bio_div.append(title_tag)
 
-        bio_p = soup.new_tag("p")
-        bio_p.string = biography
-        bio_div.append(bio_p)
+        self.render_markdown_block(bio_div, biography)
 
         container.append(bio_div)
 
@@ -187,14 +186,12 @@ class SaintRenderer(BaseRenderer):
         miracles_div.append(title_tag)
 
         if isinstance(miracles, str):
-            miracles_p = soup.new_tag("p")
-            miracles_p.string = miracles
-            miracles_div.append(miracles_p)
+            self.render_markdown_block(miracles_div, miracles)
         elif isinstance(miracles, list):
             miracles_ul = soup.new_tag("ul")
             for item in miracles:
                 li = soup.new_tag("li")
-                li.string = str(item)
+                self.append_prose(li, item)
                 miracles_ul.append(li)
             miracles_div.append(miracles_ul)
 
@@ -212,9 +209,7 @@ class SaintRenderer(BaseRenderer):
         title_tag.string = "🇨🇭 Lien avec la Suisse"
         swiss_div.append(title_tag)
 
-        swiss_p = soup.new_tag("p")
-        swiss_p.string = swiss_connection
-        swiss_div.append(swiss_p)
+        self.render_markdown_block(swiss_div, swiss_connection)
 
         container.append(swiss_div)
 
@@ -236,14 +231,12 @@ class SaintRenderer(BaseRenderer):
         spiritual_div.append(title_tag)
 
         if isinstance(significance, str):
-            spiritual_p = soup.new_tag("p")
-            spiritual_p.string = significance
-            spiritual_div.append(spiritual_p)
+            self.render_markdown_block(spiritual_div, significance)
         elif isinstance(significance, list):
             spiritual_ul = soup.new_tag("ul")
             for item in significance:
                 li = soup.new_tag("li")
-                li.string = str(item)
+                self.append_prose(li, item)
                 spiritual_ul.append(li)
             spiritual_div.append(spiritual_ul)
 
@@ -261,9 +254,7 @@ class SaintRenderer(BaseRenderer):
         title_tag.string = "📿 Prière et Réflexion"
         prayer_div.append(title_tag)
 
-        prayer_p = soup.new_tag("p")
-        prayer_p.string = prayer
-        prayer_div.append(prayer_p)
+        self.render_markdown_block(prayer_div, prayer)
 
         container.append(prayer_div)
 
@@ -282,7 +273,7 @@ class SaintRenderer(BaseRenderer):
         sources_ul = soup.new_tag("ul")
         for source in sources:
             li = soup.new_tag("li")
-            li.string = source
+            self.append_prose(li, source)
             sources_ul.append(li)
         sources_div.append(sources_ul)
 

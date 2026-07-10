@@ -49,8 +49,7 @@ class CompanyProfilerRenderer(BaseRenderer):
 
         return str(soup)
 
-    @staticmethod
-    def _add_header(soup: BeautifulSoup, container: Any, data: dict[str, Any]) -> None:
+    def _add_header(self, soup: BeautifulSoup, container: Any, data: dict[str, Any]) -> None:
         """Add report header with company name."""
         header = soup.new_tag("div", **{"class": "report-header"})  # type: ignore[arg-type]
 
@@ -60,13 +59,12 @@ class CompanyProfilerRenderer(BaseRenderer):
 
         company_name = data.get("company_name", "Entreprise")
         subtitle = soup.new_tag("p", **{"class": "company-name"})  # type: ignore[arg-type]
-        subtitle.string = company_name
+        self.append_prose(subtitle, company_name)
         header.append(subtitle)
 
         container.append(header)
 
-    @staticmethod
-    def _add_core_info(soup: BeautifulSoup, container: Any, data: dict[str, Any]) -> None:
+    def _add_core_info(self, soup: BeautifulSoup, container: Any, data: dict[str, Any]) -> None:
         """Add core company information section."""
         core_info = data.get("core_info", {})
         if not core_info:
@@ -88,10 +86,10 @@ class CompanyProfilerRenderer(BaseRenderer):
             ("Siège social", core_info.get("headquarters_location")),
             ("Secteur d'activité", core_info.get("industry_classification")),
             ("Nombre d'employés", core_info.get("employee_count")),
-            ("Chiffre d'affaires", CompanyProfilerRenderer._format_currency(core_info.get("revenue"))),
+            ("Chiffre d'affaires", self._format_currency(core_info.get("revenue"))),
             (
                 "Capitalisation boursière",
-                CompanyProfilerRenderer._format_currency(core_info.get("market_cap")),
+                self._format_currency(core_info.get("market_cap")),
             ),
         ]
 
@@ -101,7 +99,7 @@ class CompanyProfilerRenderer(BaseRenderer):
                 label_tag = soup.new_tag("span", **{"class": "info-label"})  # type: ignore[arg-type]
                 label_tag.string = label
                 value_tag = soup.new_tag("span", **{"class": "info-value"})  # type: ignore[arg-type]
-                value_tag.string = str(value)
+                self.append_prose(value_tag, value)
                 item.append(label_tag)
                 item.append(value_tag)
                 grid.append(item)
@@ -118,7 +116,7 @@ class CompanyProfilerRenderer(BaseRenderer):
             ul = soup.new_tag("ul")
             for activity in activities:
                 li = soup.new_tag("li")
-                li.string = activity
+                self.append_prose(li, activity)
                 ul.append(li)
             activities_div.append(ul)
             section.append(activities_div)
@@ -130,7 +128,7 @@ class CompanyProfilerRenderer(BaseRenderer):
             h3.string = "🎯 Mission"
             mission_div.append(h3)
             p = soup.new_tag("p")
-            p.string = mission
+            self.append_prose(p, mission)
             mission_div.append(p)
             section.append(mission_div)
 
@@ -144,15 +142,14 @@ class CompanyProfilerRenderer(BaseRenderer):
             tags_div = soup.new_tag("div", **{"class": "tags"})  # type: ignore[arg-type]
             for value in values:
                 tag = soup.new_tag("span", **{"class": "tag"})  # type: ignore[arg-type]
-                tag.string = value
+                self.append_prose(tag, value)
                 tags_div.append(tag)
             values_div.append(tags_div)
             section.append(values_div)
 
         container.append(section)
 
-    @staticmethod
-    def _add_history(soup: BeautifulSoup, container: Any, data: dict[str, Any]) -> None:
+    def _add_history(self, soup: BeautifulSoup, container: Any, data: dict[str, Any]) -> None:
         """Add company history section."""
         history = data.get("history", {})
         if not history:
@@ -171,7 +168,7 @@ class CompanyProfilerRenderer(BaseRenderer):
             h3.string = "Origine"
             founding_div.append(h3)
             p = soup.new_tag("p")
-            p.string = founding
+            self.append_prose(p, founding)
             founding_div.append(p)
             section.append(founding_div)
 
@@ -185,7 +182,7 @@ class CompanyProfilerRenderer(BaseRenderer):
             ul = soup.new_tag("ul", **{"class": "timeline"})  # type: ignore[arg-type]
             for milestone in milestones:
                 li = soup.new_tag("li")
-                li.string = milestone
+                self.append_prose(li, milestone)
                 ul.append(li)
             milestones_div.append(ul)
             section.append(milestones_div)
@@ -201,20 +198,22 @@ class CompanyProfilerRenderer(BaseRenderer):
                 if isinstance(acq, dict):
                     card = soup.new_tag("div", **{"class": "card"})  # type: ignore[arg-type]
                     for key, val in acq.items():
+                        # Keep the raw key as the label (no title-casing): callers and
+                        # tests rely on the "cible: ..." form. Only the value is prose.
                         p = soup.new_tag("p")
-                        p.string = f"{key}: {val}"
+                        p.append(f"{key}: ")
+                        self.append_prose(p, val)
                         card.append(p)
                     acq_div.append(card)
                 else:
                     p = soup.new_tag("p")
-                    p.string = str(acq)
+                    self.append_prose(p, acq)
                     acq_div.append(p)
             section.append(acq_div)
 
         container.append(section)
 
-    @staticmethod
-    def _add_financials(soup: BeautifulSoup, container: Any, data: dict[str, Any]) -> None:
+    def _add_financials(self, soup: BeautifulSoup, container: Any, data: dict[str, Any]) -> None:
         """Add financial analysis section."""
         financials = data.get("financials", {})
         if not financials:
@@ -251,7 +250,10 @@ class CompanyProfilerRenderer(BaseRenderer):
                     tr = soup.new_tag("tr")
                     for val in trend.values():
                         td = soup.new_tag("td")
-                        td.string = str(val) if val is not None else "N/A"
+                        if val is not None:
+                            self.append_prose(td, val)
+                        else:
+                            td.string = "N/A"
                         tr.append(td)
                     tbody.append(tr)
                 table.append(tbody)
@@ -272,7 +274,7 @@ class CompanyProfilerRenderer(BaseRenderer):
                 label = soup.new_tag("span", **{"class": "metric-label"})  # type: ignore[arg-type]
                 label.string = name.replace("_", " ").title()
                 val_span = soup.new_tag("span", **{"class": "metric-value"})  # type: ignore[arg-type]
-                val_span.string = str(value)
+                self.append_prose(val_span, value)
                 metric.append(label)
                 metric.append(val_span)
                 grid.append(metric)
@@ -293,14 +295,14 @@ class CompanyProfilerRenderer(BaseRenderer):
                     label_tag = soup.new_tag("span", **{"class": "info-label"})  # type: ignore[arg-type]
                     label_tag.string = key.replace("_", " ").title()
                     value_tag = soup.new_tag("span", **{"class": "info-value"})  # type: ignore[arg-type]
-                    value_tag.string = str(val)
+                    self.append_prose(value_tag, val)
                     item.append(label_tag)
                     item.append(value_tag)
                     grid.append(item)
                 debt_div.append(grid)
             else:
                 p = soup.new_tag("p")
-                p.string = str(debt)
+                self.append_prose(p, debt)
                 debt_div.append(p)
             section.append(debt_div)
 
@@ -314,15 +316,14 @@ class CompanyProfilerRenderer(BaseRenderer):
             tags_div = soup.new_tag("div", **{"class": "tags"})  # type: ignore[arg-type]
             for investor in investors:
                 tag = soup.new_tag("span", **{"class": "tag investor"})  # type: ignore[arg-type]
-                tag.string = investor
+                self.append_prose(tag, investor)
                 tags_div.append(tag)
             inv_div.append(tags_div)
             section.append(inv_div)
 
         container.append(section)
 
-    @staticmethod
-    def _add_market_position(soup: BeautifulSoup, container: Any, data: dict[str, Any]) -> None:
+    def _add_market_position(self, soup: BeautifulSoup, container: Any, data: dict[str, Any]) -> None:
         """Add market position section."""
         market = data.get("market_position", {})
         if not market:
@@ -341,7 +342,7 @@ class CompanyProfilerRenderer(BaseRenderer):
             h3.string = "Part de marché"
             share_div.append(h3)
             p = soup.new_tag("p", **{"class": "big-number"})  # type: ignore[arg-type]
-            p.string = share
+            self.append_prose(p, share)
             share_div.append(p)
             section.append(share_div)
 
@@ -352,7 +353,7 @@ class CompanyProfilerRenderer(BaseRenderer):
             h3.string = "🔍 Paysage concurrentiel"
             landscape_div.append(h3)
             p = soup.new_tag("p")
-            p.string = landscape
+            self.append_prose(p, landscape)
             landscape_div.append(p)
             section.append(landscape_div)
 
@@ -366,7 +367,7 @@ class CompanyProfilerRenderer(BaseRenderer):
             tags_div = soup.new_tag("div", **{"class": "tags"})  # type: ignore[arg-type]
             for competitor in competitors:
                 tag = soup.new_tag("span", **{"class": "tag competitor"})  # type: ignore[arg-type]
-                tag.string = competitor
+                self.append_prose(tag, competitor)
                 tags_div.append(tag)
             comp_div.append(tags_div)
             section.append(comp_div)
@@ -381,7 +382,7 @@ class CompanyProfilerRenderer(BaseRenderer):
             ul = soup.new_tag("ul", **{"class": "advantages-list"})  # type: ignore[arg-type]
             for adv in advantages:
                 li = soup.new_tag("li")
-                li.string = adv
+                self.append_prose(li, adv)
                 ul.append(li)
             adv_div.append(ul)
             section.append(adv_div)
@@ -396,7 +397,7 @@ class CompanyProfilerRenderer(BaseRenderer):
             ul = soup.new_tag("ul")
             for opp in opportunities:
                 li = soup.new_tag("li")
-                li.string = opp
+                self.append_prose(li, opp)
                 ul.append(li)
             opp_div.append(ul)
             section.append(opp_div)
@@ -411,15 +412,14 @@ class CompanyProfilerRenderer(BaseRenderer):
             ul = soup.new_tag("ul")
             for challenge in challenges:
                 li = soup.new_tag("li")
-                li.string = challenge
+                self.append_prose(li, challenge)
                 ul.append(li)
             chal_div.append(ul)
             section.append(chal_div)
 
         container.append(section)
 
-    @staticmethod
-    def _add_products_services(soup: BeautifulSoup, container: Any, data: dict[str, Any]) -> None:
+    def _add_products_services(self, soup: BeautifulSoup, container: Any, data: dict[str, Any]) -> None:
         """Add products and services section."""
         products = data.get("products_and_services", {})
         if not products:
@@ -441,7 +441,7 @@ class CompanyProfilerRenderer(BaseRenderer):
             ul = soup.new_tag("ul")
             for product in core_products:
                 li = soup.new_tag("li")
-                li.string = product
+                self.append_prose(li, product)
                 ul.append(li)
             core_div.append(ul)
             section.append(core_div)
@@ -456,7 +456,7 @@ class CompanyProfilerRenderer(BaseRenderer):
             tags_div = soup.new_tag("div", **{"class": "tags"})  # type: ignore[arg-type]
             for launch in launches:
                 tag = soup.new_tag("span", **{"class": "tag new"})  # type: ignore[arg-type]
-                tag.string = launch
+                self.append_prose(tag, launch)
                 tags_div.append(tag)
             launch_div.append(tags_div)
             section.append(launch_div)
@@ -468,7 +468,7 @@ class CompanyProfilerRenderer(BaseRenderer):
             h3.string = "💵 Stratégie de prix"
             pricing_div.append(h3)
             p = soup.new_tag("p")
-            p.string = pricing
+            self.append_prose(p, pricing)
             pricing_div.append(p)
             section.append(pricing_div)
 
@@ -482,15 +482,14 @@ class CompanyProfilerRenderer(BaseRenderer):
             tags_div = soup.new_tag("div", **{"class": "tags"})  # type: ignore[arg-type]
             for segment in segments:
                 tag = soup.new_tag("span", **{"class": "tag segment"})  # type: ignore[arg-type]
-                tag.string = segment
+                self.append_prose(tag, segment)
                 tags_div.append(tag)
             seg_div.append(tags_div)
             section.append(seg_div)
 
         container.append(section)
 
-    @staticmethod
-    def _add_management(soup: BeautifulSoup, container: Any, data: dict[str, Any]) -> None:
+    def _add_management(self, soup: BeautifulSoup, container: Any, data: dict[str, Any]) -> None:
         """Add management section."""
         management = data.get("management", {})
         if not management:
@@ -518,12 +517,12 @@ class CompanyProfilerRenderer(BaseRenderer):
                     role = exec_info.get("role", exec_info.get("position", exec_info.get("titre", "")))
 
                     name_tag = soup.new_tag("h4")
-                    name_tag.string = str(name)
+                    self.append_prose(name_tag, name)
                     card.append(name_tag)
 
                     if role:
                         role_tag = soup.new_tag("p", **{"class": "role"})  # type: ignore[arg-type]
-                        role_tag.string = str(role)
+                        self.append_prose(role_tag, role)
                         card.append(role_tag)
 
                     grid.append(card)
@@ -540,7 +539,7 @@ class CompanyProfilerRenderer(BaseRenderer):
             ul = soup.new_tag("ul")
             for member in board:
                 li = soup.new_tag("li")
-                li.string = member
+                self.append_prose(li, member)
                 ul.append(li)
             board_div.append(ul)
             section.append(board_div)
@@ -552,14 +551,13 @@ class CompanyProfilerRenderer(BaseRenderer):
             h3.string = "🌟 Culture d'entreprise"
             culture_div.append(h3)
             p = soup.new_tag("p")
-            p.string = culture
+            self.append_prose(p, culture)
             culture_div.append(p)
             section.append(culture_div)
 
         container.append(section)
 
-    @staticmethod
-    def _add_legal_compliance(soup: BeautifulSoup, container: Any, data: dict[str, Any]) -> None:
+    def _add_legal_compliance(self, soup: BeautifulSoup, container: Any, data: dict[str, Any]) -> None:
         """Add legal compliance section."""
         legal = data.get("legal_compliance", {})
         if not legal:
@@ -578,7 +576,7 @@ class CompanyProfilerRenderer(BaseRenderer):
             h3.string = "Cadre réglementaire"
             framework_div.append(h3)
             p = soup.new_tag("p")
-            p.string = framework
+            self.append_prose(p, framework)
             framework_div.append(p)
             section.append(framework_div)
 
@@ -592,7 +590,7 @@ class CompanyProfilerRenderer(BaseRenderer):
             ul = soup.new_tag("ul")
             for item in history:
                 li = soup.new_tag("li")
-                li.string = item
+                self.append_prose(li, item)
                 ul.append(li)
             hist_div.append(ul)
             section.append(hist_div)
@@ -607,7 +605,7 @@ class CompanyProfilerRenderer(BaseRenderer):
             ul = soup.new_tag("ul")
             for item in litigation:
                 li = soup.new_tag("li")
-                li.string = item
+                self.append_prose(li, item)
                 ul.append(li)
             lit_div.append(ul)
             section.append(lit_div)

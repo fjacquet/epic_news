@@ -62,7 +62,8 @@ class BookSummaryRenderer(BaseRenderer):
         # Title
         title = data.get("title", "Livre")
         title_tag = soup.new_tag("h2")
-        title_tag.string = f"📖 {title}"
+        title_tag.append("📖 ")
+        self.render_markdown_inline(title_tag, title)
         header_div.append(title_tag)
 
         # Meta information
@@ -75,7 +76,8 @@ class BookSummaryRenderer(BaseRenderer):
         author_strong = soup.new_tag("strong")
         author_strong.string = "✍️ Auteur:"
         author_p.append(author_strong)
-        author_p.append(f" {author}")
+        author_p.append(" ")
+        self.render_markdown_inline(author_p, author)
         meta_div.append(author_p)
 
         # Publication date
@@ -138,7 +140,7 @@ class BookSummaryRenderer(BaseRenderer):
             if chapter_title:
                 li = soup.new_tag("li")
                 link = soup.new_tag("a", href=f"#{chapter_id}")
-                link.string = chapter_title
+                self.render_markdown_inline(link, chapter_title)
                 li.append(link)
                 toc_ul.append(li)
 
@@ -172,7 +174,8 @@ class BookSummaryRenderer(BaseRenderer):
 
                 # Chapter title
                 ch_h4 = soup.new_tag("h4")
-                ch_h4.string = f"📚 Chapitre {ch_num}: {ch_title}"
+                ch_h4.append(f"📚 Chapitre {ch_num}: ")
+                self.render_markdown_inline(ch_h4, ch_title)
                 chapter_div.append(ch_h4)
 
                 # Chapter focus (Markdown -> HTML)
@@ -211,7 +214,8 @@ class BookSummaryRenderer(BaseRenderer):
 
                 # Section title
                 sec_h4 = soup.new_tag("h4")
-                sec_h4.string = f"🔍 {sec_title}"
+                sec_h4.append("🔍 ")
+                self.render_markdown_inline(sec_h4, sec_title)
                 section_div.append(sec_h4)
 
                 # Section content (Markdown -> HTML; headings, lists, tables, bold)

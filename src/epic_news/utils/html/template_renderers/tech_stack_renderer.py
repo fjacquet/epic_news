@@ -35,7 +35,7 @@ class TechStackRenderer(BaseRenderer):
         soup = self.create_soup("div", class_="tech-stack-report")
         container = soup.div
 
-        self.add_report_header(
+        self._add_report_header(
             soup, container, "🔧 Analyse de la Stack Technologique", data.get("company_name")
         )
         self.render_text_section(soup, container, data.get("executive_summary"), "Résumé Exécutif", "📋")
@@ -49,6 +49,20 @@ class TechStackRenderer(BaseRenderer):
         self.add_raw_json_section(soup, container, data, "Voir les données brutes")
 
         return str(soup)
+
+    def _add_report_header(
+        self, soup: BeautifulSoup, container: Any, title: str, subtitle: str | None
+    ) -> None:
+        """Like ``add_report_header``, but renders ``subtitle`` (agent-authored company name) as Markdown."""
+        header = soup.new_tag("div", **{"class": "report-header"})  # type: ignore[arg-type]
+        h1 = soup.new_tag("h1")
+        h1.string = title
+        header.append(h1)
+        if subtitle:
+            h2 = soup.new_tag("h2")
+            self.render_markdown_inline(h2, subtitle)
+            header.append(h2)
+        container.append(header)
 
     def _add_technology_stack(self, soup: BeautifulSoup, container: Any, data: dict[str, Any]) -> None:
         """Render technology stack grouped by category."""
@@ -76,11 +90,11 @@ class TechStackRenderer(BaseRenderer):
             for tech in techs:
                 card = soup.new_tag("div", **{"class": "tech-card"})  # type: ignore[arg-type]
                 name = soup.new_tag("h4")
-                name.string = tech.get("name", "N/A")
+                self.render_markdown_inline(name, tech.get("name", "N/A"))
                 card.append(name)
                 if desc := tech.get("description"):
                     desc_p = soup.new_tag("p")
-                    desc_p.string = desc
+                    self.render_markdown_inline(desc_p, desc)
                     card.append(desc_p)
                 grid.append(card)
             cat_div.append(grid)
@@ -106,7 +120,7 @@ class TechStackRenderer(BaseRenderer):
             ul = soup.new_tag("ul")
             for s in strengths:
                 li = soup.new_tag("li")
-                li.string = s
+                self.render_markdown_inline(li, s)
                 ul.append(li)
             str_div.append(ul)
             grid.append(str_div)
@@ -119,7 +133,7 @@ class TechStackRenderer(BaseRenderer):
             ul = soup.new_tag("ul")
             for w in weaknesses:
                 li = soup.new_tag("li")
-                li.string = w
+                self.render_markdown_inline(li, w)
                 ul.append(li)
             weak_div.append(ul)
             grid.append(weak_div)
@@ -137,7 +151,7 @@ class TechStackRenderer(BaseRenderer):
         ul = soup.new_tag("ul")
         for item in oss:
             li = soup.new_tag("li")
-            li.string = item
+            self.render_markdown_inline(li, item)
             ul.append(li)
         section.append(ul)
         container.append(section)
@@ -152,7 +166,7 @@ class TechStackRenderer(BaseRenderer):
         ul = soup.new_tag("ul", **{"class": "recommendations-list"})  # type: ignore[arg-type]
         for rec in recs:
             li = soup.new_tag("li")
-            li.string = rec
+            self.render_markdown_inline(li, rec)
             ul.append(li)
         section.append(ul)
         container.append(section)

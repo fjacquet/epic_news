@@ -77,7 +77,7 @@ class HolidayRenderer(BaseRenderer):
         section.append(title)
 
         intro_div = soup.new_tag("div", **{"class": "intro-content"})  # type: ignore[arg-type]
-        intro_div.string = data["introduction"]
+        self.render_markdown_block(intro_div, data["introduction"])
         section.append(intro_div)
 
         container.append(section)
@@ -97,7 +97,7 @@ class HolidayRenderer(BaseRenderer):
         toc_list = soup.new_tag("ul", **{"class": "toc-list"})  # type: ignore[arg-type]
         for item in toc_items:
             li = soup.new_tag("li")
-            li.string = item
+            self.append_prose(li, item)
             toc_list.append(li)
 
         section.append(toc_list)
@@ -140,7 +140,9 @@ class HolidayRenderer(BaseRenderer):
 
                     # Description
                     desc_div = soup.new_tag("div", **{"class": "activity-description"})  # type: ignore[arg-type]
-                    desc_div.string = activity.get("description", "Description non disponible")
+                    self.render_markdown_block(
+                        desc_div, activity.get("description", "Description non disponible")
+                    )
                     activity_div.append(desc_div)
 
                     activities_div.append(activity_div)
@@ -168,7 +170,7 @@ class HolidayRenderer(BaseRenderer):
 
             # Name
             name_h3 = soup.new_tag("h3", **{"class": "accommodation-name"})  # type: ignore[arg-type]
-            name_h3.string = acc.get("name", "Nom non spécifié")
+            self.append_prose(name_h3, acc.get("name", "Nom non spécifié"))
             acc_div.append(name_h3)
 
             # Address
@@ -186,7 +188,7 @@ class HolidayRenderer(BaseRenderer):
             # Description
             if acc.get("description"):
                 desc_div = soup.new_tag("div", **{"class": "accommodation-description"})  # type: ignore[arg-type]
-                desc_div.string = acc["description"]
+                self.render_markdown_block(desc_div, acc["description"])
                 acc_div.append(desc_div)
 
             # Amenities
@@ -231,7 +233,7 @@ class HolidayRenderer(BaseRenderer):
 
                 # Name
                 name_h3 = soup.new_tag("h3", **{"class": "restaurant-name"})  # type: ignore[arg-type]
-                name_h3.string = restaurant.get("name", "Nom non spécifié")
+                self.append_prose(name_h3, restaurant.get("name", "Nom non spécifié"))
                 rest_div.append(name_h3)
 
                 # Location
@@ -255,7 +257,7 @@ class HolidayRenderer(BaseRenderer):
                 # Description
                 if restaurant.get("description"):
                     desc_div = soup.new_tag("div", **{"class": "restaurant-description"})  # type: ignore[arg-type]
-                    desc_div.string = restaurant["description"]
+                    self.render_markdown_block(desc_div, restaurant["description"])
                     rest_div.append(desc_div)
 
                 # Dietary options
@@ -294,7 +296,7 @@ class HolidayRenderer(BaseRenderer):
             spec_list = soup.new_tag("ul")
             for specialty in specialties:
                 li = soup.new_tag("li")
-                li.string = specialty
+                self.append_prose(li, specialty)
                 spec_list.append(li)
             spec_div.append(spec_list)
             section.append(spec_div)
@@ -338,12 +340,12 @@ class HolidayRenderer(BaseRenderer):
 
                 # Category
                 cat_td = soup.new_tag("td")
-                cat_td.string = item.get("category", "N/A")
+                self.append_prose(cat_td, item.get("category", "N/A"))
                 row.append(cat_td)
 
                 # Item
                 item_td = soup.new_tag("td")
-                item_td.string = item.get("item", "N/A")
+                self.append_prose(item_td, item.get("item", "N/A"))
                 row.append(item_td)
 
                 # Cost
@@ -355,7 +357,7 @@ class HolidayRenderer(BaseRenderer):
 
                 # Notes
                 notes_td = soup.new_tag("td")
-                notes_td.string = item.get("notes", "")
+                self.append_prose(notes_td, item.get("notes", ""))
                 row.append(notes_td)
 
                 tbody.append(row)
@@ -372,7 +374,8 @@ class HolidayRenderer(BaseRenderer):
         # Notes
         if budget.get("notes"):
             notes_div = soup.new_tag("div", **{"class": "budget-notes"})  # type: ignore[arg-type]
-            notes_div.string = f"📝 {budget['notes']}"
+            notes_div.append("📝 ")
+            self.append_prose(notes_div, budget["notes"])
             section.append(notes_div)
 
         container.append(section)
@@ -419,7 +422,7 @@ class HolidayRenderer(BaseRenderer):
                     cat_list = soup.new_tag("ul")
                     for item in items:
                         li = soup.new_tag("li")
-                        li.string = item
+                        self.append_prose(li, item)
                         cat_list.append(li)
                     cat_div.append(cat_list)
                     packing_div.append(cat_div)
@@ -437,7 +440,7 @@ class HolidayRenderer(BaseRenderer):
             safety_list = soup.new_tag("ul")
             for tip in safety_tips:
                 li = soup.new_tag("li")
-                li.string = tip
+                self.append_prose(li, tip)
                 safety_list.append(li)
             safety_div.append(safety_list)
             section.append(safety_div)
@@ -452,9 +455,11 @@ class HolidayRenderer(BaseRenderer):
 
             for contact in emergency:
                 contact_div = soup.new_tag("div", **{"class": "emergency-contact"})  # type: ignore[arg-type]
-                contact_div.string = f"{contact.get('service', 'Service')}: {contact.get('number', 'N/A')}"
+                contact_div.append(f"{contact.get('service', 'Service')}: {contact.get('number', 'N/A')}")
                 if contact.get("notes"):
-                    contact_div.string += f" ({contact['notes']})"  # type: ignore[operator]
+                    contact_div.append(" (")
+                    self.append_prose(contact_div, contact["notes"])
+                    contact_div.append(")")
                 emergency_div.append(contact_div)
 
             section.append(emergency_div)
@@ -500,10 +505,10 @@ class HolidayRenderer(BaseRenderer):
                 li = soup.new_tag("li")
                 if source.get("url"):
                     link = soup.new_tag("a", href=source["url"], target="_blank")
-                    link.string = source.get("title", source["url"])
+                    self.append_prose(link, source.get("title", source["url"]))
                     li.append(link)
                 else:
-                    li.string = source.get("title", "Source sans titre")
+                    self.append_prose(li, source.get("title", "Source sans titre"))
                 sources_list.append(li)
 
             sources_div.append(sources_list)
@@ -526,12 +531,12 @@ class HolidayRenderer(BaseRenderer):
                     item_div.append(img)
                 else:
                     link = soup.new_tag("a", href=media_item.get("url", ""), target="_blank")
-                    link.string = media_item.get("caption", "Média")
+                    self.append_prose(link, media_item.get("caption", "Média"))
                     item_div.append(link)
 
                 if media_item.get("caption"):
                     caption_div = soup.new_tag("div", **{"class": "media-caption"})  # type: ignore[arg-type]
-                    caption_div.string = media_item["caption"]
+                    self.append_prose(caption_div, media_item["caption"])
                     item_div.append(caption_div)
 
                 media_div.append(item_div)

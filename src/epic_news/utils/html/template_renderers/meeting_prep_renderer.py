@@ -49,7 +49,7 @@ class MeetingPrepRenderer(BaseRenderer):
         if "title" in data:
             title_h2 = soup.new_tag("h2")
             title_h2.attrs["class"] = ["meeting-title"]  # type: ignore[assignment]
-            title_h2.string = data["title"]
+            self.render_markdown_inline(title_h2, data["title"])
             container.append(title_h2)  # type: ignore[union-attr]
 
         # Add summary
@@ -73,7 +73,6 @@ class MeetingPrepRenderer(BaseRenderer):
         # Add additional resources
         self._add_additional_resources(soup, container, data)
 
-
         # Now that we're using attrs["class"] instead of class_, we don't need to replace class_ with class
         return str(soup)
 
@@ -87,7 +86,7 @@ class MeetingPrepRenderer(BaseRenderer):
         summary_div.attrs["class"] = ["meeting-summary"]  # type: ignore[assignment]
 
         summary_p = soup.new_tag("p")
-        summary_p.string = summary
+        self.render_markdown_inline(summary_p, summary)
         summary_div.append(summary_p)
 
         container.append(summary_div)
@@ -116,7 +115,8 @@ class MeetingPrepRenderer(BaseRenderer):
             strong = soup.new_tag("strong")
             strong.string = "Nom:"
             name_p.append(strong)
-            name_p.append(f" {company_name}")
+            name_p.append(" ")
+            self.render_markdown_inline(name_p, company_name)
             profile_div.append(name_p)
 
         # Industry
@@ -126,7 +126,8 @@ class MeetingPrepRenderer(BaseRenderer):
             strong = soup.new_tag("strong")
             strong.string = "Secteur:"
             industry_p.append(strong)
-            industry_p.append(f" {industry}")
+            industry_p.append(" ")
+            self.render_markdown_inline(industry_p, industry)
             profile_div.append(industry_p)
 
         # Key products
@@ -139,7 +140,10 @@ class MeetingPrepRenderer(BaseRenderer):
             products_p.append(" ")
 
             products_list = soup.new_tag("span")
-            products_list.string = ", ".join(key_products)
+            for i, product in enumerate(key_products):
+                if i:
+                    products_list.append(", ")
+                self.render_markdown_inline(products_list, product)
             products_p.append(products_list)
             profile_div.append(products_p)
 
@@ -150,7 +154,8 @@ class MeetingPrepRenderer(BaseRenderer):
             strong = soup.new_tag("strong")
             strong.string = "Position sur le marché:"
             position_p.append(strong)
-            position_p.append(f" {market_position}")
+            position_p.append(" ")
+            self.render_markdown_inline(position_p, market_position)
             profile_div.append(position_p)
 
         section.append(profile_div)
@@ -181,7 +186,7 @@ class MeetingPrepRenderer(BaseRenderer):
             name = participant.get("name")
             if name:
                 name_h4 = soup.new_tag("h4")
-                name_h4.string = name
+                self.render_markdown_inline(name_h4, name)
                 participant_div.append(name_h4)
 
             # Role
@@ -191,7 +196,8 @@ class MeetingPrepRenderer(BaseRenderer):
                 strong = soup.new_tag("strong")
                 strong.string = "Rôle:"
                 role_p.append(strong)
-                role_p.append(f" {role}")
+                role_p.append(" ")
+                self.render_markdown_inline(role_p, role)
                 participant_div.append(role_p)
 
             # Background
@@ -201,7 +207,8 @@ class MeetingPrepRenderer(BaseRenderer):
                 strong = soup.new_tag("strong")
                 strong.string = "Profil:"
                 background_p.append(strong)
-                background_p.append(f" {background}")
+                background_p.append(" ")
+                self.render_markdown_inline(background_p, background)
                 participant_div.append(background_p)
 
             participants_div.append(participant_div)
@@ -227,7 +234,7 @@ class MeetingPrepRenderer(BaseRenderer):
         overview_div.attrs["class"] = ["industry-overview"]  # type: ignore[assignment]
 
         overview_p = soup.new_tag("p")
-        overview_p.string = industry_overview
+        self.render_markdown_inline(overview_p, industry_overview)
         overview_div.append(overview_p)
 
         section.append(overview_div)
@@ -257,7 +264,7 @@ class MeetingPrepRenderer(BaseRenderer):
             # Topic as heading
             topic = point.get("topic", "")
             point_h4 = soup.new_tag("h4")
-            point_h4.string = f"{topic}"
+            self.render_markdown_inline(point_h4, topic)
             point_div.append(point_h4)
 
             # Key points as bullet list
@@ -275,7 +282,7 @@ class MeetingPrepRenderer(BaseRenderer):
 
                 for key_point in key_points:
                     key_point_li = soup.new_tag("li")
-                    key_point_li.string = key_point
+                    self.render_markdown_inline(key_point_li, key_point)
                     key_points_ul.append(key_point_li)
 
                 key_points_div.append(key_points_ul)
@@ -296,7 +303,7 @@ class MeetingPrepRenderer(BaseRenderer):
 
                 for question in questions:
                     question_li = soup.new_tag("li")
-                    question_li.string = question
+                    self.render_markdown_inline(question_li, question)
                     questions_ul.append(question_li)
 
                 questions_div.append(questions_ul)
@@ -331,7 +338,8 @@ class MeetingPrepRenderer(BaseRenderer):
             # Area as heading
             area = reco.get("area", "")
             reco_h4 = soup.new_tag("h4")
-            reco_h4.string = f"{i + 1}. {area}"
+            reco_h4.append(f"{i + 1}. ")
+            self.render_markdown_inline(reco_h4, area)
             reco_div.append(reco_h4)
 
             # Suggestion
@@ -344,7 +352,8 @@ class MeetingPrepRenderer(BaseRenderer):
                 strong = soup.new_tag("strong")
                 strong.string = "Suggestion:"
                 suggestion_p.append(strong)
-                suggestion_p.append(f" {suggestion}")
+                suggestion_p.append(" ")
+                self.render_markdown_inline(suggestion_p, suggestion)
                 suggestion_div.append(suggestion_p)
 
                 reco_div.append(suggestion_div)
@@ -359,7 +368,8 @@ class MeetingPrepRenderer(BaseRenderer):
                 strong = soup.new_tag("strong")
                 strong.string = "Résultat attendu:"
                 outcome_p.append(strong)
-                outcome_p.append(f" {expected_outcome}")
+                outcome_p.append(" ")
+                self.render_markdown_inline(outcome_p, expected_outcome)
                 outcome_div.append(outcome_p)
 
                 reco_div.append(outcome_div)
@@ -398,17 +408,17 @@ class MeetingPrepRenderer(BaseRenderer):
             if url:
                 # Create clickable title
                 title_a = soup.new_tag("a", href=url, target="_blank")
-                title_a.string = title
+                self.render_markdown_inline(title_a, title)
                 resource_h4.append(title_a)
             else:
-                resource_h4.string = title
+                self.render_markdown_inline(resource_h4, title)
             resource_div.append(resource_h4)
 
             # Description
             description = resource.get("description", "")
             if description:
                 desc_p = soup.new_tag("p")
-                desc_p.string = description
+                self.render_markdown_inline(desc_p, description)
                 resource_div.append(desc_p)
 
             # Display URL separately if available

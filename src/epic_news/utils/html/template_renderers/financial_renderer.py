@@ -59,7 +59,11 @@ class FinancialRenderer(BaseRenderer):
 
         title_tag = soup.new_tag("h2")
         title = data.get("title")
-        title_tag.string = f"💰 {title}" if title else "💰 Rapport Financier"
+        if title:
+            title_tag.append("💰 ")
+            self.render_markdown_inline(title_tag, title)
+        else:
+            title_tag.string = "💰 Rapport Financier"
         header_div.append(title_tag)
 
         # Add date if available
@@ -84,7 +88,7 @@ class FinancialRenderer(BaseRenderer):
         summary_div.append(title_tag)
 
         summary_p = soup.new_tag("p")
-        summary_p.string = summary
+        self.render_markdown_inline(summary_p, summary)
         summary_div.append(summary_p)
 
         container.append(summary_div)
@@ -115,17 +119,17 @@ class FinancialRenderer(BaseRenderer):
             details = item.get("details")
             if asset_class:
                 section_h4 = soup.new_tag("h4")
-                section_h4.string = f"{asset_class}"
+                self.render_markdown_inline(section_h4, asset_class)
                 section_div.append(section_h4)
             if summary:
                 summary_p = soup.new_tag("p")
-                summary_p.string = summary
+                self.render_markdown_inline(summary_p, summary)
                 section_div.append(summary_p)
             if details and isinstance(details, list):
                 details_ul = soup.new_tag("ul")
                 for detail in details:
                     li = soup.new_tag("li")
-                    li.string = str(detail)
+                    self.append_prose(li, detail)
                     details_ul.append(li)
                 section_div.append(details_ul)
             analysis_div.append(section_div)
@@ -157,14 +161,13 @@ class FinancialRenderer(BaseRenderer):
             asset_class = sugg.get("asset_class")
             suggestion = sugg.get("suggestion")
             rationale = sugg.get("rationale")
-            li_content = ""
             if asset_class:
-                li_content += f"[{asset_class}] "
+                li.append(f"[{asset_class}] ")
             if suggestion:
-                li_content += suggestion
+                self.render_markdown_inline(li, suggestion)
             if rationale:
-                li_content += f"\n→ {rationale}"
-            li.string = li_content
+                li.append(" → ")
+                self.render_markdown_inline(li, rationale)
             sugg_ul.append(li)
         rec_div.append(sugg_ul)
 
