@@ -74,9 +74,11 @@ stock_suggestion_task:
     ALL current stock holdings
     from the CSV file (extract ticker symbols from the "Ticker" column, removing "Yahoo:"
     prefix).
-    Create a comprehensive list of ALL 60+ current holdings first. Then, use your
-    financial research tools to identify 2-3 promising stock investment opportunities
-    that are DEFINITELY NOT in the current portfolio.
+    Create a comprehensive list of ALL 60+ current holdings first. Then, drawing solely
+    on the analyst research already provided in your context, identify 2-3 promising
+    stock investment opportunities that are DEFINITELY NOT in the current portfolio.
+    You have no research tools of your own: do not attempt to fetch new data, and do
+    not invent figures that are absent from the context.
     You MUST cross-check each suggestion against the complete holdings list to avoid
     duplicates.
     Focus on stocks or ETFs that would complement the existing portfolio based on
@@ -103,9 +105,11 @@ crypto_suggestion_task:
   description: >
     MANDATORY: Review the COMPLETE crypto portfolio analysis from the context and
     identify ALL current crypto holdings.
-    Create a comprehensive list of current crypto assets first. Then, use your financial
-    research tools to  identify 1-2 promising cryptocurrency investment opportunities
-    that are DEFINITELY NOT in the current portfolio.
+    Create a comprehensive list of current crypto assets first. Then, drawing solely on
+    the analyst research already provided in your context, identify 1-2 promising
+    cryptocurrency investment opportunities that are DEFINITELY NOT in the current
+    portfolio. You have no research tools of your own: do not attempt to fetch new
+    data, and do not invent figures that are absent from the context.
     You MUST cross-check each suggestion against the complete crypto holdings list
     to avoid duplicates.
     Focus on cryptocurrencies that would complement the existing crypto portfolio.
@@ -151,9 +155,11 @@ etf_suggestion_task:
   description: >
     MANDATORY: Review the COMPLETE ETF portfolio analysis from the context and identify
     ALL current ETF holdings.
-    Create a comprehensive list of all current ETFs first. Then, use your financial
-    research tools to identify 1-2 promising ETF investment opportunities that are
-    DEFINITELY NOT in the current portfolio.
+    Create a comprehensive list of all current ETFs first. Then, drawing solely on the
+    analyst research already provided in your context, identify 1-2 promising ETF
+    investment opportunities that are DEFINITELY NOT in the current portfolio.
+    You have no research tools of your own: do not attempt to fetch new data, and do
+    not invent figures that are absent from the context.
     You MUST cross-check each suggestion against the complete holdings list to avoid
     duplicates.
     Focus on ETFs that would complement the existing portfolio. Provide detailed recommendations

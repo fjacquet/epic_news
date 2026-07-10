@@ -36,6 +36,7 @@ def ensure_output_directories():
         "dashboard_data",
         "deep_research",
         "email",
+        "findaily",
         "geospatial_analysis",
         "holiday",
         "hr_intelligence",
@@ -48,6 +49,7 @@ def ensure_output_directories():
         "menu_designer",
         "osint",
         "poem",
+        "sales_prospecting",
         "shopping_advisor",
         "tech_stack",
         "travel_guides",  # For holiday planner

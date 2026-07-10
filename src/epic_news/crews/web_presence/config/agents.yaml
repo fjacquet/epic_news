@@ -16,7 +16,6 @@ web_researcher:
     vulnerabilities in a company's web presence.
     You collect data but do not produce the final output - you pass your findings
     to the reporter agent.
-  tools: []
 web_reporter:
   role: >
     Web Presence Reporter
@@ -32,4 +31,3 @@ web_reporter:
     about
     ensuring all required information is included and properly structured in the final
     output.
-  tools: []

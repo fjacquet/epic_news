@@ -24,6 +24,7 @@ from composio import Composio
 from composio_crewai import CrewAIProvider
 from crewai.tools import BaseTool
 from dotenv import load_dotenv
+from loguru import logger
 
 load_dotenv()
 
@@ -91,7 +92,7 @@ class ComposioConfig:
                 search_specific = [t for t in platform_tools if "search" in t.name.lower()]
                 tools.extend(search_specific)
             except Exception as e:
-                print(f"Warning: Could not load {platform} search tools: {e}")
+                logger.error("❌ Could not load {} search tools from Composio: {}", platform, e)
 
         return tools
 
@@ -124,7 +125,7 @@ class ComposioConfig:
                 tools.extend(platform_tools)
             except Exception as e:
                 # Platform not connected or not available
-                print(f"Warning: Could not load {platform} tools: {e}")
+                logger.error("❌ Could not load {} tools from Composio: {}", platform, e)
 
         return tools
 
@@ -150,7 +151,7 @@ class ComposioConfig:
                 toolkit_tools = self.client.tools.get(user_id=self.user_id, toolkits=[toolkit])
                 tools.extend(toolkit_tools)
             except Exception as e:
-                print(f"Warning: Could not load {toolkit} tools: {e}")
+                logger.error("❌ Could not load {} tools from Composio: {}", toolkit, e)
 
         return tools
 
@@ -178,7 +179,7 @@ class ComposioConfig:
                 toolkit_tools = self.client.tools.get(user_id=self.user_id, toolkits=[toolkit])
                 tools.extend(toolkit_tools)
             except Exception as e:
-                print(f"Warning: Could not load {toolkit} tools: {e}")
+                logger.error("❌ Could not load {} tools from Composio: {}", toolkit, e)
 
         return tools
 
@@ -204,7 +205,7 @@ class ComposioConfig:
                 toolkit_tools = self.client.tools.get(user_id=self.user_id, toolkits=[toolkit])
                 tools.extend(toolkit_tools)
             except Exception as e:
-                print(f"Warning: Could not load {toolkit} tools: {e}")
+                logger.error("❌ Could not load {} tools from Composio: {}", toolkit, e)
 
         return tools
 
@@ -246,7 +247,7 @@ class ComposioConfig:
                 toolkit_tools = self.client.tools.get(user_id=self.user_id, toolkits=[toolkit])
                 tools.extend(toolkit_tools)
             except Exception as e:
-                print(f"Warning: Could not load {toolkit} tools: {e}")
+                logger.error("❌ Could not load {} tools from Composio: {}", toolkit, e)
 
         return tools
 
@@ -303,6 +304,14 @@ class ComposioConfig:
         try:
             tools = self.client.tools.get(user_id=self.user_id, tools=gmail_tools_list)
         except Exception as e:
-            print(f"Warning: Could not load Gmail tools: {e}")
+            # A 401 here means COMPOSIO_API_KEY is missing/invalid. Callers previously
+            # treated the resulting empty list as "no tools configured" and let a
+            # tool-less agent report the email as sent.
+            hint = (
+                " Check COMPOSIO_API_KEY in .env — Composio rejected the credentials."
+                if "401" in str(e) or "Invalid API key" in str(e)
+                else ""
+            )
+            logger.error("❌ Could not load Gmail tools from Composio: {}.{}", e, hint)
 
         return tools

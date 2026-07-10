@@ -71,8 +71,13 @@ class DeepResearchExtractor(ContentExtractor):
             except json.JSONDecodeError as json_error:
                 logger.warning(f"Failed to parse deep research report as JSON: {json_error}")
 
-        # Final fallback: create report with as much data as possible from state
-        logger.warning("Creating DeepResearchReport from available data")
+        # Final fallback: the real report could not be recovered. The placeholder text below is
+        # NOT research output — surface it loudly so a degraded report is never mistaken for a
+        # finished one downstream (it previously reached email as a "success").
+        logger.error(
+            "Deep research report could not be parsed; falling back to PLACEHOLDER content. "
+            "The rendered report will not contain real findings."
+        )
 
         # Try to extract as much data as possible from state_data
         topic = state_data.get("topic", state_data.get("user_request", "Recherche Approfondie"))

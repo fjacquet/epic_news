@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 
 from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.web_presence_report import WebPresenceReport
-from epic_news.tools.html_to_pdf_tool import HtmlToPdfTool
 from epic_news.tools.report_tools import get_report_tools
 from epic_news.tools.scraper_factory import get_scraper
 
@@ -21,11 +20,10 @@ class WebPresenceCrew:
     @agent
     def web_researcher(self) -> Agent:
         """Creates the web researcher agent with tools for data gathering"""
-        # Get all tools
+        # get_report_tools() already includes HtmlToPdfTool; don't add it twice.
         search_tools = [HybridSearchTool(), get_scraper(), PDFSearchTool()]
-        html_to_pdf_tool = HtmlToPdfTool()
 
-        all_tools = search_tools + [html_to_pdf_tool] + get_report_tools()
+        all_tools = search_tools + get_report_tools()
 
         return Agent(
             config=self.agents_config["web_researcher"],  # type: ignore[index]
