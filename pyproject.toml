@@ -9,7 +9,7 @@ dependencies = [
     # --- Core runtime (CrewAI + integrations) ---
     "crewai>=1.15.1",
     "crewai-tools[mcp]>=1.15.1",
-    "crewai-custom-tools @ git+https://github.com/fjacquet/crewai-custom-tools.git@v0.3.0",
+    "crewai-custom-tools @ git+https://github.com/fjacquet/crewai-custom-tools.git@v0.3.1",
     "mcp>=1.26.0",
     "composio>=0.15.0",
     "composio-crewai>=0.15.0",
@@ -47,8 +47,8 @@ dependencies = [
     "jinja2>=3.1.3",
     "weasyprint>=69.0",
     # --- Numerical / data ---
-    "pandas>=3.0.4",
     "markdown-it-py>=4.0.0",
+    "pandas>=3.0.3",
 ]
 
 [project.scripts]
