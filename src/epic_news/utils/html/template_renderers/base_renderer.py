@@ -318,6 +318,25 @@ class BaseRenderer(ABC):
         for child in list(fragment.contents):
             container.append(child)
 
+    def render_markdown_inline(
+        self,
+        container: Any,
+        text: str | None,
+    ) -> None:
+        """Convert inline Markdown (bold, links, code) into ``container``.
+
+        Unlike :meth:`render_markdown_block`, this emits no block wrapper, so it is safe
+        inside ``<li>`` or ``<span>`` where a nested ``<p>`` would be wrong. Same safe
+        mode: raw HTML disabled.
+        """
+        if not text:
+            return
+
+        html = _get_markdown_parser().renderInline(text)
+        fragment = BeautifulSoup(html, "html.parser")
+        for child in list(fragment.contents):
+            container.append(child)
+
     def create_soup(self, tag: str = "div", **attrs) -> BeautifulSoup:
         """
         Create a new BeautifulSoup object with a root element.

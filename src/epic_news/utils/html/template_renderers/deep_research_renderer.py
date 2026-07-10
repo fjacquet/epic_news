@@ -134,9 +134,7 @@ class DeepResearchRenderer(BaseRenderer):
 
         summary_div = soup.new_tag("div")
         summary_div.attrs["class"] = "summary-content"
-        summary_p = soup.new_tag("p")
-        summary_p.string = summary
-        summary_div.append(summary_p)
+        self.render_markdown_block(summary_div, summary)
         section.append(summary_div)
 
         container.append(section)
@@ -163,7 +161,8 @@ class DeepResearchRenderer(BaseRenderer):
         for finding in key_findings:
             li = soup.new_tag("li")
             li.attrs["class"] = "finding-item"
-            li.string = finding
+            # Inline: a nested <p> inside <li> would be wrong.
+            self.render_markdown_inline(li, finding)
             findings_list.append(li)
 
         findings_div.append(findings_list)
@@ -195,18 +194,13 @@ class DeepResearchRenderer(BaseRenderer):
             title_tag.string = section_title
             section_div.append(title_tag)
 
-            # Section content
+            # Section content. Agents write Markdown (**bold**, "- " bullets) inside the
+            # JSON string fields, so render it rather than escaping it into the page.
             content = section_data.get("content", "")
             if content:
                 content_div = soup.new_tag("div")
                 content_div.attrs["class"] = "section-content"
-                # Split content into paragraphs
-                paragraphs = content.split("\n\n")
-                for paragraph in paragraphs:
-                    if paragraph.strip():
-                        p_tag = soup.new_tag("p")
-                        p_tag.string = paragraph.strip()
-                        content_div.append(p_tag)
+                self.render_markdown_block(content_div, content)
                 section_div.append(content_div)
 
             # Add sources for this section
@@ -250,7 +244,8 @@ class DeepResearchRenderer(BaseRenderer):
                         if summary:
                             summary_span = soup.new_tag("span")
                             summary_span.attrs["class"] = "source-summary"
-                            summary_span.string = f" - {summary}"
+                            summary_span.append(" - ")
+                            self.render_markdown_inline(summary_span, summary)
                             details.append(summary_span)
                         li.append(details)
 
@@ -318,9 +313,7 @@ class DeepResearchRenderer(BaseRenderer):
 
         methodology_div = soup.new_tag("div")
         methodology_div.attrs["class"] = "methodology-content"
-        methodology_p = soup.new_tag("p")
-        methodology_p.string = methodology
-        methodology_div.append(methodology_p)
+        self.render_markdown_block(methodology_div, methodology)
         section.append(methodology_div)
 
         container.append(section)
