@@ -26,3 +26,21 @@ def test_crew_still_builds_without_credentials(monkeypatch):
     monkeypatch.setattr(PostCrew, "_get_send_tools", lambda self: [])
     crew = PostCrew().crew()
     assert crew.tasks, "PostCrew should still build its tasks without send tools"
+
+
+def test_send_tools_are_loaded_once_per_instance(monkeypatch):
+    """can_send() and distribution_task() must share one Composio round-trip."""
+    calls = []
+
+    def counted_load(self):
+        calls.append(1)
+        return [object()]
+
+    monkeypatch.setattr(PostCrew, "_load_send_tools", counted_load)
+
+    crew = PostCrew()
+    crew.can_send()
+    crew._get_send_tools()
+    crew._get_send_tools()
+
+    assert len(calls) == 1, f"Composio hit {len(calls)} times; cache not working"

@@ -13,6 +13,7 @@ Usage:
 
 from __future__ import annotations
 
+import asyncio
 import os
 import time
 from typing import Any
@@ -153,26 +154,62 @@ async def akickoff_flow(crew_or_factory: Any, context: dict[str, Any]) -> Any:
     - Accepts either a Crew factory (with .crew()) or a Crew instance.
     - Ensures context is a dict.
     - Adds basic timing + optional tracing via trace_span.
+    - Retries transient provider failures, mirroring kickoff_flow. This path runs the
+      parallel OSINT crews, so a single empty completion must not drop the whole fan-out.
     """
     if not isinstance(context, dict):
         raise ValueError("akickoff_flow context must be a dict")
 
     crew_name = type(crew_or_factory).__name__
+    attempts, backoff = _retry_settings()
     start = time.perf_counter()
 
     with trace_span("akickoff_flow", {"crew": crew_name, "keys": sorted(context.keys())}):
-        crew = _get_crew_instance(crew_or_factory)
-        if not hasattr(crew, "akickoff"):
-            raise AttributeError(f"Object {crew!r} does not support akickoff()")
-
         logger.info(
             "🚀 Async kicking off crew {} with context keys: {}",
             crew_name,
             ", ".join(sorted(context.keys())),
         )
-        try:
-            result = await crew.akickoff(inputs=context)
-            return result
-        finally:
-            elapsed = time.perf_counter() - start
-            logger.info("✅ Crew {} finished in {:.2f}s", crew_name, elapsed)
+        for attempt in range(1, attempts + 1):
+            # Rebuild the crew each attempt: a Crew carries per-run task state that is
+            # not safe to replay after a mid-run failure.
+            crew = _get_crew_instance(crew_or_factory)
+            if not hasattr(crew, "akickoff"):
+                raise AttributeError(f"Object {crew!r} does not support akickoff()")
+
+            try:
+                result = await crew.akickoff(inputs=context)
+            except Exception as exc:
+                elapsed = time.perf_counter() - start
+                if attempt < attempts and _is_transient_error(exc):
+                    delay = backoff * (2 ** (attempt - 1))
+                    logger.warning(
+                        "⚠️ Crew {} hit a transient provider error on attempt {}/{} after {:.2f}s; "
+                        "retrying in {:.1f}s. Error: {}",
+                        crew_name,
+                        attempt,
+                        attempts,
+                        elapsed,
+                        delay,
+                        exc,
+                    )
+                    await asyncio.sleep(delay)
+                    continue
+                logger.error(
+                    "❌ Crew {} failed after {:.2f}s on attempt {}/{}: {}",
+                    crew_name,
+                    elapsed,
+                    attempt,
+                    attempts,
+                    exc,
+                )
+                raise
+            else:
+                elapsed = time.perf_counter() - start
+                logger.info("✅ Crew {} finished in {:.2f}s", crew_name, elapsed)
+                return result
+
+        # Unreachable: every iteration either returns or raises.
+        raise RuntimeError(  # pragma: no cover
+            f"Crew {crew_name} exhausted {attempts} attempts without result"
+        )

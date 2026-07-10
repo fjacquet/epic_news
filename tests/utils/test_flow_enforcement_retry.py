@@ -11,7 +11,7 @@ kickoff_flow now retries that class of failure -- and only that class.
 import pytest
 from loguru import logger
 
-from epic_news.utils.flow_enforcement import _is_transient_error, kickoff_flow
+from epic_news.utils.flow_enforcement import _is_transient_error, akickoff_flow, kickoff_flow
 
 
 class FakeCrew:
@@ -117,3 +117,65 @@ def test_success_still_logs_completion():
         logger.remove(sink_id)
 
     assert any("finished in" in msg for _, msg in records)
+
+
+class FakeAsyncCrew:
+    """Async stand-in; akickoff_flow drives the parallel OSINT crews."""
+
+    def __init__(self, failures: list[Exception | None]):
+        self._failures = list(failures)
+        self.kickoff_calls = 0
+
+    def crew(self):
+        return self
+
+    async def akickoff(self, inputs):
+        self.kickoff_calls += 1
+        outcome = self._failures.pop(0) if self._failures else None
+        if isinstance(outcome, Exception):
+            raise outcome
+        return f"ok:{inputs.get('topic')}"
+
+
+@pytest.mark.asyncio
+async def test_async_retries_transient_failure_then_succeeds():
+    crew = FakeAsyncCrew([TypeError("'NoneType' object is not iterable"), None])
+
+    result = await akickoff_flow(crew, {"topic": "crewai"})
+
+    assert result == "ok:crewai"
+    assert crew.kickoff_calls == 2
+
+
+@pytest.mark.asyncio
+async def test_async_non_transient_error_fails_fast():
+    crew = FakeAsyncCrew([ValueError("1 validation error for WebPresenceReport")])
+
+    with pytest.raises(ValueError):
+        await akickoff_flow(crew, {"topic": "crewai"})
+
+    assert crew.kickoff_calls == 1
+
+
+@pytest.mark.asyncio
+async def test_async_gives_up_after_configured_attempts():
+    crew = FakeAsyncCrew([TypeError("'NoneType' object is not iterable")] * 5)
+
+    with pytest.raises(TypeError):
+        await akickoff_flow(crew, {"topic": "crewai"})
+
+    assert crew.kickoff_calls == 3
+
+
+@pytest.mark.asyncio
+async def test_async_failure_is_not_logged_as_success():
+    records: list[tuple[str, str]] = []
+    sink_id = logger.add(lambda m: records.append((m.record["level"].name, m.record["message"])))
+    try:
+        with pytest.raises(ValueError):
+            await akickoff_flow(FakeAsyncCrew([ValueError("boom")]), {"topic": "x"})
+    finally:
+        logger.remove(sink_id)
+
+    assert "ERROR" in {level for level, _ in records}
+    assert not any("finished in" in msg for _, msg in records), "failure logged as success"

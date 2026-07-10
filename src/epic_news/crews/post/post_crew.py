@@ -58,7 +58,10 @@ class PostCrew:
         )
 
     def _get_send_tools(self):
-        """Get email send tools from Composio using new 1.0 API.
+        """Get email send tools from Composio, loading them at most once per instance.
+
+        Both ``can_send()`` and ``distribution_task()`` need this list; without the cache
+        each email would cost two Composio round-trips.
 
         Uses the get_gmail_email_tools() method which explicitly requests
         GMAIL_SEND_EMAIL and other send tools to work around the toolkit
@@ -67,6 +70,15 @@ class PostCrew:
         Returns:
             List of Gmail send tools, or empty list if not available.
         """
+        cached = getattr(self, "_send_tools_cache", None)
+        if cached is not None:
+            return cached
+
+        self._send_tools_cache = self._load_send_tools()
+        return self._send_tools_cache
+
+    def _load_send_tools(self):
+        """Fetch Gmail send/draft tools from Composio (uncached)."""
         logger.info("🔧 Loading Gmail send tools from Composio...")
         try:
             from epic_news.config.composio_config import ComposioConfig
