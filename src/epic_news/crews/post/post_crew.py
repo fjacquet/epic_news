@@ -27,6 +27,16 @@ class PostCrew:
             verbose=True,
         )
 
+    def can_send(self) -> bool:
+        """Whether a Gmail send/draft tool is actually available.
+
+        Without one the distributor agent cannot deliver anything, yet it will still
+        happily fill in ``PostResult(status="success")``. Callers must check this before
+        kickoff rather than trust the agent's self-report. Kept off the construction path
+        so a crew can still be built (and unit-tested) without Composio credentials.
+        """
+        return bool(self._get_send_tools())
+
     @task
     def distribution_task(self) -> Task:
         return Task(  # type: ignore[call-arg]

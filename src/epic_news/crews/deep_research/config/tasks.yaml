@@ -78,27 +78,24 @@ information_collection_task:
 data_analysis_task:
   description: >
     Mener une analyse critique et approfondie du corpus de données sur {topic}.
-    Appliquer les méthodes d'analyse définies dans le protocole pour tester les
-    hypothèses. Utiliser l'interpréteur de code pour des analyses quantitatives,
-    des modélisations statistiques et des visualisations de données complexes.
-    IMPORTANT: Enregistre tes codes python dans des fichiers python dans le dossier  "output/deep_research/python_scripts"
-    IMPORTANT: Le code Python généré doit être propre, sans indentation superflue,  et
-    directement exécutable. Ne pas inclure le code dans des blocs de démarques.
-    IMPORTANT: le code python peut etre lancé avec uv run python "python_script.py"
-    ATTENTION: Vérifiez méticuleusement la syntaxe du code Python.  Assurez-vous que
-    toutes les chaînes de caractères, en particulier les f-strings,
-     sont correctement terminées et ne contiennent pas de caractères d'échappement
-      erronés qui pourraient causer une `SyntaxError`.
-    INTERDICTION: Ne JAMAIS inclure de commandes d'installation de paquets comme  `!pip
-    install` ou `pip install`. L'environnement contient déjà toutes  les bibliothèques
-    nécessaires (pandas, matplotlib, scipy, etc.).
+    Appliquer les méthodes d'analyse définies dans le protocole pour évaluer les
+    hypothèses à la lumière des seules preuves rassemblées par la collecte.
+    INTERDICTION ABSOLUE: Vous n'exécutez aucun code et ne disposez d'aucun outil de
+    calcul. Ne JAMAIS inventer de statistiques, de p-values, d'intervalles de confiance,
+    de coefficients de corrélation ni de résultats de tests de significativité.
+    Ne JAMAIS présenter un chiffre qui ne provient pas explicitement d'une source citée.
+    Tout chiffre rapporté doit être accompagné de la source qui le fournit.
+    Lorsque les données disponibles ne permettent pas de trancher une hypothèse,
+    dites-le explicitement plutôt que de combler la lacune par une estimation.
   expected_output: >
-    Une analyse de données de niveau recherche avec interprétations :
-    - Validation ou réfutation des hypothèses avec preuves à l'appui.
-    - Analyse statistique détaillée avec tests de significativité (p-values, etc.).
-    - Visualisations de données (graphiques, cartes) pour illustrer les résultats.
-    - Identification de corrélations non triviales et de relations de causalité potentielles.
-    - Scripts d'analyse reproductibles (Python/R) générés via l'interpréteur de code.
+    Une analyse critique de niveau recherche, entièrement traçable aux sources :
+    - Évaluation de chaque hypothèse (étayée / réfutée / indéterminée) avec les preuves
+      citées à l'appui de la conclusion.
+    - Comparaison des données chiffrées rapportées par les différentes sources, avec
+      attribution explicite de chaque chiffre à sa source.
+    - Identification des convergences, des contradictions entre sources, et des lacunes
+      informationnelles qui limitent l'analyse.
+    - Évaluation de la solidité des preuves disponibles pour chaque conclusion.
     - Interprétation des résultats à la lumière du cadre théorique.
   agent: data_analyst
   context: [research_planning_task, information_collection_task]

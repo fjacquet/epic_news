@@ -26,7 +26,9 @@ class MenuDesignerCrew:
         """Agent responsible for researching and planning the menu structure."""
         return Agent(
             config=self.agents_config["menu_researcher"],
-            tools=get_search_tools() + [FileReadTool(), DirectoryReadTool()],
+            # Scope the directory read to this crew's own output dir; a bare
+            # DirectoryReadTool() defaults to the CWD and exposes the whole repo.
+            tools=get_search_tools() + [FileReadTool(), DirectoryReadTool("output/menu_designer")],
             llm=LLMConfig.get_openrouter_llm(),
             llm_timeout=LLMConfig.get_timeout("default"),
             respect_context_window=True,

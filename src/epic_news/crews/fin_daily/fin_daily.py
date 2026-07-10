@@ -30,7 +30,9 @@ class FinDailyCrew:
             tools=get_stock_research_tools()
             + [
                 FileReadTool(),
-                DirectoryReadTool(),
+                # Scope to this crew's own output dir; a bare DirectoryReadTool()
+                # defaults to the CWD and exposes the whole repo.
+                DirectoryReadTool("output/findaily"),
                 get_scraper(),
             ],
             llm=LLMConfig.get_openrouter_llm(),

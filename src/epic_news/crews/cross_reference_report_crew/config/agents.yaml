@@ -20,7 +20,6 @@ osint_researcher:
     are
     properly validated and contextualized. You collect data but do not produce the
     final output.
-  tools: []
 osint_reporter:
   role: >
     Intelligence Report Specialist
@@ -36,4 +35,3 @@ osint_reporter:
     about
     ensuring all required information is included and properly structured in the final
     output.
-  tools: []

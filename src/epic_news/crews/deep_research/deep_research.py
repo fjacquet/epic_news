@@ -70,17 +70,16 @@ class DeepResearchCrew:
             max_reasoning_attempts=3,
         )
 
-    # Data Analyst - Analysis and synthesis with Code Interpreter
+    # Data Analyst - Critical analysis and synthesis of the collected corpus
     @agent
     def data_analyst(self) -> Agent:
-        """Data analyst agent for synthesis and quantitative analysis with Code Interpreter."""
+        """Data analyst agent for critical synthesis of the collected sources."""
         return Agent(
             config=self.agents_config["data_analyst"],  # type: ignore[index]
             tools=[FileReadTool()],
             llm=LLMConfig.get_openrouter_llm(),
             llm_timeout=LLMConfig.get_timeout("long"),
             verbose=True,
-            allow_code_execution=True,  # Enable Code Interpreter for real quantitative analysis
         )
 
     # Report Writer - Technical writing
