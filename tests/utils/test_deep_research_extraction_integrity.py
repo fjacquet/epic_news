@@ -59,8 +59,27 @@ def crew_report_json() -> str:
     )
 
 
-def _dump(model: DeepResearchReport) -> str:
-    return json.dumps(model.model_dump(), default=str)
+REAL_SOURCE_URL = "https://real.example.org/article"
+
+
+def _source_urls(model: DeepResearchReport) -> list[str]:
+    """Exact source URLs carried by the model (no substring matching -- see CodeQL)."""
+    return [source.url for section in model.research_sections for source in section.sources]
+
+
+def _prose(model: DeepResearchReport) -> str:
+    """Non-URL prose of the report, for placeholder-text detection."""
+    return json.dumps(
+        [model.title, model.executive_summary, [s.content for s in model.research_sections]],
+        default=str,
+    )
+
+
+def _assert_real_content(model: DeepResearchReport) -> None:
+    assert model.title == "Etat CrewAI 2026"
+    assert _source_urls(model) == [REAL_SOURCE_URL], "real source URL was replaced"
+    for marker in PLACEHOLDER_MARKERS:
+        assert marker not in _prose(model)
 
 
 def test_extract_returns_dict_not_model(crew_report_json: str):
@@ -76,10 +95,7 @@ def test_extract_preserves_real_content(crew_report_json: str):
     """The crew's real findings survive the first extraction pass."""
     model = DeepResearchExtractor().extract({"raw_output": crew_report_json})["deep_research_model"]
 
-    assert model.title == "Etat CrewAI 2026"
-    assert "real.example.org" in _dump(model)
-    for marker in PLACEHOLDER_MARKERS:
-        assert marker not in _dump(model)
+    _assert_real_content(model)
 
 
 def test_second_pass_roundtrips_model_without_placeholder_fallback(crew_report_json: str):
@@ -100,9 +116,14 @@ def test_second_pass_roundtrips_model_without_placeholder_fallback(crew_report_j
     round_tripped = extracted["deep_research_model"]
 
     assert round_tripped is model, "second pass rebuilt the report instead of reusing it"
-    assert "real.example.org" in _dump(round_tripped)
-    for marker in PLACEHOLDER_MARKERS:
-        assert marker not in _dump(round_tripped)
+    _assert_real_content(round_tripped)
+
+
+def test_fallback_report_is_clearly_placeholder():
+    """The fallback branch must be recognisable as placeholder, not passed off as real."""
+    model = DeepResearchExtractor().extract({"raw_output": "not json at all"})["deep_research_model"]
+
+    assert REAL_SOURCE_URL not in _source_urls(model)
 
 
 def test_state_model_class_matches_extractor_class():

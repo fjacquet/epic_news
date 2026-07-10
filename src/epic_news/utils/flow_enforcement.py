@@ -138,8 +138,10 @@ def kickoff_flow(crew_or_factory: Any, context: dict[str, Any]) -> Any:
                 logger.info("✅ Crew {} finished in {:.2f}s", crew_name, elapsed)
                 return result
 
-        # Unreachable: the loop either returns or raises.
-        raise RuntimeError(f"Crew {crew_name} exhausted {attempts} attempts without result")
+        # Unreachable: every iteration either returns or raises.
+        raise RuntimeError(  # pragma: no cover
+            f"Crew {crew_name} exhausted {attempts} attempts without result"
+        )
 
 
 async def akickoff_flow(crew_or_factory: Any, context: dict[str, Any]) -> Any:
