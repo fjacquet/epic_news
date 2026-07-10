@@ -128,35 +128,32 @@ report_writing_task:
         {
           "section_title": "Titre de section",
           "content": "Contenu détaillé",
-          "conclusions": "Conclusions spécifiques à cette section",
           "sources": [
             {
               "title": "Titre de la source",
               "url": "https://example.com",
               "source_type": "web",
               "summary": "Résumé de la source",
-              "relevance_score": 8,
-              "credibility_score": 0.85,
-              "extraction_date": "2025-07-17"
+              "relevance_score": 8
             }
           ]
         }
       ],
       "methodology": "Méthodologie utilisée",
-      "sources_count": 15,
       "report_date": "2025-07-17",
-      "confidence_level": "High",
-      "conclusions": "Conclusions générales de la recherche"
+      "confidence_level": "High"
     }
     ```
-    IMPORTANT: Le modèle JSON DOIT respecter la structure exacte du modèle DeepResearchReport
-    avec:
-    - Tous les champs obligatoires (title, topic, executive_summary, key_findings,
-    research_sections, methodology, conclusions)
-    - Chaque section de recherche doit avoir un champ "section_title" (PAS "title")
-    et un champ "conclusions"
-    - Chaque source doit obligatoirement avoir une URL valide et un score de crédibilité
-    entre 0 et 1
+    IMPORTANT: Le JSON DOIT respecter EXACTEMENT la structure ci-dessus, sans champ
+    supplémentaire:
+    - Champs de niveau supérieur: title, topic, executive_summary, key_findings,
+    research_sections, methodology, report_date, confidence_level.
+    - Chaque section a UNIQUEMENT: "section_title" (PAS "title"), "content", "sources".
+    - Chaque source a UNIQUEMENT: "title", "url" (valide), "source_type", "summary",
+    "relevance_score" (entier de 1 à 10).
+    - N'inventez PAS de champs "conclusions", "credibility_score" ni "extraction_date":
+    ils ne font pas partie du modèle.
+    - N'écrivez PAS "sources_count": il est calculé automatiquement à partir des sources.
   agent: report_writer
   context:
     - research_planning_task
