@@ -1,6 +1,7 @@
 import json
 import os
 import re
+from pathlib import Path
 from typing import Any
 
 from loguru import logger
@@ -110,6 +111,32 @@ def _valid_email(value: Any) -> str | None:
     return value if _EMAIL_RE.match(value) else None
 
 
+def resolve_report_html(output_file: Any) -> str | None:
+    """Return the rendered HTML report matching ``output_file``, if one exists.
+
+    ``state.output_file`` is the crew's *write target* (usually ``report.json``), not
+    the artifact a reader wants. Crews render the HTML alongside it as ``report.html``
+    but never update the state, so the email step used to mail raw JSON as the body
+    and attach that same JSON. Prefer the HTML sibling; fall back to the file itself.
+    """
+    if not isinstance(output_file, str) or not output_file.strip():
+        return None
+
+    path = Path(output_file)
+    if path.suffix.lower() == ".html":
+        return str(path) if path.is_file() else None
+
+    sibling = path.with_suffix(".html")
+    if sibling.is_file():
+        return str(sibling)
+
+    logger.warning(
+        "📄 No rendered HTML report next to {}; the email body will not be HTML.",
+        output_file,
+    )
+    return str(path) if path.is_file() else None
+
+
 def prepare_email_params(state: Any) -> dict[str, Any]:
     """
     Prepares the parameters for sending an email based on the application state.
@@ -141,16 +168,17 @@ def prepare_email_params(state: Any) -> dict[str, Any]:
         recipient = _FALLBACK_RECIPIENT
     subject = f"Epic News Report: {state.selected_crew} - {state.user_request}"
     body = f"Please find the report for '{state.user_request}' attached."
-    attachment_path = getattr(state, "output_file", None)
     output_file = getattr(state, "output_file", None)
+    # Body and attachment are both the rendered report, never the crew's raw JSON.
+    report_html = resolve_report_html(output_file)
     topic = f"{state.selected_crew} - {state.user_request}"
 
     return {
         "recipient_email": recipient,
         "subject": subject,
         "body": body,
-        "attachment_path": attachment_path,
-        "output_file": output_file,
+        "attachment_path": report_html,
+        "output_file": report_html or output_file,
         "topic": topic,
     }
 

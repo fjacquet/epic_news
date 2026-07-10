@@ -63,7 +63,6 @@ from epic_news.crews.menu_designer.menu_designer import MenuDesignerCrew
 from epic_news.crews.news_daily.news_daily import NewsDailyCrew
 from epic_news.crews.pestel.pestel_crew import PestelCrew
 from epic_news.crews.poem.poem_crew import PoemCrew
-from epic_news.crews.post.post_crew import PostCrew
 from epic_news.crews.rss_weekly.rss_weekly_crew import RssWeeklyCrew
 from epic_news.crews.saint_daily.saint_daily import SaintDailyCrew
 from epic_news.crews.sales_prospecting.sales_prospecting_crew import SalesProspectingCrew
@@ -95,6 +94,7 @@ from epic_news.services.menu_designer_service import MenuDesignerService
 # Import the normalization utility
 from epic_news.utils.diagnostics import dump_crewai_state, parse_crewai_output
 from epic_news.utils.directory_utils import ensure_output_directories
+from epic_news.utils.email_sender import EmailDeliveryError, send_report_email
 from epic_news.utils.extractors.deep_research import DeepResearchExtractor
 from epic_news.utils.extractors.factory import ContentExtractorFactory
 from epic_news.utils.flow_enforcement import akickoff_flow, kickoff_flow
@@ -1409,7 +1409,7 @@ class ReceptionFlow(Flow[ContentState]):
             email_inputs = prepare_email_params(self.state)
 
             # Drop attachment if the file doesn't exist on disk — better to send
-            # an attachment-less email than have PostCrew fail trying to read it.
+            # an attachment-less email than to fail the whole delivery over it.
             attachment_path = email_inputs.get("attachment_path")
             if attachment_path and not Path(attachment_path).exists():
                 self.logger.warning(
@@ -1430,65 +1430,33 @@ class ReceptionFlow(Flow[ContentState]):
                     "📎 No valid attachment file found. Email will be sent without attachment."
                 )
 
-            # If Composio isn't available, skip email sending gracefully
+            # Delivery is deterministic: the recipient, the report and the MIME type
+            # are all known here. An LLM asked to "send this" substituted the
+            # recipient with the placeholder "[EMAIL]" and still reported success,
+            # so no agent sits between the validated inputs and the Gmail API.
+            body_file = email_inputs.get("output_file")
             try:
-                try:
-                    from composio_crewai import CrewAIProvider
+                html_body = Path(body_file).read_text(encoding="utf-8") if body_file else ""
+            except OSError as e:
+                self.logger.error("❌ Cannot read report {} for email body: {}", body_file, e)
+                self.state.email_sent = False
+                return "send_email"
 
-                    # Attempt to initialize to ensure environment is ready
-                    _ = CrewAIProvider()
-                except Exception as e:
-                    self.logger.error(
-                        "❌ Composio not available; email was NOT sent for this run. Reason: {}",
-                        e,
-                    )
-                    self.state.email_sent = False
-                    return "send_email"
-
-                # Instantiate and kickoff the PostCrew (kickoff-only)
-                post_crew = PostCrew()
-                if not post_crew.can_send():
-                    # A tool-less distributor would still report status="success".
-                    self.logger.error(
-                        "❌ No Composio Gmail send/draft tool available; email NOT sent. "
-                        "Verify COMPOSIO_API_KEY and the Gmail connection in Composio."
-                    )
-                    self.state.email_sent = False
-                    return "send_email"
-
-                email_result = kickoff_flow(post_crew, email_inputs)
-
-                # Parse the structured PostResult to log delivery outcome explicitly.
-                # Only a reported success marks the email as sent; anything else must not
-                # suppress a later retry by claiming delivery.
-                post_result = getattr(email_result, "pydantic", None)
-                if post_result is not None:
-                    if getattr(post_result, "status", "") == "success":
-                        self.logger.info(
-                            "📨 PostResult: status=success recipient={} subject={!r} attachment_sent={}",
-                            post_result.recipient_email,
-                            post_result.subject,
-                            post_result.attachment_sent,
-                        )
-                        self.state.email_sent = True
-                    else:
-                        self.logger.error(
-                            "❌ PostResult: status=failure recipient={} error_message={}",
-                            getattr(post_result, "recipient_email", "?"),
-                            getattr(post_result, "error_message", "(none)"),
-                        )
-                        self.state.email_sent = False
-                else:
-                    raw = getattr(email_result, "raw", "") or ""
-                    self.logger.error(
-                        "❌ PostResult absent — agent did not produce structured output; "
-                        "treating email as NOT sent. raw[:500]={!r}",
-                        raw[:500],
-                    )
-                    self.state.email_sent = False
+            try:
+                send_report_email(
+                    recipient=email_inputs["recipient_email"],
+                    subject=email_inputs["subject"],
+                    html_body=html_body,
+                    attachment_path=email_inputs.get("attachment_path"),
+                )
+            except EmailDeliveryError as e:
+                self.logger.error("❌ Email NOT sent: {}", e)
+                self.state.email_sent = False
             except Exception as e:
                 self.state.email_sent = False
-                self.logger.exception("❌ Error during email sending: {}", e)
+                self.logger.exception("❌ Unexpected error during email sending: {}", e)
+            else:
+                self.state.email_sent = True
         else:
             self.logger.info("📧 Email already sent for this request. Skipping.")
         return "send_email"  # Implicitly returns method name
