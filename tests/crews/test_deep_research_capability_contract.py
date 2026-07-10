@@ -18,6 +18,8 @@ from pathlib import Path
 import pytest
 import yaml
 
+from epic_news.crews.deep_research.deep_research import DeepResearchCrew
+
 CONFIG = Path(__file__).resolve().parents[2] / "src/epic_news/crews/deep_research/config"
 
 
@@ -71,8 +73,6 @@ def test_agents_yaml_declares_no_tools(agents):
 
 def test_data_analyst_is_tool_less():
     """Given any file tool it invents filenames; its corpus arrives via context."""
-    from epic_news.crews.deep_research.deep_research import DeepResearchCrew
-
     analyst = DeepResearchCrew().data_analyst()
 
     assert analyst.tools == [], f"data_analyst must hold no tools, got {[t.name for t in analyst.tools]}"
