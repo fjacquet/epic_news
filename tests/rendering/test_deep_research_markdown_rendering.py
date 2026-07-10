@@ -78,6 +78,10 @@ def test_code_and_links_render(html):
         "<script>alert(1)</script>",
         "<img src=x onerror=alert(1)>",
         "<iframe src='evil'></iframe>",
+        # Case variants: HTML tag names are case-insensitive, so the guard must be too.
+        "<SCRIPT>alert(1)</SCRIPT>",
+        "<ImG SrC=x OnErRoR=alert(1)>",
+        '<a href="javascript:alert(1)">x</a>',
     ],
 )
 def test_raw_html_from_agent_text_is_escaped_not_executed(payload):
@@ -92,7 +96,27 @@ def test_raw_html_from_agent_text_is_escaped_not_executed(payload):
 
     html = DeepResearchRenderer().render(data)
 
-    assert not re.search(r"<script[\s>]", html), "live <script> tag emitted"
-    assert not re.search(r"<img[\s>]", html), "live <img> tag emitted"
-    assert not re.search(r"<iframe[\s>]", html), "live <iframe> tag emitted"
+    for tag in ("script", "img", "iframe", "a"):
+        assert not re.search(rf"<{tag}[\s>]", html, re.IGNORECASE), f"live <{tag}> tag emitted"
     assert "&lt;" in html, "payload was not escaped at all"
+
+
+def test_markdown_link_cannot_smuggle_a_javascript_url():
+    """The real vector: markdown-it *does* build <a> tags, so its link validator matters.
+
+    Raw `<a href="javascript:...">` is merely escaped, but `[x](javascript:...)` would be
+    turned into a live anchor if markdown-it's validateLink were disabled.
+    """
+    data = {
+        "title": "T",
+        "executive_summary": "[click](javascript:alert(1))",
+        "key_findings": [],
+        "methodology": "m",
+        "research_sections": [],
+    }
+
+    html = DeepResearchRenderer().render(data)
+
+    assert not re.search(r"""<a[^>]+href\s*=\s*["']?\s*javascript:""", html, re.IGNORECASE), (
+        "markdown link smuggled a javascript: URL into a live anchor"
+    )
