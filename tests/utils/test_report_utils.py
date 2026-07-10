@@ -35,7 +35,9 @@ def test_prepare_email_params_defaults(mocker, mock_state):
     assert params["recipient_email"] == _FALLBACK_RECIPIENT
     assert params["subject"] == f"Epic News Report: {mock_state.selected_crew} - {mock_state.user_request}"
     assert params["body"] == f"Please find the report for '{mock_state.user_request}' attached."
-    assert params["attachment_path"] == mock_state.output_file
+    # output_file names a file that was never rendered, so there is nothing to attach.
+    # Handing back a dangling path is what made Composio treat it as an uploaded S3 key.
+    assert params["attachment_path"] is None
     assert params["output_file"] == mock_state.output_file
     assert params["topic"] == f"{mock_state.selected_crew} - {mock_state.user_request}"
 
@@ -44,6 +46,18 @@ def test_prepare_email_params_defaults(mocker, mock_state):
     mock_state.sendto = test_email
     params = prepare_email_params(mock_state)
     assert params["recipient_email"] == test_email
+
+
+def test_prepare_email_params_attaches_a_report_that_exists(mock_state, tmp_path):
+    """When the crew actually rendered the report, it is both body and attachment."""
+    report = tmp_path / "report.html"
+    report.write_text("<html></html>", encoding="utf-8")
+    mock_state.output_file = str(report)
+
+    params = prepare_email_params(mock_state)
+
+    assert params["attachment_path"] == str(report)
+    assert params["output_file"] == str(report)
 
 
 @pytest.mark.parametrize(
