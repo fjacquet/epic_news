@@ -4,6 +4,15 @@ All notable changes to Epic News are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [3.3.5] — 2026-07-10
+
+A deep-research reliability fix. A single omitted field from the report-writing LLM no longer discards the entire (~9-minute) research run.
+
+### Fixed
+- **A ~9-minute deep-research run died at the final step** (#154) with `3 validation errors for DeepResearchReport: methodology / sources_count / confidence_level — Field required`. The crew validates the LLM's one-shot JSON against `deep_research_report.py`'s `DeepResearchReport`, which marked those three strictly required — but the task instructions didn't list two of them as mandatory and required a phantom `conclusions` field this model never had, and the example JSON described the *other* class also named `DeepResearchReport`. The model was told one contract and validated against another. `methodology` and `confidence_level` now default (the renderer already treats both as optional), as do `key_findings` / `research_sections` / section `sources` (same failure class); genuinely load-bearing fields (`title`, `topic`, `executive_summary`) stay required.
+- **`sources_count` is now computed from the sections**, not trusted from the LLM — counting is deterministic, not a reasoning task. An explicit count is kept only when no section carries sources.
+- **`report_writing_task` instructions rewritten** to match the actual model exactly (no `conclusions` / `credibility_score` / `extraction_date`) and to tell the model not to emit `sources_count`.
+
 ## [3.3.4] — 2026-07-10
 
 A bug-fix and hardening release covering the HTML report body and email delivery. Renders agent-authored Markdown correctly across the whole renderer suite, and replaces the LLM-driven email step with a deterministic sender after a production run showed the model corrupting the recipient and body.
