@@ -4,6 +4,19 @@ All notable changes to Epic News are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [3.3.4] — 2026-07-10
+
+A bug-fix and hardening release covering the HTML report body and email delivery. Renders agent-authored Markdown correctly across the whole renderer suite, and replaces the LLM-driven email step with a deterministic sender after a production run showed the model corrupting the recipient and body.
+
+### Fixed
+- **Agent Markdown leaked as literal text across the renderer suite** (#151): crews return structured JSON, but the model writes Markdown (`**bold**`, `-` bullets, links) *inside* the JSON string fields. Renderers assigned those strings with `tag.string = …`, which escapes them, so readers saw literal `**bold**`. `BaseRenderer` now renders inline/block Markdown in safe mode (`html=False`), and `render_text_section` defaults to `as_markdown=True`; 20 renderers were converted. `poem` is deliberately excluded — whitespace and literal characters are the content of a poem — and is pinned as a negative-control test.
+- **Deep-research email reported failure and shipped nothing** (#152): the flow handed a valid recipient to an email agent, which called `GMAIL_SEND_EMAIL` with the placeholder `[EMAIL]`, invented a `from_email`, and rewrote the French article *la* as `[ADDRESS]` — the model was anonymising PII it had been asked to reproduce. Delivery is now deterministic: `send_email()` calls Gmail directly with the validated recipient and the rendered report, and `email_sent` reflects only a delivery the API confirmed (never an agent's self-report).
+- **Email attached the wrong file and 404'd**: `prepare_email_params` used the crew's JSON *write target* (`report.json`) as both body and attachment, so the rendered `report.html` was never sent (`html_preserved: false`). Composio also treats a local `attachment` path as an already-uploaded storage key, so it 404'd. The body/attachment now resolve to the rendered HTML report, and attachments upload from an allowlist confined to the output directory.
+
+### Security
+- Every renderer now interprets agent text as Markdown, so raw HTML in crew output is a boundary: markdown-it runs with `html=False` and link validation, so `<script>`/`<img onerror>`/`<svg onload>`/`<iframe>` stay escaped and `[x](javascript:…)` is refused. Verified against 7 payloads across every renderer.
+- Composio auto-upload is scoped via `file_upload_dirs` to the output directory, so it can never read files outside our generated reports.
+
 ## [3.3.3] — 2026-07-05
 
 A bug-fix, security-hardening, and test-coverage release. Fixes HTML renderers that produced broken or blank reports, a JSON-repair correctness bug, and two stored-XSS vectors; removes legacy dead code; and lands a large test-coverage increase (63% → 82%).
