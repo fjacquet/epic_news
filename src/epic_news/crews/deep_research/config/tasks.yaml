@@ -52,10 +52,13 @@ information_collection_task:
     IMPORTANT: Pour chaque source (web ET Wikipedia), vous DEVEZ inclure une URL  précise
     et fonctionnelle. Les sources sans URL ne seront pas considérées comme  valides
     et pourraient compromettre la validité du rapport final.
+    INTERDICTION: Vous ne disposez d'aucun outil d'écriture de fichier. N'annoncez
+    jamais avoir enregistré des données dans des fichiers. Le corpus que vous produisez
+    est transmis directement aux tâches suivantes via le contexte.
   expected_output: >
-    Un corpus de recherche structuré combinant sources web et encyclopédiques :
-    - Un ensemble complet de données brutes (articles, statistiques, etc.) enregistré
-     dans des fichiers markdown dans "output/deep_research/"
+    Un corpus de recherche structuré combinant sources web et encyclopédiques,
+    restitué intégralement dans le texte de votre réponse (aucun fichier n'est écrit) :
+    - Un ensemble complet de données brutes (articles, statistiques, etc.)
     - Une bibliographie annotée détaillée pour CHAQUE source (web et Wikipedia),
       incluant OBLIGATOIREMENT:
       * Un titre descriptif
@@ -80,8 +83,10 @@ data_analysis_task:
     Mener une analyse critique et approfondie du corpus de données sur {topic}.
     Appliquer les méthodes d'analyse définies dans le protocole pour évaluer les
     hypothèses à la lumière des seules preuves rassemblées par la collecte.
-    INTERDICTION ABSOLUE: Vous n'exécutez aucun code et ne disposez d'aucun outil de
-    calcul. Ne JAMAIS inventer de statistiques, de p-values, d'intervalles de confiance,
+    INTERDICTION ABSOLUE: Vous ne disposez d'AUCUN outil: ni exécution de code, ni
+    calcul, ni lecture de fichier. Le corpus complet vous est fourni dans le contexte
+    de la tâche précédente: n'essayez jamais d'ouvrir un fichier, aucun n'a été écrit.
+    Ne JAMAIS inventer de statistiques, de p-values, d'intervalles de confiance,
     de coefficients de corrélation ni de résultats de tests de significativité.
     Ne JAMAIS présenter un chiffre qui ne provient pas explicitement d'une source citée.
     Tout chiffre rapporté doit être accompagné de la source qui le fournit.

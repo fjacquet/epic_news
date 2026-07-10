@@ -73,10 +73,14 @@ class DeepResearchCrew:
     # Data Analyst - Critical analysis and synthesis of the collected corpus
     @agent
     def data_analyst(self) -> Agent:
-        """Data analyst agent for critical synthesis of the collected sources."""
+        """Data analyst agent for critical synthesis of the collected sources.
+
+        Deliberately tool-less: the corpus arrives via task context. Given a FileReadTool
+        it invents plausible filenames and tries to read a corpus nobody ever wrote.
+        """
         return Agent(
             config=self.agents_config["data_analyst"],  # type: ignore[index]
-            tools=[FileReadTool()],
+            tools=[],
             llm=LLMConfig.get_openrouter_llm(),
             llm_timeout=LLMConfig.get_timeout("long"),
             verbose=True,
