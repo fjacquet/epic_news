@@ -81,19 +81,21 @@ class DeepResearchRenderer(BaseRenderer):
         header = soup.new_tag("div")
         header.attrs["class"] = "report-header"
 
-        # Title
+        # Title. The emoji is ours; the title is agent-authored and may carry Markdown.
         title = data.get("title", "Rapport de Recherche Approfondie")
         title_tag = soup.new_tag("h1")
         title_tag.attrs["class"] = "report-title"
-        title_tag.string = f"🔬 {title}"
+        title_tag.append("🔬 ")
+        self.append_prose(title_tag, title)
         header.append(title_tag)
 
-        # Topic
+        # Topic. "Sujet: " is our label; the topic itself is agent-authored.
         topic = data.get("topic", "")
         if topic:
             topic_tag = soup.new_tag("h2")
             topic_tag.attrs["class"] = "report-topic"
-            topic_tag.string = f"Sujet: {topic}"
+            topic_tag.append("Sujet: ")
+            self.append_prose(topic_tag, topic)
             header.append(topic_tag)
 
         # Metadata
@@ -218,7 +220,9 @@ class DeepResearchRenderer(BaseRenderer):
                     li = soup.new_tag("li")
                     li.attrs["class"] = "source-item"
 
-                    # Source title and URL
+                    # Source title and URL. Kept literal on purpose: this text sits inside
+                    # an <a>, and the Markdown parser has linkify enabled, so rendering a
+                    # title containing a bare URL would nest an <a> inside an <a>.
                     source_title = source.get("title", "Source")
                     url = source.get("url", "")
                     if url:
@@ -228,7 +232,8 @@ class DeepResearchRenderer(BaseRenderer):
                         link.string = source_title
                         li.append(link)
                     else:
-                        li.string = source_title
+                        # Outside an anchor there is no nesting hazard.
+                        self.append_prose(li, source_title)
 
                     # Source type and summary
                     source_type = source.get("source_type", "")

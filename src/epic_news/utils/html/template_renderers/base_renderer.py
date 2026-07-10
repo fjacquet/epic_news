@@ -12,12 +12,17 @@ Provides shared helper methods for common rendering patterns:
 """
 
 import json
+import warnings
 from abc import ABC, abstractmethod
 from functools import lru_cache
 from typing import Any
 
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, MarkupResemblesLocatorWarning
 from markdown_it import MarkdownIt
+
+# A prose field whose entire value is a bare URL makes BeautifulSoup warn that we probably
+# meant to fetch it. We are parsing rendered Markdown, not a locator; the warning is noise.
+warnings.filterwarnings("ignore", category=MarkupResemblesLocatorWarning)
 
 
 @lru_cache(maxsize=1)
@@ -184,7 +189,7 @@ class BaseRenderer(ABC):
                 ul = soup.new_tag("ul")
                 for item in value:
                     li = soup.new_tag("li")
-                    li.string = str(item)
+                    self.append_prose(li, item)
                     ul.append(li)
                 card.append(ul)
             elif isinstance(value, dict):
@@ -193,11 +198,14 @@ class BaseRenderer(ABC):
                     strong = soup.new_tag("strong")
                     strong.string = f"{sub_key.replace('_', ' ').title()}: "
                     p.append(strong)
-                    p.append(str(sub_val))
+                    self.append_prose(p, sub_val)
                     card.append(p)
             else:
                 p = soup.new_tag("p")
-                p.string = str(value) if value else "N/A"
+                if value:
+                    self.append_prose(p, value)
+                else:
+                    p.string = "N/A"
                 card.append(p)
 
             section.append(card)
@@ -245,7 +253,7 @@ class BaseRenderer(ABC):
                 card_title_text = "Item"
 
             card_title = soup.new_tag("h3")
-            card_title.string = card_title_text
+            self.append_prose(card_title, card_title_text)
             card.append(card_title)
 
             # Render remaining fields
@@ -259,7 +267,10 @@ class BaseRenderer(ABC):
                 strong = soup.new_tag("strong")
                 strong.string = f"{key.replace('_', ' ').title()}: "
                 p.append(strong)
-                p.append(str(value) if value else "N/A")
+                if value:
+                    self.append_prose(p, value)
+                else:
+                    p.append("N/A")
                 card.append(p)
 
             grid.append(card)
@@ -274,7 +285,7 @@ class BaseRenderer(ABC):
         text: str | None,
         title: str,
         icon: str = "",
-        as_markdown: bool = False,
+        as_markdown: bool = True,
     ) -> None:
         """
         Render a simple text section.
@@ -285,7 +296,9 @@ class BaseRenderer(ABC):
             text: Text content
             title: Section title
             icon: Optional emoji icon
-            as_markdown: If True, parse ``text`` as Markdown and render as HTML
+            as_markdown: Parse ``text`` as Markdown (default). Agents write Markdown into
+                the JSON string fields, so escaping it ships literal ``**bold**`` to the
+                reader. Pass False only where whitespace is significant (e.g. poetry).
         """
         if not text:
             return
@@ -336,6 +349,18 @@ class BaseRenderer(ABC):
         fragment = BeautifulSoup(html, "html.parser")
         for child in list(fragment.contents):
             container.append(child)
+
+    def append_prose(self, container: Any, value: Any) -> None:
+        """Append an agent-authored value to ``container``, rendering inline Markdown.
+
+        Crews return JSON, but the model writes Markdown inside the string fields, so a
+        plain ``tag.string = value`` ships literal ``**bold**`` to the reader. Only ``str``
+        values are parsed; numbers, bools and structures are stringified as before.
+        """
+        if isinstance(value, str):
+            self.render_markdown_inline(container, value)
+        else:
+            container.append(str(value))
 
     def create_soup(self, tag: str = "div", **attrs) -> BeautifulSoup:
         """

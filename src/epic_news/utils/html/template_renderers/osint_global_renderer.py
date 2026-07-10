@@ -69,15 +69,14 @@ class OSINTGlobalRenderer(BaseRenderer):
 
         return str(soup)
 
-    @staticmethod
-    def _add_header(soup: BeautifulSoup, container: Any, data: dict[str, Any]) -> None:
+    def _add_header(self, soup: BeautifulSoup, container: Any, data: dict[str, Any]) -> None:
         header = soup.new_tag("div", **{"class": "report-header"})  # type: ignore[arg-type]
         title = soup.new_tag("h1")
         title.string = "Rapport OSINT Complet"
         header.append(title)
         if company := data.get("company_name"):
             subtitle = soup.new_tag("h2")
-            subtitle.string = company
+            self.append_prose(subtitle, company)
             header.append(subtitle)
         container.append(header)
 
@@ -117,8 +116,7 @@ class OSINTGlobalRenderer(BaseRenderer):
         toc.append(ul)
         container.append(toc)
 
-    @staticmethod
-    def _add_executive_summary(soup: BeautifulSoup, container: Any, data: dict[str, Any]) -> None:
+    def _add_executive_summary(self, soup: BeautifulSoup, container: Any, data: dict[str, Any]) -> None:
         section = soup.new_tag("section", **{"class": "report-section", "id": "executive-summary"})  # type: ignore[arg-type]
         title = soup.new_tag("h2")
         title.string = "Resume Executif"
@@ -144,7 +142,7 @@ class OSINTGlobalRenderer(BaseRenderer):
             strong = soup.new_tag("strong")
             strong.string = "Entreprise: "
             p.append(strong)
-            p.append(company)
+            self.append_prose(p, company)
             summary_div.append(p)
 
         # Report count

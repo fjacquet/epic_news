@@ -78,7 +78,7 @@ class CompanyNewsRenderer(BaseRenderer):
             h2.string = "📰 Synthèse stratégique 2025"
             header.append(h2)
             p = soup.new_tag("p")
-            p.string = summary
+            self.append_prose(p, summary)
             header.append(p)
             container.append(header)
 
@@ -89,7 +89,8 @@ class CompanyNewsRenderer(BaseRenderer):
         for section in sections:
             section_div = soup.new_tag("section", **{"class": "company-news-section"})
             title = soup.new_tag("h3")
-            title.string = f"📌 {section.get('titre', 'Section')}"
+            title.append("📌 ")
+            self.append_prose(title, section.get("titre", "Section"))
             section_div.append(title)
             articles = section.get("contenu", [])
             for article in articles:
@@ -114,33 +115,35 @@ class CompanyNewsRenderer(BaseRenderer):
                             rel="noopener",
                             **{"class": "company-article-link"},
                         )
-                        a.string = title_text
+                        self.append_prose(a, title_text)
                         article_div.append(a)
                     else:
                         # Fallback if regex doesn't match
                         span = soup.new_tag("span")
-                        span.string = article_title
+                        self.append_prose(span, article_title)
                         article_div.append(span)
                 else:
                     # No markdown link format detected
                     span = soup.new_tag("span")
-                    span.string = article_title or "Article"
+                    self.append_prose(span, article_title or "Article")
                     article_div.append(span)
                 # Meta info
                 meta_div = soup.new_tag("div", **{"class": "company-news-meta"})
                 if article.get("date"):
                     date_span = soup.new_tag("span", **{"class": "company-article-date"})
-                    date_span.string = f"📅 {article['date']}"
+                    date_span.append("📅 ")
+                    self.append_prose(date_span, article["date"])
                     meta_div.append(date_span)
                 if article.get("source"):
                     source_span = soup.new_tag("span", **{"class": "company-article-source"})
-                    source_span.string = f"📰 {article['source']}"
+                    source_span.append("📰 ")
+                    self.append_prose(source_span, article["source"])
                     meta_div.append(source_span)
                 article_div.append(meta_div)
                 # Citation
                 if article.get("citation"):
                     citation_div = soup.new_tag("blockquote", **{"class": "company-article-citation"})
-                    citation_div.string = article["citation"]
+                    self.append_prose(citation_div, article["citation"])
                     article_div.append(citation_div)
                 section_div.append(article_div)
             container.append(section_div)
@@ -155,6 +158,6 @@ class CompanyNewsRenderer(BaseRenderer):
             h4.string = "📝 Notes & sources"
             notes_div.append(h4)
             notes_p = soup.new_tag("p")
-            notes_p.string = notes
+            self.append_prose(notes_p, notes)
             notes_div.append(notes_p)
             container.append(notes_div)

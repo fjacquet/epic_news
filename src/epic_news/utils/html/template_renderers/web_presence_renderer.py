@@ -35,7 +35,7 @@ class WebPresenceRenderer(BaseRenderer):
         soup = self.create_soup("div", class_="web-presence-report")
         container = soup.div
 
-        self.add_report_header(soup, container, "🌐 Analyse de Présence Web", data.get("company_name"))
+        self._add_report_header(soup, container, "🌐 Analyse de Présence Web", data.get("company_name"))
         self.render_text_section(soup, container, data.get("executive_summary"), "Résumé Exécutif", "📋")
         self._add_website_analysis(soup, container, data)
         self._add_social_media(soup, container, data)
@@ -45,6 +45,20 @@ class WebPresenceRenderer(BaseRenderer):
         self.add_raw_json_section(soup, container, data, "Voir les données brutes")
 
         return str(soup)
+
+    def _add_report_header(
+        self, soup: BeautifulSoup, container: Any, title: str, subtitle: str | None
+    ) -> None:
+        """Like ``add_report_header``, but renders ``subtitle`` (agent-authored company name) as Markdown."""
+        header = soup.new_tag("div", **{"class": "report-header"})  # type: ignore[arg-type]
+        h1 = soup.new_tag("h1")
+        h1.string = title
+        header.append(h1)
+        if subtitle:
+            h2 = soup.new_tag("h2")
+            self.render_markdown_inline(h2, subtitle)
+            header.append(h2)
+        container.append(header)
 
     def _add_website_analysis(self, soup: BeautifulSoup, container: Any, data: dict[str, Any]) -> None:
         """Render website analysis section."""
@@ -70,7 +84,7 @@ class WebPresenceRenderer(BaseRenderer):
                 strong = soup.new_tag("strong")
                 strong.string = f"{label}: "
                 p.append(strong)
-                p.append(value)
+                self.render_markdown_inline(p, value)
                 card.append(p)
 
         if recs := website.get("recommendations", []):
@@ -81,7 +95,7 @@ class WebPresenceRenderer(BaseRenderer):
             ul = soup.new_tag("ul")
             for rec in recs:
                 li = soup.new_tag("li")
-                li.string = rec
+                self.render_markdown_inline(li, rec)
                 ul.append(li)
             recs_div.append(ul)
             card.append(recs_div)
@@ -127,7 +141,7 @@ class WebPresenceRenderer(BaseRenderer):
 
             if notes := social.get("notes"):
                 notes_p = soup.new_tag("p", **{"class": "notes"})  # type: ignore[arg-type]
-                notes_p.string = notes
+                self.render_markdown_inline(notes_p, notes)
                 card.append(notes_p)
 
             grid.append(card)
@@ -179,7 +193,7 @@ class WebPresenceRenderer(BaseRenderer):
 
             header = soup.new_tag("div", **{"class": "leak-header"})  # type: ignore[arg-type]
             source = soup.new_tag("h4")
-            source.string = leak.get("source", "N/A")
+            self.render_markdown_inline(source, leak.get("source", "N/A"))
             header.append(source)
             if date := leak.get("date"):
                 date_span = soup.new_tag("span")
@@ -189,7 +203,7 @@ class WebPresenceRenderer(BaseRenderer):
 
             if desc := leak.get("description"):
                 desc_p = soup.new_tag("p")
-                desc_p.string = desc
+                self.render_markdown_inline(desc_p, desc)
                 card.append(desc_p)
 
             risk_badge = soup.new_tag("span", **{"class": f"risk-badge risk-{risk}"})  # type: ignore[arg-type]
@@ -212,7 +226,7 @@ class WebPresenceRenderer(BaseRenderer):
             card = soup.new_tag("div", **{"class": "competitor-card"})  # type: ignore[arg-type]
 
             header = soup.new_tag("h3")
-            header.string = comp.get("competitor_name", "N/A")
+            self.render_markdown_inline(header, comp.get("competitor_name", "N/A"))
             card.append(header)
 
             if website := comp.get("website"):
@@ -231,7 +245,7 @@ class WebPresenceRenderer(BaseRenderer):
                 ul = soup.new_tag("ul")
                 for s in strengths:
                     li = soup.new_tag("li")
-                    li.string = s
+                    self.render_markdown_inline(li, s)
                     ul.append(li)
                 str_div.append(ul)
                 grid.append(str_div)
@@ -244,7 +258,7 @@ class WebPresenceRenderer(BaseRenderer):
                 ul = soup.new_tag("ul")
                 for w in weaknesses:
                     li = soup.new_tag("li")
-                    li.string = w
+                    self.render_markdown_inline(li, w)
                     ul.append(li)
                 weak_div.append(ul)
                 grid.append(weak_div)

@@ -57,10 +57,11 @@ class MenuRenderer(BaseRenderer):
         # Title
         title = data.get("title", "Menu Hebdomadaire")
         title_tag = soup.new_tag("h1", attrs={"class": "menu-title"})
-        title_tag.string = f"🍽️ {title}"
+        title_tag.append("🍽️ ")
+        self.append_prose(title_tag, title)
         header.append(title_tag)
 
-        # Date range if available
+        # Date range if available (formatted date, not agent prose)
         date_range = data.get("date_range", "")
         if date_range:
             date_tag = soup.new_tag("p", attrs={"class": "menu-date-range"})
@@ -71,7 +72,7 @@ class MenuRenderer(BaseRenderer):
         description = data.get("description", "")
         if description:
             desc_tag = soup.new_tag("p", attrs={"class": "menu-description"})
-            desc_tag.string = description
+            self.append_prose(desc_tag, description)
             header.append(desc_tag)
 
         container.append(header)
@@ -88,9 +89,7 @@ class MenuRenderer(BaseRenderer):
         overview_title.string = "📋 Aperçu de la semaine"
         overview_div.append(overview_title)
 
-        overview_p = soup.new_tag("p")
-        overview_p.string = overview
-        overview_div.append(overview_p)
+        self.render_markdown_block(overview_div, overview)
 
         container.append(overview_div)
 
@@ -102,7 +101,7 @@ class MenuRenderer(BaseRenderer):
             content = data.get("content", "")
             if content:
                 content_div = soup.new_tag("div", attrs={"class": "menu-content"})
-                content_div.string = content
+                self.render_markdown_block(content_div, content)
                 container.append(content_div)
             return
 
@@ -190,7 +189,7 @@ class MenuRenderer(BaseRenderer):
                     dishes_list = soup.new_tag("ul", attrs={"class": "dishes-list"})
                     for dish in meal_content:
                         dish_item = soup.new_tag("li", attrs={"class": "dish-item"})
-                        dish_item.string = dish
+                        self.append_prose(dish_item, dish)
                         dishes_list.append(dish_item)
                     meal_div.append(dishes_list)
                 else:
@@ -220,7 +219,8 @@ class MenuRenderer(BaseRenderer):
                                     emoji = dish_type_emojis.get(dish_type, "🍽️")
                                     # Capitalize dish type for display
                                     display_type = dish_type.capitalize() if dish_type else "Plat"
-                                    dish_li.string = f"{emoji} {display_type}: {dish_name}"
+                                    dish_li.append(f"{emoji} {display_type}: ")
+                                    self.append_prose(dish_li, dish_name)
                                     dishes_list.append(dish_li)
 
                         meal_div.append(dishes_list)
@@ -244,13 +244,14 @@ class MenuRenderer(BaseRenderer):
                                 dish_name = sub_val.get("name") or str(sub_val)
                             else:
                                 dish_name = str(sub_val)
-                            dish_li.string = f"{label}: {dish_name}"
+                            dish_li.append(f"{label}: ")
+                            self.append_prose(dish_li, dish_name)
                             sub_dishes_ul.append(dish_li)
                         meal_div.append(sub_dishes_ul)
                     else:
                         # Single dish or text description
                         meal_text = soup.new_tag("p", attrs={"class": "meal-text"})
-                        meal_text.string = str(meal_content)
+                        self.append_prose(meal_text, meal_content)
                         meal_div.append(meal_text)
 
                 meals_div.append(meal_div)
@@ -259,13 +260,13 @@ class MenuRenderer(BaseRenderer):
             dishes_list = soup.new_tag("ul", attrs={"class": "dishes-list"})
             for meal in meals:
                 dish_item = soup.new_tag("li", attrs={"class": "dish-item"})
-                dish_item.string = meal
+                self.append_prose(dish_item, meal)
                 dishes_list.append(dish_item)
             meals_div.append(dishes_list)
         else:
             # Plain text content
             meal_text = soup.new_tag("p", attrs={"class": "meal-text"})
-            meal_text.string = str(meals)
+            self.append_prose(meal_text, meals)
             meals_div.append(meal_text)
 
         day_div.append(meals_div)
@@ -295,7 +296,7 @@ class MenuRenderer(BaseRenderer):
                 items_list = soup.new_tag("ul")
                 for item in items:
                     item_li = soup.new_tag("li")
-                    item_li.string = item
+                    self.append_prose(item_li, item)
                     items_list.append(item_li)
 
                 category_div.append(items_list)
@@ -305,7 +306,7 @@ class MenuRenderer(BaseRenderer):
             items_list = soup.new_tag("ul")
             for item in shopping_list:
                 item_li = soup.new_tag("li")
-                item_li.string = item
+                self.append_prose(item_li, item)
                 items_list.append(item_li)
 
             shopping_section.append(items_list)
@@ -353,7 +354,7 @@ class MenuRenderer(BaseRenderer):
                 tr.append(td_nutrient)
 
                 td_value = soup.new_tag("td")
-                td_value.string = str(value)
+                self.append_prose(td_value, value)
                 tr.append(td_value)
 
                 tbody.append(tr)
@@ -363,7 +364,7 @@ class MenuRenderer(BaseRenderer):
         else:
             # Simple text information
             nutrition_p = soup.new_tag("p")
-            nutrition_p.string = str(nutrition)
+            self.append_prose(nutrition_p, nutrition)
             nutrition_section.append(nutrition_p)
 
         container.append(nutrition_section)
