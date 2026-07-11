@@ -102,6 +102,7 @@ class ContentState(BaseModel):
     # ============================================================================
     user_request: str = "Get the RSS Weekly Report"
     extracted_info: ExtractedInfo | None = None
+    enriched_brief: str | None = None
     attachment_file: str = ""
     current_year: str = str(datetime.datetime.now().year)
     topic_slug: str = ""
@@ -210,6 +211,12 @@ class ContentState(BaseModel):
             "target_audience",
         ]:
             inputs.setdefault(required_key, "")
+
+        # The enriched brief is a clean, complete rewrite of the whole request, so it is
+        # the best working context for any downstream crew. Prefer it; fall back to
+        # whatever context extraction produced (or the placeholder) when absent.
+        if self.enriched_brief:
+            inputs["context"] = self.enriched_brief
 
         # Return clean dictionary, removing None values but keeping required placeholders
         return {k: v for k, v in inputs.items() if v is not None}
