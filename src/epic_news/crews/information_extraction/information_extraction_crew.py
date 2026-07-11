@@ -15,6 +15,16 @@ class InformationExtractionCrew:
     tasks_config = "config/tasks.yaml"
 
     @agent
+    def prompt_enricher_agent(self) -> Agent:
+        """Agent that rewrites the raw request into a clean, faithful brief."""
+        return Agent(
+            config=cast(dict[str, Any], self.agents_config)["prompt_enricher_agent"],
+            llm=LLMConfig.get_openrouter_llm(),
+            llm_timeout=LLMConfig.get_timeout("quick"),
+            verbose=True,
+        )
+
+    @agent
     def detailed_request_analyzer_agent(self) -> Agent:
         """Agent that analyzes the user request in detail."""
         return Agent(
@@ -25,11 +35,20 @@ class InformationExtractionCrew:
         )
 
     @task
+    def enrich_request_task(self) -> Task:
+        """Task that produces the enriched brief (runs first)."""
+        return Task(  # type: ignore[call-arg]
+            config=cast(dict[str, Any], self.tasks_config)["enrich_request_task"],
+            agent=self.prompt_enricher_agent(),  # type: ignore[call-arg]
+        )
+
+    @task
     def comprehensive_information_extraction_task(self) -> Task:
-        """Task to extract information into a Pydantic model."""
+        """Task to extract information into a Pydantic model from the enriched brief."""
         return Task(  # type: ignore[call-arg]
             config=cast(dict[str, Any], self.tasks_config)["comprehensive_information_extraction_task"],
             agent=self.detailed_request_analyzer_agent(),  # type: ignore[call-arg]
+            context=[self.enrich_request_task()],  # type: ignore[call-arg]
             output_pydantic=ExtractedInfo,
         )
 

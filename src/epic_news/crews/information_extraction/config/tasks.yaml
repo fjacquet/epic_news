@@ -1,4 +1,22 @@
 ---
+enrich_request_task:
+  description: >
+    Rewrite the following user request into ONE clear, well-organised brief that a
+    downstream specialist can act on directly. Reorganise and clarify only — do NOT
+    add, infer, or invent any facts that are not present in the original (no budgets,
+    dates, traveler counts, destinations, or preferences the user did not state). If a
+    detail is absent, leave it out. Preserve the user's original language. When the
+    request lists several places, stages, or steps, keep them all, in order.
+    Negative example: if the user says "a week in Anglet with my family", do NOT write
+    "a week in Anglet with my family of four on a mid-range budget" — the family size and
+    budget were never stated. Write only what was given.
+    User request: "{user_request}"
+  expected_output: >
+    A single concise brief in plain prose (no JSON, no bullet headers required),
+    written in the same language as the request, containing every concrete detail the
+    user gave and nothing they did not.
+  agent: prompt_enricher_agent
+
 comprehensive_information_extraction_task:
   description: >
     Analyze the user's request to identify key pieces of information. Your
