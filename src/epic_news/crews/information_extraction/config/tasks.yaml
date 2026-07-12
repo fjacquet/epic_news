@@ -35,7 +35,14 @@ comprehensive_information_extraction_task:
     extract any relevant information from the user's request and populate the
     corresponding fields. The 'main_subject_or_activity' is the most critical
     field. It is perfectly acceptable for most fields to be null if the
-    information is not present.-
+    information is not present.
+    'user_preferences_and_constraints' MUST be a SINGLE concise paragraph
+    (roughly 400 characters or less). State each preference or constraint
+    exactly once — never repeat phrases, lists, or the itinerary. Repetition
+    is a defect.
+    For a multi-stop trip (a road trip visiting several places), put the whole
+    route in 'destination_location' as an ordered list of the stops — do NOT
+    leave it null just because there is more than one place.-
     Here are some examples to guide you:
     Example 1: - Request: "I want to plan a 2-week holiday to Greece for 2
     adults. We are looking for something relaxing and on a budget." - Correct
@@ -89,5 +96,20 @@ comprehensive_information_extraction_task:
       - company: "Reyl"
       - destination_location: "Switzerland"
       - main_subject_or_activity: "PESTEL analysis of Reyl bank in Switzerland"
+      - output_language: "French"
+    Example 8 (multi-stop road trip): - Request: "En famille à 3 nous partons 2
+    semaines en voiture du 16 au 31 juillet. De Montreux à Montpellier, puis
+    Anglet, puis Poitiers, puis Bourges. Les hôtels sont déjà réservés. Donne-moi
+    un itinéraire avec restaurants et activités pour un enfant de 11 ans."
+    - Correct Output Fields:
+      - origin_location: "Montreux"
+      - destination_location: "Montpellier, Anglet, Poitiers, Bourges"
+      - traveler_details: "Family of 3 including an 11-year-old child"
+      - participants:
+        - "Family of 3 including an 11-year-old child"
+      - event_or_trip_duration: "2 weeks (16-31 July)"
+      - main_subject_or_activity: "family road-trip itinerary planning"
+      - user_preferences_and_constraints: "Traveling by car; hotels already booked;
+    wants restaurants, activities and cultural visits suitable for an 11-year-old."
       - output_language: "French"
   agent: detailed_request_analyzer_agent

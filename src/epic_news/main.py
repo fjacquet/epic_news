@@ -1345,10 +1345,8 @@ class ReceptionFlow(Flow[ContentState]):
             # even when the request is full of places. Skipping here silently left
             # output_file at the classifier's decision.md and emailed that instead of an
             # itinerary. Fall back to the raw request, which carries the full route.
-            self.logger.warning(
-                "⚠️ No structured destination extracted; falling back to the raw user request."
-            )
-            current_inputs["destination"] = self.state.user_request
+            self.logger.warning("⚠️ No structured destination extracted; falling back to the enriched brief.")
+            current_inputs["destination"] = self.state.enriched_brief or self.state.user_request
 
         # Ensure all required template variables are provided with defaults
         required_vars = {

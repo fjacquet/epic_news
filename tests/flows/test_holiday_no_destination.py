@@ -28,9 +28,12 @@ def _stub_crew_internals(monkeypatch):
     monkeypatch.setattr(main_mod, "render_and_write_html", lambda crew, model, path: Path(path))
 
 
-def test_holiday_falls_back_to_raw_request_when_no_destination(monkeypatch):
+def test_holiday_falls_back_to_enriched_brief_when_no_destination(monkeypatch):
     flow = ReceptionFlow(user_request="x")
-    flow.state.user_request = "road trip through Montpellier, Anglet, Poitiers, Bourges"
+    flow.state.user_request = "raw messy request through Montpellier, Anglet, Poitiers, Bourges"
+    # The enrich step produced a clean brief; the fallback must prefer it over the raw
+    # request so the crew gets the clean text, not the 8 KB raw blob.
+    flow.state.enriched_brief = "Family road trip: Montpellier, Anglet, Poitiers, Bourges"
     _stub_crew_internals(monkeypatch)
 
     # Extraction left every structured travel field empty -> no "destination" key.
@@ -52,7 +55,8 @@ def test_holiday_falls_back_to_raw_request_when_no_destination(monkeypatch):
     # The crew actually ran and the itinerary is the report, not decision.md.
     assert flow.state.output_file == "output/holiday/itinerary.html"
     assert captured.get("destination"), "destination must be populated for the crew to run"
-    assert "Montpellier" in captured["destination"]
+    # The fallback prefers the clean enriched brief over the raw request.
+    assert captured["destination"] == "Family road trip: Montpellier, Anglet, Poitiers, Bourges"
 
 
 def test_send_email_refuses_to_deliver_classification_decision(monkeypatch):
