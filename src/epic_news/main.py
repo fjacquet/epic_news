@@ -1531,7 +1531,14 @@ def kickoff(user_input: str | None = None):
     )
 
     reception_flow = ReceptionFlow(user_request=request)
-    reception_flow.kickoff()
+    try:
+        reception_flow.kickoff()
+    except Exception:
+        # Without this, an unhandled flow exception exits with a bare status 1:
+        # loguru never captures it and `crewai flow kickoff` swallows the subprocess
+        # stderr, so the real traceback is written nowhere. Log it, then re-raise.
+        logger.exception("❌ Flow kickoff failed — full traceback follows")
+        raise
     return reception_flow
 
 
