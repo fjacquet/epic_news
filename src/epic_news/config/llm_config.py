@@ -8,6 +8,44 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+def _patch_anthropic_detection_for_openrouter() -> None:
+    """Stop CrewAI applying its *native*-Anthropic message workaround on OpenRouter.
+
+    CrewAI flags any model whose name contains ``anthropic/``/``claude-`` as
+    Anthropic (``LLM._is_anthropic_model``) and, for such models, prepends a dummy
+    ``{"role": "user", "content": "."}`` before a leading system message
+    (``LLM._format_messages_for_provider``). That is only correct for Anthropic's
+    *native* API, where LiteLLM hoists system content into the top-level ``system``
+    parameter. Over OpenRouter's OpenAI-compatible endpoint LiteLLM passes messages
+    verbatim, so the prepend leaves the system message at index 1 and Anthropic
+    rejects the request::
+
+        messages.1: role 'system' must precede an 'assistant' message or end the array
+
+    ``is_anthropic`` is re-derived from the model string on every construction *and*
+    on ``LLM.__deepcopy__`` (which reconstructs the LLM without carrying the flag),
+    and CrewAI deep-copies agent LLMs while assembling crews — so a post-construction
+    override does not survive. Patching the classifier is the only lever that sticks;
+    native ``anthropic/`` routing (no ``openrouter/`` prefix) keeps its correct
+    behaviour.
+    """
+    if getattr(LLM, "_openrouter_anthropic_patched", False):
+        return
+
+    original = LLM._is_anthropic_model
+
+    def _is_anthropic_model(model: str) -> bool:
+        if model.lower().startswith("openrouter/"):
+            return False
+        return original(model)
+
+    LLM._is_anthropic_model = staticmethod(_is_anthropic_model)  # type: ignore[method-assign]
+    LLM._openrouter_anthropic_patched = True  # type: ignore[attr-defined]
+
+
+_patch_anthropic_detection_for_openrouter()
+
+
 class LLMConfig:
     """Centralized LLM configuration using OpenRouter.
 
