@@ -4,6 +4,23 @@ All notable changes to Epic News are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [3.4.0] — 2026-07-12
+
+A prompt-enrichment release. The raw user request is now rewritten into a clean, complete brief **before** structured extraction, and that brief becomes the working `context` every downstream crew sees — with deterministic length caps so a degenerate LLM rewrite can no longer bloat a crew's prompt. Ships alongside a batch of flow and extraction reliability fixes.
+
+### Added
+- **Prompt enrichment in `InformationExtractionCrew`**: the user request is enriched into a clean rewrite (`enriched_brief`) before fields are extracted, captured into flow state during extraction, and surfaced as the downstream `context` for every crew. A clean, complete rewrite of the whole request is a better working context than the raw message.
+
+### Fixed
+- **Free-text crew inputs are now length-capped deterministically** (`MAX_FREETEXT_CHARS = 1500`): a real extraction run looped `user_preferences_and_constraints` into an ~8 KB block of the same sentences repeated dozens of times, bloating the downstream crew's prompt and starving its planner. Both `user_preferences_and_constraints` and the enriched brief handed to crews via `context` now pass through the same cap (#156).
+- **Multi-stop trips are parsed correctly**, and the extraction no longer repeats the user's preferences back into its own output.
+- **The holiday reporter agent no longer carries tools** — it only renders its report, so no action traces leak into the output (two-agent researcher/reporter split).
+- **The classifier's routing decision is no longer emailed as a holiday report** — a misrouted flow branch was shipping the classifier's output as the final report.
+- **CrewAI agent `reasoning` disabled across 15 crews**, and **CrewAI `Memory` removed from `ReceptionFlow`** — the flow was configured with a LanceDB memory store but no embedder, which crashed `crewai flow kickoff` with a generic `exit status 1`. The project uses real-time retrieval, not RAG/memory (#156).
+
+### Changed
+- Refreshed locked dependencies: langfuse 4.14.0, litellm 1.92.0, pyarrow 25.0.0, and related transitive pins.
+
 ## [3.3.5] — 2026-07-10
 
 A deep-research reliability fix. A single omitted field from the report-writing LLM no longer discards the entire (~9-minute) research run.
