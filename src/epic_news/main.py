@@ -423,7 +423,10 @@ class ReceptionFlow(Flow[ContentState]):
             "input_file": str(raw_report_path),
             "output_file": str(translated_report_path),
         }
-        report_output = kickoff_flow(RssWeeklyCrew(), translation_inputs)
+        # This method is async (Step 1 awaits fetch_articles_from_opml); CrewAI 1.15
+        # rejects a synchronous crew.kickoff() from within the running event loop.
+        # Use the async flow wrapper, matching generate_osint.
+        report_output = await akickoff_flow(RssWeeklyCrew(), translation_inputs)
         dump_crewai_state(report_output, "RSS_WEEKLY_TRANSLATION")
 
         # Step 2.5: Save the translated report
