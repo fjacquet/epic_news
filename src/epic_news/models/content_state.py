@@ -324,14 +324,18 @@ class ContentState(BaseModel):
             }
         )
 
-        if "menu_slug" not in inputs:
-            if "start_date" in inputs:
-                menu_mappings["menu_slug"] = f"menu_{inputs['start_date']}"
-            else:
-                menu_mappings["menu_slug"] = f"menu_{create_topic_slug('weekly_menu')}"
+        # menu_slug and the menu HTML template only make sense for the menu/cooking crews.
+        # Setting them unconditionally leaked a menu template_path into every other crew's
+        # inputs (e.g. HOLIDAY_PLANNER); nothing outside menu reads them, so scope them here.
+        if inputs.get("selected_crew") in {"MENU", "COOKING"}:
+            if "menu_slug" not in inputs:
+                if "start_date" in inputs:
+                    menu_mappings["menu_slug"] = f"menu_{inputs['start_date']}"
+                else:
+                    menu_mappings["menu_slug"] = f"menu_{create_topic_slug('weekly_menu')}"
 
-        # Add template path for HTML generation
-        menu_mappings["template_path"] = MENU_REPORT_TEMPLATE
+            # Add template path for HTML generation
+            menu_mappings["template_path"] = MENU_REPORT_TEMPLATE
 
         # Add topic_slug for recipes if needed
         if "topic_slug" not in inputs and "topic" in inputs:

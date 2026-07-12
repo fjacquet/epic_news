@@ -47,7 +47,6 @@ def _fast_retries(monkeypatch):
         "Max retries exceeded. Total attempts: 1",
         "Rate limit exceeded",
         "503 Service Unavailable",
-        "Request timed out",
     ],
 )
 def test_transient_markers_recognised(message):
@@ -64,6 +63,20 @@ def test_transient_markers_recognised(message):
 )
 def test_real_bugs_are_not_treated_as_transient(message):
     assert not _is_transient_error(ValueError(message))
+
+
+@pytest.mark.parametrize(
+    "message",
+    [
+        "litellm.Timeout: Connection timed out after 600.0 seconds",
+        "Request timed out",
+        "APITimeoutError: request timeout",
+    ],
+)
+def test_timeouts_are_not_retried(message):
+    # A raw request timeout means the full per-call budget was already burned; replaying
+    # the whole multi-agent crew is wasteful and the cause is structural, not a blip.
+    assert not _is_transient_error(RuntimeError(message))
 
 
 def test_retries_transient_failure_then_succeeds():

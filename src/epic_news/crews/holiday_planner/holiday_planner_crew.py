@@ -28,6 +28,8 @@ class HolidayPlannerCrew:
             reasoning=False,
             max_reasoning_attempts=3,
             allow_delegation=True,
+            respect_context_window=True,
+            max_iter=LLMConfig.get_max_iter(),
         )
 
     @agent
@@ -41,6 +43,8 @@ class HolidayPlannerCrew:
             reasoning=False,
             max_reasoning_attempts=3,
             allow_delegation=True,
+            respect_context_window=True,
+            max_iter=LLMConfig.get_max_iter(),
         )
 
     @agent
@@ -54,6 +58,8 @@ class HolidayPlannerCrew:
             reasoning=False,
             max_reasoning_attempts=3,
             allow_delegation=True,
+            respect_context_window=True,
+            max_iter=LLMConfig.get_max_iter(),
         )
 
     @agent
@@ -65,6 +71,8 @@ class HolidayPlannerCrew:
             llm_timeout=LLMConfig.get_timeout("default"),
             verbose=False,
             allow_delegation=False,
+            respect_context_window=True,
+            max_iter=LLMConfig.get_max_iter(),
         )
 
     @agent
@@ -81,6 +89,7 @@ class HolidayPlannerCrew:
             llm_timeout=LLMConfig.get_timeout("default"),
             verbose=False,
             allow_delegation=False,
+            respect_context_window=True,
         )
 
     @task
