@@ -1451,12 +1451,25 @@ class ReceptionFlow(Flow[ContentState]):
             # recipient with the placeholder "[EMAIL]" and still reported success,
             # so no agent sits between the validated inputs and the Gmail API.
             body_file = email_inputs.get("output_file")
-            try:
-                html_body = Path(body_file).read_text(encoding="utf-8") if body_file else ""
-            except OSError as e:
-                self.logger.error("❌ Cannot read report {} for email body: {}", body_file, e)
-                self.state.email_sent = False
-                return "send_email"
+            if body_file:
+                try:
+                    html_body = Path(body_file).read_text(encoding="utf-8")
+                except OSError as e:
+                    self.logger.error("❌ Cannot read report {} for email body: {}", body_file, e)
+                    self.state.email_sent = False
+                    return "send_email"
+                except UnicodeDecodeError:
+                    # A binary report (e.g. DOCX) reached the body path: deliver it as an
+                    # attachment with the short summary body instead of the file contents.
+                    self.logger.warning(
+                        "📎 Report {} is not text; using the summary body and attaching the file",
+                        body_file,
+                    )
+                    html_body = email_inputs.get("body", "")
+            else:
+                # No HTML body file (binary report): use the short summary body; the
+                # report is attached.
+                html_body = email_inputs.get("body", "")
 
             try:
                 send_report_email(
