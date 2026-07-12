@@ -764,6 +764,7 @@ class ReceptionFlow(Flow[ContentState]):
 
         if menu_structure_result is None:
             self.logger.error("❌ No menu structure available for recipe generation")
+            self.state.output_file = final_report
             self.state.menu_designer_report = final_report
             return
 
@@ -796,6 +797,9 @@ class ReceptionFlow(Flow[ContentState]):
             except Exception as e:
                 self.logger.error(f"  ❌ Error with {recipe_code}: {e}")
 
+        # Point output_file at the rendered report so send_email emails it (every
+        # other generate_* sets this; without it send_email keeps the classify path).
+        self.state.output_file = final_report
         self.state.menu_designer_report = final_report
 
     @listen("go_generate_book_summary")
