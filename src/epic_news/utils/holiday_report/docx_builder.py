@@ -22,8 +22,17 @@ def build_docx(fragments: list[tuple[str, str]], meta: dict[str, str], output_pa
 
     Path(output_path).parent.mkdir(parents=True, exist_ok=True)
     extra_args = ["--toc", "--standalone"]
+    # LLM fragment bodies use `---` as section separators. Pandoc's markdown reader
+    # otherwise treats a `---`-delimited span as a YAML metadata block, and emphasis
+    # markers (`*`) inside it are read as YAML aliases → "Pandoc died with exitcode 64".
+    # Disable the extension so every `---` stays a thematic break; the deterministic
+    # `% title` block uses the independent pandoc_title_block extension and is unaffected.
     pypandoc.convert_text(
-        markdown, to="docx", format="markdown", outputfile=output_path, extra_args=extra_args
+        markdown,
+        to="docx",
+        format="markdown-yaml_metadata_block",
+        outputfile=output_path,
+        extra_args=extra_args,
     )
     logger.info("📄 Holiday DOCX written to {}", output_path)
     return output_path
