@@ -1029,6 +1029,7 @@ test = [
     { name = "pytest-env" },
     { name = "pytest-mock" },
     { name = "pytest-regressions" },
+    { name = "python-docx" },
 ]
 
 [package.dev-dependencies]
@@ -1078,6 +1079,7 @@ requires-dist = [
     { name = "pytest-mock", marker = "extra == 'test'", specifier = ">=3.14.1" },
     { name = "pytest-regressions", marker = "extra == 'test'", specifier = ">=2.10.0" },
     { name = "python-dateutil", specifier = ">=2.9.0" },
+    { name = "python-docx", marker = "extra == 'test'", specifier = ">=1.2.0" },
     { name = "python-dotenv", specifier = ">=1.1.0" },
     { name = "pyyaml", specifier = ">=6.0.2" },
     { name = "requests", specifier = ">=2.34.0" },

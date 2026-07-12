@@ -75,6 +75,7 @@ test = [
     "coverage>=7.14.3",
     "freezegun>=1.5.2",
     "faker>=40.23.0",
+    "python-docx>=1.2.0",
 ]
 
 [tool.crewai]

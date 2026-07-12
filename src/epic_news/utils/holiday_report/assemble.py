@@ -9,6 +9,8 @@ from epic_news.utils.holiday_report.docx_builder import build_docx
 from epic_news.utils.holiday_report.fragments import generate_fragment
 from epic_news.utils.holiday_report.skeleton import generate_skeleton
 
+MAX_ITINERARY_DAYS = 31
+
 
 def _task_raw(crew_result: Any, index: int) -> str:
     try:
@@ -51,7 +53,14 @@ def assemble_holiday_docx(crew_result: Any, inputs: dict, output_path: str, llm:
     # Itinerary: skeleton then one fragment per day (bounded regardless of trip length).
     skeleton = generate_skeleton(itinerary, summary, llm)
     logger.info("🗓️ Itinerary skeleton: {} day(s)", len(skeleton.days))
-    for i, day in enumerate(skeleton.days, start=1):
+    if len(skeleton.days) > MAX_ITINERARY_DAYS:
+        logger.warning(
+            "⚠️ Itinerary skeleton has {} days, exceeding cap of {}; dropping {} day(s)",
+            len(skeleton.days),
+            MAX_ITINERARY_DAYS,
+            len(skeleton.days) - MAX_ITINERARY_DAYS,
+        )
+    for i, day in enumerate(skeleton.days[:MAX_ITINERARY_DAYS], start=1):
         heading = f"Itinéraire — Jour {i}" + (f" ({day.date})" if day.date else "")
         fragments.append(
             (
