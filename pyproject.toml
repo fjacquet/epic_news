@@ -49,6 +49,7 @@ dependencies = [
     # --- Numerical / data ---
     "markdown-it-py>=4.0.0",
     "pandas>=3.0.3",
+    "pypandoc-binary>=1.17",
 ]
 
 [project.scripts]
