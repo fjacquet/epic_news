@@ -43,6 +43,18 @@ run_one() {
 }
 
 only="${1:-}"
+if [ -n "$only" ]; then
+  # Fail loudly on an unknown label — a silent no-match exit 0 masks "ran nothing" as success.
+  matched="no"
+  for entry in "${FLOWS[@]}"; do
+    [ "$only" = "${entry%%|*}" ] && matched="yes" && break
+  done
+  if [ "$matched" = "no" ]; then
+    echo "ERROR: unknown flow label '$only'. Valid labels:" >&2
+    for entry in "${FLOWS[@]}"; do echo "  ${entry%%|*}" >&2; done
+    exit 2
+  fi
+fi
 for entry in "${FLOWS[@]}"; do
   label="${entry%%|*}"; request="${entry#*|}"
   [ -n "$only" ] && [ "$only" != "$label" ] && continue
