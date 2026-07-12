@@ -75,7 +75,7 @@ class CompanyNewsCrew:
             verbose=True,
             llm=LLMConfig.get_openrouter_llm(),
             llm_timeout=LLMConfig.get_timeout("default"),
-            reasoning=True,
+            reasoning=False,
             max_reasoning_attempts=3,
             respect_context_window=True,
         )
@@ -93,7 +93,7 @@ class CompanyNewsCrew:
             verbose=True,
             llm=LLMConfig.get_openrouter_llm(),
             llm_timeout=LLMConfig.get_timeout("default"),
-            reasoning=True,
+            reasoning=False,
             max_reasoning_attempts=3,
             respect_context_window=True,
         )
@@ -111,7 +111,7 @@ class CompanyNewsCrew:
             verbose=True,
             llm=LLMConfig.get_openrouter_llm(),
             llm_timeout=LLMConfig.get_timeout("default"),
-            reasoning=True,
+            reasoning=False,
             max_reasoning_attempts=3,
             respect_context_window=True,
         )

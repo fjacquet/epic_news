@@ -36,7 +36,7 @@ class TechStackCrew:
             verbose=True,
             allow_delegation=False,
             respect_context_window=True,
-            reasoning=True,
+            reasoning=False,
             max_reasoning_attempts=3,
         )
 
@@ -51,7 +51,7 @@ class TechStackCrew:
             verbose=True,
             allow_delegation=False,
             respect_context_window=True,
-            reasoning=True,
+            reasoning=False,
             max_reasoning_attempts=3,
         )
 

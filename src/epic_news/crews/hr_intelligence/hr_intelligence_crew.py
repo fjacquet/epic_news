@@ -37,7 +37,7 @@ class HRIntelligenceCrew:
             llm_timeout=LLMConfig.get_timeout("default"),
             allow_delegation=False,
             respect_context_window=True,
-            reasoning=True,
+            reasoning=False,
             max_reasoning_attempts=3,
         )
 
@@ -52,7 +52,7 @@ class HRIntelligenceCrew:
             llm_timeout=LLMConfig.get_timeout("default"),
             allow_delegation=False,
             respect_context_window=True,
-            reasoning=True,
+            reasoning=False,
         )
 
     @task

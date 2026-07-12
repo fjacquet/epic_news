@@ -66,7 +66,7 @@ class DeepResearchCrew:
             llm=LLMConfig.get_openrouter_llm(),
             llm_timeout=LLMConfig.get_timeout("long"),
             verbose=True,
-            reasoning=True,
+            reasoning=False,
             max_reasoning_attempts=3,
         )
 

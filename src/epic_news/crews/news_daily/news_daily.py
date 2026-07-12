@@ -33,7 +33,7 @@ class NewsDailyCrew:
             config=self.agents_config["content_curator"],
             tools=[],
             verbose=True,
-            reasoning=True,
+            reasoning=False,
             max_reasoning_attempts=3,
             llm=LLMConfig.get_openrouter_llm(),
             llm_timeout=LLMConfig.get_timeout("default"),

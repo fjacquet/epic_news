@@ -25,7 +25,7 @@ class HolidayPlannerCrew:
             llm=LLMConfig.get_openrouter_llm(),
             llm_timeout=LLMConfig.get_timeout("default"),
             verbose=False,
-            reasoning=True,
+            reasoning=False,
             max_reasoning_attempts=3,
             allow_delegation=True,
         )
@@ -38,7 +38,7 @@ class HolidayPlannerCrew:
             llm=LLMConfig.get_openrouter_llm(),
             llm_timeout=LLMConfig.get_timeout("default"),
             verbose=False,
-            reasoning=True,
+            reasoning=False,
             max_reasoning_attempts=3,
             allow_delegation=True,
         )
@@ -51,7 +51,7 @@ class HolidayPlannerCrew:
             llm=LLMConfig.get_openrouter_llm(),
             llm_timeout=LLMConfig.get_timeout("default"),
             verbose=False,
-            reasoning=True,
+            reasoning=False,
             max_reasoning_attempts=3,
             allow_delegation=True,
         )
