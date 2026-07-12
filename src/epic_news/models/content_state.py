@@ -243,7 +243,7 @@ class ContentState(BaseModel):
         # the best working context for any downstream crew. Prefer it; fall back to
         # whatever context extraction produced (or the placeholder) when absent.
         if self.enriched_brief:
-            inputs["context"] = self.enriched_brief
+            inputs["context"] = self._clean_brief_text(self.enriched_brief)
 
         # Return clean dictionary, removing None values but keeping required placeholders
         return {k: v for k, v in inputs.items() if v is not None}
