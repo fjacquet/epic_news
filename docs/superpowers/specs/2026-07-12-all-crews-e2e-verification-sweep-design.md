@@ -13,14 +13,14 @@ been run end-to-end since the provider / tool-calling change, so each may still 
 latent output / render / email bugs — the kind that only surface at runtime (e.g. the
 pandoc `---`→YAML crash, markdown leaking into HTML, non-`str` task output).
 
-**Goal:** run all 16 routable flows end-to-end on the current stack, observe the real
-failures, and fix them — the same treatment holiday received.
+**Goal:** run all 15 routable flows end-to-end on the current stack (POEM excluded per
+decision), observe the real failures, and fix them — the same treatment holiday received.
 
 ## 2. Scope
 
-**In scope:** the 16 classifier categories, each backed by one `ReceptionFlow.generate_*`
-method (see §4). "End-to-end" = classify → extract → crew → render (HTML/DOCX) → email
-delivered to the test inbox.
+**In scope:** 15 classifier categories, each backed by one `ReceptionFlow.generate_*`
+method (see §4). POEM is excluded per decision. "End-to-end" = classify → extract →
+crew → render (HTML/DOCX) → email delivered to the test inbox.
 
 **Exercised transitively (not run standalone):** the sub-crews
 `company_profiler`, `geospatial_analysis`, `legal_analysis`, `hr_intelligence`,
@@ -57,27 +57,26 @@ Falls back to the hardcoded `query` when unset, so the normal sentinel workflow
 
 ## 4. The flows + representative requests
 
-**16 flows total**; holiday is already green this session, so **15 remain to verify**,
-ordered cheap → expensive so systemic bugs surface fast and cheap. Requests are drawn
-from the example block already in `main.py`.
+**15 flows total** (POEM excluded per decision); holiday is already green this session,
+so **14 remain to verify**, ordered cheap → expensive so systemic bugs surface fast and
+cheap. Requests are drawn from the example block already in `main.py`.
 
 | # | Category | `generate_*` | Representative `EPIC_NEWS_REQUEST` |
 |---|---|---|---|
-| 1 | POEM | `generate_poem` | Get me a poem on the mouse of the desert Muad'dib |
-| 2 | SAINT | `generate_saint_daily` | Donne moi le saint du jour en français |
-| 3 | COOKING | `generate_recipe` | Get me the recipe for Salade César |
-| 4 | SHOPPING | `generate_shopping_advice` | Donne moi un conseil d'achat pour remplacer mon sodastream par une marque plus éthique |
-| 5 | BOOK_SUMMARY | `generate_book_summary` | tell me all about the book: Clamser à Tataouine de Raphaël Quenard |
-| 6 | NEWSDAILY | `generate_news_daily` | get the daily news report |
-| 7 | FINDAILY | `generate_findaily` | get the financial daily report *(adjust phrasing if it misroutes)* |
-| 8 | COMPANY_NEWS | `generate_news_company` | get me all news for company JT International SA |
-| 9 | RSS | `generate_rss_weekly` | get the rss weekly report |
-| 10 | MENU | `generate_menu_designer` | Generate a complete weekly menu planner with 30 recipes and shopping list for a family of 3 in French |
-| 11 | MEETING_PREP | `generate_meeting_prep` | Meeting preparation for JT International SA with the CTO to discuss PowerFlex deployment in Switzerland |
-| 12 | PESTEL | `generate_pestel` | Fais moi un rapport PESTEL à propos de la société Pictet aujourd'hui en français |
-| 13 | SALES_PROSPECTING | `generate_sales_prospecting_report` | let's find a sales prospect at Temenos to sell our product: Dell PowerFlex |
-| 14 | DEEPRESEARCH | `generate_deep_research` | conduct a deep research study on the progress of quantum computing and applications in cryptography |
-| 15 | OPEN_SOURCE_INTELLIGENCE | `generate_osint` | Complete OSINT analysis of Mistral.AI |
+| 1 | SAINT | `generate_saint_daily` | Donne moi le saint du jour en français |
+| 2 | COOKING | `generate_recipe` | Get me the recipe for Salade César |
+| 3 | SHOPPING | `generate_shopping_advice` | Donne moi un conseil d'achat pour remplacer mon sodastream par une marque plus éthique |
+| 4 | BOOK_SUMMARY | `generate_book_summary` | tell me all about the book: Clamser à Tataouine de Raphaël Quenard |
+| 5 | NEWSDAILY | `generate_news_daily` | get the daily news report |
+| 6 | FINDAILY | `generate_findaily` | get the financial daily report *(adjust phrasing if it misroutes)* |
+| 7 | COMPANY_NEWS | `generate_news_company` | get me all news for company JT International SA |
+| 8 | RSS | `generate_rss_weekly` | get the rss weekly report |
+| 9 | MENU | `generate_menu_designer` | Generate a complete weekly menu planner with 30 recipes and shopping list for a family of 3 in French |
+| 10 | MEETING_PREP | `generate_meeting_prep` | Meeting preparation for JT International SA with the CTO to discuss PowerFlex deployment in Switzerland |
+| 11 | PESTEL | `generate_pestel` | Fais moi un rapport PESTEL à propos de la société Pictet aujourd'hui en français |
+| 12 | SALES_PROSPECTING | `generate_sales_prospecting_report` | let's find a sales prospect at Temenos to sell our product: Dell PowerFlex |
+| 13 | DEEPRESEARCH | `generate_deep_research` | conduct a deep research study on the progress of quantum computing and applications in cryptography |
+| 14 | OPEN_SOURCE_INTELLIGENCE | `generate_osint` | Complete OSINT analysis of Mistral.AI |
 | ✅ | HOLIDAY_PLANNER | `generate_holiday_plan` | already verified end-to-end this session |
 
 ## 5. Sweep workflow
@@ -117,7 +116,7 @@ counted as a crew bug.
 
 ## 7. Deliverables
 
-1. All 15 remaining flows green: valid report generated + email delivered to
+1. All 14 remaining flows green: valid report generated + email delivered to
    `fred.jacquet@gmail.com`; `epic_news_error.log` empty.
 2. Fixes committed (one per root cause) with tests where applicable.
 3. `scripts/verify_all_crews.sh` — repeatable driver.
@@ -126,7 +125,7 @@ counted as a crew bug.
 
 ## 8. Success criteria
 
-Every one of the 16 flows completes end-to-end with a valid report and a delivered email
+Every one of the 15 flows completes end-to-end with a valid report and a delivered email
 to the test inbox; the error log is empty; each fix has a test where it has a testable
 surface; and the whole sweep is reproducible via the driver script.
 
