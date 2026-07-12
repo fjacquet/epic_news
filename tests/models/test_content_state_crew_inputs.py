@@ -46,7 +46,17 @@ def test_computed_fields_present():
     assert "current_date" in inputs
     assert "season" in inputs
     assert "topic_slug" in inputs
-    assert "menu_slug" in inputs
+
+
+def test_menu_fields_scoped_to_menu_crews():
+    # menu_slug and template_path are menu-only; they must not leak into other crews.
+    menu = ContentState(user_request="x", selected_crew="MENU").to_crew_inputs()
+    assert "menu_slug" in menu
+    assert menu.get("template_path") == "templates/menu_report_template.html"
+
+    holiday = ContentState(user_request="x", selected_crew="HOLIDAY_PLANNER").to_crew_inputs()
+    assert "menu_slug" not in holiday
+    assert "template_path" not in holiday
 
 
 def test_target_falls_back_from_company_to_topic():

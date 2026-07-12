@@ -26,6 +26,7 @@ def _stub_crew_internals(monkeypatch):
     monkeypatch.setattr(main_mod, "dump_crewai_state", lambda *a, **k: None)
     monkeypatch.setattr(main_mod, "load_or_parse_model", lambda *a, **k: object())
     monkeypatch.setattr(main_mod, "render_and_write_html", lambda crew, model, path: Path(path))
+    monkeypatch.setattr(main_mod, "assemble_holiday_docx", lambda *a, **k: None)
 
 
 def test_holiday_falls_back_to_enriched_brief_when_no_destination(monkeypatch):
@@ -52,8 +53,8 @@ def test_holiday_falls_back_to_enriched_brief_when_no_destination(monkeypatch):
 
     flow.generate_holiday_plan()
 
-    # The crew actually ran and the itinerary is the report, not decision.md.
-    assert flow.state.output_file == "output/holiday/itinerary.html"
+    # The crew actually ran and the itinerary DOCX is the report, not decision.md.
+    assert flow.state.output_file == "output/holiday/itinerary.docx"
     assert captured.get("destination"), "destination must be populated for the crew to run"
     # The fallback prefers the clean enriched brief over the raw request.
     assert captured["destination"] == "Family road trip: Montpellier, Anglet, Poitiers, Bourges"

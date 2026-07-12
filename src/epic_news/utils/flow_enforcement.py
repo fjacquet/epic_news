@@ -39,13 +39,17 @@ except Exception:  # pragma: no cover - fallback if tracing is unavailable
 # returns an error-shaped completion (content=None, tool_calls=None, 0 tokens). The
 # instructor TOOLS-mode parser then iterates the missing tool_calls and raises a
 # TypeError, which instructor classifies as non-retryable, so it aborts after 1 attempt.
+#
+# NOTE: raw request timeouts (litellm.Timeout, "timed out") are deliberately absent.
+# A timeout means the crew already burned the full per-call budget (e.g. 600s); replaying
+# the whole multi-agent crew 2-3x turns one slow run into ~40 min of waste and rarely
+# succeeds, because the cause is structural (oversized context / overloaded provider),
+# not a transient blip. Timeouts fail fast so the caller sees the real error immediately.
 _TRANSIENT_ERROR_MARKERS: tuple[str, ...] = (
     "no tool calls or function call found",
     "'nonetype' object is not iterable",
     "max retries exceeded",
     "rate limit",
-    "timed out",
-    "timeout",
     "service unavailable",
     "internal server error",
     "bad gateway",

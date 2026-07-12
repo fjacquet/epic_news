@@ -169,16 +169,24 @@ def prepare_email_params(state: Any) -> dict[str, Any]:
     subject = f"Epic News Report: {state.selected_crew} - {state.user_request}"
     body = f"Please find the report for '{state.user_request}' attached."
     output_file = getattr(state, "output_file", None)
-    # Body and attachment are both the rendered report, never the crew's raw JSON.
-    report_html = resolve_report_html(output_file)
+    if output_file and output_file.lower().endswith(".docx"):
+        # Binary report: attach the file itself and let send_email use the short text
+        # body. Never route a binary file into the HTML body (it is not UTF-8 decodable).
+        attachment_path = output_file
+        body_source = None
+    else:
+        # Body and attachment are both the rendered report, never the crew's raw JSON.
+        report_html = resolve_report_html(output_file)
+        attachment_path = report_html
+        body_source = report_html or output_file
     topic = f"{state.selected_crew} - {state.user_request}"
 
     return {
         "recipient_email": recipient,
         "subject": subject,
         "body": body,
-        "attachment_path": report_html,
-        "output_file": report_html or output_file,
+        "attachment_path": attachment_path,
+        "output_file": body_source,
         "topic": topic,
     }
 

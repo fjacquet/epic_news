@@ -8,6 +8,72 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+def _patch_anthropic_detection_for_openrouter() -> None:
+    """Stop CrewAI applying its *native*-Anthropic message workaround on OpenRouter.
+
+    CrewAI flags any model whose name contains ``anthropic/``/``claude-`` as
+    Anthropic (``LLM._is_anthropic_model``) and, for such models, prepends a dummy
+    ``{"role": "user", "content": "."}`` before a leading system message
+    (``LLM._format_messages_for_provider``). That is only correct for Anthropic's
+    *native* API, where LiteLLM hoists system content into the top-level ``system``
+    parameter. Over OpenRouter's OpenAI-compatible endpoint LiteLLM passes messages
+    verbatim, so the prepend leaves the system message at index 1 and Anthropic
+    rejects the request::
+
+        messages.1: role 'system' must precede an 'assistant' message or end the array
+
+    ``is_anthropic`` is re-derived from the model string on every construction *and*
+    on ``LLM.__deepcopy__`` (which reconstructs the LLM without carrying the flag),
+    and CrewAI deep-copies agent LLMs while assembling crews — so a post-construction
+    override does not survive. Patching the classifier is the only lever that sticks;
+    native ``anthropic/`` routing (no ``openrouter/`` prefix) keeps its correct
+    behaviour.
+    """
+    if getattr(LLM, "_openrouter_anthropic_patched", False):
+        return
+
+    original = LLM._is_anthropic_model
+
+    def _is_anthropic_model(model: str) -> bool:
+        if model.lower().startswith("openrouter/"):
+            return False
+        return original(model)
+
+    LLM._is_anthropic_model = staticmethod(_is_anthropic_model)  # type: ignore[method-assign]
+    LLM._openrouter_anthropic_patched = True  # type: ignore[attr-defined]
+
+
+def _force_react_tool_calling() -> None:
+    """Keep CrewAI on ReAct (text) tool-calling instead of native function-calling.
+
+    CrewAI's experimental agent executor calls ``LLM.supports_function_calling()``
+    to choose between a provider's native function-calling and ReAct-style
+    (Thought / Action / Action Input) tool-calling. Native function-calling trips
+    provider-specific bugs in the executor:
+
+    * Gemini returns a ``tool_calls`` list that CrewAI assigns to ``TaskOutput.raw``
+      (a ``str`` field) -> ``ValidationError: Input should be a valid string``.
+    * Anthropic's forced-final-answer prefill is rejected by the API.
+
+    This project's crews are already tuned for ReAct: the default OpenRouter/Mistral
+    model reports ``supports_function_calling() == False``, so ReAct is the proven,
+    working path. Force it for every provider so behaviour is uniform and native-fc
+    executor bugs cannot resurface when the model is swapped.
+    """
+    if getattr(LLM, "_react_tool_calling_forced", False):
+        return
+
+    def supports_function_calling(self: LLM) -> bool:
+        return False
+
+    LLM.supports_function_calling = supports_function_calling  # type: ignore[method-assign]
+    LLM._react_tool_calling_forced = True  # type: ignore[attr-defined]
+
+
+_patch_anthropic_detection_for_openrouter()
+_force_react_tool_calling()
+
+
 class LLMConfig:
     """Centralized LLM configuration using OpenRouter.
 
@@ -128,6 +194,21 @@ class LLMConfig:
         # native LLM class (which uses its own OpenAI client). OpenRouter handles
         # context overflow gracefully server-side regardless.
 
+        resolved_model = model_name or "openrouter/mistralai/mistral-small-2603"
+
+        # Route-aware transport. Only "openrouter/"-prefixed models go through
+        # OpenRouter's OpenAI-compatible endpoint (api_key + base_url below). Every
+        # other provider prefix ("gemini/", "anthropic/", ...) is a native LiteLLM
+        # provider that resolves its own credentials from the environment (e.g.
+        # GEMINI_API_KEY for gemini/), so forcing OpenRouter's base_url/api_key
+        # would break it. Leave both unset and let LiteLLM take the native route.
+        if resolved_model.startswith("openrouter/"):
+            api_key: str | None = os.getenv("OPENROUTER_API_KEY")
+            base_url: str | None = "https://openrouter.ai/api/v1"
+        else:
+            api_key = None
+            base_url = None
+
         # is_litellm=True forces routing through LiteLLM instead of CrewAI 1.15's
         # native OpenAICompatibleCompletion provider. The native provider sends
         # tool/response schemas with OpenAI strict-mode (`strict: true`) generated
@@ -137,10 +218,10 @@ class LLMConfig:
         # (code 3051); OpenAI -> "Invalid schema for function ...". LiteLLM sends
         # the same schemas without strict-mode, which every provider accepts.
         llm = LLM(
-            model=model_name or "openrouter/mistralai/mistral-small-2603",
+            model=resolved_model,
             is_litellm=True,
-            api_key=os.getenv("OPENROUTER_API_KEY"),
-            base_url="https://openrouter.ai/api/v1",
+            api_key=api_key,
+            base_url=base_url,
             temperature=temp,
             max_tokens=tokens,
             reasoning_effort=effort,  # type: ignore[arg-type]

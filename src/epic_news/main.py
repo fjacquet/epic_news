@@ -75,7 +75,6 @@ from epic_news.models.crews.cross_reference_report import CrossReferenceReport
 from epic_news.models.crews.deep_research import DeepResearchReport
 from epic_news.models.crews.financial_report import FinancialReport
 from epic_news.models.crews.geospatial_analysis_report import GeospatialAnalysisReport
-from epic_news.models.crews.holiday_planner_report import HolidayPlannerReport
 from epic_news.models.crews.hr_intelligence_report import HRIntelligenceReport
 from epic_news.models.crews.legal_analysis_report import LegalAnalysisReport
 from epic_news.models.crews.meeting_prep_report import MeetingPrepReport
@@ -96,6 +95,7 @@ from epic_news.utils.extractors.deep_research import DeepResearchExtractor
 from epic_news.utils.extractors.factory import ContentExtractorFactory
 from epic_news.utils.flow_enforcement import akickoff_flow, kickoff_flow
 from epic_news.utils.flow_helpers import load_or_parse_model, render_and_write_html
+from epic_news.utils.holiday_report import assemble_holiday_docx
 from epic_news.utils.html.template_manager import TemplateManager
 from epic_news.utils.html.template_renderers.pestel_markdown import pestel_to_markdown
 from epic_news.utils.logger import setup_logging
@@ -1322,11 +1322,12 @@ class ReceptionFlow(Flow[ContentState]):
         """
         Handles requests classified for the 'HolidayPlannerCrew'.
 
-        Invokes the `HolidayPlannerCrew` to generate a holiday itinerary.
+        Invokes the `HolidayPlannerCrew` to research a holiday itinerary, then
+        assembles a DOCX travel guide from the crew's research fragments.
         When extraction yields no single 'destination' (e.g. a multi-stop road
         trip), falls back to the raw user request so the crew still runs. Sets
-        `output_file` to `output/holiday/itinerary.html` and stores the plan in
-        `self.state.holiday_plan`.
+        `output_file` to `output/holiday/itinerary.docx` and stores the crew
+        result in `self.state.holiday_plan`.
         """
         current_inputs = self.state.to_crew_inputs()
         current_inputs["output_file"] = "output/holiday/itinerary.json"
@@ -1355,21 +1356,14 @@ class ReceptionFlow(Flow[ContentState]):
         self.logger.info(f"Starting HolidayPlannerCrew with inputs: {current_inputs}")
         self.logger.info(f"Required variables: {required_vars}")
 
-        # Run the crew (kickoff-only)
-        holiday_plan = kickoff_flow(HolidayPlannerCrew(), current_inputs)
-        dump_crewai_state(holiday_plan, "HOLIDAY_PLANNER")
+        # Run the research crew (no giant format task); then assemble a DOCX from bounded fragments.
+        crew_result = kickoff_flow(HolidayPlannerCrew(), current_inputs)
+        dump_crewai_state(crew_result, "HOLIDAY_PLANNER")
 
-        holiday_model = load_or_parse_model(
-            current_inputs["output_file"],
-            HolidayPlannerReport,
-            holiday_plan,
-            current_inputs,
-            "holiday planner",
-        )
-        html_file = "output/holiday/itinerary.html"
-        render_and_write_html("HOLIDAY_PLANNER", holiday_model, html_file)
-        self.state.output_file = html_file
-        self.state.holiday_plan = holiday_plan
+        docx_file = "output/holiday/itinerary.docx"
+        assemble_holiday_docx(crew_result, current_inputs, docx_file)
+        self.state.output_file = docx_file
+        self.state.holiday_plan = crew_result
         return "generate_holiday_plan"
 
     @listen(
@@ -1457,12 +1451,25 @@ class ReceptionFlow(Flow[ContentState]):
             # recipient with the placeholder "[EMAIL]" and still reported success,
             # so no agent sits between the validated inputs and the Gmail API.
             body_file = email_inputs.get("output_file")
-            try:
-                html_body = Path(body_file).read_text(encoding="utf-8") if body_file else ""
-            except OSError as e:
-                self.logger.error("❌ Cannot read report {} for email body: {}", body_file, e)
-                self.state.email_sent = False
-                return "send_email"
+            if body_file:
+                try:
+                    html_body = Path(body_file).read_text(encoding="utf-8")
+                except OSError as e:
+                    self.logger.error("❌ Cannot read report {} for email body: {}", body_file, e)
+                    self.state.email_sent = False
+                    return "send_email"
+                except UnicodeDecodeError:
+                    # A binary report (e.g. DOCX) reached the body path: deliver it as an
+                    # attachment with the short summary body instead of the file contents.
+                    self.logger.warning(
+                        "📎 Report {} is not text; using the summary body and attaching the file",
+                        body_file,
+                    )
+                    html_body = email_inputs.get("body", "")
+            else:
+                # No HTML body file (binary report): use the short summary body; the
+                # report is attached.
+                html_body = email_inputs.get("body", "")
 
             try:
                 send_report_email(
@@ -1531,7 +1538,14 @@ def kickoff(user_input: str | None = None):
     )
 
     reception_flow = ReceptionFlow(user_request=request)
-    reception_flow.kickoff()
+    try:
+        reception_flow.kickoff()
+    except Exception:
+        # Without this, an unhandled flow exception exits with a bare status 1:
+        # loguru never captures it and `crewai flow kickoff` swallows the subprocess
+        # stderr, so the real traceback is written nowhere. Log it, then re-raise.
+        logger.exception("❌ Flow kickoff failed — full traceback follows")
+        raise
     return reception_flow
 
 
