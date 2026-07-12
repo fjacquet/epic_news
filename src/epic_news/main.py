@@ -1503,6 +1503,9 @@ def kickoff(user_input: str | None = None):
     Returns:
         The completed ReceptionFlow object.
     """
+    # Sweep/automation hook: let EPIC_NEWS_REQUEST drive the request without
+    # editing the hardcoded query below. An explicit user_input arg still wins.
+    user_input = user_input or os.getenv("EPIC_NEWS_REQUEST") or None
     setup_logging()
     # If user_input is not provided, use a default value.
     request = (
