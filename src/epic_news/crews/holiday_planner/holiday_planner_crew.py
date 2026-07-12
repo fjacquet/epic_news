@@ -69,9 +69,14 @@ class HolidayPlannerCrew:
 
     @agent
     def content_formatter(self) -> Agent:
+        # No tools: this agent runs the final format_and_translate_guide task, which
+        # carries output_pydantic=HolidayPlannerReport. With tools, CrewAI 1.15 can leak
+        # a tool-call result (e.g. ExchangeRateTool's {base_currency, target_currencies})
+        # into TaskOutput.raw, which then fails HolidayPlannerReport validation. The
+        # reporter synthesizes solely from the prior tasks' context (crews/CLAUDE.md
+        # two-agent pattern: reporter has no tools = clean structured output).
         return Agent(
             config=self.agents_config["content_formatter"],  # type: ignore[index]
-            tools=get_search_tools() + get_scrape_tools() + [ExchangeRateTool()],
             llm=LLMConfig.get_openrouter_llm(),
             llm_timeout=LLMConfig.get_timeout("default"),
             verbose=False,
