@@ -14,7 +14,7 @@ import pytest
 import epic_news.main as main_mod
 from epic_news.main import ReceptionFlow
 
-# method name -> expected rendered HTML path
+# method name -> expected rendered output path
 CASES = [
     ("generate_poem", "output/poem/poem.html"),
     ("generate_news_company", "output/company_news/report.html"),
@@ -22,7 +22,9 @@ CASES = [
     ("generate_saint_daily", "output/saint_daily/report.html"),
     ("generate_meeting_prep", "output/meeting/meeting_preparation.html"),
     ("generate_book_summary", "output/library/book_summary.html"),
-    ("generate_holiday_plan", "output/holiday/itinerary.html"),
+    # holiday now assembles a DOCX travel guide from bounded research fragments,
+    # not a rendered HTML report (see assemble_holiday_docx).
+    ("generate_holiday_plan", "output/holiday/itinerary.docx"),
     ("generate_news_daily", "output/news_daily/final_report.html"),
 ]
 
@@ -37,6 +39,7 @@ def test_generate_sets_output_file_to_rendered_html(method, expected_html, monke
     monkeypatch.setattr(main_mod, "dump_crewai_state", lambda *a, **k: None)
     monkeypatch.setattr(main_mod, "load_or_parse_model", lambda *a, **k: object())
     monkeypatch.setattr(main_mod, "render_and_write_html", lambda crew, model, path: Path(path))
+    monkeypatch.setattr(main_mod, "assemble_holiday_docx", lambda *a, **k: None)
     # Satisfy per-method preconditions (e.g. holiday needs a destination,
     # meeting_prep needs a company) without touching real crew inputs. The state
     # is a frozen Pydantic model, so patch the class method; defaultdict(str)
