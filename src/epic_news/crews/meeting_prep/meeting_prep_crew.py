@@ -28,7 +28,7 @@ class MeetingPrepCrew:
             config=self.agents_config["lead_researcher_agent"],  # type: ignore[index]
             tools=get_search_tools() + get_scrape_tools() + get_yahoo_finance_tools(),
             allow_delegation=False,
-            reasoning=True,
+            reasoning=False,
             max_reasoning_attempts=3,
             verbose=True,
             respect_context_window=True,
@@ -59,7 +59,7 @@ class MeetingPrepCrew:
         return Agent(
             config=self.agents_config["sales_strategist_agent"],  # type: ignore[index]
             tools=get_search_tools() + get_scrape_tools() + get_yahoo_finance_tools(),
-            reasoning=True,
+            reasoning=False,
             max_reasoning_attempts=3,
             verbose=True,
             respect_context_window=True,

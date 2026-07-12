@@ -42,7 +42,7 @@ class CrossReferenceReportCrew:
             llm_timeout=LLMConfig.get_timeout("default"),
             allow_delegation=True,
             respect_context_window=True,
-            reasoning=True,
+            reasoning=False,
             max_reasoning_attempts=5,
         )
 
@@ -57,7 +57,7 @@ class CrossReferenceReportCrew:
             verbose=True,
             allow_delegation=False,
             respect_context_window=True,
-            reasoning=True,
+            reasoning=False,
             max_reasoning_attempts=3,
         )
 

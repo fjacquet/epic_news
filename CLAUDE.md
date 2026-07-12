@@ -22,6 +22,8 @@ crewai flow kickoff    # or: make run-crew
 
 **NEVER** run crews directly via Python. The CrewAI Flow command is the only supported execution method.
 
+**Debugging kickoff failures**: `crewai flow kickoff` runs `uv run kickoff` in a subprocess and masks any crew crash behind a generic `Command '['uv', 'run', 'kickoff']' returned non-zero exit status 1`. The real traceback is printed by the subprocess *above* that line.
+
 ### Testing
 
 ```bash
@@ -183,6 +185,7 @@ Configuration in `src/epic_news/utils/logger.py`.
 7. **Using `os.makedirs()` in crews** → Use centralized `ensure_output_directories()`
 8. **Hardcoded LLM configuration** → Always use `LLMConfig.get_openrouter_llm()`, `LLMConfig.get_timeout()`, etc.
 9. **Hardcoded model names** → Use `MODEL` from `.env` via `LLMConfig`, never `llm="gpt-4o-mini"`
+10. **Enabling CrewAI `Memory`/RAG** → Project uses real-time retrieval, not memory; never pass `memory=Memory(...)` to a `Flow`/`Crew` (a LanceDB store with no embedder crashes kickoff)
 
 ## Python Version
 

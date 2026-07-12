@@ -32,7 +32,7 @@ class MenuDesignerCrew:
             llm=LLMConfig.get_openrouter_llm(),
             llm_timeout=LLMConfig.get_timeout("default"),
             respect_context_window=True,
-            reasoning=True,
+            reasoning=False,
             max_reasoning_attempts=3,
             verbose=True,
         )
@@ -46,7 +46,7 @@ class MenuDesignerCrew:
             llm=LLMConfig.get_openrouter_llm(),
             llm_timeout=LLMConfig.get_timeout("default"),
             respect_context_window=True,
-            reasoning=True,
+            reasoning=False,
             max_reasoning_attempts=3,
             verbose=True,
         )

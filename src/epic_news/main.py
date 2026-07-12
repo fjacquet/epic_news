@@ -36,13 +36,10 @@ import warnings
 from pathlib import Path
 from typing import Any, cast
 
-from crewai import Memory
 from crewai.flow import Flow, listen, or_, router, start
 from dotenv import load_dotenv
 from loguru import logger
 from pydantic import PydanticDeprecatedSince20, PydanticDeprecatedSince211, ValidationError
-
-from epic_news.config.llm_config import LLMConfig
 
 # Patch CrewAI's Pydantic schema parser to support Python 3.10 ``X | Y`` unions
 from epic_news.crews.classify.classify_crew import ClassifyCrew
@@ -130,6 +127,11 @@ tracer = observability_tools["tracer"]
 dashboard = observability_tools["dashboard"]
 hallucination_guard = observability_tools["hallucination_guard"]
 
+# Where the classifier writes its routing decision. It is NOT a rendered report: if
+# state.output_file still points here at email time, no crew produced a report and the
+# email step must refuse to deliver this JSON as if it were one.
+CLASSIFY_DECISION_FILE = "output/classify/decision.md"
+
 """                                                                                      """
 """                     All the magic is here                                            """
 """                                                                                      """
@@ -174,12 +176,7 @@ class ReceptionFlow(Flow[ContentState]):
     """
 
     def __init__(self, user_request: str):
-        super().__init__(
-            memory=Memory(
-                llm=LLMConfig.get_openrouter_llm(),
-                read_only=True,
-            )
-        )
+        super().__init__()
         self._user_request = user_request
         self.logger = logger
         self.tracer = tracer
@@ -220,6 +217,12 @@ class ReceptionFlow(Flow[ContentState]):
         extracted_data = kickoff_flow(extraction_crew, {"user_request": self.state.user_request})
 
         dump_crewai_state(extracted_data, "EXTRACTED_INFO")
+        # The enrich task runs first, so its brief is the first task output. Store it as
+        # the working context for downstream crews; fall back to the raw request when the
+        # crew produced no usable brief (never worse than mailing the raw request).
+        tasks_output = getattr(extracted_data, "tasks_output", None) or []
+        brief = tasks_output[0].raw.strip() if tasks_output and tasks_output[0].raw else ""
+        self.state.enriched_brief = brief or self.state.user_request
         # Update the state with the extracted information
         if extracted_data:
             # Assuming extracted_data has a .pydantic attribute for the model instance
@@ -247,7 +250,7 @@ class ReceptionFlow(Flow[ContentState]):
         )
         self.logger.info(f"Routing request: '{self.state.user_request}' with topic: '{topic}'")
         # Define the output file path for the classification decision.
-        self.state.output_file = "output/classify/decision.md"
+        self.state.output_file = CLASSIFY_DECISION_FILE
 
         # Prepare input data for classification using the centralized method from ContentState.
         inputs = self.state.to_crew_inputs()
@@ -1320,16 +1323,22 @@ class ReceptionFlow(Flow[ContentState]):
         Handles requests classified for the 'HolidayPlannerCrew'.
 
         Invokes the `HolidayPlannerCrew` to generate a holiday itinerary.
-        Requires a 'destination' in the inputs. Sets `output_file` to
-        `output/travel_guides/itinerary.html` and stores the plan in
-        `self.state.holiday_plan`. Returns 'error' if no destination is found.
+        When extraction yields no single 'destination' (e.g. a multi-stop road
+        trip), falls back to the raw user request so the crew still runs. Sets
+        `output_file` to `output/holiday/itinerary.html` and stores the plan in
+        `self.state.holiday_plan`.
         """
         current_inputs = self.state.to_crew_inputs()
         current_inputs["output_file"] = "output/holiday/itinerary.json"
 
         if not current_inputs.get("destination"):
-            self.logger.warning("⚠️ No destination found for holiday plan; skipping crew execution.")
-            return None
+            # A multi-stop road trip (Montreux→Montpellier→Anglet→…) has no single
+            # "destination", so extraction routinely leaves destination_location empty
+            # even when the request is full of places. Skipping here silently left
+            # output_file at the classifier's decision.md and emailed that instead of an
+            # itinerary. Fall back to the raw request, which carries the full route.
+            self.logger.warning("⚠️ No structured destination extracted; falling back to the enriched brief.")
+            current_inputs["destination"] = self.state.enriched_brief or self.state.user_request
 
         # Ensure all required template variables are provided with defaults
         required_vars = {
@@ -1403,6 +1412,19 @@ class ReceptionFlow(Flow[ContentState]):
                     flag,
                 )
                 self.state.email_sent = True
+                return "send_email"
+
+            # No report was generated: output_file still points at the classifier's
+            # decision file. Mailing it would deliver the routing JSON as if it were the
+            # user's report (a real HOLIDAY_PLANNER run did exactly this). Refuse, and
+            # leave email_sent False so the failure is visible rather than papered over.
+            if self.state.output_file == CLASSIFY_DECISION_FILE:
+                self.logger.error(
+                    "🚫 No report was generated (output_file still {}); refusing to email "
+                    "the classification decision as a report.",
+                    self.state.output_file,
+                )
+                self.state.email_sent = False
                 return "send_email"
 
             # Use utility function to prepare all email parameters

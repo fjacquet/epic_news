@@ -84,7 +84,7 @@ class SalesProspectingCrew:
             llm=LLMConfig.get_openrouter_llm(),
             llm_timeout=LLMConfig.get_timeout("default"),
             verbose=True,
-            reasoning=True,
+            reasoning=False,
             max_reasoning_attempts=5,
             respect_context_window=True,
         )

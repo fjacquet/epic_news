@@ -36,6 +36,13 @@ from epic_news.models.extracted_info import ExtractedInfo
 from epic_news.utils.menu_generator import MenuGenerator
 from epic_news.utils.string_utils import create_topic_slug
 
+# Upper bound on any free-text field handed to a crew. A real GLM-5.2 extraction
+# run looped `user_preferences_and_constraints` into an ~8 KB block of the same
+# sentences repeated dozens of times, which then bloated the downstream crew's
+# prompt (three copies of it) and starved its planner. Prompt instructions did not
+# constrain the model, so the cap is enforced deterministically in code instead.
+MAX_FREETEXT_CHARS = 1500
+
 
 # Constants for crew categories
 class CrewCategories:
@@ -102,6 +109,7 @@ class ContentState(BaseModel):
     # ============================================================================
     user_request: str = "Get the RSS Weekly Report"
     extracted_info: ExtractedInfo | None = None
+    enriched_brief: str | None = None
     attachment_file: str = ""
     current_year: str = str(datetime.datetime.now().year)
     topic_slug: str = ""
@@ -179,6 +187,19 @@ class ContentState(BaseModel):
     objective: str = ""
     prior_interactions: str = ""
 
+    def _clean_brief_text(self, value: Any) -> str:
+        """Return clean, length-bounded free text for a crew input.
+
+        Prefer the enriched brief (a clean rewrite of the request); otherwise use the
+        given value. Always hard-cap the length so a degenerate extraction field — a
+        model looping a field into thousands of repeated characters — cannot bloat a
+        downstream crew's prompt. See MAX_FREETEXT_CHARS.
+        """
+        text = self.enriched_brief or (value if isinstance(value, str) else "") or ""
+        if len(text) > MAX_FREETEXT_CHARS:
+            text = text[:MAX_FREETEXT_CHARS].rstrip()
+        return text
+
     def to_crew_inputs(self) -> dict:
         """
         Prepares a flattened dictionary of state properties suitable for CrewAI task inputs.
@@ -196,6 +217,13 @@ class ContentState(BaseModel):
         if self.extracted_info:
             inputs.update(self._flatten_extracted_info())
 
+        # Replace the extraction's free-text preferences with the clean enriched brief
+        # (or a length-capped fallback) BEFORE menu mappings derive constraints/
+        # preferences from it, so no degenerate blob reaches any crew.
+        inputs["user_preferences_and_constraints"] = self._clean_brief_text(
+            inputs.get("user_preferences_and_constraints")
+        )
+
         # Add computed fields
         inputs.update(self._add_computed_fields())
 
@@ -210,6 +238,12 @@ class ContentState(BaseModel):
             "target_audience",
         ]:
             inputs.setdefault(required_key, "")
+
+        # The enriched brief is a clean, complete rewrite of the whole request, so it is
+        # the best working context for any downstream crew. Prefer it; fall back to
+        # whatever context extraction produced (or the placeholder) when absent.
+        if self.enriched_brief:
+            inputs["context"] = self._clean_brief_text(self.enriched_brief)
 
         # Return clean dictionary, removing None values but keeping required placeholders
         return {k: v for k, v in inputs.items() if v is not None}
