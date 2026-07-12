@@ -1501,7 +1501,8 @@ def kickoff(user_input: str | None = None):
     It can optionally take a user_input string to override the default.
 
     Returns:
-        The completed ReceptionFlow object.
+        None. The flow runs for its side effects; the console entry point runs
+        ``sys.exit(kickoff())``, which needs None/int — not the flow object.
     """
     # Sweep/automation hook: let EPIC_NEWS_REQUEST drive the request without
     # editing the hardcoded query below. An explicit user_input arg still wins.
@@ -1549,7 +1550,10 @@ def kickoff(user_input: str | None = None):
         # stderr, so the real traceback is written nowhere. Log it, then re-raise.
         logger.exception("❌ Flow kickoff failed — full traceback follows")
         raise
-    return reception_flow
+    # The console entry runs `sys.exit(kickoff())`; sys.exit() treats a non-None,
+    # non-int arg as an error message (prints its repr, exits 1). Returning the
+    # flow object made every successful run exit 1. Return None so success exits 0.
+    return
 
 
 def plot(output_path: str = "flow.png"):
