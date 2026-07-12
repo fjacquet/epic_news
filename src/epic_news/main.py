@@ -220,6 +220,12 @@ class ReceptionFlow(Flow[ContentState]):
         extracted_data = kickoff_flow(extraction_crew, {"user_request": self.state.user_request})
 
         dump_crewai_state(extracted_data, "EXTRACTED_INFO")
+        # The enrich task runs first, so its brief is the first task output. Store it as
+        # the working context for downstream crews; fall back to the raw request when the
+        # crew produced no usable brief (never worse than mailing the raw request).
+        tasks_output = getattr(extracted_data, "tasks_output", None) or []
+        brief = tasks_output[0].raw.strip() if tasks_output and tasks_output[0].raw else ""
+        self.state.enriched_brief = brief or self.state.user_request
         # Update the state with the extracted information
         if extracted_data:
             # Assuming extracted_data has a .pydantic attribute for the model instance
