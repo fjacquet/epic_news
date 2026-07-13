@@ -5,11 +5,16 @@ from typing import Any
 from loguru import logger
 
 from epic_news.config.llm_config import LLMConfig
-from epic_news.utils.holiday_report.docx_builder import build_docx
-from epic_news.utils.holiday_report.fragments import generate_fragment
+from epic_news.utils.docx_report import Section, assemble_fragments
 from epic_news.utils.holiday_report.skeleton import generate_skeleton
 
 MAX_ITINERARY_DAYS = 31
+
+_PERSONA = (
+    "Tu es un rédacteur de carnet de voyage. Rédige UNIQUEMENT la section demandée, "
+    "en français, en Markdown propre (titres de niveau 2+, listes, gras, emojis). "
+    "Pas de HTML, pas de JSON, pas de préambule."
+)
 
 
 def _task_raw(crew_result: Any, index: int) -> str:
@@ -37,18 +42,13 @@ def assemble_holiday_docx(crew_result: Any, inputs: dict, output_path: str, llm:
     itinerary = _task_raw(crew_result, 2)
     budget = _task_raw(crew_result, 3)
 
-    fragments: list[tuple[str, str]] = []
-    fragments.append(
-        (
+    sections: list[Section] = [
+        Section(
             "Introduction",
-            generate_fragment(
-                "Introduction",
-                "Présente le voyage, la culture et les points forts.",
-                f"{summary}\n\n{destination}",
-                llm,
-            ),
+            "Présente le voyage, la culture et les points forts.",
+            f"{summary}\n\n{destination}",
         )
-    )
+    ]
 
     # Itinerary: skeleton then one fragment per day (bounded regardless of trip length).
     skeleton = generate_skeleton(itinerary, summary, llm)
@@ -62,60 +62,40 @@ def assemble_holiday_docx(crew_result: Any, inputs: dict, output_path: str, llm:
         )
     for i, day in enumerate(skeleton.days[:MAX_ITINERARY_DAYS], start=1):
         heading = f"Itinéraire — Jour {i}" + (f" ({day.date})" if day.date else "")
-        fragments.append(
-            (
+        sections.append(
+            Section(
                 heading,
-                generate_fragment(
-                    heading,
-                    f"Détaille cette journée: {day.label}. Étapes: {', '.join(day.stops) or 'à préciser'}.",
-                    f"{summary}\n\nRecherche itinéraire:\n{itinerary}",
-                    llm,
-                ),
+                f"Détaille cette journée: {day.label}. Étapes: {', '.join(day.stops) or 'à préciser'}.",
+                f"{summary}\n\nRecherche itinéraire:\n{itinerary}",
             )
         )
 
-    fragments.append(
-        (
+    sections.append(
+        Section(
             "Hébergements",
-            generate_fragment(
-                "Hébergements",
-                "Liste les hébergements recommandés avec adresse et fourchette de prix.",
-                f"{summary}\n\n{lodging_dining}",
-                llm,
-            ),
+            "Liste les hébergements recommandés avec adresse et fourchette de prix.",
+            f"{summary}\n\n{lodging_dining}",
         )
     )
-    fragments.append(
-        (
+    sections.append(
+        Section(
             "Restauration",
-            generate_fragment(
-                "Restauration",
-                "Recommande restaurants et spécialités par étape.",
-                f"{summary}\n\n{lodging_dining}",
-                llm,
-            ),
+            "Recommande restaurants et spécialités par étape.",
+            f"{summary}\n\n{lodging_dining}",
         )
     )
-    fragments.append(
-        (
+    sections.append(
+        Section(
             "Budget",
-            generate_fragment(
-                "Budget",
-                "Détaille un budget en CHF, par catégorie, avec total.",
-                f"{summary}\n\n{budget}",
-                llm,
-            ),
+            "Détaille un budget en CHF, par catégorie, avec total.",
+            f"{summary}\n\n{budget}",
         )
     )
-    fragments.append(
-        (
+    sections.append(
+        Section(
             "Informations pratiques",
-            generate_fragment(
-                "Informations pratiques",
-                "Checklist bagages, sécurité, contacts d'urgence, phrases utiles.",
-                f"{summary}\n\n{destination}",
-                llm,
-            ),
+            "Checklist bagages, sécurité, contacts d'urgence, phrases utiles.",
+            f"{summary}\n\n{destination}",
         )
     )
 
@@ -124,4 +104,4 @@ def assemble_holiday_docx(crew_result: Any, inputs: dict, output_path: str, llm:
         "date": inputs.get("current_date", ""),
         "author": "Epic News",
     }
-    return build_docx(fragments, meta, output_path)
+    return assemble_fragments(sections, meta, output_path, llm, system=_PERSONA)

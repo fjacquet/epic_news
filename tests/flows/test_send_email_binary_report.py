@@ -26,7 +26,7 @@ import pytest
 
 import epic_news.main as main_mod
 from epic_news.main import ReceptionFlow
-from epic_news.utils.holiday_report.docx_builder import build_docx
+from epic_news.utils.docx_report import build_docx
 
 EXPECTED_SUMMARY_BODY = "Please find the report for 'Plan a week in the Alps' attached."
 
