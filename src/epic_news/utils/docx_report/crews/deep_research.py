@@ -45,7 +45,7 @@ def assemble_deep_research_docx(
             instruction="Reformule le résumé en prose fluide.",
             context=model.executive_summary or "",
         ),
-        Section("Principales conclusions", body=_bullets(model.key_findings)),
+        Section("Principales découvertes", body=_bullets(model.key_findings)),
     ]
     research_sections = model.research_sections or []
     if len(research_sections) > _MAX_SECTIONS:
@@ -63,6 +63,12 @@ def assemble_deep_research_docx(
                 context=rs.content or "",
             )
         )
+    if model.conclusions:
+        sections.append(Section("Conclusions", body=model.conclusions))
+    if model.recommendations:
+        sections.append(Section("Recommandations", body=_bullets(model.recommendations)))
+    if model.limitations:
+        sections.append(Section("Limitations", body=_bullets(model.limitations)))
     sections.append(
         Section("Méthodologie", instruction="Décris la méthodologie.", context=model.methodology or "")
     )

@@ -25,7 +25,9 @@ def test_deep_research_docx(tmp_path):
         title="T",
         executive_summary="ES",
         methodology="method",
-        conclusions="ccl",
+        conclusions="Conclusion-Gamma",
+        recommendations=["Reco-Delta"],
+        limitations=["Limite-Epsilon"],
         key_findings=["Finding-Alpha", "Finding-Beta"],
         research_sections=[ResearchSection(title="Sec1", content="c1")],
         sources=[
@@ -49,10 +51,23 @@ def test_deep_research_docx(tmp_path):
     assert "Finding-Alpha" in txt and "Finding-Beta" in txt  # deterministic findings verbatim
     assert "2 sources consultées" in txt  # deterministic sources count line
     assert "Source-Alpha" in txt and "Source-Beta" in txt  # deterministic source titles verbatim
+    assert "Conclusion-Gamma" in txt  # deterministic conclusions verbatim
+    assert "Reco-Delta" in txt  # deterministic recommendations verbatim
+    assert "Limite-Epsilon" in txt  # deterministic limitations verbatim
     # narrated: exec summary + 1 research section + methodology = 3 llm calls
-    # (Principales conclusions + Sources are deterministic bodies → no LLM)
+    # (Principales découvertes + Conclusions/Recommandations/Limitations/Sources are
+    # deterministic bodies → no LLM)
     assert llm.calls == 3
     # section headings appear in the expected order
-    headings = ["Résumé exécutif", "Principales conclusions", "Sec1", "Méthodologie", "Sources"]
+    headings = [
+        "Résumé exécutif",
+        "Principales découvertes",
+        "Sec1",
+        "Conclusions",
+        "Recommandations",
+        "Limitations",
+        "Méthodologie",
+        "Sources",
+    ]
     indices = [txt.index(h) for h in headings]
     assert indices == sorted(indices)

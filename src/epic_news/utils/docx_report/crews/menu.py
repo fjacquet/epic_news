@@ -18,10 +18,6 @@ _PERSONA = (
 )
 
 
-def _bullets(items: list[str]) -> str:
-    return "\n".join(f"- {i}" for i in items) if items else "_Aucune._"
-
-
 def _dish_line(role: str, dish: DishInfo | None) -> str:
     """Deterministic dish line: verbatim name/description, guarded against None dessert."""
     if dish is None:

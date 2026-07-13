@@ -52,3 +52,33 @@ def test_pestel_docx(tmp_path):
     ]
     indices = [txt.index(h) for h in headings]
     assert indices == sorted(indices)
+
+
+def test_pestel_docx_with_sources(tmp_path):
+    model = PestelReport(
+        topic="T",
+        executive_summary="ES",
+        political=PestelDimension(
+            summary="s", key_factors=["kf"], impact_analysis="ia", sources=["https://p.example"]
+        ),
+        economic=PestelDimension(
+            summary="s",
+            key_factors=["kf"],
+            impact_analysis="ia",
+            sources=["ref-econ-1", "https://e.example"],
+        ),
+        social=_dim(),
+        technological=_dim(),
+        environmental=_dim(),
+        legal=_dim(),
+        synthesis="Synth",
+        generated_at="2026-07-13",
+    )
+    llm = _StubLLM()
+    out = assemble_pestel_docx(model, {"current_date": "2026-07-13"}, str(tmp_path / "r.docx"), llm)
+    txt = _text(out)
+    assert llm.calls == 8
+    assert "https://p.example" in txt
+    assert "ref-econ-1" in txt
+    assert "https://e.example" in txt
+    assert txt.index("Synthèse") < txt.index("Sources")

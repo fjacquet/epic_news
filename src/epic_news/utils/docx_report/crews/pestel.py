@@ -34,6 +34,21 @@ def _dimension_context(d: PestelDimension) -> str:
     return f"{d.summary}\n\n{d.impact_analysis}\n\nFacteurs clés :\n" + _bullets(d.key_factors)
 
 
+def _sources_section(model: PestelReport) -> Section | None:
+    """Deterministic Sources section grouping per-dimension citations by dimension label.
+
+    Returns None if no dimension has any sources (section is skipped entirely).
+    """
+    blocks = []
+    for heading, field_name in _DIMENSIONS:
+        dimension: PestelDimension = getattr(model, field_name)
+        if dimension.sources:
+            blocks.append(f"**{heading}**\n{_bullets(dimension.sources)}")
+    if not blocks:
+        return None
+    return Section("Sources", body="\n\n".join(blocks))
+
+
 def assemble_pestel_docx(model: PestelReport, inputs: dict, output_path: str, llm: Any = None) -> str:
     """Build the PESTEL report as a DOCX: fully narrated strategic analysis prose."""
     llm = llm or LLMConfig.get_openrouter_llm()
@@ -60,6 +75,8 @@ def assemble_pestel_docx(model: PestelReport, inputs: dict, output_path: str, ll
             context=model.synthesis or "",
         )
     )
+    if sources_section := _sources_section(model):
+        sections.append(sources_section)
     meta = {
         "title": model.topic or "Analyse PESTEL",
         "date": inputs.get("current_date", ""),

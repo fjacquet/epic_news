@@ -78,7 +78,7 @@ report.md
 
 # Test scripts (work in progress)
 test_deep_research_flow.py
-test_deep_research.py
+/test_deep_research.py
 test_simple_flow.py
 
 # ============================================================================
