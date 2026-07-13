@@ -40,6 +40,53 @@ cumulative `logs/epic_news.log` and false-positives on a failed run:
 3. A fresh `📨 Email delivered` line whose `Email payload:` `attachment=` points at the
    flow's real report (not the classify path), plus a non-zero report file on disk.
 
+## Runtime output format: HTML default, DOCX opt-in
+
+Every routable crew (except POEM) now emits **HTML by default** and a **DOCX on
+request** through one dispatch helper, `emit_report(state, "KEY", render_html,
+assemble_docx=…)` (`src/epic_news/utils/docx_report/dispatch.py`). Format is
+resolved per run by `resolve_output_format(state)`:
+
+1. `OUTPUT_FORMAT` env var (`html` | `docx`) — highest precedence
+2. `state.output_format` — set by `parse_output_format(request)` from the request text
+3. default `html`
+
+Select DOCX for a sweep with `OUTPUT_FORMAT=docx bash scripts/verify_all_crews.sh …`.
+`emit_report` runs `assemble_docx()` when the resolved format is `docx` (else
+`render_html()`), and always records the produced path in `state.output_file`, so
+the emailed attachment is whichever format was selected.
+
+### Two-format verification — 2026-07-13
+
+DOCX runtime wiring landed for all 14 non-POEM crews (commit `0b18881`, plus
+`generate_deep_research`/`generate_findaily` wired earlier). Verification was
+scaled to the risk — the wiring is mechanical and identical across crews (one
+`emit_report` wrap per render site); the only per-crew variable is the
+`assemble_*_docx` function, and each of those is unit-tested against its real
+Pydantic model with real `pypandoc` producing a valid `.docx`.
+
+| Evidence | Coverage |
+|---|---|
+| **Live docx kickoff — tabular path** | FINDAILY: real flow, `OUTPUT_FORMAT=docx` → valid `.docx` with `<w:tbl>` tables, empty error log. |
+| **Live docx kickoff — prose path** | SAINT: real flow, `OUTPUT_FORMAT=docx` → `report.docx` 19 KB, all French section headings + Swiss content, heading styles, empty error log. |
+| **Per-assembler unit tests** | All 14 assemblers: real `pypandoc`, verbatim-fidelity + None-guard + heading-order asserts (part of the 774-test suite). |
+| **Static type check** | `mypy` types every assembler against the crew's real model — this is what caught the Task-7 model mismatch before runtime. |
+| **Static wire-site review** | The 3 structurally-different wirings confirmed by reading committed code: MENU (dual render site, both set `final_report = output_file`), RSS (async closure + `load_rss_weekly_report`), OSINT (post-parallel, `assemble_osint_docx` reads `output/osint/*.json`). |
+| **HTML path** | All 15 flows green in the full HTML sweep below (unchanged by the wiring). |
+
+**Deferred (not run):** the full 28-kickoff `OUTPUT_FORMAT=docx` matrix across all
+14 crews. Rationale: the two live shapes above (tabular + prose) exercise both
+assembler families end-to-end; the remaining 12 differ only in their unit-tested
+`assemble_*_docx` body and mypy-checked wire site. Running every heavy crew
+(OSINT spawns 6 parallel sub-crews; DEEPRESEARCH/MENU are long) a second time in
+docx was judged disproportionate to the residual risk. To run it anyway:
+`OUTPUT_FORMAT=docx bash scripts/verify_all_crews.sh` (and per-flow with a label).
+
+**Known cosmetic note (non-blocking):** a few post-render log lines are hardcoded
+to "…HTML written" (e.g. `generate_saint_daily`, `generate_shopping_advice`) and
+read inaccurately when DOCX was selected — the file on disk is correct; only the
+log string is stale. Flagged for the final review to batch-fix.
+
 ## Results — 2026-07-13 (all 15 flows green)
 
 Stack: `MODEL=gemini/gemini-3.5-flash` (native, off OpenRouter) + `supports_function_calling=False` (ReAct).
