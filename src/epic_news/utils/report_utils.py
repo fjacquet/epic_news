@@ -47,25 +47,15 @@ def _transform_rss_feeds_to_report(rss_feeds_model: RssFeeds, report_title: str)
     )
 
 
-def generate_rss_weekly_html_report(
-    json_file_path: str,
-    output_html_path: str,
-    report_title: str = "Veille Technologique Hebdomadaire",
-) -> None:
+def load_rss_weekly_report(
+    json_file_path: str, report_title: str = "Veille Technologique Hebdomadaire"
+) -> RssWeeklyReport:
+    """Load a translated RSS JSON file into an RssWeeklyReport.
+
+    Accepts either RssWeeklyReport-shaped JSON (used directly) or RssFeeds-shaped
+    JSON (transformed via _transform_rss_feeds_to_report). Raises on validation
+    errors matching neither shape.
     """
-    Reads translated RSS data from a JSON file, converts it to a Pydantic model,
-    then generates and saves a professional HTML report.
-
-    Accepts two JSON shapes:
-    - RssWeeklyReport (preferred — what the translator produces): top-level keys
-      ``title``, ``feeds``, ``summary``, ...
-    - RssFeeds (low-level): ``{"rss_feeds": [{"feed_url": ..., "articles": [...]}]}``
-
-    Raises on validation errors so the caller can surface the failure rather
-    than silently swallowing it.
-    """
-    logger.info("🚀 Generating HTML report from {}...", json_file_path)
-
     with open(json_file_path, encoding="utf-8") as f:
         data = json.load(f)
 
@@ -86,6 +76,30 @@ def generate_rss_weekly_html_report(
             )
             raise
         report_model = _transform_rss_feeds_to_report(rss_feeds_model, report_title)
+
+    return report_model
+
+
+def generate_rss_weekly_html_report(
+    json_file_path: str,
+    output_html_path: str,
+    report_title: str = "Veille Technologique Hebdomadaire",
+) -> None:
+    """
+    Reads translated RSS data from a JSON file, converts it to a Pydantic model,
+    then generates and saves a professional HTML report.
+
+    Accepts two JSON shapes:
+    - RssWeeklyReport (preferred — what the translator produces): top-level keys
+      ``title``, ``feeds``, ``summary``, ...
+    - RssFeeds (low-level): ``{"rss_feeds": [{"feed_url": ..., "articles": [...]}]}``
+
+    Raises on validation errors so the caller can surface the failure rather
+    than silently swallowing it.
+    """
+    logger.info("🚀 Generating HTML report from {}...", json_file_path)
+
+    report_model = load_rss_weekly_report(json_file_path, report_title)
 
     tm = TemplateManager()
     html = tm.render_report("RSS_WEEKLY", report_model.model_dump())

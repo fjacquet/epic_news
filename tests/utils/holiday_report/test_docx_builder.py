@@ -2,7 +2,7 @@ from pathlib import Path
 
 from docx import Document
 
-from epic_news.utils.holiday_report.docx_builder import build_docx
+from epic_news.utils.docx_report import build_docx
 
 
 def _all_text(path: str) -> str:

@@ -1,20 +1,14 @@
-"""Bounded per-section Markdown fragment generation for the holiday report."""
+"""Bounded per-section Markdown fragment generation via an LLM."""
 
 from typing import Any
 
 from loguru import logger
 
-_SYSTEM = (
-    "Tu es un rédacteur de carnet de voyage. Rédige UNIQUEMENT la section demandée, "
-    "en français, en Markdown propre (titres de niveau 2+, listes, gras, emojis). "
-    "Pas de HTML, pas de JSON, pas de préambule."
-)
 
-
-def generate_fragment(heading: str, instruction: str, context: str, llm: Any) -> str:
+def generate_fragment(heading: str, instruction: str, context: str, llm: Any, system: str) -> str:
     """Generate one Markdown section. On any failure/empty result, return a placeholder."""
     messages = [
-        {"role": "system", "content": _SYSTEM},
+        {"role": "system", "content": system},
         {"role": "user", "content": f"Section: {heading}\n\nConsigne: {instruction}\n\nContexte:\n{context}"},
     ]
     try:
@@ -24,4 +18,4 @@ def generate_fragment(heading: str, instruction: str, context: str, llm: Any) ->
         logger.warning("⚠️ Fragment '{}' returned empty; using placeholder", heading)
     except Exception as exc:  # noqa: BLE001 - degrade gracefully, never crash the report
         logger.warning("⚠️ Fragment '{}' failed ({}); using placeholder", heading, exc)
-    return f"> ⚠️ Section « {heading} » indisponible pour ce voyage."
+    return f"> ⚠️ Section « {heading} » indisponible."
