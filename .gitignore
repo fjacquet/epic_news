@@ -186,3 +186,14 @@ site/
 # Generated SBOM artifacts (produced fresh in CI / on demand)
 sbom.cdx.json
 sbom-requirements.txt
+
+# ============================================================================
+# Local runtime clutter (untracked, machine-local)
+# ============================================================================
+.DS_Store
+**/.DS_Store
+.cache/
+.composio.lock
+logs/*.out
+# Local Docker overrides (docker-compose auto-loads this file)
+docker-compose.override.yml
