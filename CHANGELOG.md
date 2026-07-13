@@ -4,6 +4,20 @@ All notable changes to Epic News are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [3.5.0] — 2026-07-13
+
+A readability release. DOCX reports read better than HTML for most crews, so every routable `ReceptionFlow` crew now emits **HTML by default and a DOCX on request** — a runtime choice rather than a per-crew rewrite. Precise data (prices, figures, quantities, ingredient amounts, URLs, citations) is rendered deterministically from the model and never re-typed by the LLM; only prose sections are narrated. A whole-branch review verified that invariant across all 14 assemblers.
+
+### Added
+- **Runtime output-format selection.** `OUTPUT_FORMAT=docx` (or DOCX intent parsed from the request) switches any crew's report to a Word document; HTML stays the default. Precedence: `OUTPUT_FORMAT` env → parsed request intent → HTML. A single dispatch helper (`emit_report`) runs the selected renderer and records the produced path as the emailed attachment.
+- **Shared `docx_report` framework** — `Section` + `assemble_fragments` (Pandoc) + `md_table`, splitting each section between deterministic verbatim Markdown (`body=`) and single-call LLM narration (`instruction` + `context`).
+- **DOCX assemblers for 14 crews** (every routable crew except POEM), each rendering data deterministically and narrating only prose.
+- **`docs/sweep-runbook.md`** documenting the format mechanics and the two-format verification.
+
+### Changed
+- **Holiday crew refactored onto the shared `docx_report` framework**, dropping its bespoke local DOCX modules.
+- **Post-render log lines report the actual `output_file` path** (SAINT / SHOPPING / NEWSDAILY) instead of a hardcoded "HTML written", so logs match what was written under `OUTPUT_FORMAT=docx`.
+
 ## [3.4.1] — 2026-07-13
 
 A reliability release. Every routable `ReceptionFlow` crew was run end-to-end on the current native-Gemini + ReAct stack and the runtime failures that only surface at execution time were fixed — the kind a "report exists + email sent" check can't catch.
