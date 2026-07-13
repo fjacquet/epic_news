@@ -21,9 +21,8 @@ def _text(p):
 def _sequential_indices(txt: str, headings: list[str]) -> list[int]:
     """Find each heading in order, searching forward from the previous match.
 
-    Needed because the Informations table has a row labelled "Préparation"
-    (per spec) that precedes the actual "Préparation" *heading* in the XML —
-    a naive `txt.index(h)` for every heading would match that row instead.
+    A forward scan keeps the order check robust against any incidental repeat
+    of a heading string elsewhere in the document (e.g. inside a table cell).
     """
     indices = []
     pos = 0

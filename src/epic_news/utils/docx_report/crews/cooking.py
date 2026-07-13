@@ -35,8 +35,8 @@ def assemble_cooking_docx(model: PaprikaRecipe, inputs: dict, output_path: str, 
     llm = llm or LLMConfig.get_openrouter_llm()
     info_rows = [
         {"champ": "Portions", "valeur": model.servings or "—"},
-        {"champ": "Préparation", "valeur": model.prep_time or "—"},
-        {"champ": "Cuisson", "valeur": model.cook_time or "—"},
+        {"champ": "Temps de préparation", "valeur": model.prep_time or "—"},
+        {"champ": "Temps de cuisson", "valeur": model.cook_time or "—"},
         {"champ": "Difficulté", "valeur": model.difficulty or "—"},
         {"champ": "Catégories", "valeur": ", ".join(model.categories) or "—"},
     ]
