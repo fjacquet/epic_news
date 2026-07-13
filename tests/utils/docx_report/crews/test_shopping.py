@@ -32,7 +32,7 @@ def test_shopping_docx(tmp_path):
             pros=["Confort"],
             cons=["Prix"],
             target_audience="Audiophiles",
-            common_issues=[],
+            common_issues=["Bug-Appairage"],
         ),
         switzerland_prices=[
             PriceInfo(
@@ -51,7 +51,7 @@ def test_shopping_docx(tmp_path):
                 url=None,
                 shipping_cost="0 EUR",
                 total_cost="279 EUR",
-                notes=None,
+                notes="Stock-limité",
             )
         ],
         competitors=[
@@ -73,8 +73,21 @@ def test_shopping_docx(tmp_path):
     out = assemble_shopping_docx(model, {"current_date": "2026-07-13"}, str(tmp_path / "shopping.docx"), llm)
     txt = _text(out)
 
-    for figure in ["Casque-XYZ", "Digitec", "299 CHF", "Concurrent-A", "ANC", "Offre-Alpha"]:
+    for figure in [
+        "Casque-XYZ",
+        "Digitec",
+        "299 CHF",
+        "Concurrent-A",
+        "Offre-Alpha",
+        "Bug-Appairage",
+        "Léger",
+        "Fragile",
+        "Stock-limité",
+    ]:
         assert figure in txt, f"missing verbatim figure: {figure}"
+
+    assert "ANC; 30h" in txt, "key_features must be joined, not stringified as a list"
+    assert "['ANC'" not in txt, "key_features must not be stringified as a Python list"
 
     assert "None" not in txt, "unguarded None leaked into the document"
 

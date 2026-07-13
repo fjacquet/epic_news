@@ -17,12 +17,15 @@ _PRICE_COLUMNS = [
     ("Prix", "price"),
     ("Livraison", "shipping"),
     ("Total", "total"),
+    ("Notes", "notes"),
 ]
 
 _COMPETITOR_COLUMNS = [
     ("Produit", "name"),
     ("Gamme de prix", "range"),
     ("Caractéristiques", "features"),
+    ("Avantages", "pros"),
+    ("Inconvénients", "cons"),
     ("Public cible", "audience"),
 ]
 
@@ -38,6 +41,7 @@ def _price_rows(prices: list) -> list[dict]:
             "price": p.price,
             "shipping": p.shipping_cost or "—",
             "total": p.total_cost or "—",
+            "notes": p.notes or "—",
         }
         for p in prices
     ]
@@ -56,6 +60,7 @@ def assemble_shopping_docx(
         f"**Avantages :**\n{_bullets(pi.pros)}\n\n"
         f"**Inconvénients :**\n{_bullets(pi.cons)}\n\n"
         f"**Public cible :** {pi.target_audience}"
+        f"\n\n**Problèmes connus :**\n{_bullets(pi.common_issues)}"
     )
 
     competitor_rows = [
@@ -63,6 +68,8 @@ def assemble_shopping_docx(
             "name": c.name,
             "range": c.price_range,
             "features": "; ".join(c.key_features),
+            "pros": "; ".join(c.pros),
+            "cons": "; ".join(c.cons),
             "audience": c.target_audience,
         }
         for c in model.competitors
