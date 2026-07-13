@@ -242,3 +242,27 @@ def test_paprika_model_dump_shape_renders_correctly():
     assert "📝 Instructions" in html
     assert "Laver la salade." in html
     assert "Ajouter la sauce." in html
+
+
+def test_directions_without_numbering_split_by_lines():
+    """Directions with no ``1. 2.`` numbering fall back to newline splitting."""
+    renderer = CookingRenderer()
+    html = renderer.render(
+        {
+            "recipe_title": "Simple",
+            "directions": "Mélanger les ingrédients.\nCuire au four.",
+        }
+    )
+
+    assert 'class="recipe-instructions"' in html
+    assert "Mélanger les ingrédients." in html
+    assert "Cuire au four." in html
+    assert html.count("<li") == 2
+
+
+def test_coercion_helpers_ignore_non_text_values():
+    """Non-str/non-list ingredients/directions coerce to an empty list (section skipped)."""
+    assert CookingRenderer._as_lines(None) == []
+    assert CookingRenderer._as_lines(123) == []
+    assert CookingRenderer._as_steps(None) == []
+    assert CookingRenderer._as_steps({"a": 1}) == []
