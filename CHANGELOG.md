@@ -4,6 +4,25 @@ All notable changes to Epic News are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [3.4.1] — 2026-07-13
+
+A reliability release. Every routable `ReceptionFlow` crew was run end-to-end on the current native-Gemini + ReAct stack and the runtime failures that only surface at execution time were fixed — the kind a "report exists + email sent" check can't catch.
+
+### Fixed
+- **Cooking report rendered one letter per line.** `CookingRenderer` received `PaprikaRecipe.model_dump()`, where `ingredients`/`directions` are single text blocks (`str`), and iterated the string — emitting one `<li>` per character. It now coerces a `str` field into line/step lists and falls back from `instructions` to the `directions` key, so the Instructions section renders too.
+- **Successful `crewai flow kickoff` exited 1.** `kickoff()` returned the `ReceptionFlow` object, which the `sys.exit(kickoff())` console entry printed and treated as a non-zero exit. It now returns `None`.
+- **RSS weekly flow called a sync kickoff from an async method.** `generate_rss_weekly` now awaits `akickoff_flow`.
+- **Menu report generated but never emailed.** `generate_menu_designer` now sets `state.output_file` so the menu report is the emailed attachment instead of the classify path.
+
+### Changed
+- **`EPIC_NEWS_REQUEST` override is no longer silent.** The sweep/automation hook in `kickoff()` only fires when no explicit request is passed and logs a warning naming the forced request, so a leaked or stale environment variable can't silently reroute a real request.
+
+### Added
+- **`scripts/verify_all_crews.sh`** — a repeatable end-to-end verification driver (one flow or all, via `EPIC_NEWS_REQUEST` + `MAIL`), and **`docs/sweep-runbook.md`** documenting how to run it and read the results.
+
+### Housekeeping
+- Removed stale stray root artifacts (`curl.txt`, `changes.md`, `crewai_flow.html`, `crewai-rag-tool.lock`) and expanded `.gitignore` to cover local runtime clutter (`.cache/`, `logs/*.out`, `.DS_Store`, `.composio.lock`, `docker-compose.override.yml`).
+
 ## [3.4.0] — 2026-07-12
 
 A prompt-enrichment release. The raw user request is now rewritten into a clean, complete brief **before** structured extraction, and that brief becomes the working `context` every downstream crew sees — with deterministic length caps so a degenerate LLM rewrite can no longer bloat a crew's prompt. Ships alongside a batch of flow and extraction reliability fixes.
