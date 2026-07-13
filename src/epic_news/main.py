@@ -668,7 +668,7 @@ class ReceptionFlow(Flow[ContentState]):
                 saint_model, self.state.to_crew_inputs(), str(Path(html_file).with_suffix(".docx"))
             ),
         )
-        self.logger.info("✅ Saint content generated and HTML written")
+        self.logger.info(f"✅ Saint content generated → {self.state.output_file}")
 
     @listen("go_generate_recipe")
     @trace_task(tracer)
@@ -970,7 +970,7 @@ class ReceptionFlow(Flow[ContentState]):
                 shopping_advice_obj, self.state.to_crew_inputs(), str(Path(html_file).with_suffix(".docx"))
             ),
         )
-        self.logger.info("✅ Shopping advice content generated and HTML written")
+        self.logger.info(f"✅ Shopping advice content generated → {self.state.output_file}")
 
     @listen("go_generate_meeting_prep")
     @trace_task(tracer)
