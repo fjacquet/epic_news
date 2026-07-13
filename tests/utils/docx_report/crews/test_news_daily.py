@@ -18,13 +18,29 @@ def _text(p):
         return z.read("word/document.xml").decode()
 
 
+def _sequential_indices(txt: str, headings: list[str]) -> list[int]:
+    """Find each heading in order, searching forward from the previous match.
+
+    A forward scan keeps the order check robust against any incidental repeat
+    of a heading string elsewhere in the document (e.g. "Suisse" recurring
+    inside the earlier "Suisse Romande" heading).
+    """
+    indices = []
+    pos = 0
+    for h in headings:
+        pos = txt.index(h, pos)
+        indices.append(pos)
+        pos += len(h)
+    return indices
+
+
 def test_news_daily_docx(tmp_path):
     model = NewsDailyReport(
         summary="Résumé du jour.",
         suisse_romande=[
             NewsItem.model_validate({"title": "Titre-Romandie", "source": "RTS", "link": "http://rts.ch"})
         ],
-        methodology={"sources": "42 flux"},
+        methodology=None,
     )
     # NewsDailyReport's field_validators normalize any str/list[str] passed at
     # construction time into list[NewsItem] (or [] for a bare str) for these fields,
@@ -34,6 +50,12 @@ def test_news_daily_docx(tmp_path):
     # validation (validate_assignment=False).
     model.france = "Actualité française en bloc."
     model.economy = ["Éco-Item-Un", "Éco-Item-Deux"]
+    # validate_methodology stringifies any dict passed at construction time
+    # (v.get("description", str(v))), which would collapse this into the raw
+    # Python-dict repr and silently defeat the assembler's `dict` branch. Assign
+    # post-construction (same validator-bypass technique as above) to keep it a
+    # real dict and genuinely exercise `_methodology_body`'s dict branch.
+    model.methodology = {"sources": "42 flux"}
     llm = _StubLLM()
     out = assemble_news_daily_docx(
         model, {"current_date": "2026-07-13", "topic": "Actualités"}, str(tmp_path / "news.docx"), llm
@@ -49,6 +71,12 @@ def test_news_daily_docx(tmp_path):
         "42 flux",
     ]:
         assert verbatim in txt, f"missing verbatim content: {verbatim}"
+
+    # Discriminate the assembler's dict branch (bold "- **key** : value" bullets)
+    # from its str fallback: the dict key must render as a bullet label, and the
+    # raw Python-dict repr must never leak into the document.
+    assert "sources" in txt
+    assert "{'sources'" not in txt
 
     assert "None" not in txt
 
@@ -66,7 +94,7 @@ def test_news_daily_docx(tmp_path):
         "Économie",
         "Méthodologie",
     ]
-    indices = [txt.index(h) for h in headings]
+    indices = _sequential_indices(txt, headings)
     assert indices == sorted(indices)
 
 
