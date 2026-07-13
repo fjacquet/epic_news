@@ -36,3 +36,7 @@ def test_deep_research_docx(tmp_path):
     assert "9 sources" in txt  # deterministic sources line
     # narrated: exec summary + 1 research section + methodology = 3 llm calls
     assert llm.calls == 3
+    # section headings appear in the expected order
+    headings = ["Résumé exécutif", "Principales conclusions", "Sec1", "Méthodologie", "Sources"]
+    indices = [txt.index(h) for h in headings]
+    assert indices == sorted(indices)
