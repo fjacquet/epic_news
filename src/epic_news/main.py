@@ -90,8 +90,20 @@ from epic_news.services.menu_designer_service import MenuDesignerService
 # Import the normalization utility
 from epic_news.utils.diagnostics import dump_crewai_state, parse_crewai_output
 from epic_news.utils.directory_utils import ensure_output_directories
+from epic_news.utils.docx_report.crews.book_summary import assemble_book_summary_docx
+from epic_news.utils.docx_report.crews.company_news import assemble_company_news_docx
+from epic_news.utils.docx_report.crews.cooking import assemble_cooking_docx
 from epic_news.utils.docx_report.crews.deep_research import assemble_deep_research_docx
 from epic_news.utils.docx_report.crews.fin_daily import assemble_fin_daily_docx
+from epic_news.utils.docx_report.crews.meeting_prep import assemble_meeting_prep_docx
+from epic_news.utils.docx_report.crews.menu import assemble_menu_docx
+from epic_news.utils.docx_report.crews.news_daily import assemble_news_daily_docx
+from epic_news.utils.docx_report.crews.osint import assemble_osint_docx
+from epic_news.utils.docx_report.crews.pestel import assemble_pestel_docx
+from epic_news.utils.docx_report.crews.rss_weekly import assemble_rss_docx
+from epic_news.utils.docx_report.crews.saint import assemble_saint_docx
+from epic_news.utils.docx_report.crews.sales_prospecting import assemble_sales_prospecting_docx
+from epic_news.utils.docx_report.crews.shopping import assemble_shopping_docx
 from epic_news.utils.docx_report.dispatch import emit_report
 from epic_news.utils.docx_report.format_selection import parse_output_format
 from epic_news.utils.email_sender import EmailDeliveryError, send_report_email
@@ -107,6 +119,7 @@ from epic_news.utils.menu_generator import MenuGenerator
 from epic_news.utils.observability import get_observability_tools, trace_task
 from epic_news.utils.report_utils import (
     generate_rss_weekly_html_report,
+    load_rss_weekly_report,
     prepare_email_params,
 )
 from epic_news.utils.rss_utils import fetch_articles_from_opml
@@ -396,8 +409,14 @@ class ReceptionFlow(Flow[ContentState]):
             self.state.output_file, CompanyNewsReport, output, crew_inputs, "company news"
         )
         html_file = "output/company_news/report.html"
-        render_and_write_html("COMPANY_NEWS", news_model, html_file)
-        self.state.output_file = html_file
+        emit_report(
+            self.state,
+            "COMPANY_NEWS",
+            lambda: str(render_and_write_html("COMPANY_NEWS", news_model, html_file)),
+            assemble_docx=lambda: assemble_company_news_docx(
+                news_model, self.state.to_crew_inputs(), str(Path(html_file).with_suffix(".docx"))
+            ),
+        )
         self.state.company_news_report = output
 
     @listen("go_generate_rss_weekly")
@@ -496,23 +515,36 @@ class ReceptionFlow(Flow[ContentState]):
             # If we can't save the file, there's no point in continuing.
             return
 
-        # Step 3: Generate the final HTML report
-        self.logger.info("Step 3: Generating HTML report...")
-        try:
+        # Step 3: Generate the final report (HTML by default, DOCX on request)
+        self.logger.info("Step 3: Generating report...")
+
+        def _render_rss_html() -> str:
             generate_rss_weekly_html_report(
                 json_file_path=str(translated_report_path),
                 output_html_path=str(html_report_path),
             )
+            return str(html_report_path)
+
+        try:
+            emit_report(
+                self.state,
+                "RSS",
+                _render_rss_html,
+                assemble_docx=lambda: assemble_rss_docx(
+                    load_rss_weekly_report(str(translated_report_path)),
+                    self.state.to_crew_inputs(),
+                    "output/rss_weekly/report.docx",
+                ),
+            )
         except Exception as e:
-            self.logger.error("❌ RSS HTML generation failed: {}", e)
+            self.logger.error("❌ RSS report generation failed: {}", e)
             # Do not pretend the pipeline succeeded — leave output_file unset so
             # the email step either skips the attachment or skips altogether.
             return
 
-        # Store the final report path in the state (only when HTML write actually succeeded)
-        self.state.rss_weekly_report = f"Report generated at {html_report_path}"
-        self.state.output_file = str(html_report_path)
-        self.logger.info(f"✅ New RSS weekly pipeline complete. Report at: {html_report_path}")
+        # Store the final report path in the state (only when write actually succeeded)
+        self.state.rss_weekly_report = f"Report generated at {self.state.output_file}"
+        self.logger.info(f"✅ New RSS weekly pipeline complete. Report at: {self.state.output_file}")
 
     @listen("go_generate_findaily")
     @trace_task(tracer)
@@ -587,14 +619,20 @@ class ReceptionFlow(Flow[ContentState]):
         news_daily_model = load_or_parse_model(
             self.state.output_file, NewsDailyReport, output, inputs, "news daily"
         )
-        html_path = render_and_write_html(
-            "NEWSDAILY", news_daily_model, "output/news_daily/final_report.html"
+        # emit_report points output_file at the rendered report (was the intermediate
+        # JSON) so the email attaches — and the UI displays — the report, not raw JSON.
+        emit_report(
+            self.state,
+            "NEWSDAILY",
+            lambda: str(
+                render_and_write_html("NEWSDAILY", news_daily_model, "output/news_daily/final_report.html")
+            ),
+            assemble_docx=lambda: assemble_news_daily_docx(
+                news_daily_model, self.state.to_crew_inputs(), "output/news_daily/report.docx"
+            ),
         )
-        # Point output_file at the rendered HTML (was the intermediate JSON) so the
-        # email attaches — and the UI displays — the report, not raw JSON.
-        self.state.output_file = str(html_path)
         self.state.news_daily_model = news_daily_model
-        self.logger.info(f"✅ News content generated and HTML written to {html_path}")
+        self.logger.info(f"✅ News content generated → {self.state.output_file}")
 
     @listen("go_generate_saint_daily")
     @trace_task(tracer)
@@ -622,8 +660,14 @@ class ReceptionFlow(Flow[ContentState]):
         saint_model = load_or_parse_model(self.state.output_file, SaintData, output, inputs, "saint daily")
         self.state.saint_daily_model = saint_model
         html_file = "output/saint_daily/report.html"
-        render_and_write_html("SAINT", saint_model, html_file)
-        self.state.output_file = html_file
+        emit_report(
+            self.state,
+            "SAINT",
+            lambda: str(render_and_write_html("SAINT", saint_model, html_file)),
+            assemble_docx=lambda: assemble_saint_docx(
+                saint_model, self.state.to_crew_inputs(), str(Path(html_file).with_suffix(".docx"))
+            ),
+        )
         self.logger.info("✅ Saint content generated and HTML written")
 
     @listen("go_generate_recipe")
@@ -684,7 +728,14 @@ class ReceptionFlow(Flow[ContentState]):
                 recipe_model = parse_crewai_output(cooking_result, PaprikaRecipe, crew_inputs)
 
         html_file = f"{self.state.output_dir}/{self.state.topic_slug}.html"
-        render_and_write_html("COOKING", recipe_model, html_file)
+        emit_report(
+            self.state,
+            "COOKING",
+            lambda: str(render_and_write_html("COOKING", recipe_model, html_file)),
+            assemble_docx=lambda: assemble_cooking_docx(
+                recipe_model, self.state.to_crew_inputs(), str(Path(html_file).with_suffix(".docx"))
+            ),
+        )
         self.logger.info("✅ Recipe generation complete")
 
     @listen("go_generate_menu_designer")
@@ -724,8 +775,15 @@ class ReceptionFlow(Flow[ContentState]):
                 self.logger.info("✅ Menu plan validated successfully")
 
                 html_file = f"{output_dir}/{crew_inputs['menu_slug']}.html"
-                render_and_write_html("MENU", menu_plan, html_file)
-                self.logger.info(f"✅ Menu plan HTML written to {html_file}")
+                emit_report(
+                    self.state,
+                    "MENU",
+                    lambda: str(render_and_write_html("MENU", menu_plan, html_file)),
+                    assemble_docx=lambda: assemble_menu_docx(
+                        menu_plan, crew_inputs, str(Path(html_file).with_suffix(".docx"))
+                    ),
+                )
+                self.logger.info(f"✅ Menu plan report written to {self.state.output_file}")
 
                 # Store the validated menu plan in state
                 self.state.menu_plan = menu_plan
@@ -735,7 +793,7 @@ class ReceptionFlow(Flow[ContentState]):
                 menu_structure_result = menu_plan.model_dump()
                 self.logger.info("🔄 Converted validated menu plan to dict for recipe generation")
 
-                final_report = html_file
+                final_report = self.state.output_file
             else:
                 self.logger.error("❌ Failed to generate valid menu plan")
                 final_report = f"{output_dir}/error.html"
@@ -769,10 +827,17 @@ class ReceptionFlow(Flow[ContentState]):
                 self.logger.warning("⚠️ Fallback validation failed, creating emergency fallback")
                 report_model = validator.create_fallback_menu_plan()
 
-            render_and_write_html("MENU", report_model, html_file)
-            self.logger.info(f"✅ Fallback menu plan generated and HTML written to {html_file}")
+            emit_report(
+                self.state,
+                "MENU",
+                lambda: str(render_and_write_html("MENU", report_model, html_file)),
+                assemble_docx=lambda: assemble_menu_docx(
+                    report_model, crew_inputs, str(Path(html_file).with_suffix(".docx"))
+                ),
+            )
+            self.logger.info(f"✅ Fallback menu plan generated → {self.state.output_file}")
 
-            final_report = html_file
+            final_report = self.state.output_file
 
         # Parse menu structure and generate recipes (step 2)
         self.logger.info("👩‍🍳 Step 2/2: Generating individual recipes")
@@ -840,11 +905,16 @@ class ReceptionFlow(Flow[ContentState]):
             inputs["output_file"], BookSummaryReport, output, inputs, "book summary"
         )
         html_file = "output/library/book_summary.html"
-        render_and_write_html("BOOK_SUMMARY", book_summary_model, html_file)
-        # Record the rendered report path so the Streamlit UI / API can locate it
-        # (app.py reads flow.state.output_file). Every other generate_* method
-        # sets this; without it the finished report can't be displayed.
-        self.state.output_file = html_file
+        # emit_report records the rendered report path in state.output_file so the
+        # Streamlit UI / API (app.py reads flow.state.output_file) can locate it.
+        emit_report(
+            self.state,
+            "BOOK_SUMMARY",
+            lambda: str(render_and_write_html("BOOK_SUMMARY", book_summary_model, html_file)),
+            assemble_docx=lambda: assemble_book_summary_docx(
+                book_summary_model, self.state.to_crew_inputs(), str(Path(html_file).with_suffix(".docx"))
+            ),
+        )
 
     @listen("go_generate_shopping_advice")
     @trace_task(tracer)
@@ -891,9 +961,15 @@ class ReceptionFlow(Flow[ContentState]):
         topic = self.state.extracted_info.topic or "product-recommendation"
         topic_slug = topic.lower().replace(" ", "-").replace("'", "").replace('"', "")
         html_file = f"output/shopping_advisor/shopping-advice-{topic_slug}.html"
-        self.state.output_file = html_file
 
-        render_and_write_html("SHOPPING", shopping_advice_obj, html_file)
+        emit_report(
+            self.state,
+            "SHOPPING",
+            lambda: str(render_and_write_html("SHOPPING", shopping_advice_obj, html_file)),
+            assemble_docx=lambda: assemble_shopping_docx(
+                shopping_advice_obj, self.state.to_crew_inputs(), str(Path(html_file).with_suffix(".docx"))
+            ),
+        )
         self.logger.info("✅ Shopping advice content generated and HTML written")
 
     @listen("go_generate_meeting_prep")
@@ -927,8 +1003,14 @@ class ReceptionFlow(Flow[ContentState]):
         )
         self.state.meeting_prep_report = meeting_model
         html_file = "output/meeting/meeting_preparation.html"
-        render_and_write_html("MEETING_PREP", meeting_model, html_file)
-        self.state.output_file = html_file
+        emit_report(
+            self.state,
+            "MEETING_PREP",
+            lambda: str(render_and_write_html("MEETING_PREP", meeting_model, html_file)),
+            assemble_docx=lambda: assemble_meeting_prep_docx(
+                meeting_model, self.state.to_crew_inputs(), str(Path(html_file).with_suffix(".docx"))
+            ),
+        )
 
     @listen("go_generate_sales_prospecting_report")
     @trace_task(tracer)
@@ -960,10 +1042,19 @@ class ReceptionFlow(Flow[ContentState]):
         report_model = load_or_parse_model(
             self.state.output_file, SalesProspectingReport, output, inputs, "sales prospecting"
         )
-        html_path = render_and_write_html(
-            "SALES_PROSPECTING", report_model, "output/sales_prospecting/report.html"
+        emit_report(
+            self.state,
+            "SALES_PROSPECTING",
+            lambda: str(
+                render_and_write_html(
+                    "SALES_PROSPECTING", report_model, "output/sales_prospecting/report.html"
+                )
+            ),
+            assemble_docx=lambda: assemble_sales_prospecting_docx(
+                report_model, self.state.to_crew_inputs(), "output/sales_prospecting/report.docx"
+            ),
         )
-        self.logger.info(f"✅ Sales prospecting report generated and HTML written to {html_path}")
+        self.logger.info(f"✅ Sales prospecting report generated → {self.state.output_file}")
 
     @listen("go_generate_deep_research")
     @trace_task(tracer)
@@ -1103,9 +1194,15 @@ class ReceptionFlow(Flow[ContentState]):
         md_path.parent.mkdir(parents=True, exist_ok=True)
         md_path.write_text(pestel_to_markdown(pestel_model), encoding="utf-8")
 
-        html_path = render_and_write_html("PESTEL", pestel_model, "output/pestel/report.html")
-        self.state.output_file = str(html_path)
-        self.logger.info(f"✅ PESTEL report written to {html_path} (+ {md_path})")
+        emit_report(
+            self.state,
+            "PESTEL",
+            lambda: str(render_and_write_html("PESTEL", pestel_model, "output/pestel/report.html")),
+            assemble_docx=lambda: assemble_pestel_docx(
+                pestel_model, self.state.to_crew_inputs(), "output/pestel/report.docx"
+            ),
+        )
+        self.logger.info(f"✅ PESTEL report written to {self.state.output_file} (+ {md_path})")
 
     @listen("go_generate_osint")
     @trace_task(tracer)
@@ -1128,6 +1225,16 @@ class ReceptionFlow(Flow[ContentState]):
 
         # Run all OSINT crews in parallel (already in async context from CrewAI flow)
         await self._run_osint_parallel()
+
+        # HTML by default (the consolidated report the pipeline just built); DOCX on request.
+        emit_report(
+            self.state,
+            "OSINT",
+            lambda: "output/osint/global_report.html",
+            assemble_docx=lambda: assemble_osint_docx(
+                self.state.to_crew_inputs(), "output/osint/report.docx"
+            ),
+        )
 
     async def _run_osint_parallel(self):
         """
