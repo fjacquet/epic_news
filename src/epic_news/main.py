@@ -90,6 +90,10 @@ from epic_news.services.menu_designer_service import MenuDesignerService
 # Import the normalization utility
 from epic_news.utils.diagnostics import dump_crewai_state, parse_crewai_output
 from epic_news.utils.directory_utils import ensure_output_directories
+from epic_news.utils.docx_report.crews.deep_research import assemble_deep_research_docx
+from epic_news.utils.docx_report.crews.fin_daily import assemble_fin_daily_docx
+from epic_news.utils.docx_report.dispatch import emit_report
+from epic_news.utils.docx_report.format_selection import parse_output_format
 from epic_news.utils.email_sender import EmailDeliveryError, send_report_email
 from epic_news.utils.extractors.deep_research import DeepResearchExtractor
 from epic_news.utils.extractors.factory import ContentExtractorFactory
@@ -275,6 +279,9 @@ class ReceptionFlow(Flow[ContentState]):
                 parsed_category = category_key
 
         self.state.selected_crew = parsed_category
+        # Runtime output-format intent from the request text. The OUTPUT_FORMAT env flag
+        # still overrides this at resolve time (see resolve_output_format).
+        self.state.output_format = self.state.output_format or parse_output_format(self.state.user_request)
         self.logger.info(
             f"✅ Classification complete. Raw: '{raw_classification}', Selected crew: {self.state.selected_crew}"
         )
@@ -539,9 +546,17 @@ class ReceptionFlow(Flow[ContentState]):
         financial_report_model = load_or_parse_model(
             self.state.output_file, FinancialReport, output, inputs, "financial report"
         )
-        html_path = render_and_write_html("FINDAILY", financial_report_model, "output/findaily/report.html")
-        self.state.output_file = str(html_path)
-        self.logger.info(f"✅ Financial content generated and HTML written to {html_path}")
+        emit_report(
+            self.state,
+            "FINDAILY",
+            lambda: str(
+                render_and_write_html("FINDAILY", financial_report_model, "output/findaily/report.html")
+            ),
+            assemble_docx=lambda: assemble_fin_daily_docx(
+                financial_report_model, self.state.to_crew_inputs(), "output/findaily/report.docx"
+            ),
+        )
+        self.logger.info(f"✅ Financial report generated → {self.state.output_file}")
 
     @listen("go_generate_news_daily")
     @trace_task(tracer)
@@ -999,27 +1014,35 @@ class ReceptionFlow(Flow[ContentState]):
 
         self.state.deep_research_report = research_report_model
 
-        # Use modern ContentExtractorFactory and TemplateManager architecture
-        state_data = {
-            "deep_research_report": research_report_model,
-            "final_report": str(output),
-            "user_request": self.state.user_request,
-            "current_date": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        }
+        def _render_html() -> str:
+            # Use modern ContentExtractorFactory and TemplateManager architecture
+            state_data = {
+                "deep_research_report": research_report_model,
+                "final_report": str(output),
+                "user_request": self.state.user_request,
+                "current_date": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            }
+            # Extract structured content using ContentExtractorFactory
+            extracted_content = ContentExtractorFactory.extract_content(state_data, "DEEPRESEARCH")
+            # Render via TemplateManager (extracted_content is a dict, not a Pydantic model)
+            template_manager = TemplateManager()
+            html_content = template_manager.render_report(
+                selected_crew="DEEPRESEARCH", content_data=extracted_content
+            )
+            html_out = Path(html_file)
+            html_out.parent.mkdir(parents=True, exist_ok=True)
+            html_out.write_text(html_content, encoding="utf-8")
+            return html_file
 
-        # Extract structured content using ContentExtractorFactory
-        extracted_content = ContentExtractorFactory.extract_content(state_data, "DEEPRESEARCH")
-
-        # Render via TemplateManager (extracted_content is a dict, not a Pydantic model)
-        template_manager = TemplateManager()
-        html_content = template_manager.render_report(
-            selected_crew="DEEPRESEARCH", content_data=extracted_content
+        emit_report(
+            self.state,
+            "DEEPRESEARCH",
+            _render_html,
+            assemble_docx=lambda: assemble_deep_research_docx(
+                research_report_model, inputs, "output/deep_research/report.docx"
+            ),
         )
-        html_out = Path(html_file)
-        html_out.parent.mkdir(parents=True, exist_ok=True)
-        html_out.write_text(html_content, encoding="utf-8")
-
-        self.logger.info(f"✅ Deep research report generated and HTML written to {html_file}")
+        self.logger.info(f"✅ Deep research report generated → {self.state.output_file}")
 
     @listen("go_generate_pestel")
     @trace_task(tracer)
