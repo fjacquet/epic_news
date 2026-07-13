@@ -1,11 +1,17 @@
-"""DEEPRESEARCH → DOCX: narrated prose + deterministic findings/sources."""
+"""DEEPRESEARCH → DOCX: narrated prose + deterministic findings/sources.
+
+Consumes the flow's ``DeepResearchReport`` (``models/crews/deep_research.py``) — the
+model ``ReceptionFlow.generate_deep_research`` and ``DeepResearchExtractor`` actually
+produce. (An earlier draft targeted the parallel ``deep_research_report.py`` model,
+which the flow never emits; see the Task 5/7 integration fix.)
+"""
 
 from typing import Any
 
 from loguru import logger
 
 from epic_news.config.llm_config import LLMConfig
-from epic_news.models.crews.deep_research_report import DeepResearchReport
+from epic_news.models.crews.deep_research import DeepResearchReport, ResearchSource
 from epic_news.utils.docx_report import Section, assemble_fragments
 
 _PERSONA = (
@@ -17,6 +23,15 @@ _MAX_SECTIONS = 20
 
 def _bullets(items: list[str]) -> str:
     return "\n".join(f"- {i}" for i in items) if items else "_Aucune._"
+
+
+def _sources_block(sources: list[ResearchSource]) -> str:
+    """Deterministic Sources section: a count line plus a verbatim bullet per source."""
+    if not sources:
+        return "_Aucune source._"
+    lines = [f"{len(sources)} sources consultées.", ""]
+    lines += [f"- {s.title} — {s.url}" for s in sources]
+    return "\n".join(lines)
 
 
 def assemble_deep_research_docx(
@@ -43,7 +58,7 @@ def assemble_deep_research_docx(
     for rs in research_sections[:_MAX_SECTIONS]:
         sections.append(
             Section(
-                rs.section_title,
+                rs.title,
                 instruction="Développe cette section en prose détaillée.",
                 context=rs.content or "",
             )
@@ -51,13 +66,9 @@ def assemble_deep_research_docx(
     sections.append(
         Section("Méthodologie", instruction="Décris la méthodologie.", context=model.methodology or "")
     )
-    sections.append(
-        Section(
-            "Sources", body=f"{model.sources_count} sources — niveau de confiance : {model.confidence_level}."
-        )
-    )
+    sections.append(Section("Sources", body=_sources_block(model.sources)))
     meta = {
-        "title": model.title or model.topic or "Recherche",
+        "title": model.title or "Recherche",
         "date": inputs.get("current_date", ""),
         "author": "Epic News",
     }
