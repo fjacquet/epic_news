@@ -1,7 +1,9 @@
 import json
 import zipfile
+from unittest.mock import patch
 
 from epic_news.models.crews.rss_weekly_report import ArticleSummary, FeedDigest, RssWeeklyReport
+from epic_news.utils import report_utils
 from epic_news.utils.docx_report.crews.rss_weekly import assemble_rss_docx
 from epic_news.utils.report_utils import load_rss_weekly_report
 
@@ -87,10 +89,54 @@ def test_load_rss_weekly_report_both_shapes(tmp_path):
     assert direct_model.title == "Veille-Directe"
 
     # RssFeeds shape: transformed via _transform_rss_feeds_to_report.
+    #
+    # A bare {"rss_feeds": [...]} would NOT exercise the transform fallback:
+    # RssWeeklyReport has no required fields and Pydantic v2 extra="ignore" silently
+    # drops the unknown "rss_feeds" key, so it validates directly as an (empty)
+    # RssWeeklyReport and never reaches RssFeeds/_transform_rss_feeds_to_report. The
+    # invalid "feeds" type below makes RssWeeklyReport.model_validate raise, which
+    # forces the RssFeeds + transform fallback path to actually run.
     feeds_path = tmp_path / "feeds.json"
     feeds_path.write_text(
-        json.dumps({"rss_feeds": [{"feed_url": "u", "articles": []}]}),
+        json.dumps(
+            {
+                "feeds": "not-a-list",
+                "rss_feeds": [{"feed_url": "u", "articles": []}],
+            }
+        ),
         encoding="utf-8",
     )
-    transformed_model = load_rss_weekly_report(str(feeds_path))
+    with patch(
+        "epic_news.utils.report_utils._transform_rss_feeds_to_report",
+        wraps=report_utils._transform_rss_feeds_to_report,
+    ) as spy_transform:
+        transformed_model = load_rss_weekly_report(str(feeds_path))
+    spy_transform.assert_called_once()
     assert isinstance(transformed_model, RssWeeklyReport)
+
+
+def test_assemble_rss_docx_feed_name_none_uses_feed_url(tmp_path):
+    """A FeedDigest with feed_name=None falls back to feed_url as its heading."""
+    model = RssWeeklyReport(
+        title="Veille-Sans-Nom",
+        feeds=[
+            FeedDigest(
+                feed_url="https://only-url.example/rss",
+                feed_name=None,
+                articles=[
+                    ArticleSummary(
+                        title="T",
+                        link="https://a.example/1",
+                        published="2026-07-13",
+                        summary="S",
+                        source_feed="https://only-url.example/rss",
+                    )
+                ],
+                total_articles=1,
+            )
+        ],
+    )
+    llm = _StubLLM()
+    out = assemble_rss_docx(model, {"current_date": "2026-07-13"}, str(tmp_path / "r2.docx"), llm)
+    txt = _text(out)
+    assert "https://only-url.example/rss" in txt  # heading falls back to feed_url
