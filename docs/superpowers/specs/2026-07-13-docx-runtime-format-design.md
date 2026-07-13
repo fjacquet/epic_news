@@ -28,14 +28,18 @@ assembler built on a shared, crew-agnostic framework factored out of holiday.
    request's natural language by default; an explicit flag/env (`OUTPUT_FORMAT`)
    wins when set. Default is HTML.
 4. **Per-crew bespoke builders**, producing **LLM-narrated** prose sections
-   (holiday's exact pattern), fed to a **shared** `build_docx()` engine.
-5. **Scope:** build the reusable framework + refactor holiday onto it + add DOCX
-   assemblers for all narrative-heavy crews.
+   (holiday's exact pattern), fed to a **shared** `build_docx()` engine. **Data-heavy
+   crews render their structured data as deterministic Markdown tables** (exact values
+   preserved — an LLM must never retype financial figures or grids) and narrate only
+   the prose around them; see §3.3.
+5. **Scope:** build the reusable framework + refactor holiday onto it + add a DOCX
+   assembler for **every routable crew** (14 crews) except POEM.
 
 ## 3. Architecture
 
 Three parts: a shared `docx_report` framework, a runtime format resolver, and one
-LLM-narrated assembler per narrative crew wired into the existing flow render step.
+assembler per crew wired into the existing flow render step. An assembler's sections
+are **LLM-narrated** where prose helps and **deterministic** where precision matters.
 
 ### 3.1 Shared framework — `src/epic_news/utils/docx_report/`
 
@@ -53,9 +57,15 @@ removed:
   per-crew persona string). Preserves graceful degradation: on empty/failed LLM
   output it returns a `> ⚠️ Section « … » indisponible` placeholder and never raises.
 - **`assemble.assemble_fragments(sections, meta, output_path, llm, system) -> str`**
-  — a thin shared helper. `sections` is a list of `(heading, instruction, context)`
-  specs; it calls `generate_fragment` for each and hands the results to
-  `build_docx`. This is what keeps each per-crew assembler tiny.
+  — a thin shared helper. Each entry in `sections` is **either**:
+  - a **narrated** spec `Section(heading, instruction, context)` → passed to
+    `generate_fragment` (LLM writes the prose), **or**
+  - a **deterministic** spec `Section(heading, body=<markdown>)` → the pre-built
+    Markdown (e.g. a table rendered from the model) is used verbatim, no LLM call.
+
+  The helper renders each entry accordingly and hands the ordered fragments to
+  `build_docx`. This keeps each per-crew assembler tiny while letting data-heavy
+  crews preserve exact values in Markdown tables and narrate only their commentary.
 - **`reference.docx`** — a shared branded Pandoc reference document (fonts, heading
   styles) passed to Pandoc via `--reference-doc`, so every DOCX has consistent Epic
   News styling. Bundled as a package data file; `build_docx` references it when present.
@@ -90,7 +100,7 @@ def resolve_output_format(state) -> str:              # "html" | "docx"
 
 ### 3.3 Per-crew assembler contract
 
-One module per narrative crew, `src/epic_news/utils/docx_report/crews/{crew}.py`:
+One module per crew, `src/epic_news/utils/docx_report/crews/{crew}.py`:
 
 ```python
 def assemble_{crew}_docx(crew_result, inputs, output_path, llm=None) -> str:
@@ -106,13 +116,20 @@ def assemble_{crew}_docx(crew_result, inputs, output_path, llm=None) -> str:
 ```
 
 The **only per-crew work**: `_PERSONA` (a one-line system prompt matching the report
-domain), the `sections` list (headings + instructions), and `_extract` (mapping the
-crew's `crew_result` / Pydantic model into each section's context). Everything
-downstream — narration, placeholder fallback, Pandoc, TOC, branding — is shared.
+domain), the `sections` list, and `_extract` (mapping the crew's `crew_result` /
+Pydantic model into each section's context). Everything downstream — narration,
+placeholder fallback, Pandoc, TOC, branding — is shared.
+
+**Narrative vs data-heavy crews.** Prose-heavy crews (deep_research, OSINT, saint,
+book_summary, PESTEL, meeting_prep, sales_prospecting, shopping, company_news) use
+mostly narrated sections. Data-heavy crews (fin_daily, menu, rss, news_daily,
+cooking) build **deterministic Markdown tables/lists from the model** for their
+structured content (exact figures, prices, feed items, ingredients preserved) and
+add at most a short narrated intro/commentary. The LLM never re-types the data.
 
 ### 3.4 Flow dispatch integration
 
-A shared render helper (used by each narrative crew's `generate_*` method) selects
+A shared render helper (used by each crew's `generate_*` method) selects
 the path:
 
 ```python
@@ -135,19 +152,20 @@ else:
 ### 3.5 Crew classification
 
 DOCX assemblers are **additive** (no HTML is lost), so this is "which crews can
-produce DOCX on request," not "which crews are converted."
+produce DOCX on request." **Every routable crew gets one except POEM.**
 
-| Gains a DOCX assembler (this effort) | HTML-only (no assembler this effort) |
+| Mostly LLM-narrated (prose) | Deterministic tables + narrated commentary |
 |---|---|
 | DEEPRESEARCH, OSINT, BOOK_SUMMARY | FINDAILY (numbers/tables) |
 | MEETING_PREP, PESTEL, SALES_PROSPECTING | MENU (menu + shopping grid) |
 | SAINT (biography), SHOPPING (advice) | RSS (feed-item list) |
-| COMPANY_NEWS | NEWSDAILY, COOKING (data-heavy; trivial to add later) |
-| HOLIDAY (refactor onto framework; stays DOCX-default) | POEM (creative text; out of scope) |
+| COMPANY_NEWS | NEWSDAILY (news items), COOKING (ingredients/steps) |
+| HOLIDAY (refactor onto framework; stays DOCX-default) | — |
 
-**9 new assemblers + holiday refactored.** NEWSDAILY and COOKING are deliberately
-deferred (data-heavy); adding them later is the same recipe and needs no framework
-change.
+**14 new/refactored assemblers** (9 prose-leaning + 5 data-heavy) + HOLIDAY on the
+shared framework. POEM (creative text) is excluded. The two groups share the same
+framework and contract; they differ only in how many sections are narrated vs
+deterministic.
 
 ## 4. Data flow
 
@@ -184,6 +202,10 @@ LLM** (returns canned Markdown):
   assert the correct section headings appear in order, `_extract` pulls the right
   context, and `build_docx` yields a valid, openable `.docx` (verify by unzipping the
   OOXML or round-tripping through Pandoc). Mirrors holiday's existing tests.
+- **Data fidelity (data-heavy crews)** — assert exact values (figures, prices, feed
+  URLs, ingredient quantities) from the model appear verbatim in the DOCX, and that
+  deterministic-table sections make **no** LLM call (the stub LLM is asserted
+  uninvoked for those sections).
 - **Dispatch** — `docx` + assembler → `.docx` output_file; `docx` + no assembler →
   HTML fallback; `html` → HTML.
 - **Holiday refactor** — its existing tests must stay green against the shared
@@ -199,14 +221,18 @@ LLM** (returns canned Markdown):
   **out of scope** here.
 - **Pandoc** is a hard runtime dependency — already true for holiday, so Docker/CI
   already provide it; converted crews now depend on it too.
-- **Two paths maintained per narrative crew** (HTML renderer + DOCX assembler) —
-  inherent to runtime flexibility and the explicit requirement.
+- **Two paths maintained per crew** (HTML renderer + DOCX assembler) — inherent to
+  runtime flexibility and the explicit requirement; 14 crews now carry both.
 - **Parse false positives/negatives** — mitigated by the deterministic flag override
   and the HTML-safe default.
+- **Data fidelity** — LLM narration of precise figures/tables would drop or
+  hallucinate values; mitigated by rendering data-heavy content as **deterministic
+  Markdown tables** from the model (no LLM in the loop for those sections) and
+  asserting verbatim values in tests.
 
 ## 8. Out of scope
 
-- Converting NEWSDAILY / COOKING / data-heavy crews (deferred; same recipe later).
+- A DOCX assembler for POEM (creative text; stays HTML).
 - Async/parallel section narration (performance optimization).
 - PDF output, an HTML fallback renderer for holiday, or retiring any HTML renderer.
 - Changing `send_email`, the classifier routing, or crew logic beyond adding the
@@ -218,9 +244,9 @@ LLM** (returns canned Markdown):
   with holiday's tests still green.
 - HTML remains the default and every existing HTML report is byte-for-byte unchanged
   when no DOCX is requested.
-- For each of the 9 narrative crews, a DOCX request (parsed phrase or
-  `OUTPUT_FORMAT=docx`) produces a valid, LLM-narrated, TOC'd `.docx` delivered by
-  email; a normal request still produces the HTML.
+- For each of the 14 crews, a DOCX request (parsed phrase or `OUTPUT_FORMAT=docx`)
+  produces a valid, TOC'd `.docx` delivered by email; a normal request still produces
+  the HTML. Data-heavy crews' DOCX contains their exact figures/items in tables.
 - `resolve_output_format` honours flag > parse > default, verified by tests.
 - Every new unit (resolver, parser, framework helpers, each assembler) has tests;
   the full suite is green.
