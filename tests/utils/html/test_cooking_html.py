@@ -182,3 +182,87 @@ def test_missing_ingredients_and_instructions_skip_their_sections():
 
     assert 'class="recipe-ingredients"' not in html
     assert 'class="recipe-instructions"' not in html
+
+
+def test_string_ingredients_render_as_lines_not_characters():
+    """The pipeline feeds ``model_dump()``, where ``ingredients`` is a single text block
+    (str), not a list. The renderer must split it into line items — iterating the raw
+    string yields one <li> per character (the 'one letter per line' bug)."""
+    renderer = CookingRenderer()
+    html = renderer.render(
+        {
+            "recipe_title": "Salade César",
+            "ingredients": "Pour la salade :\n- 2 grandes salades romaines\n- 50 g de parmesan",
+        }
+    )
+
+    assert 'class="ingredients-list"' in html
+    assert "2 grandes salades romaines" in html
+    assert "50 g de parmesan" in html
+    # Exactly one spoon marker per source line (3), not one per character.
+    assert html.count("🥄") == 3
+
+
+def test_directions_key_renders_instructions_section():
+    """``model_dump()`` exposes the field as ``directions`` (str), not ``instructions``.
+    The renderer must fall back to ``directions`` and split numbered ``1. 2. 3.`` steps."""
+    renderer = CookingRenderer()
+    html = renderer.render(
+        {
+            "recipe_title": "Salade César",
+            "directions": "1. Préparer les croûtons.\n2. Monter la sauce.\n3. Dresser.",
+        }
+    )
+
+    assert 'class="recipe-instructions"' in html
+    assert "📝 Instructions" in html
+    assert "Préparer les croûtons." in html
+    assert "Monter la sauce." in html
+    assert "Dresser." in html
+    # Three distinct <li> steps, not one blob and not char-per-li.
+    assert html.count("<li") == 3
+
+
+def test_paprika_model_dump_shape_renders_correctly():
+    """End-to-end contract: what the flow actually feeds the renderer is
+    ``PaprikaRecipe.model_dump()`` — ingredients/directions as raw text blocks."""
+    from epic_news.models.crews.cooking_recipe import PaprikaRecipe
+
+    recipe = PaprikaRecipe(
+        name="Salade César",
+        ingredients="- 2 salades romaines\n- 50 g de parmesan",
+        directions="1. Laver la salade.\n2. Ajouter la sauce.",
+    )
+
+    html = CookingRenderer().render(recipe.model_dump())
+
+    assert "2 salades romaines" in html
+    assert "50 g de parmesan" in html
+    assert html.count("🥄") == 2
+    assert "📝 Instructions" in html
+    assert "Laver la salade." in html
+    assert "Ajouter la sauce." in html
+
+
+def test_directions_without_numbering_split_by_lines():
+    """Directions with no ``1. 2.`` numbering fall back to newline splitting."""
+    renderer = CookingRenderer()
+    html = renderer.render(
+        {
+            "recipe_title": "Simple",
+            "directions": "Mélanger les ingrédients.\nCuire au four.",
+        }
+    )
+
+    assert 'class="recipe-instructions"' in html
+    assert "Mélanger les ingrédients." in html
+    assert "Cuire au four." in html
+    assert html.count("<li") == 2
+
+
+def test_coercion_helpers_ignore_non_text_values():
+    """Non-str/non-list ingredients/directions coerce to an empty list (section skipped)."""
+    assert CookingRenderer._as_lines(None) == []
+    assert CookingRenderer._as_lines(123) == []
+    assert CookingRenderer._as_steps(None) == []
+    assert CookingRenderer._as_steps({"a": 1}) == []

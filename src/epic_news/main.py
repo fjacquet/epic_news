@@ -423,7 +423,10 @@ class ReceptionFlow(Flow[ContentState]):
             "input_file": str(raw_report_path),
             "output_file": str(translated_report_path),
         }
-        report_output = kickoff_flow(RssWeeklyCrew(), translation_inputs)
+        # This method is async (Step 1 awaits fetch_articles_from_opml); CrewAI 1.15
+        # rejects a synchronous crew.kickoff() from within the running event loop.
+        # Use the async flow wrapper, matching generate_osint.
+        report_output = await akickoff_flow(RssWeeklyCrew(), translation_inputs)
         dump_crewai_state(report_output, "RSS_WEEKLY_TRANSLATION")
 
         # Step 2.5: Save the translated report
@@ -761,6 +764,7 @@ class ReceptionFlow(Flow[ContentState]):
 
         if menu_structure_result is None:
             self.logger.error("❌ No menu structure available for recipe generation")
+            self.state.output_file = final_report
             self.state.menu_designer_report = final_report
             return
 
@@ -793,6 +797,9 @@ class ReceptionFlow(Flow[ContentState]):
             except Exception as e:
                 self.logger.error(f"  ❌ Error with {recipe_code}: {e}")
 
+        # Point output_file at the rendered report so send_email emails it (every
+        # other generate_* sets this; without it send_email keeps the classify path).
+        self.state.output_file = final_report
         self.state.menu_designer_report = final_report
 
     @listen("go_generate_book_summary")
@@ -1501,9 +1508,19 @@ def kickoff(user_input: str | None = None):
     It can optionally take a user_input string to override the default.
 
     Returns:
-        The completed ReceptionFlow object.
+        None. The flow runs for its side effects; the console entry point runs
+        ``sys.exit(kickoff())``, which needs None/int — not the flow object.
     """
     setup_logging()
+    # Sweep/automation hook: let EPIC_NEWS_REQUEST drive the request without
+    # editing the hardcoded query below. An explicit user_input arg still wins.
+    # Log loudly when it fires (after setup_logging, so it lands in the configured
+    # logs) — a leaked/stale env var must not silently reroute a real request to
+    # the sweep string with no trace in production.
+    env_override = os.getenv("EPIC_NEWS_REQUEST")
+    if not user_input and env_override:
+        logger.warning("⚠️  EPIC_NEWS_REQUEST override active — request forced to: {!r}", env_override)
+        user_input = env_override
     # If user_input is not provided, use a default value.
     request = (
         user_input
@@ -1546,7 +1563,10 @@ def kickoff(user_input: str | None = None):
         # stderr, so the real traceback is written nowhere. Log it, then re-raise.
         logger.exception("❌ Flow kickoff failed — full traceback follows")
         raise
-    return reception_flow
+    # The console entry runs `sys.exit(kickoff())`; sys.exit() treats a non-None,
+    # non-int arg as an error message (prints its repr, exits 1). Returning the
+    # flow object made every successful run exit 1. Return None so success exits 0.
+    return
 
 
 def plot(output_path: str = "flow.png"):

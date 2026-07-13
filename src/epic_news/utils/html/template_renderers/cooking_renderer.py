@@ -5,6 +5,7 @@ Renders cooking recipe data to structured HTML using BeautifulSoup.
 Handles recipe details, ingredients, instructions and metadata.
 """
 
+import re
 from typing import Any
 
 from bs4 import BeautifulSoup
@@ -18,6 +19,41 @@ class CookingRenderer(BaseRenderer):
     def __init__(self):
         """Initialize the deep research renderer."""
         super().__init__()  # type: ignore[safe-super]
+
+    @staticmethod
+    def _as_lines(value: Any) -> list[str]:
+        """Coerce a value into a list of non-empty lines.
+
+        The flow feeds this renderer ``PaprikaRecipe.model_dump()``, where
+        ``ingredients`` is a single text block (``str``), not a list. Iterating that
+        string directly emits one ``<li>`` per character (the "one letter per line"
+        bug), so a ``str`` is split on newlines here. Lists pass through unchanged.
+        """
+        if isinstance(value, str):
+            return [line.strip() for line in value.split("\n") if line.strip()]
+        if isinstance(value, list):
+            return [str(item).strip() for item in value if str(item).strip()]
+        return []
+
+    @staticmethod
+    def _as_steps(value: Any) -> list[str]:
+        """Coerce directions/instructions into a list of steps.
+
+        A raw ``directions`` block (``str``) commonly uses ``1. … 2. …`` numbering;
+        split on that when present, otherwise fall back to newline splitting. Mirrors
+        ``PaprikaRecipe.to_template_data`` so a raw model and pre-parsed data render the
+        same. Lists pass through unchanged.
+        """
+        if isinstance(value, list):
+            return [str(item).strip() for item in value if str(item).strip()]
+        if isinstance(value, str):
+            steps = re.split(r"\s*\d+\.\s+", value)
+            if steps and not steps[0].strip():
+                steps = steps[1:]  # drop empty leading element before "1."
+            if len(steps) > 1:
+                return [step.strip() for step in steps if step.strip()]
+            return [line.strip() for line in value.split("\n") if line.strip()]
+        return []
 
     def render(self, data: dict[str, Any]) -> str:
         """
@@ -149,7 +185,7 @@ class CookingRenderer(BaseRenderer):
 
     def _add_ingredients(self, soup: BeautifulSoup, container, data: dict[str, Any]) -> None:
         """Add ingredients section with structured list."""
-        ingredients = data.get("ingredients", [])
+        ingredients = self._as_lines(data.get("ingredients", []))
         if not ingredients:
             return
 
@@ -173,7 +209,9 @@ class CookingRenderer(BaseRenderer):
 
     def _add_instructions(self, soup: BeautifulSoup, container, data: dict[str, Any]) -> None:
         """Add instructions section with numbered steps."""
-        instructions = data.get("instructions", [])
+        # ``model_dump()`` exposes the field as ``directions``; ``to_template_data`` as
+        # ``instructions``. Accept either, preferring the pre-parsed ``instructions``.
+        instructions = self._as_steps(data.get("instructions") or data.get("directions") or [])
         if not instructions:
             return
 
