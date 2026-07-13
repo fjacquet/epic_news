@@ -120,6 +120,7 @@ class ContentState(BaseModel):
     selected_crew: str = ""
     categories: dict = Field(default_factory=CrewCategories.to_dict)
     output_file: str = ""
+    output_format: str | None = None  # None → HTML; "docx" set by parse/flag
     output_dir: str = ""
     sentence_count: int = 5
 
