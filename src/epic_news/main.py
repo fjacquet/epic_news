@@ -1511,10 +1511,16 @@ def kickoff(user_input: str | None = None):
         None. The flow runs for its side effects; the console entry point runs
         ``sys.exit(kickoff())``, which needs None/int — not the flow object.
     """
+    setup_logging()
     # Sweep/automation hook: let EPIC_NEWS_REQUEST drive the request without
     # editing the hardcoded query below. An explicit user_input arg still wins.
-    user_input = user_input or os.getenv("EPIC_NEWS_REQUEST") or None
-    setup_logging()
+    # Log loudly when it fires (after setup_logging, so it lands in the configured
+    # logs) — a leaked/stale env var must not silently reroute a real request to
+    # the sweep string with no trace in production.
+    env_override = os.getenv("EPIC_NEWS_REQUEST")
+    if not user_input and env_override:
+        logger.warning("⚠️  EPIC_NEWS_REQUEST override active — request forced to: {!r}", env_override)
+        user_input = env_override
     # If user_input is not provided, use a default value.
     request = (
         user_input
