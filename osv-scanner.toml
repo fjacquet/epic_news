@@ -21,6 +21,16 @@ network endpoint is never exposed. Re-evaluate when chromadb ships a fix or crew
 relaxes the pin."""
 
 [[IgnoredVulns]]
+id = "GHSA-xf7x-x43h-rpqh"  # json_repair circular JSON Schema $ref unbounded CPU DoS (High 7.5); no CVE/PYSEC aliases per OSV
+ignoreUntil = 2026-09-07
+reason = """
+High DoS in json-repair <0.60.1 via circular $ref. json-repair is a forced \
+transitive dependency of crewai (~=0.25.2 pin) used to repair LLM JSON output; \
+no patched version is resolvable until crewai relaxes the pin — `uv lock` with a \
+json-repair>=0.60.1 floor fails against crewai 1.15.1/1.15.2. Re-evaluate when \
+crewai's json-repair requirement allows >=0.60.1."""
+
+[[IgnoredVulns]]
 id = "GHSA-p4gq-832x-fm9v"  # CVE-2026-54293 — nltk path traversal in nltk.data.load() (CVSS 7.5)
 ignoreUntil = 2026-09-07
 reason = """
