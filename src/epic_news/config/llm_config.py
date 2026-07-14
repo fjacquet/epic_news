@@ -4,8 +4,39 @@ import os
 
 from crewai import LLM
 from dotenv import load_dotenv
+from loguru import logger
 
 load_dotenv()
+
+
+def _is_empty_llm_response(result: object) -> bool:
+    """True when an ``LLM.call`` result carries no usable text.
+
+    CrewAI's ReAct path returns the model's answer as a ``str``; an empty/blank
+    string or ``None`` means the provider produced no output text for this turn.
+    """
+    if result is None:
+        return True
+    return isinstance(result, str) and not result.strip()
+
+
+def _call_with_empty_retry(call_fn, max_retries: int, model: str = "?"):
+    """Invoke ``call_fn`` and re-invoke it while it returns an empty LLM response.
+
+    Retries at most ``max_retries`` times, then returns the last (possibly empty)
+    result so the caller's normal empty-handling still applies. Extracted from the
+    ``LLM.call`` patch so the retry loop is unit-testable without live calls.
+    """
+    result = call_fn()
+    attempts = 0
+    while attempts < max_retries and _is_empty_llm_response(result):
+        attempts += 1
+        logger.warning(
+            f"Empty response from LLM '{model}' (likely Gemini thought-only turn); "
+            f"retrying {attempts}/{max_retries}"
+        )
+        result = call_fn()
+    return result
 
 
 def _patch_anthropic_detection_for_openrouter() -> None:
@@ -70,8 +101,45 @@ def _force_react_tool_calling() -> None:
     LLM._react_tool_calling_forced = True  # type: ignore[attr-defined]
 
 
+def _patch_llm_retry_on_empty() -> None:
+    """Retry ``LLM.call`` when a provider returns empty content.
+
+    ``gemini/gemini-3.5-flash`` intermittently returns a *thought-only* response on
+    CrewAI ReAct steps: the generated tokens land in a thinking block carrying a
+    ``thought_signature`` and ``message.content`` comes back ``None`` (``finish_reason``
+    is still ``stop``, so it is not a length/budget cut-off). CrewAI's
+    ``_validate_and_finalize_llm_response`` rejects the empty answer with
+    ``ValueError: Invalid response from LLM call - None or empty`` and the task dies
+    after its three built-in retries. Measured on a captured failing prompt, the
+    empties are *stochastic* (~40-60% per call on the worst prompts) and, counter-
+    intuitively, get worse with thinking disabled — so re-issuing the identical call
+    a handful of times reliably yields text. CrewAI deep-copies agent LLMs while
+    assembling crews, so this must patch the class, not an instance.
+
+    Provider-agnostic and cheap: a non-empty response returns on the first call, so
+    only genuine empties pay the retry cost. Tune the ceiling with ``LLM_EMPTY_RETRIES``
+    (default 6); set it to 0 to disable.
+    """
+    if getattr(LLM, "_retry_on_empty_patched", False):
+        return
+
+    original_call = LLM.call
+
+    def call(self: LLM, *args, **kwargs):
+        max_retries = int(os.getenv("LLM_EMPTY_RETRIES", "6"))
+        return _call_with_empty_retry(
+            lambda: original_call(self, *args, **kwargs),
+            max_retries,
+            getattr(self, "model", "?"),
+        )
+
+    LLM.call = call  # type: ignore[method-assign]
+    LLM._retry_on_empty_patched = True  # type: ignore[attr-defined]
+
+
 _patch_anthropic_detection_for_openrouter()
 _force_react_tool_calling()
+_patch_llm_retry_on_empty()
 
 
 class LLMConfig:
