@@ -1,5 +1,6 @@
 import os
 
+import pytest
 from crewai_custom_tools import PerplexitySearchTool
 from crewai_tools import (
     GithubSearchTool,
@@ -20,6 +21,11 @@ from epic_news.tools.web_tools import (
     get_website_search_tools,
     get_youtube_tools,
 )
+
+
+@pytest.fixture(autouse=True)
+def _perplexity_key(monkeypatch):
+    monkeypatch.setenv("PERPLEXITY_API_KEY", "test-key")
 
 
 def test_get_search_tools():
