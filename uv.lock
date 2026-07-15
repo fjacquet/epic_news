@@ -720,8 +720,8 @@ wheels = [
 
 [[package]]
 name = "crewai-custom-tools"
-version = "0.5.1"
-source = { git = "https://github.com/fjacquet/crewai-custom-tools.git?rev=v0.5.1#d3526e35c8dff18c39c20c71b8fec4475570b5d7" }
+version = "0.6.0"
+source = { git = "https://github.com/fjacquet/crewai-custom-tools.git?rev=v0.6.0#67b923adc298735a21a6974adadf8e78908bb2bb" }
 dependencies = [
     { name = "beautifulsoup4" },
     { name = "crewai" },
@@ -1056,7 +1056,7 @@ requires-dist = [
     { name = "composio-crewai", specifier = ">=0.15.0" },
     { name = "coverage", marker = "extra == 'test'", specifier = ">=7.14.3" },
     { name = "crewai", extras = ["google-genai"], specifier = ">=1.15.1" },
-    { name = "crewai-custom-tools", git = "https://github.com/fjacquet/crewai-custom-tools.git?rev=v0.5.1" },
+    { name = "crewai-custom-tools", git = "https://github.com/fjacquet/crewai-custom-tools.git?rev=v0.6.0" },
     { name = "crewai-tools", extras = ["mcp"], specifier = ">=1.15.2" },
     { name = "faker", marker = "extra == 'test'", specifier = ">=40.23.0" },
     { name = "fastapi", specifier = ">=0.138.2" },
