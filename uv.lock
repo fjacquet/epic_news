@@ -720,8 +720,8 @@ wheels = [
 
 [[package]]
 name = "crewai-custom-tools"
-version = "0.5.0"
-source = { git = "https://github.com/fjacquet/crewai-custom-tools.git?rev=v0.5.0#1ab7c58fddbcea202079afdbd7c61fe05258b5c4" }
+version = "0.5.1"
+source = { git = "https://github.com/fjacquet/crewai-custom-tools.git?rev=v0.5.1#d3526e35c8dff18c39c20c71b8fec4475570b5d7" }
 dependencies = [
     { name = "beautifulsoup4" },
     { name = "crewai" },
@@ -1056,7 +1056,7 @@ requires-dist = [
     { name = "composio-crewai", specifier = ">=0.15.0" },
     { name = "coverage", marker = "extra == 'test'", specifier = ">=7.14.3" },
     { name = "crewai", extras = ["google-genai"], specifier = ">=1.15.1" },
-    { name = "crewai-custom-tools", git = "https://github.com/fjacquet/crewai-custom-tools.git?rev=v0.5.0" },
+    { name = "crewai-custom-tools", git = "https://github.com/fjacquet/crewai-custom-tools.git?rev=v0.5.1" },
     { name = "crewai-tools", extras = ["mcp"], specifier = ">=1.15.2" },
     { name = "faker", marker = "extra == 'test'", specifier = ">=40.23.0" },
     { name = "fastapi", specifier = ">=0.138.2" },
@@ -3755,8 +3755,8 @@ name = "secretstorage"
 version = "3.5.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "cryptography", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
-    { name = "jeepney", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
+    { name = "cryptography" },
+    { name = "jeepney" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/1c/03/e834bcd866f2f8a49a85eaff47340affa3bfa391ee9912a952a1faa68c7b/secretstorage-3.5.0.tar.gz", hash = "sha256:f04b8e4689cbce351744d5537bf6b1329c6fc68f91fa666f60a380edddcd11be", size = 19884, upload-time = "2025-11-23T19:02:53.191Z" }
 wheels = [
