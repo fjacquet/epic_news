@@ -4,6 +4,25 @@ All notable changes to Epic News are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [3.5.1] — 2026-07-22
+
+A crash-resistance release. A holiday-planner run died with `ValidationError: 1 validation error for TaskOutput — raw: Input should be a valid string [input_value=[ChatCompletionMessageToolCall...]]`. The provider had answered a ReAct step with native tool calls; CrewAI returns that list verbatim when no `available_functions` were supplied, and every ReAct consumer downstream assumes a `str`, so the list travelled into `TaskOutput.raw` and aborted the crew.
+
+### Fixed
+- **ReAct tool-calling is now forced on every provider class, not just `crewai.llm.LLM`.** Only `LLM(..., is_litellm=True)` yields a `crewai.llm.LLM`; a bare `LLM(model="gemini/...")` or `create_llm(...)` returns a native provider class (`GeminiCompletion`, `AnthropicCompletion`, …) that overrides `supports_function_calling` with a True-returning version, leaving native function-calling reachable. The patch now sweeps the whole `BaseLLM` subclass tree, with an `__init_subclass__` hook covering provider classes imported later.
+- **Stray native tool calls are converted instead of fatal.** A returned tool-call list is rewritten as `Thought:` / `Action:` / `Action Input:` text so the agent loop runs the tool, with a warning naming the offending LLM class. OpenAI/litellm (`function.arguments`), Gemini (`function_call.args`) and Anthropic/Bedrock (`name`/`input`) shapes are all understood; anything else list-shaped is stringified rather than allowed to reach `TaskOutput.raw`.
+- **The async path is protected too.** `acall` — which tasks with `async_execution=True` go through — carries the identical raw-`tool_calls` return and previously had neither the tool-call coercion nor the pre-existing empty-response retry.
+
+### Changed
+- **Every crew now runs its tasks sequentially.** `async_execution=True` is gone from 49 tasks across 12 crews (company_profiler, cross_reference_report, fin_daily, geospatial_analysis, hr_intelligence, legal_analysis, meeting_prep, news_daily, pestel, sales_prospecting, tech_stack, web_presence). Concurrent async tasks are unsafe on CrewAI 1.15+: they share one `AgentExecutor` and can leak a raw tool-call list into `TaskOutput.raw`. HolidayPlannerCrew had already gone sequential for this reason. Expect longer wall-clock on the research-heavy crews.
+
+### Security
+- **Lockfile refresh clears four High advisories** present on the previous release: `gitpython` 3.1.51 → 3.1.53 (GHSA-rwj8-pgh3-r573) and `mcp` 1.26.0 → 1.28.1 (GHSA-hvrp-rf83-w775, GHSA-jpw9-pfvf-9f58, GHSA-vj7q-gjh5-988w). Pulled alongside: `crewai` 1.15.2 → 1.15.5, `litellm` 1.92 → 1.93, `openai` 2.45 → 2.46, `composio-crewai` 0.15 → 0.18, and 22 others.
+
+### Testing
+- `tests/config/test_llm_config_tool_call_coercion.py` covers the coercion shapes, the whole-tree ReAct forcing (including classes defined after patch time) and both the sync and async call wrappers.
+- `tests/crews/test_async_agent_isolation.py` now asserts on built `Task` objects that no crew declares `async_execution=True`, so a flag arriving from YAML config is caught too, and keeps the per-batch agent-isolation invariant for any future re-introduction.
+
 ## [3.5.0] — 2026-07-13
 
 A readability release. DOCX reports read better than HTML for most crews, so every routable `ReceptionFlow` crew now emits **HTML by default and a DOCX on request** — a runtime choice rather than a per-crew rewrite. Precise data (prices, figures, quantities, ingredient amounts, URLs, citations) is rendered deterministically from the model and never re-typed by the LLM; only prose sections are narrated. A whole-branch review verified that invariant across all 14 assemblers.
