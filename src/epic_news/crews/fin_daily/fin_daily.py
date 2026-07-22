@@ -13,11 +13,11 @@ from epic_news.tools.scraper_factory import get_scraper
 class FinDailyCrew:
     """FinDaily crew for comprehensive financial portfolio analysis.
 
-    This crew analyzes stock, crypto, and ETF portfolios. The 3 portfolio-analysis
-    tasks (stock, crypto, ETF) run asynchronously in parallel. The 3 suggestion
-    tasks run synchronously: each depends via context on its async analysis task,
-    and an async task may not have an async task in its context (CrewAI 1.15+).
-    A final report task then consolidates all findings.
+    This crew analyzes stock, crypto, and ETF portfolios. Every task runs
+    sequentially (async_execution=False): the 3 portfolio-analysis tasks first, then
+    the 3 suggestion tasks that consume them via context, then a final report task
+    consolidating all findings. See tests/crews/test_async_agent_isolation.py for why
+    concurrent async execution is off across the project.
     """
 
     agents_config = "config/agents.yaml"
@@ -69,14 +69,14 @@ class FinDailyCrew:
     def stock_portfolio_analysis_task(self) -> Task:
         return Task(  # type: ignore[call-arg]
             config=self.tasks_config["stock_portfolio_analysis_task"],  # type: ignore[index, arg-type]
-            async_execution=False,  # Independent task, can run in parallel
+            async_execution=False,
         )
 
     @task
     def crypto_portfolio_analysis_task(self) -> Task:
         return Task(  # type: ignore[call-arg]
             config=self.tasks_config["crypto_portfolio_analysis_task"],  # type: ignore[index, arg-type]
-            async_execution=False,  # Independent task, can run in parallel
+            async_execution=False,
         )
 
     # NEW: ETF portfolio analysis task
@@ -85,17 +85,16 @@ class FinDailyCrew:
         return Task(  # type: ignore[call-arg]
             config=self.tasks_config["etf_portfolio_analysis_task"],  # type: ignore[index, arg-type]
             # Own agent instance: shares the stock_analyst role with the stock analysis
-            # task, so needs a distinct executor to run concurrently (CrewAI 1.15+).
+            # task, so it keeps a distinct executor of its own.
             agent=self.stock_analyst().copy(),  # type: ignore[call-arg]
-            async_execution=False,  # Independent task, can run in parallel
+            async_execution=False,
         )
 
     @task
     def stock_suggestion_task(self) -> Task:
         return Task(  # type: ignore[call-arg]
             config=self.tasks_config["stock_suggestion_task"],  # type: ignore[index, arg-type]
-            # Sync: depends on stock_portfolio_analysis_task (async) via context, and
-            # an async task may not have an async task in its context (CrewAI 1.15+).
+            # Consumes stock_portfolio_analysis_task via context.
             async_execution=False,
         )
 
@@ -103,7 +102,7 @@ class FinDailyCrew:
     def etf_suggestion_task(self) -> Task:
         return Task(  # type: ignore[call-arg]
             config=self.tasks_config["etf_suggestion_task"],  # type: ignore[index, arg-type]
-            # Sync: see note on stock_suggestion_task.
+            # Consumes its analysis task via context; see stock_suggestion_task.
             async_execution=False,
         )
 
@@ -111,7 +110,7 @@ class FinDailyCrew:
     def crypto_suggestion_task(self) -> Task:
         return Task(  # type: ignore[call-arg]
             config=self.tasks_config["crypto_suggestion_task"],  # type: ignore[index, arg-type]
-            # Sync: see note on stock_suggestion_task.
+            # Consumes its analysis task via context; see stock_suggestion_task.
             async_execution=False,
         )
 

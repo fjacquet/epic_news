@@ -53,6 +53,27 @@ class TestCoercion:
         result = _coerce_tool_calls_to_react_text([_tool_call("exchange_rate", "")])
         assert "Action Input: {}" in result
 
+    def test_gemini_function_call_shape(self):
+        # Gemini-style parts carry function_call.name / .args (a dict, not a JSON string).
+        result = _coerce_tool_calls_to_react_text(
+            [SimpleNamespace(function_call=SimpleNamespace(name="wikipedia", args={"q": "Édimbourg"}))]
+        )
+        assert "Action: wikipedia" in result
+        assert '"q": "Édimbourg"' in result
+
+    def test_anthropic_name_input_shape(self):
+        # Anthropic/Bedrock tool use blocks expose name/input directly.
+        result = _coerce_tool_calls_to_react_text([{"name": "scrape_website", "input": {"url": "x"}}])
+        assert "Action: scrape_website" in result
+        assert 'Action Input: {"url": "x"}' in result
+
+    def test_first_call_wins_for_parallel_calls(self):
+        result = _coerce_tool_calls_to_react_text(
+            [_tool_call("first_tool", "{}"), _tool_call("second_tool", "{}")]
+        )
+        assert "Action: first_tool" in result
+        assert "second_tool" not in result
+
     def test_plain_string_is_not_coerced(self):
         assert _coerce_tool_calls_to_react_text("Final Answer: done") is None
 
@@ -104,6 +125,16 @@ class TestCallWrapper:
                 return "Final Answer: 42"
 
         assert _TextProvider(model="fake/model").call([]) == "Final Answer: 42"
+
+    def test_unrecognised_list_is_stringified_never_returned_raw(self):
+        # A list of any shape reaching TaskOutput.raw is fatal; garbled text is not.
+        class _WeirdListProvider(BaseLLM):
+            def call(self, messages, **kwargs):
+                return [object()]
+
+        answer = _WeirdListProvider(model="fake/model").call([])
+
+        assert isinstance(answer, str)
 
 
 class TestAsyncCallWrapper:

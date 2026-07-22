@@ -1,5 +1,6 @@
 """Centralized LLM configuration for OpenRouter."""
 
+import json
 import os
 from typing import Any
 
@@ -59,28 +60,51 @@ async def _acall_with_empty_retry(call_fn, max_retries: int, model: str = "?"):
     return result
 
 
+def _field(source: Any, key: str) -> Any:
+    """Read ``key`` off an object attribute or a mapping entry, whichever applies."""
+    if isinstance(source, dict):
+        return source.get(key)
+    return getattr(source, key, None)
+
+
 def _tool_call_name_and_arguments(tool_call: Any) -> tuple[str, str] | None:
     """Pull ``(name, arguments)`` out of one tool call, or ``None`` if it isn't one.
 
-    Accepts both shapes CrewAI can hand back: litellm's
-    ``ChatCompletionMessageToolCall`` objects and the plain dicts some providers emit.
+    Covers every shape CrewAI treats as a tool call in
+    ``agent_utils._is_tool_call_list``, as objects or plain dicts:
+
+    * OpenAI/litellm — ``.function.name`` / ``.function.arguments``
+    * Gemini — ``.function_call.name`` / ``.function_call.args``
+    * Anthropic, Bedrock — ``.name`` / ``.input``
     """
-    function = getattr(tool_call, "function", None)
-    if function is None and isinstance(tool_call, dict):
-        function = tool_call.get("function")
-    if function is None:
-        return None
+    for container_key in ("function", "function_call"):
+        container = _field(tool_call, container_key)
+        if container is None:
+            continue
+        name = _field(container, "name")
+        arguments = _field(container, "arguments")
+        if arguments is None:
+            arguments = _field(container, "args")
+        if name:
+            return str(name), _stringify_arguments(arguments)
 
-    if isinstance(function, dict):
-        name = function.get("name")
-        arguments = function.get("arguments")
-    else:
-        name = getattr(function, "name", None)
-        arguments = getattr(function, "arguments", None)
+    name = _field(tool_call, "name")
+    if name:
+        return str(name), _stringify_arguments(_field(tool_call, "input"))
 
-    if not name:
-        return None
-    return str(name), str(arguments) if arguments else "{}"
+    return None
+
+
+def _stringify_arguments(arguments: Any) -> str:
+    """Render tool arguments as the JSON object the ReAct parser expects."""
+    if arguments is None or arguments == "":
+        return "{}"
+    if isinstance(arguments, str):
+        return arguments
+    try:
+        return json.dumps(arguments, ensure_ascii=False)
+    except (TypeError, ValueError):
+        return str(arguments)
 
 
 def _coerce_tool_calls_to_react_text(result: Any) -> str | None:
@@ -102,6 +126,11 @@ def _coerce_tool_calls_to_react_text(result: Any) -> str | None:
     Translating the call into the Thought/Action/Action Input the ReAct loop expects
     keeps the model's actual intent: it asked for a tool, so let the loop run that tool
     instead of crashing the whole crew.
+
+    Only the first call is converted — ReAct runs one action per step, so a parallel
+    batch would be re-requested on the next turn anyway. A list whose first entry is no
+    recognisable tool call yields ``None``; the caller stringifies it rather than letting
+    a raw list escape (see :func:`_wrap_call_for_react_safety`).
     """
     if not isinstance(result, list) or not result:
         return None
@@ -154,14 +183,39 @@ def _react_only_supports_function_calling(self: BaseLLM) -> bool:
     return False
 
 
-def _log_tool_call_coercion(llm: object, model: str, react_text: str) -> None:
-    """Report a coerced native tool call loudly enough to identify the culprit class."""
-    action_line = next((line for line in react_text.splitlines() if line.startswith("Action:")), react_text)
-    logger.warning(
-        f"LLM '{model}' ({type(llm).__name__}) returned native tool calls on a ReAct step; "
-        f"coercing to Thought/Action text to keep TaskOutput.raw a string. "
-        f"Coerced: {action_line}"
-    )
+def _react_safe_text(llm: object, result: Any) -> Any:
+    """Return ``result`` as something a ReAct consumer can handle — never a raw list.
+
+    A ``str`` (the normal case) passes through untouched. A tool-call list becomes ReAct
+    text. Anything else that is still a ``list`` is stringified as a last resort: garbled
+    output beats ``ValidationError`` on ``TaskOutput.raw``, which aborts the whole crew.
+    Both non-``str`` outcomes are logged with the offending class so the next occurrence
+    identifies itself.
+    """
+    model = getattr(llm, "model", "?")
+    react_text = _coerce_tool_calls_to_react_text(result)
+
+    if react_text is not None:
+        action_line = next(
+            (line for line in react_text.splitlines() if line.startswith("Action:")), react_text
+        )
+        dropped = len(result) - 1 if isinstance(result, list) else 0
+        extra = f" Dropped {dropped} further tool call(s) in the same response." if dropped else ""
+        logger.warning(
+            f"LLM '{model}' ({type(llm).__name__}) returned native tool calls on a ReAct step; "
+            f"coercing to Thought/Action text to keep TaskOutput.raw a string. "
+            f"Coerced: {action_line}.{extra}"
+        )
+        return react_text
+
+    if isinstance(result, list):
+        logger.error(
+            f"LLM '{model}' ({type(llm).__name__}) returned a list that is not a recognisable "
+            f"tool call: {result!r}. Stringifying it so TaskOutput.raw stays a string."
+        )
+        return str(result)
+
+    return result
 
 
 def _wrap_call_for_react_safety(cls: type) -> None:
@@ -194,18 +248,12 @@ def _wrap_call_for_react_safety(cls: type) -> None:
     if original_call is not None and not getattr(original_call, "_epic_news_react_safe", False):
 
         def call(self, *args, **kwargs):
-            model = getattr(self, "model", "?")
-            max_retries = int(os.getenv("LLM_EMPTY_RETRIES", "6"))
             result = _call_with_empty_retry(
                 lambda: original_call(self, *args, **kwargs),
-                max_retries,
-                model,
+                int(os.getenv("LLM_EMPTY_RETRIES", "6")),
+                getattr(self, "model", "?"),
             )
-            react_text = _coerce_tool_calls_to_react_text(result)
-            if react_text is None:
-                return result
-            _log_tool_call_coercion(self, model, react_text)
-            return react_text
+            return _react_safe_text(self, result)
 
         call._epic_news_react_safe = True  # type: ignore[attr-defined]
         cls.call = call  # type: ignore[attr-defined]
@@ -214,18 +262,12 @@ def _wrap_call_for_react_safety(cls: type) -> None:
     if original_acall is not None and not getattr(original_acall, "_epic_news_react_safe", False):
 
         async def acall(self, *args, **kwargs):
-            model = getattr(self, "model", "?")
-            max_retries = int(os.getenv("LLM_EMPTY_RETRIES", "6"))
             result = await _acall_with_empty_retry(
                 lambda: original_acall(self, *args, **kwargs),
-                max_retries,
-                model,
+                int(os.getenv("LLM_EMPTY_RETRIES", "6")),
+                getattr(self, "model", "?"),
             )
-            react_text = _coerce_tool_calls_to_react_text(result)
-            if react_text is None:
-                return result
-            _log_tool_call_coercion(self, model, react_text)
-            return react_text
+            return _react_safe_text(self, result)
 
         acall._epic_news_react_safe = True  # type: ignore[attr-defined]
         cls.acall = acall  # type: ignore[attr-defined]
