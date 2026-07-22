@@ -1,8 +1,11 @@
 """Centralized LLM configuration for OpenRouter."""
 
+import json
 import os
+from typing import Any
 
 from crewai import LLM
+from crewai.llms.base_llm import BaseLLM
 from dotenv import load_dotenv
 from loguru import logger
 
@@ -37,6 +40,107 @@ def _call_with_empty_retry(call_fn, max_retries: int, model: str = "?"):
         )
         result = call_fn()
     return result
+
+
+async def _acall_with_empty_retry(call_fn, max_retries: int, model: str = "?"):
+    """Async twin of :func:`_call_with_empty_retry` for ``BaseLLM.acall``.
+
+    Tasks declared with ``async_execution=True`` reach the provider through ``acall``,
+    which returns empty content and raw tool calls exactly like the sync path does.
+    """
+    result = await call_fn()
+    attempts = 0
+    while attempts < max_retries and _is_empty_llm_response(result):
+        attempts += 1
+        logger.warning(
+            f"Empty response from async LLM '{model}' (likely Gemini thought-only turn); "
+            f"retrying {attempts}/{max_retries}"
+        )
+        result = await call_fn()
+    return result
+
+
+def _field(source: Any, key: str) -> Any:
+    """Read ``key`` off an object attribute or a mapping entry, whichever applies."""
+    if isinstance(source, dict):
+        return source.get(key)
+    return getattr(source, key, None)
+
+
+def _tool_call_name_and_arguments(tool_call: Any) -> tuple[str, str] | None:
+    """Pull ``(name, arguments)`` out of one tool call, or ``None`` if it isn't one.
+
+    Covers every shape CrewAI treats as a tool call in
+    ``agent_utils._is_tool_call_list``, as objects or plain dicts:
+
+    * OpenAI/litellm — ``.function.name`` / ``.function.arguments``
+    * Gemini — ``.function_call.name`` / ``.function_call.args``
+    * Anthropic, Bedrock — ``.name`` / ``.input``
+    """
+    for container_key in ("function", "function_call"):
+        container = _field(tool_call, container_key)
+        if container is None:
+            continue
+        name = _field(container, "name")
+        arguments = _field(container, "arguments")
+        if arguments is None:
+            arguments = _field(container, "args")
+        if name:
+            return str(name), _stringify_arguments(arguments)
+
+    name = _field(tool_call, "name")
+    if name:
+        return str(name), _stringify_arguments(_field(tool_call, "input"))
+
+    return None
+
+
+def _stringify_arguments(arguments: Any) -> str:
+    """Render tool arguments as the JSON object the ReAct parser expects."""
+    if arguments is None or arguments == "":
+        return "{}"
+    if isinstance(arguments, str):
+        return arguments
+    try:
+        return json.dumps(arguments, ensure_ascii=False)
+    except (TypeError, ValueError):
+        return str(arguments)
+
+
+def _coerce_tool_calls_to_react_text(result: Any) -> str | None:
+    """Render a provider's ``tool_calls`` list as ReAct text, or ``None`` if not applicable.
+
+    ``crewai.llm.LLM.call`` returns the raw ``tool_calls`` list whenever the provider
+    emits function calls and no ``available_functions`` were supplied::
+
+        if tool_calls and not available_functions:
+            return tool_calls
+
+    Every ReAct consumer downstream assumes a ``str``. ``agent_utils.format_answer()``
+    calls ``parse()``, which raises on a list, and the except-branch stores the list in
+    ``AgentFinish.output``. That reaches ``TaskOutput.raw`` — a ``str`` field — and the
+    crew dies with ``ValidationError: Input should be a valid string [input_value=
+    [ChatCompletionMessageToolCall...]]``. Observed with ``gemini/gemini-3.5-flash``,
+    whose tool-call ids carry a base64 ``thoughtSignature`` suffix.
+
+    Translating the call into the Thought/Action/Action Input the ReAct loop expects
+    keeps the model's actual intent: it asked for a tool, so let the loop run that tool
+    instead of crashing the whole crew.
+
+    Only the first call is converted — ReAct runs one action per step, so a parallel
+    batch would be re-requested on the next turn anyway. A list whose first entry is no
+    recognisable tool call yields ``None``; the caller stringifies it rather than letting
+    a raw list escape (see :func:`_wrap_call_for_react_safety`).
+    """
+    if not isinstance(result, list) or not result:
+        return None
+
+    parsed = _tool_call_name_and_arguments(result[0])
+    if parsed is None:
+        return None
+
+    name, arguments = parsed
+    return f"Thought: I need to use the {name} tool.\nAction: {name}\nAction Input: {arguments}"
 
 
 def _patch_anthropic_detection_for_openrouter() -> None:
@@ -74,6 +178,114 @@ def _patch_anthropic_detection_for_openrouter() -> None:
     LLM._openrouter_anthropic_patched = True  # type: ignore[attr-defined]
 
 
+def _react_only_supports_function_calling(self: BaseLLM) -> bool:
+    """Replacement for every provider's ``supports_function_calling``: always ReAct."""
+    return False
+
+
+def _react_safe_text(llm: object, result: Any) -> Any:
+    """Return ``result`` as something a ReAct consumer can handle — never a raw list.
+
+    A ``str`` (the normal case) passes through untouched. A tool-call list becomes ReAct
+    text. Anything else that is still a ``list`` is stringified as a last resort: garbled
+    output beats ``ValidationError`` on ``TaskOutput.raw``, which aborts the whole crew.
+    Both non-``str`` outcomes are logged with the offending class so the next occurrence
+    identifies itself.
+    """
+    model = getattr(llm, "model", "?")
+    react_text = _coerce_tool_calls_to_react_text(result)
+
+    if react_text is not None:
+        action_line = next(
+            (line for line in react_text.splitlines() if line.startswith("Action:")), react_text
+        )
+        dropped = len(result) - 1 if isinstance(result, list) else 0
+        extra = f" Dropped {dropped} further tool call(s) in the same response." if dropped else ""
+        logger.warning(
+            f"LLM '{model}' ({type(llm).__name__}) returned native tool calls on a ReAct step; "
+            f"coercing to Thought/Action text to keep TaskOutput.raw a string. "
+            f"Coerced: {action_line}.{extra}"
+        )
+        return react_text
+
+    if isinstance(result, list):
+        logger.error(
+            f"LLM '{model}' ({type(llm).__name__}) returned a list that is not a recognisable "
+            f"tool call: {result!r}. Stringifying it so TaskOutput.raw stays a string."
+        )
+        return str(result)
+
+    return result
+
+
+def _wrap_call_for_react_safety(cls: type) -> None:
+    """Wrap ``cls.call``/``cls.acall`` with empty-retry + tool-call coercion, in place.
+
+    Two provider misbehaviours are absorbed here, both observed on
+    ``gemini/gemini-3.5-flash`` and both fatal to a whole crew run:
+
+    *Empty responses.* Gemini intermittently returns a *thought-only* response on ReAct
+    steps: the generated tokens land in a thinking block carrying a ``thought_signature``
+    and ``message.content`` comes back ``None`` (``finish_reason`` is still ``stop``, so
+    it is not a length cut-off). CrewAI's ``_validate_and_finalize_llm_response`` rejects
+    it with ``ValueError: Invalid response from LLM call - None or empty``. The empties
+    are stochastic (~40-60% per call on the worst prompts) and, counter-intuitively, get
+    worse with thinking disabled — so re-issuing the identical call a handful of times
+    reliably yields text. Tune the ceiling with ``LLM_EMPTY_RETRIES`` (default 6); 0
+    disables it.
+
+    *Native tool calls on a ReAct step.* See ``_coerce_tool_calls_to_react_text``.
+
+    Both entry points are wrapped: tasks with ``async_execution=True`` reach the provider
+    through ``acall`` (``agent_utils.aget_llm_response``), which carries the identical
+    ``if tool_calls and not available_functions: return tool_calls`` return as ``call``.
+
+    Only classes that define their *own* ``call``/``acall`` are wrapped; inheritors reuse
+    the wrapped parent, so nothing is ever double-wrapped. CrewAI deep-copies agent LLMs
+    while assembling crews, so this must patch classes, never instances.
+    """
+    original_call = cls.__dict__.get("call")
+    if original_call is not None and not getattr(original_call, "_epic_news_react_safe", False):
+
+        def call(self, *args, **kwargs):
+            result = _call_with_empty_retry(
+                lambda: original_call(self, *args, **kwargs),
+                int(os.getenv("LLM_EMPTY_RETRIES", "6")),
+                getattr(self, "model", "?"),
+            )
+            return _react_safe_text(self, result)
+
+        call._epic_news_react_safe = True  # type: ignore[attr-defined]
+        cls.call = call  # type: ignore[attr-defined]
+
+    original_acall = cls.__dict__.get("acall")
+    if original_acall is not None and not getattr(original_acall, "_epic_news_react_safe", False):
+
+        async def acall(self, *args, **kwargs):
+            result = await _acall_with_empty_retry(
+                lambda: original_acall(self, *args, **kwargs),
+                int(os.getenv("LLM_EMPTY_RETRIES", "6")),
+                getattr(self, "model", "?"),
+            )
+            return _react_safe_text(self, result)
+
+        acall._epic_news_react_safe = True  # type: ignore[attr-defined]
+        cls.acall = acall  # type: ignore[attr-defined]
+
+
+def _apply_react_patches(cls: type) -> None:
+    """Apply both ReAct defences to one LLM class."""
+    cls.supports_function_calling = _react_only_supports_function_calling  # type: ignore[attr-defined]
+    _wrap_call_for_react_safety(cls)
+
+
+def _apply_react_patches_to_tree(cls: type) -> None:
+    """Apply the ReAct defences to ``cls`` and every subclass already imported."""
+    _apply_react_patches(cls)
+    for subclass in cls.__subclasses__():
+        _apply_react_patches_to_tree(subclass)
+
+
 def _force_react_tool_calling() -> None:
     """Keep CrewAI on ReAct (text) tool-calling instead of native function-calling.
 
@@ -90,56 +302,40 @@ def _force_react_tool_calling() -> None:
     model reports ``supports_function_calling() == False``, so ReAct is the proven,
     working path. Force it for every provider so behaviour is uniform and native-fc
     executor bugs cannot resurface when the model is swapped.
+
+    Patching ``crewai.llm.LLM`` alone is not enough. ``LLM(model=...)`` without
+    ``is_litellm=True`` — and ``crewai.utilities.llm_utils.create_llm``, which CrewAI
+    uses for env-configured agents and internal helpers — returns a *native provider*
+    class instead (``GeminiCompletion``, ``AnthropicCompletion``, ...), and each of
+    those overrides ``supports_function_calling`` with a True-returning version. So the
+    whole ``BaseLLM`` tree is patched, plus an ``__init_subclass__`` hook for provider
+    classes imported lazily after this module loads.
     """
-    if getattr(LLM, "_react_tool_calling_forced", False):
+    if getattr(BaseLLM, "_react_tool_calling_forced", False):
         return
 
-    def supports_function_calling(self: LLM) -> bool:
-        return False
+    _apply_react_patches_to_tree(BaseLLM)
 
-    LLM.supports_function_calling = supports_function_calling  # type: ignore[method-assign]
+    original_init_subclass = BaseLLM.__dict__.get("__init_subclass__")
+
+    def patch_new_subclass(cls, **kwargs):
+        """Re-apply the ReAct defences to provider classes imported after this module."""
+        if original_init_subclass is not None:
+            original_init_subclass.__func__(cls, **kwargs)
+        else:
+            super(BaseLLM, cls).__init_subclass__(**kwargs)
+        _apply_react_patches(cls)
+
+    BaseLLM.__init_subclass__ = classmethod(patch_new_subclass)  # type: ignore[assignment]
+    BaseLLM._react_tool_calling_forced = True  # type: ignore[attr-defined]
     LLM._react_tool_calling_forced = True  # type: ignore[attr-defined]
-
-
-def _patch_llm_retry_on_empty() -> None:
-    """Retry ``LLM.call`` when a provider returns empty content.
-
-    ``gemini/gemini-3.5-flash`` intermittently returns a *thought-only* response on
-    CrewAI ReAct steps: the generated tokens land in a thinking block carrying a
-    ``thought_signature`` and ``message.content`` comes back ``None`` (``finish_reason``
-    is still ``stop``, so it is not a length/budget cut-off). CrewAI's
-    ``_validate_and_finalize_llm_response`` rejects the empty answer with
-    ``ValueError: Invalid response from LLM call - None or empty`` and the task dies
-    after its three built-in retries. Measured on a captured failing prompt, the
-    empties are *stochastic* (~40-60% per call on the worst prompts) and, counter-
-    intuitively, get worse with thinking disabled — so re-issuing the identical call
-    a handful of times reliably yields text. CrewAI deep-copies agent LLMs while
-    assembling crews, so this must patch the class, not an instance.
-
-    Provider-agnostic and cheap: a non-empty response returns on the first call, so
-    only genuine empties pay the retry cost. Tune the ceiling with ``LLM_EMPTY_RETRIES``
-    (default 6); set it to 0 to disable.
-    """
-    if getattr(LLM, "_retry_on_empty_patched", False):
-        return
-
-    original_call = LLM.call
-
-    def call(self: LLM, *args, **kwargs):
-        max_retries = int(os.getenv("LLM_EMPTY_RETRIES", "6"))
-        return _call_with_empty_retry(
-            lambda: original_call(self, *args, **kwargs),
-            max_retries,
-            getattr(self, "model", "?"),
-        )
-
-    LLM.call = call  # type: ignore[method-assign]
+    # The call wrapper is installed by the same sweep; keep the historical flag truthful.
+    BaseLLM._retry_on_empty_patched = True  # type: ignore[attr-defined]
     LLM._retry_on_empty_patched = True  # type: ignore[attr-defined]
 
 
 _patch_anthropic_detection_for_openrouter()
 _force_react_tool_calling()
-_patch_llm_retry_on_empty()
 
 
 class LLMConfig:

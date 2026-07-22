@@ -89,7 +89,7 @@ class MeetingPrepCrew:
         return Task(
             config=self.tasks_config["research_task"],  # type: ignore[arg-type, index]
             agent=self.lead_researcher_agent(),  # type: ignore[call-arg]
-            async_execution=True,
+            async_execution=False,
         )
 
     @task
@@ -99,7 +99,7 @@ class MeetingPrepCrew:
         """
         return Task(
             config=self.tasks_config["product_alignment_task"],  # type: ignore[arg-type, index]
-            async_execution=True,
+            async_execution=False,
         )  # type: ignore[call-arg]
 
     @task
@@ -109,7 +109,7 @@ class MeetingPrepCrew:
         """
         return Task(
             config=self.tasks_config["sales_strategy_task"],  # type: ignore[arg-type, index]
-            async_execution=True,
+            async_execution=False,
         )  # type: ignore[call-arg]
 
     @task

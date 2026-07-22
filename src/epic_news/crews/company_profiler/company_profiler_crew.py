@@ -62,7 +62,7 @@ class CompanyProfilerCrew:
         return Task(
             config=self.tasks_config["company_core_info"],  # type: ignore
             agent=self.company_researcher().copy(),  # type: ignore[call-arg]
-            async_execution=True,
+            async_execution=False,
         )
 
     @task
@@ -71,7 +71,7 @@ class CompanyProfilerCrew:
         return Task(
             config=self.tasks_config["company_history"],  # type: ignore
             agent=self.company_researcher().copy(),  # type: ignore[call-arg]
-            async_execution=True,
+            async_execution=False,
         )
 
     @task
@@ -80,7 +80,7 @@ class CompanyProfilerCrew:
         return Task(
             config=self.tasks_config["company_financials"],  # type: ignore
             agent=self.company_researcher().copy(),  # type: ignore[call-arg]
-            async_execution=True,
+            async_execution=False,
         )
 
     @task
@@ -89,7 +89,7 @@ class CompanyProfilerCrew:
         return Task(
             config=self.tasks_config["company_market_position"],  # type: ignore
             agent=self.company_researcher().copy(),  # type: ignore[call-arg]
-            async_execution=True,
+            async_execution=False,
         )
 
     @task
@@ -98,7 +98,7 @@ class CompanyProfilerCrew:
         return Task(
             config=self.tasks_config["company_products_services"],  # type: ignore
             agent=self.company_researcher().copy(),  # type: ignore[call-arg]
-            async_execution=True,
+            async_execution=False,
         )
 
     @task
@@ -107,7 +107,7 @@ class CompanyProfilerCrew:
         return Task(
             config=self.tasks_config["company_management"],  # type: ignore
             agent=self.company_researcher().copy(),  # type: ignore[call-arg]
-            async_execution=True,
+            async_execution=False,
         )
 
     @task
@@ -116,7 +116,7 @@ class CompanyProfilerCrew:
         return Task(
             config=self.tasks_config["company_legal_compliance"],  # type: ignore
             agent=self.company_researcher().copy(),  # type: ignore[call-arg]
-            async_execution=True,
+            async_execution=False,
         )
 
     @task

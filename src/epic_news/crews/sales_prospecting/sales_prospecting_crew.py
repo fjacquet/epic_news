@@ -95,7 +95,7 @@ class SalesProspectingCrew:
             config=self.tasks_config["research_company_task"],  # type: ignore[index,arg-type]
             description="Research the target company",
             expected_output="Comprehensive company research findings",
-            async_execution=True,
+            async_execution=False,
         )
 
     @task
@@ -104,7 +104,7 @@ class SalesProspectingCrew:
             config=self.tasks_config["analyze_org_structure_task"],  # type: ignore[index,arg-type]
             description="Analyze the organizational structure",
             expected_output="Detailed organizational structure analysis",
-            async_execution=True,
+            async_execution=False,
         )
 
     @task
@@ -113,7 +113,7 @@ class SalesProspectingCrew:
             config=self.tasks_config["find_key_contacts_task"],  # type: ignore[index,arg-type]
             description="Find key contacts at the target company",
             expected_output="List of key contacts with details",
-            async_execution=True,
+            async_execution=False,
         )
 
     @task

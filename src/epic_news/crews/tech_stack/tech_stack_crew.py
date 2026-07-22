@@ -61,7 +61,7 @@ class TechStackCrew:
         return Task(
             config=self.tasks_config["tech_stack_identification"],  # type: ignore[arg-type, index]
             agent=self.tech_researcher().copy(),  # type: ignore[call-arg]
-            async_execution=True,
+            async_execution=False,
             verbose=True,
         )
 
@@ -71,7 +71,7 @@ class TechStackCrew:
         return Task(
             config=self.tasks_config["tech_stack_analysis"],  # type: ignore[arg-type, index]
             agent=self.tech_researcher().copy(),  # type: ignore[call-arg]
-            async_execution=True,
+            async_execution=False,
             verbose=True,
         )
 
@@ -81,7 +81,7 @@ class TechStackCrew:
         return Task(
             config=self.tasks_config["open_source_contributions"],  # type: ignore[arg-type, index]
             agent=self.tech_researcher().copy(),  # type: ignore[call-arg]
-            async_execution=True,
+            async_execution=False,
             verbose=True,
         )
 
@@ -91,7 +91,7 @@ class TechStackCrew:
         return Task(
             config=self.tasks_config["tech_talent_assessment"],  # type: ignore[arg-type, index]
             agent=self.tech_researcher().copy(),  # type: ignore[call-arg]
-            async_execution=True,
+            async_execution=False,
             verbose=True,
         )
 
