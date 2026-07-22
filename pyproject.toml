@@ -8,7 +8,7 @@ requires-python = ">=3.13,<3.14"
 dependencies = [
     # --- Core runtime (CrewAI + integrations) ---
     "crewai[google-genai]>=1.15.2",
-    "crewai-tools[mcp]>=1.15.2",
+    "crewai-tools[mcp]>=1.15.5",
     "crewai-custom-tools @ git+https://github.com/fjacquet/crewai-custom-tools.git@v0.6.0",
     "mcp>=1.26.0",
     "composio>=0.15.0",
