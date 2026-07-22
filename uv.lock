@@ -1055,7 +1055,7 @@ requires-dist = [
     { name = "composio", specifier = ">=0.15.0" },
     { name = "composio-crewai", specifier = ">=0.15.0" },
     { name = "coverage", marker = "extra == 'test'", specifier = ">=7.14.3" },
-    { name = "crewai", extras = ["google-genai"], specifier = ">=1.15.2" },
+    { name = "crewai", extras = ["google-genai"], specifier = ">=1.15.5" },
     { name = "crewai-custom-tools", git = "https://github.com/fjacquet/crewai-custom-tools.git?rev=v0.6.0" },
     { name = "crewai-tools", extras = ["mcp"], specifier = ">=1.15.2" },
     { name = "faker", marker = "extra == 'test'", specifier = ">=40.23.0" },
