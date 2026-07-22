@@ -65,7 +65,7 @@ class GeospatialAnalysisCrew:
         return Task(
             config=self.tasks_config["physical_location_mapping"],  # type: ignore[arg-type, index]
             agent=self.geospatial_researcher().copy(),  # type: ignore[call-arg]
-            async_execution=True,
+            async_execution=False,
             verbose=True,
         )
 
@@ -75,7 +75,7 @@ class GeospatialAnalysisCrew:
         return Task(
             config=self.tasks_config["geospatial_risk_assessment"],  # type: ignore[arg-type, index]
             agent=self.geospatial_researcher().copy(),  # type: ignore[call-arg]
-            async_execution=True,
+            async_execution=False,
             verbose=True,
         )
 
@@ -85,7 +85,7 @@ class GeospatialAnalysisCrew:
         return Task(
             config=self.tasks_config["supply_chain_mapping"],  # type: ignore[arg-type, index]
             agent=self.geospatial_researcher().copy(),  # type: ignore[call-arg]
-            async_execution=True,
+            async_execution=False,
             verbose=True,
         )
 

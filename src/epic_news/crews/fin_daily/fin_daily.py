@@ -69,14 +69,14 @@ class FinDailyCrew:
     def stock_portfolio_analysis_task(self) -> Task:
         return Task(  # type: ignore[call-arg]
             config=self.tasks_config["stock_portfolio_analysis_task"],  # type: ignore[index, arg-type]
-            async_execution=True,  # Independent task, can run in parallel
+            async_execution=False,  # Independent task, can run in parallel
         )
 
     @task
     def crypto_portfolio_analysis_task(self) -> Task:
         return Task(  # type: ignore[call-arg]
             config=self.tasks_config["crypto_portfolio_analysis_task"],  # type: ignore[index, arg-type]
-            async_execution=True,  # Independent task, can run in parallel
+            async_execution=False,  # Independent task, can run in parallel
         )
 
     # NEW: ETF portfolio analysis task
@@ -87,7 +87,7 @@ class FinDailyCrew:
             # Own agent instance: shares the stock_analyst role with the stock analysis
             # task, so needs a distinct executor to run concurrently (CrewAI 1.15+).
             agent=self.stock_analyst().copy(),  # type: ignore[call-arg]
-            async_execution=True,  # Independent task, can run in parallel
+            async_execution=False,  # Independent task, can run in parallel
         )
 
     @task

@@ -69,7 +69,7 @@ class CrossReferenceReportCrew:
             description="Develop comprehensive intelligence requirements",
             expected_output="A structured JSON object outlining intelligence requirements",
             agent=self.osint_researcher().copy(),  # type: ignore[call-arg]
-            async_execution=True,
+            async_execution=False,
         )
 
     @task
@@ -80,7 +80,7 @@ class CrossReferenceReportCrew:
             description="Coordinate intelligence collection activities",
             expected_output="A comprehensive JSON object detailing collection coordination",
             agent=self.osint_researcher().copy(),  # type: ignore[call-arg]
-            async_execution=True,
+            async_execution=False,
         )
 
     @task
@@ -91,7 +91,7 @@ class CrossReferenceReportCrew:
             description="Integrate intelligence analysis from all specialized crews",
             expected_output="A comprehensive JSON object integrating intelligence analysis",
             agent=self.osint_researcher().copy(),  # type: ignore[call-arg]
-            async_execution=True,
+            async_execution=False,
         )
 
     @task
@@ -102,7 +102,7 @@ class CrossReferenceReportCrew:
             description="Develop final intelligence products",
             expected_output="A comprehensive JSON object serving as final intelligence products",
             agent=self.osint_researcher().copy(),  # type: ignore[call-arg]
-            async_execution=True,
+            async_execution=False,
         )
 
     @task

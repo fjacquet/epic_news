@@ -61,7 +61,7 @@ class HRIntelligenceCrew:
         return Task(
             config=self.tasks_config["leadership_team_assessment"],  # type: ignore[arg-type, index]
             agent=self.hr_researcher().copy(),  # type: ignore[call-arg]
-            async_execution=True,
+            async_execution=False,
             verbose=True,
         )
 
@@ -71,7 +71,7 @@ class HRIntelligenceCrew:
         return Task(
             config=self.tasks_config["employee_sentiment_analysis"],  # type: ignore[arg-type, index]
             agent=self.hr_researcher().copy(),  # type: ignore[call-arg]
-            async_execution=True,
+            async_execution=False,
             verbose=True,
         )
 
@@ -81,7 +81,7 @@ class HRIntelligenceCrew:
         return Task(
             config=self.tasks_config["organizational_culture_assessment"],  # type: ignore[arg-type, index]
             agent=self.hr_researcher().copy(),  # type: ignore[call-arg]
-            async_execution=True,
+            async_execution=False,
             verbose=True,
         )
 
@@ -91,7 +91,7 @@ class HRIntelligenceCrew:
         return Task(
             config=self.tasks_config["talent_acquisition_strategy"],  # type: ignore[arg-type, index]
             agent=self.hr_researcher().copy(),  # type: ignore[call-arg]
-            async_execution=True,
+            async_execution=False,
             verbose=True,
         )
 

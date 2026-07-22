@@ -62,7 +62,7 @@ class LegalAnalysisCrew:
         return Task(
             config=self.tasks_config["legal_compliance_assessment"],  # type: ignore[arg-type, index]
             agent=self.legal_researcher().copy(),  # type: ignore[call-arg]
-            async_execution=True,
+            async_execution=False,
             verbose=True,
         )
 
@@ -72,7 +72,7 @@ class LegalAnalysisCrew:
         return Task(
             config=self.tasks_config["intellectual_property_analysis"],  # type: ignore[arg-type, index]
             agent=self.legal_researcher().copy(),  # type: ignore[call-arg]
-            async_execution=True,
+            async_execution=False,
             verbose=True,
         )
 
@@ -82,7 +82,7 @@ class LegalAnalysisCrew:
         return Task(
             config=self.tasks_config["regulatory_risk_assessment"],  # type: ignore[arg-type, index]
             agent=self.legal_researcher().copy(),  # type: ignore[call-arg]
-            async_execution=True,
+            async_execution=False,
             verbose=True,
         )
 
@@ -92,7 +92,7 @@ class LegalAnalysisCrew:
         return Task(
             config=self.tasks_config["litigation_history_analysis"],  # type: ignore[arg-type, index]
             agent=self.legal_researcher().copy(),  # type: ignore[call-arg]
-            async_execution=True,
+            async_execution=False,
             verbose=True,
         )
 

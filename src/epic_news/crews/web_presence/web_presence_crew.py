@@ -59,7 +59,7 @@ class WebPresenceCrew:
         return Task(  # type: ignore[call-arg]
             config=self.tasks_config["web_presence_audit"],  # type: ignore[index, arg-type]
             agent=self.web_researcher().copy(),  # type: ignore[call-arg]
-            async_execution=True,
+            async_execution=False,
         )
 
     @task
@@ -68,7 +68,7 @@ class WebPresenceCrew:
         return Task(  # type: ignore[call-arg]
             config=self.tasks_config["social_media_footprint"],  # type: ignore[index, arg-type]
             agent=self.web_researcher().copy(),  # type: ignore[call-arg]
-            async_execution=True,
+            async_execution=False,
         )
 
     @task
@@ -77,7 +77,7 @@ class WebPresenceCrew:
         return Task(  # type: ignore[call-arg]
             config=self.tasks_config["domain_infrastructure_analysis"],  # type: ignore[index, arg-type]
             agent=self.web_researcher().copy(),  # type: ignore[call-arg]
-            async_execution=True,
+            async_execution=False,
         )
 
     @task
@@ -86,7 +86,7 @@ class WebPresenceCrew:
         return Task(  # type: ignore[call-arg]
             config=self.tasks_config["data_leak_analysis"],  # type: ignore[index, arg-type]
             agent=self.web_researcher().copy(),  # type: ignore[call-arg]
-            async_execution=True,
+            async_execution=False,
         )
 
     @task
@@ -95,7 +95,7 @@ class WebPresenceCrew:
         return Task(  # type: ignore[call-arg]
             config=self.tasks_config["competitive_web_presence_analysis"],  # type: ignore[index, arg-type]
             agent=self.web_researcher().copy(),  # type: ignore[call-arg]
-            async_execution=True,
+            async_execution=False,
         )
 
     @task
