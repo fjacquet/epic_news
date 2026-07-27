@@ -27,7 +27,7 @@ dependencies = [
     "requests>=2.34.0",
     "requests-cache>=1.3.2",
     "httpx>=0.27.2",
-    "fastapi>=0.138.2",
+    "fastapi>=0.140.2",
     "uvicorn>=0.49.0",
     "streamlit>=1.60.0",
     # --- Data sources / scraping ---
@@ -41,14 +41,14 @@ dependencies = [
     "wikipedia-mcp-server>=1.0.1",
     "tavily-python>=0.7.26",
     "firecrawl-py>=4.30.3",
-    "yfinance>=1.5.1",
-    "pyairtable>=3.1.1",
+    "yfinance>=1.5.2",
+    "pyairtable>=3.4.2",
     # --- Rendering / output ---
     "jinja2>=3.1.3",
     "weasyprint>=69.0",
     # --- Numerical / data ---
     "markdown-it-py>=4.0.0",
-    "pandas>=3.0.3",
+    "pandas>=3.0.5",
     "pypandoc-binary>=1.17",
 ]
 
@@ -74,7 +74,7 @@ test = [
     "pytest-regressions>=2.10.0",
     "coverage>=7.14.3",
     "freezegun>=1.5.2",
-    "faker>=40.23.0",
+    "faker>=40.36.0",
     "python-docx>=1.2.0",
 ]
 
@@ -191,7 +191,7 @@ hyphens = { max-spaces-after = 1 }
 [dependency-groups]
 dev = [
     "pre-commit>=4.6.1",
-    "ruff>=0.15.20",
+    "ruff>=0.16.0",
     "mypy>=1.20.1",
     "bandit>=1.9.2",
     "tabulate>=0.9.0",
