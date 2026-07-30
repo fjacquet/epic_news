@@ -19,7 +19,10 @@
 - Modern union syntax (`X | None`) in Python. Loguru, not `logging`.
 - Commit messages end with `Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>`.
 - Never `git add -A`. Stage explicitly — `src/epic_news/main.py` is a personal sentinel file and must never be committed by this work.
-- `Dockerfile.code-interpreter` and `.github/workflows/docker-publish-code-interpreter.yml` are **out of scope**. Do not touch them.
+- `Dockerfile.code-interpreter` is **out of scope** — do not modify or delete it.
+  Its workflow is out of scope too, with one exception forced by Task 6: it built
+  from the now-deleted `Dockerfile.streamlit`, so Task 8 Step 4 repoints that one
+  line. Nothing else in it changes.
 - Image size is **not** a success criterion. Do not prune dependencies, do not split `pyproject.toml` into extras.
 
 ## Verified constants
@@ -48,9 +51,11 @@ Do not re-derive these; they were confirmed against the codebase and library doc
 | `Dockerfile.combined` | Delete | Superseded by the `combined` target |
 | `supervisord.conf` | Modify | Non-root operation, venv absolute paths |
 | `docker-compose.yml` | Modify | Working healthchecks |
-| `docker-compose.override.yml` | Modify | Build args point at the new targets |
+| `docker-compose.api.yml` | Modify | Build target + working healthcheck |
+| `docker-compose.streamlit.yml` | Modify | Build target + working healthcheck (legacy `/healthz` path) |
 | `Makefile` | Modify | Three `docker-build-*` targets retargeted |
 | `.github/workflows/docker-publish-{api,streamlit,combined}.yml` | Modify | `target:` + shared cache scope |
+| `.github/workflows/docker-publish-code-interpreter.yml` | Modify | One line: build from `Dockerfile.code-interpreter`, not the deleted `Dockerfile.streamlit` |
 
 ---
 
@@ -692,7 +697,14 @@ Expected: all three succeed. `make docker-build-all` will additionally build the
 rtk grep -rn "Dockerfile.api\|Dockerfile.streamlit\|Dockerfile.combined" . --include=Makefile --include=*.yml --include=*.yaml --include=*.md
 ```
 
-Expected: hits only in `docker-compose.override.yml` (Task 7), the three workflows (Task 8), and documentation or spec files. Note any `docs/` hits and fix them in Task 9.
+Expected: hits in `docker-compose.api.yml` and `docker-compose.streamlit.yml` (Task 7), the workflows (Task 8), and documentation or spec files. Note any `docs/` hits and fix them in Task 9.
+
+What this sweep actually found, recorded here because it changed later tasks:
+`docker-publish-code-interpreter.yml:80` builds from `./Dockerfile.streamlit` — a
+copy-paste error from 2026-07-04 that has been publishing the Streamlit image
+under the code-interpreter name. Task 8 Step 4 repoints it. And
+`docker-compose.override.yml` is gitignored, so it is not tracked and never
+appears in a fresh checkout.
 
 - [ ] **Step 5: Commit**
 
@@ -717,11 +729,22 @@ EOF
 
 **Files:**
 - Modify: `docker-compose.yml`
-- Modify: `docker-compose.override.yml`
+- Modify: `docker-compose.api.yml`
+- Modify: `docker-compose.streamlit.yml`
 
 **Interfaces:**
 - Consumes: `/health` (Task 1), `/_stcore/health` (Task 4), the `api` and `streamlit` targets (Tasks 3 and 4).
 - Produces: a compose stack whose services reach `healthy`.
+
+**Scope correction.** The original plan named `docker-compose.override.yml` here. That
+file is gitignored, so it is not tracked and does not exist in a fresh checkout —
+nothing to change. Meanwhile two tracked compose files it never mentioned,
+`docker-compose.api.yml` and `docker-compose.streamlit.yml`, both name the
+Dockerfiles Task 6 deleted and both carry the same broken `curl` healthcheck.
+They are in scope because Task 6's deletion is what broke them.
+
+`docker-compose.combined.yml` needs no change: it pulls a published image and
+declares no `build` stanza and no healthcheck, so it inherits the image's own.
 
 - [ ] **Step 1: Replace the api service healthcheck in `docker-compose.yml`**
 
@@ -745,22 +768,47 @@ EOF
       start_period: 30s
 ```
 
-- [ ] **Step 3: Retarget the override file's build stanzas**
+- [ ] **Step 3: Repair `docker-compose.api.yml`**
 
-Replace the `services:` block of `docker-compose.override.yml`:
+Its `build` stanza names the deleted `Dockerfile.api`, and its healthcheck calls
+`curl`. Change the `build` block and the `healthcheck` block only — leave the
+volumes, ports, environment, networks and volumes sections untouched:
 
 ```yaml
-services:
-  api:
     build:
       context: .
       dockerfile: Dockerfile
       target: api
-  streamlit:
+```
+
+```yaml
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys, urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=5).status == 200 else 1)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+```
+
+- [ ] **Step 3b: Repair `docker-compose.streamlit.yml`**
+
+Same two blocks. Note this file's healthcheck additionally uses the legacy
+`/healthz` path, which must become `/_stcore/health`:
+
+```yaml
     build:
       context: .
       dockerfile: Dockerfile
       target: streamlit
+```
+
+```yaml
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys, urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8501/_stcore/health', timeout=5).status == 200 else 1)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 ```
 
 - [ ] **Step 4: Verify the stack comes up healthy**
@@ -776,19 +824,18 @@ Expected: both services show `(healthy)` in the `STATUS` column.
 
 If a service is healthy but its logs show permission errors writing to `/app/output`, that is the pre-existing host-UID mismatch on the bind mounts noted in the spec, not a regression from this work. Record it; do not fix it here.
 
-- [ ] **Step 5: Check whether the override file is tracked before staging**
+- [ ] **Step 5: Confirm no compose file still names a deleted Dockerfile**
 
 ```bash
-rtk git status --short docker-compose.override.yml
+rtk grep -n "Dockerfile\.\(api\|streamlit\|combined\)" docker-compose*.yml || echo "NO_STALE_REFS"
 ```
 
-The file's header comment claims it is untracked. If `git status` shows it as untracked, stage only `docker-compose.yml` in the next step.
+Expected: `NO_STALE_REFS`. Any hit is a file this task missed.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-rtk git add docker-compose.yml
-# Add docker-compose.override.yml to the line above ONLY if step 5 showed it tracked.
+rtk git add docker-compose.yml docker-compose.api.yml docker-compose.streamlit.yml
 rtk git commit -m "$(cat <<'EOF'
 fix(docker): repair compose healthchecks
 
@@ -810,6 +857,7 @@ EOF
 - Modify: `.github/workflows/docker-publish-api.yml:80,83,84`
 - Modify: `.github/workflows/docker-publish-streamlit.yml` (same three lines)
 - Modify: `.github/workflows/docker-publish-combined.yml` (same three lines)
+- Modify: `.github/workflows/docker-publish-code-interpreter.yml:80` (one line; see Step 4)
 
 **Interfaces:**
 - Consumes: the `api`, `streamlit`, `combined` targets.
@@ -858,24 +906,46 @@ Identical change, with `target: combined`:
 
 The three images share one scope deliberately: their `builder` stage is byte-identical, so one cached dependency install serves all three. The workflows are triggered by the same push and run concurrently, so they still all miss on a cold run — the benefit lands on subsequent runs. Concurrent `mode=max` writers to one scope produce a benign conflict warning from the later writers because cache keys are immutable once created; the first writer's layers remain available to everyone.
 
-- [ ] **Step 4: Confirm code-interpreter was not touched**
+- [ ] **Step 4: Repair `docker-publish-code-interpreter.yml`**
+
+This workflow is otherwise out of scope, but Task 6 broke it: line 80 reads
+`file: ./Dockerfile.streamlit`, a copy-paste error dating from 2026-07-04 that
+has been publishing the Streamlit image under the `epic-news-code-interpreter`
+name. That Dockerfile no longer exists, so the workflow now hard-fails.
+
+By human decision, repoint it at the file it always meant:
+
+```yaml
+          file: ./Dockerfile.code-interpreter
+```
+
+Change that one line. Do **not** add a `target:` — `Dockerfile.code-interpreter`
+is a single-stage file. Do not touch this workflow's cache scope: it keeps its
+own `${{ env.IMAGE_NAME }}-${{ env.PLATFORM_PAIR }}` scope, because its builder
+stage shares nothing with the other three.
+
+Note for the PR description: the next publish changes that image's contents from
+Streamlit to an actual code interpreter.
+
+- [ ] **Step 5: Validate the YAML**
+
+Run: `uv run yamllint -s .github/workflows/docker-publish-api.yml .github/workflows/docker-publish-streamlit.yml .github/workflows/docker-publish-combined.yml .github/workflows/docker-publish-code-interpreter.yml`
+
+Expected: no errors.
+
+Then confirm the change set is exactly the four intended workflows:
 
 ```bash
 rtk git diff --name-only .github/workflows/
 ```
 
-Expected: exactly three files, none of them `docker-publish-code-interpreter.yml`.
-
-- [ ] **Step 5: Validate the YAML**
-
-Run: `uv run yamllint -s .github/workflows/docker-publish-api.yml .github/workflows/docker-publish-streamlit.yml .github/workflows/docker-publish-combined.yml`
-
-Expected: no errors.
+Expected: four files — the three retargeted publishers plus
+`docker-publish-code-interpreter.yml`. Nothing else under `.github/`.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-rtk git add .github/workflows/docker-publish-api.yml .github/workflows/docker-publish-streamlit.yml .github/workflows/docker-publish-combined.yml
+rtk git add .github/workflows/docker-publish-api.yml .github/workflows/docker-publish-streamlit.yml .github/workflows/docker-publish-combined.yml .github/workflows/docker-publish-code-interpreter.yml
 rtk git commit -m "$(cat <<'EOF'
 ci(docker): build from shared Dockerfile targets
 
