@@ -302,12 +302,28 @@ WORKDIR /app
 # so creating the data directories first would leave ownership unpredictable.
 #
 # There are deliberately no VOLUME declarations. The old Dockerfiles declared
-# VOLUME on these three paths, which makes Docker create a root-owned anonymous
+# VOLUME on these paths, which makes Docker create a root-owned anonymous
 # volume on every run — unwritable by myuser, and leaked to disk. compose
 # bind-mounts host paths over them instead. Do not reintroduce VOLUME here.
+#
+# Every top-level directory the app creates at runtime must be pre-created and
+# chowned, because /app itself stays root:root — that is what stops myuser
+# rewriting /app/src or /app/.venv. The old single-stage images used
+# `chown -R myuser:myuser /app`, which gave that hardening away.
+#
+# The list is exhaustive as of this change, enumerated from the codebase:
+#   db, data, output  — compose bind-mount points
+#   traces            — utils/observability.py:29, at MODULE IMPORT time
+#   output/dashboard_data — utils/observability.py:30, also at import time
+#                           (created inside the myuser-owned output/)
+#   checkpoints       — utils/directory_utils.py:28
+#   debug             — utils/diagnostics/parsing.py:403, on a diagnostic path
+# If a future change adds another bare top-level os.makedirs, startup fails
+# loudly with PermissionError and the healthcheck reports unhealthy. Add it
+# here rather than widening ownership of /app.
 COPY --from=builder --chown=myuser:myuser /app /app
-RUN mkdir -p /app/db /app/data /app/output \
-    && chown myuser:myuser /app/db /app/data /app/output
+RUN mkdir -p /app/db /app/data /app/output /app/traces /app/checkpoints /app/debug \
+    && chown myuser:myuser /app/db /app/data /app/output /app/traces /app/checkpoints /app/debug
 
 # ---------------------------------------------------------------------------
 # api
