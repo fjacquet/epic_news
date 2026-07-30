@@ -32,3 +32,11 @@ def test_kickoff_endpoint_validation_error():
 
     # Assert
     assert response.status_code == 422  # Unprocessable Entity
+
+
+def test_health_endpoint():
+    """The container HEALTHCHECK and docker-compose both probe this route."""
+    response = client.get("/health")
+
+    assert response.status_code == 200
+    assert response.json() == {"status": "ok"}

@@ -14,6 +14,16 @@ class KickoffRequest(BaseModel):
     user_request: str
 
 
+@app.get("/health")
+async def health() -> dict[str, str]:
+    """Liveness probe for the container HEALTHCHECK and docker-compose.
+
+    Deliberately does no dependency checking: it answers "is the ASGI app
+    accepting requests", not "is every downstream provider reachable".
+    """
+    return {"status": "ok"}
+
+
 @app.post("/kickoff", status_code=202)
 async def kickoff_endpoint(request: KickoffRequest, background_tasks: BackgroundTasks):
     """
