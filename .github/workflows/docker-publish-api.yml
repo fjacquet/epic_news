@@ -77,11 +77,12 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: .
-          file: ./Dockerfile.api
+          file: ./Dockerfile
+          target: api
           platforms: ${{ matrix.platform }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha,scope=${{ env.IMAGE_NAME }}-${{ env.PLATFORM_PAIR }}
-          cache-to: type=gha,mode=max,scope=${{ env.IMAGE_NAME }}-${{ env.PLATFORM_PAIR }}
+          cache-from: type=gha,scope=epic-news-${{ env.PLATFORM_PAIR }}
+          cache-to: type=gha,mode=max,scope=epic-news-${{ env.PLATFORM_PAIR }}
           outputs: type=image,"name=docker.io/${{ env.IMAGE_NAME }},ghcr.io/${{ env.IMAGE_NAME }}",push-by-digest=true,name-canonical=true,push=${{ github.event_name != 'pull_request' }}
 
       # Export the digest so the merge job can assemble the manifest list.
