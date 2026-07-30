@@ -2,7 +2,8 @@ services:
   streamlit:
     build:
       context: .
-      dockerfile: Dockerfile.streamlit
+      dockerfile: Dockerfile
+      target: streamlit
     container_name: epic-news-streamlit
     restart: unless-stopped
     ports:
@@ -18,11 +19,11 @@ services:
       # Add API_URL environment variable to connect to an external API
       - API_URL=${API_URL:-http://localhost:8000}
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8501/healthz"]
+      test: ["CMD", "python", "-c", "import sys, urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8501/_stcore/health', timeout=5).status == 200 else 1)"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 10s
+      start_period: 30s
 
 networks:
   default:
