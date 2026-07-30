@@ -306,24 +306,32 @@ WORKDIR /app
 # volume on every run — unwritable by myuser, and leaked to disk. compose
 # bind-mounts host paths over them instead. Do not reintroduce VOLUME here.
 #
-# Every top-level directory the app creates at runtime must be pre-created and
-# chowned, because /app itself stays root:root — that is what stops myuser
-# rewriting /app/src or /app/.venv. The old single-stage images used
-# `chown -R myuser:myuser /app`, which gave that hardening away.
+# The COPY carries NO --chown. That is the point: --chown applies recursively,
+# so chowning here would hand /app/src and /app/.venv to myuser and the runtime
+# user could rewrite its own code and interpreter. Left root-owned, they are
+# read-only to myuser. Nothing writes to them at runtime — UV_COMPILE_BYTECODE
+# precompiles in the builder and PYTHONDONTWRITEBYTECODE blocks runtime .pyc.
 #
-# The list is exhaustive as of this change, enumerated from the codebase:
+# Root-owned /app also prevents myuser creating or deleting entries directly
+# under /app. So every top-level directory the app writes to must be created
+# and chowned here, up front. Enumerated from the codebase by sweeping for both
+# `os.makedirs(` and `.mkdir(` — the second form is easy to miss:
 #   db, data, output  — compose bind-mount points
 #   traces            — utils/observability.py:29, at MODULE IMPORT time
 #   output/dashboard_data — utils/observability.py:30, also at import time
-#                           (created inside the myuser-owned output/)
+#                           (lands inside the myuser-owned output/)
 #   checkpoints       — utils/directory_utils.py:28
-#   debug             — utils/diagnostics/parsing.py:403, on a diagnostic path
-# If a future change adds another bare top-level os.makedirs, startup fails
-# loudly with PermissionError and the healthcheck reports unhealthy. Add it
-# here rather than widening ownership of /app.
-COPY --from=builder --chown=myuser:myuser /app /app
-RUN mkdir -p /app/db /app/data /app/output /app/traces /app/checkpoints /app/debug \
-    && chown myuser:myuser /app/db /app/data /app/output /app/traces /app/checkpoints /app/debug
+#   debug             — utils/diagnostics/parsing.py:403, diagnostic path
+#   logs              — utils/logger.py:38, via setup_logging(), which is the
+#                       FIRST statement of kickoff() in main.py
+#
+# A missing entry does not always fail loudly. `traces` breaks at import and
+# the healthcheck catches it; `logs` breaks inside a FastAPI BackgroundTask
+# after /kickoff has already returned 202, on a container that stays healthy.
+# Add new directories here rather than widening ownership of /app.
+COPY --from=builder /app /app
+RUN mkdir -p /app/db /app/data /app/output /app/traces /app/checkpoints /app/debug /app/logs \
+    && chown myuser:myuser /app/db /app/data /app/output /app/traces /app/checkpoints /app/debug /app/logs
 
 # ---------------------------------------------------------------------------
 # api
@@ -359,6 +367,28 @@ docker run --rm epic_news-api:latest id -u
 Single-quote these so `$?` and friends are evaluated inside the container, not by the host shell.
 
 Expected: `NO_BUILD_TOOLING`; two `ModuleNotFoundError` lines; `id -u` prints a non-zero UID (not `0`).
+
+- [ ] **Step 3b: Verify the filesystem permission split**
+
+Exercising this through `POST /kickoff` would run a real crew against live LLM
+APIs, so probe the permissions directly instead. Every directory the app writes
+to must be writable, and the code and interpreter must not be.
+
+```bash
+docker run --rm epic_news-api:latest sh -c '
+for d in db data output traces checkpoints debug logs; do
+  touch "/app/$d/.probe" 2>/dev/null && echo "WRITABLE  $d" || echo "FAIL_RO   $d"
+done
+touch /app/src/epic_news/api.py 2>/dev/null && echo "FAIL_RW   src" || echo "READONLY  src"
+touch /app/.venv/bin/uvicorn  2>/dev/null && echo "FAIL_RW   .venv" || echo "READONLY  .venv"
+touch /app/.probe             2>/dev/null && echo "FAIL_RW   /app" || echo "READONLY  /app"
+'
+```
+
+Expected: seven `WRITABLE` lines, then `READONLY src`, `READONLY .venv`,
+`READONLY /app`. Any `FAIL_` line is a real failure — a `FAIL_RO` means the app
+will crash or silently lose logs at runtime, a `FAIL_RW` means the hardening
+this task exists for is not in place.
 
 - [ ] **Step 4: Verify the app runs and reaches `healthy`**
 
