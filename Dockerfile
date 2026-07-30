@@ -111,3 +111,18 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
 
 USER myuser
 CMD ["uvicorn", "epic_news.api:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers"]
+
+# ---------------------------------------------------------------------------
+# streamlit
+# ---------------------------------------------------------------------------
+FROM runtime-base AS streamlit
+
+EXPOSE 8501
+
+# /_stcore/health is Streamlit's current health path. /healthz is the legacy
+# one the old Dockerfile used.
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD ["python", "-c", "import sys, urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8501/_stcore/health', timeout=5).status == 200 else 1)"]
+
+USER myuser
+CMD ["streamlit", "run", "src/epic_news/app.py", "--server.port=8501", "--server.headless=true", "--server.address=0.0.0.0"]
