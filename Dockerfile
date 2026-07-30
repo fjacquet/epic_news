@@ -126,3 +126,21 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
 
 USER myuser
 CMD ["streamlit", "run", "src/epic_news/app.py", "--server.port=8501", "--server.headless=true", "--server.address=0.0.0.0"]
+
+# ---------------------------------------------------------------------------
+# combined — both apps under supervisor, still non-root.
+# ---------------------------------------------------------------------------
+FROM runtime-base AS combined
+
+RUN apt-get update && apt-get install -y --no-install-recommends supervisor \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --chown=myuser:myuser supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+EXPOSE 8000 8501
+
+HEALTHCHECK --interval=30s --timeout=15s --start-period=45s --retries=3 \
+    CMD ["python", "-c", "import sys, urllib.request; api = urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=5).status; ui = urllib.request.urlopen('http://127.0.0.1:8501/_stcore/health', timeout=5).status; sys.exit(0 if api == 200 and ui == 200 else 1)"]
+
+USER myuser
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
