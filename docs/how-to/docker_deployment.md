@@ -12,9 +12,9 @@ Based on the official `uv` documentation and our experience, the following princ
 4.  **Run as a Non-Root User**: Always create and switch to a non-root user for security.
 5.  **Use `uv run`**: Execute commands like `uvicorn` with `uv run` to ensure they run within the correct virtual environment.
 
-## Final `Dockerfile.api` Example
+## Final `Dockerfile` (`api` target) Example
 
-Here is the final, optimized `Dockerfile.api` that incorporates all these lessons:
+Here is the final, optimized `Dockerfile` `api` target (built with `docker build --target api .`) that incorporates all these lessons:
 
 ```dockerfile
 # 1. Use the official uv image for Python 3.11
