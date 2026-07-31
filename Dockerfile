@@ -111,15 +111,17 @@ WORKDIR /app
 # This is ONE COPY, and splitting it into `.venv` / `src` / `templates` was
 # tried and measured and does NOT work. The theory was that a source edit would
 # leave a lockfile-keyed venv layer CACHED instead of re-pushing 1.52 GB. It
-# does not, because the venv is not source-independent: `uv sync` reinstalls
-# the project on every source change and writes
+# does not, because the venv is not source-independent. The project is an
+# editable install, so `uv sync` reinstalls it on every source change and
+# rewrites its install metadata inside the venv —
 # `.venv/lib/python3.13/site-packages/epic_news-*.dist-info/uv_cache.json`,
-# which embeds the byte size of the source tree —
-#   {"directories":{"src":1848915}}  ->  {"directories":{"src":1976328}}
-# — and RECORD, which hashes it. Two changed bytes-worth of metadata inside
-# .venv is enough: `COPY --from=builder /app/.venv` missed cache (13.8s, new
-# layer digest) after a one-line edit to api.py. A no-change rebuild is fully
-# CACHED, so the miss is caused by the edit, not by build nondeterminism.
+# which records an mtime for the source tree:
+#   {"directories":{"src":{"secs_since_epoch":...,"nanos_since_epoch":...}}}
+# — plus RECORD, which hashes it. Those two files were the only content that
+# differed between builds, and it was enough: `COPY --from=builder /app/.venv`
+# missed cache (13.8s, new layer digest) after a one-line edit to api.py. A
+# no-change rebuild is fully CACHED, so the miss is caused by the edit, not by
+# build nondeterminism.
 # Defeating this needs a separate deps-only venv stage, not a COPY split.
 COPY --from=builder /app /app
 

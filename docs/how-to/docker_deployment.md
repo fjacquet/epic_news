@@ -74,11 +74,13 @@ These are deliberate, and each was a bug before it was a rule:
   logs`) are chowned. New write targets get added to that list, not fixed by
   widening ownership.
 - **The venv and the source ship as one 1.52 GB layer, and splitting them does
-  not help.** It was measured: `uv sync` reinstalls the project whenever the
-  source changes and writes the source tree's byte size into the venv's
-  `uv_cache.json`, so `COPY --from=builder /app/.venv` misses cache after any
-  source edit anyway. Anyone attacking the rebuild cost needs a separate
-  deps-only venv stage; a COPY split alone buys nothing.
+  not help.** It was measured. The project is an editable install, so `uv sync`
+  reinstalls it whenever the source changes and rewrites its install metadata
+  inside the venv — `uv_cache.json`, which records an mtime for the source tree,
+  and `RECORD`, which hashes it. That is enough for
+  `COPY --from=builder /app/.venv` to miss cache after any source edit. Anyone
+  attacking the rebuild cost needs a separate deps-only venv stage; a COPY split
+  alone buys nothing.
 - **Healthchecks call `python -c urllib.request`, not `curl`.** `curl` is not in
   the slim base; a healthcheck that shells out to a binary the image does not
   contain reports unhealthy forever. Nothing invokes `uv run` at runtime either
