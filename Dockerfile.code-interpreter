@@ -20,14 +20,18 @@ COPY pyproject.toml .
 # If you use 'uv' to manage a lock file (uv.lock), copy that too for exact reproducibility
 # COPY uv.lock .
 
+# src/ must be copied BEFORE `uv sync`. pyproject.toml sets
+# [tool.setuptools.packages.find] where = ["src"], so building the epic-news
+# project itself fails without it:
+#   error in 'egg_base' option: 'src' does not exist or is not a directory
+# This ordering costs the dependency-layer cache on every source edit, which is
+# what the root Dockerfile fixes properly with a two-step uv sync. Left as-is
+# here deliberately — this image is out of scope for that restructure.
+COPY src/ ./src/
+
 # Install the required Python packages based on pyproject.toml
 # 'uv sync' installs dependencies based on pyproject.toml (and optionally a lock file)
-RUN uv sync  
-
-# Copy your application code into the container
-COPY src/ ./src/
-# Or if all your code is in the root, just:
-# COPY . .
+RUN uv sync
 # Add the alias to .bashrc for interactive sessions
 # Ensure that the alias is available for interactive shells
 RUN echo "alias python='uv run python'" >> /root/.bashrc && \
