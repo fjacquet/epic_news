@@ -41,13 +41,27 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked --no-dev
 
 # ---------------------------------------------------------------------------
-# runtime-base — no uv, no git, no build tooling, no dev dependencies.
+# runtime-base — no git, no compiler, no dev dependencies. `uv` and `uvx` are
+# deleted below rather than never installed: they arrive inside the venv via
+# crewai-cli, a *main* dependency of crewai, so `--no-dev` cannot drop them.
+#
+# `pip` and `pip3` DO remain, at /usr/local/bin, because the python base image
+# ships them. They point at the system interpreter (/usr/local/bin/python3.13),
+# not at the venv, and both /usr/local and the venv are root-owned while the
+# container runs as myuser — so they cannot write to either. `--user` installs
+# land in $HOME but stay invisible to the app: the venv reports
+# ENABLE_USER_SITE=False, and the venv interpreter has no pip module at all.
+# This is a reduced runtime, not a sealed one; do not read it as more.
+#
+# Verify with a loop, never `command -v a b c` — that form only evaluates its
+# FIRST operand, so a single absent binary makes it "pass" for all of them:
+#   docker run --rm <img> sh -c \
+#     'for b in git uv uvx; do command -v "$b" && echo "FAIL_PRESENT $b"; done; echo CHECK_DONE'
 # ---------------------------------------------------------------------------
 FROM ${PYTHON_IMAGE} AS runtime-base
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PYTHONPATH=/app \
     PATH=/app/.venv/bin:$PATH
 
 # WeasyPrint runtime libraries, imported by tools/html_to_pdf_tool.py.
@@ -93,7 +107,27 @@ WORKDIR /app
 # the healthcheck catches it; `logs` breaks inside a FastAPI BackgroundTask
 # after /kickoff has already returned 202, on a container that stays healthy.
 # Add new directories here rather than widening ownership of /app.
+#
+# This is ONE COPY, and splitting it into `.venv` / `src` / `templates` was
+# tried and measured and does NOT work. The theory was that a source edit would
+# leave a lockfile-keyed venv layer CACHED instead of re-pushing 1.52 GB. It
+# does not, because the venv is not source-independent: `uv sync` reinstalls
+# the project on every source change and writes
+# `.venv/lib/python3.13/site-packages/epic_news-*.dist-info/uv_cache.json`,
+# which embeds the byte size of the source tree —
+#   {"directories":{"src":1848915}}  ->  {"directories":{"src":1976328}}
+# — and RECORD, which hashes it. Two changed bytes-worth of metadata inside
+# .venv is enough: `COPY --from=builder /app/.venv` missed cache (13.8s, new
+# layer digest) after a one-line edit to api.py. A no-change rebuild is fully
+# CACHED, so the miss is caused by the edit, not by build nondeterminism.
+# Defeating this needs a separate deps-only venv stage, not a COPY split.
 COPY --from=builder /app /app
+
+# uv and uvx are installed *into the venv* by crewai-cli. Nothing at runtime
+# shells out to them: all three CMDs and both supervisord programs invoke
+# absolute venv paths, and no source file spawns uv as a subprocess.
+RUN rm -f /app/.venv/bin/uv /app/.venv/bin/uvx
+
 RUN mkdir -p /app/db /app/data /app/output /app/traces /app/checkpoints /app/debug /app/logs \
     && chown myuser:myuser /app/db /app/data /app/output /app/traces /app/checkpoints /app/debug /app/logs
 
@@ -135,7 +169,12 @@ FROM runtime-base AS combined
 RUN apt-get update && apt-get install -y --no-install-recommends supervisor \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --chown=myuser:myuser supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+# No --chown: root-owned 0644 is readable by supervisord running as myuser, and
+# it denies the runtime user a rewrite-the-config-then-reload path. That is also
+# what defuses the [unix_http_server]/[supervisorctl] sections in the file —
+# they are worth keeping for debugging a two-process container, but only while
+# the config they would act on cannot be edited from inside.
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 EXPOSE 8000 8501
 

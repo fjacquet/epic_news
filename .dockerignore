@@ -21,3 +21,8 @@ src/**/.pytest_cache/
 src/**/.ruff_cache/
 src/**/*.egg-info/
 templates/**/__pycache__/
+
+# Finder droppings. The old denylist excluded these; the allowlist rewrite lost
+# the rule. A .DS_Store created by opening src/ in Finder is enough to change
+# the build context and invalidate the COPY src/ layer.
+**/.DS_Store
