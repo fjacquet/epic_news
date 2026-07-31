@@ -4,6 +4,34 @@ All notable changes to Epic News are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [3.6.0] — 2026-07-31
+
+A build release. `Dockerfile.api`, `Dockerfile.streamlit` and `Dockerfile.combined` were three near-identical files that installed the dev toolchain into production, copied source above `uv sync` so every edit reinstalled every dependency, and ran healthchecks against `curl` — a binary the slim base does not ship. They are now one multi-stage `Dockerfile` with `api`, `streamlit` and `combined` targets over a shared `builder`. Size was not a goal and nothing was pruned, but dropping dev dependencies and build tooling took the api image from 3.18 GB to 1.73 GB anyway.
+
+`Dockerfile.code-interpreter` keeps its own file and is otherwise unchanged.
+
+### Added
+- **`GET /health`** on the FastAPI app. The route did not exist, so every healthcheck aimed at it would have 404'd even with a working HTTP client.
+
+### Changed
+- **One `Dockerfile`, three targets.** The `builder` stage installs the venv with bind-mounted manifests and a BuildKit uv cache mount, so the dependency layer is keyed on `uv.lock`/`pyproject.toml` and survives source edits; `runtime-base` carries the WeasyPrint libraries and the writable data directories; `api`, `streamlit` and `combined` add only their port, healthcheck and command. After `touch src/epic_news/api.py`, the dependency layer reports `CACHED`.
+- **`--no-dev` on both sync steps**, and `--all-extras` dropped from the streamlit and combined images, whose only extras group is `test`. `mypy` and `pytest` are no longer importable in any runtime image.
+- **`.dockerignore` inverted from a denylist to an allowlist.** It now excludes `*` and re-includes only the manifests, `src/`, `templates/` and `supervisord.conf`. Cold-cache build context: 139.42 MB → 1.79 MB locally. CI checkouts were already clean, so the lasting value is that untracked junk can no longer enter a layer at all.
+- **`supervisord` no longer runs as root** in the combined image: socket and pidfile moved to `/tmp`, the per-program `user=` lines are gone, and commands invoke absolute venv paths instead of `uv run`.
+- **Publish workflows, Makefile targets and compose files** all build from the shared `Dockerfile` via `--target`. The three application workflows share one GHA cache scope, since their `builder` stage is byte-identical.
+
+### Fixed
+- **Healthchecks that could never pass.** All seven — three images and four compose files — called `curl`, absent from `python:3.13-slim-bookworm`. They now use `python -c urllib.request`. All three images reach `healthy`, which has not previously been true in this repository.
+- **`docker-publish-code-interpreter.yml` built `./Dockerfile.streamlit`**, a copy-paste error dating to 2026-07-04. The published `code-interpreter` image has been the Streamlit app since then; it now builds the file it names, and its contents change on next publish.
+- **`Dockerfile.code-interpreter` had never built.** It ran `uv sync` before `COPY src/`, and `pyproject.toml` sets `where = ["src"]`, so it failed with `error in 'egg_base' option: 'src' does not exist`. Nothing had ever built it, so nothing had ever reported it. The two lines are now in the right order.
+
+### Security
+- **The runtime user cannot write to its own code or interpreter.** `/app`, `/app/src` and `/app/.venv` stay root-owned — the `COPY` carries no `--chown`, which is recursive and would have handed all three to `myuser`. Exactly seven directories are writable: `db data output traces checkpoints debug logs`, enumerated by sweeping for both `os.makedirs(` and `.mkdir(`.
+- **`git`, the compiler and the dev dependencies stay in the builder.** `uv` and `uvx` arrive inside the venv via `crewai-cli`, a main dependency of `crewai`, so `--no-dev` cannot exclude them; they are deleted in `runtime-base`. That is a whiteout, not a scrub — the bytes remain in the layer below and are recoverable by anyone who unpacks the image. What it closes is the running process invoking them.
+
+### Dependencies
+- Since 3.5.1: `gitpython` 3.1.53 → 3.1.57, `json-repair` 0.25.3 → 0.60.1, plus `crewai[google-genai]`, `crewai-tools[mcp]`, the python-minor-patch group and two GitHub Actions groups.
+
 ## [3.5.1] — 2026-07-22
 
 A crash-resistance release. A holiday-planner run died with `ValidationError: 1 validation error for TaskOutput — raw: Input should be a valid string [input_value=[ChatCompletionMessageToolCall...]]`. The provider had answered a ReAct step with native tool calls; CrewAI returns that list verbatim when no `available_functions` were supplied, and every ReAct consumer downstream assumes a `str`, so the list travelled into `TaskOutput.raw` and aborted the crew.
