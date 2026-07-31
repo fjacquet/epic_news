@@ -126,6 +126,12 @@ COPY --from=builder /app /app
 # uv and uvx are installed *into the venv* by crewai-cli. Nothing at runtime
 # shells out to them: all three CMDs and both supervisord programs invoke
 # absolute venv paths, and no source file spawns uv as a subprocess.
+#
+# This removes them from the running container's filesystem, not from the
+# image: a whiteout in a later layer cannot delete bytes from the layer below,
+# so the binaries are still recoverable by anyone who can unpack the layers,
+# and the image does not shrink. It closes "the running process can invoke
+# uv", which is the threat that matters here. It is not a scrub.
 RUN rm -f /app/.venv/bin/uv /app/.venv/bin/uvx
 
 RUN mkdir -p /app/db /app/data /app/output /app/traces /app/checkpoints /app/debug /app/logs \
