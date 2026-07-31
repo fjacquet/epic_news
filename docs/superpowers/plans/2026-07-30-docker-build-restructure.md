@@ -158,7 +158,7 @@ Expected: a `transferring context` line in the hundreds of megabytes. Record the
 
 - [ ] **Step 2: Replace `.dockerignore` entirely**
 
-```
+```dockerignore
 # Allowlist, not a denylist.
 #
 # A denylist let src/epic_news/crews/.mypy_cache (234 MB) into every published
@@ -599,7 +599,7 @@ FROM runtime-base AS combined
 RUN apt-get update && apt-get install -y --no-install-recommends supervisor \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --chown=myuser:myuser supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 EXPOSE 8000 8501
 

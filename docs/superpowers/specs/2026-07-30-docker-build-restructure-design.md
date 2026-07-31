@@ -62,10 +62,22 @@ Confirmed still needed, so **not** removed:
 `.dockerignore`, `supervisord.conf`, `docker-compose.yml`, the three
 corresponding CI publish workflows, and the Makefile docker targets.
 
-**Out of scope:** `Dockerfile.code-interpreter` and
-`docker-publish-code-interpreter.yml` are left untouched by explicit decision,
+**Mostly out of scope:** `Dockerfile.code-interpreter` and
+`docker-publish-code-interpreter.yml` are left alone by explicit decision,
 despite being stale (Python 3.12 against a project requiring 3.13, `uv sync`
-with no lockfile, ships `build-essential`).
+with no lockfile, ships `build-essential`). Two changes were forced anyway,
+because deleting `Dockerfile.streamlit` broke them:
+
+- The workflow built from `./Dockerfile.streamlit` — a copy-paste error from
+  2026-07-04, so the published image was the Streamlit app under the
+  code-interpreter name. It now builds from `Dockerfile.code-interpreter` and
+  keeps its own cache scope, since its builder shares nothing with the other
+  three.
+- That exposed a second latent bug: the Dockerfile ran `uv sync` before
+  `COPY src/`, and `pyproject.toml` sets `where = ["src"]`, so it had never
+  built at all. The two lines are now correctly ordered.
+
+Everything else about both files stays as it was.
 
 ## Design
 
@@ -74,7 +86,7 @@ with no lockfile, ships `build-essential`).
 A single `Dockerfile` at the repo root replaces `Dockerfile.api`,
 `Dockerfile.streamlit`, and `Dockerfile.combined`, which are deleted.
 
-```
+```text
 builder ──> runtime-base ──┬──> api        (8000)
                            ├──> streamlit  (8501)
                            └──> combined   (8000 + 8501, + supervisor)
@@ -103,15 +115,26 @@ builder ──> runtime-base ──┬──> api        (8000)
   as its base; copying the `uv` binary into the official image keeps both stages
   on one interpreter and preserves the property the existing Dockerfile comments
   were protecting.
-- Installs the five WeasyPrint apt libraries only. No `git`, no `uv`, no build
-  tooling.
+- Installs the five WeasyPrint apt libraries only. No `git`, no compiler, no dev
+  dependencies. `uv` and `uvx` arrive inside the venv via `crewai-cli`, a main
+  dependency of `crewai`, so `--no-dev` cannot exclude them — they are deleted
+  in `runtime-base` instead. `pip`/`pip3` remain; they belong to the base image.
 - Creates `myuser`, then — **in this order** — copies `/app` from the builder
-  with `--chown=myuser:myuser`, and only afterwards runs
-  `mkdir -p /app/db /app/data /app/output && chown myuser:myuser` on them. The
-  order matters: a `COPY` into an existing `/app` merges rather than replaces,
-  so creating the data directories first would leave their ownership
-  unpredictable.
-- `ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PYTHONPATH=/app PATH=/app/.venv/bin:$PATH`.
+  **with no `--chown`**, and only afterwards creates and chowns the data
+  directories. Both halves matter:
+  - `--chown` applies recursively. Using it here would hand `/app/src` and
+    `/app/.venv` to the runtime user, letting it rewrite its own code and
+    interpreter. Left off, they stay root-owned and read-only to `myuser`.
+  - A `COPY` into an existing `/app` merges rather than replaces, so creating
+    the data directories first would leave their ownership unpredictable.
+- Root-owned `/app` also means `myuser` cannot create entries directly under it,
+  so every top-level directory the app writes to must be created and chowned up
+  front. Enumerated by sweeping for both `os.makedirs(` and `.mkdir(`:
+  `db data output traces checkpoints debug logs`. `traces` is created at module
+  import time; `logs` from `setup_logging()`, the first statement of `kickoff()`,
+  which fails inside a `BackgroundTask` behind an already-returned 202 on a
+  container that stays healthy.
+- `ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PATH=/app/.venv/bin:$PATH`.
 
   `UV_COMPILE_BYTECODE=1` at build time and `PYTHONDONTWRITEBYTECODE=1` at
   runtime are complementary, not contradictory: `.pyc` files are generated
@@ -139,7 +162,7 @@ sets `USER myuser`, and sets its `CMD` to a venv binary on `PATH` — `uvicorn`,
 cache entered the images because a denylist requires someone to remember every
 new junk directory; the same hole would admit a `.env` variant.
 
-```
+```dockerignore
 *
 !pyproject.toml
 !uv.lock
@@ -159,7 +182,7 @@ Anything new at the repo root is excluded by default.
 
 **Healthchecks.** Replace every `curl` invocation with the venv interpreter:
 
-```
+```dockerfile
 HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
   CMD python -c "import sys,urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=5).status == 200 else 1)"
 ```
@@ -267,8 +290,16 @@ Size is not a success criterion for this work.
 2. `Dockerfile.api`, `Dockerfile.streamlit`, `Dockerfile.combined` deleted.
 3. `.dockerignore` rewritten as an allowlist.
 4. `supervisord.conf` updated for non-root operation and venv paths.
-5. `docker-compose.yml` healthchecks fixed.
-6. Three CI publish workflows retargeted with a shared cache scope.
+5. `docker-compose.yml`, `docker-compose.api.yml` and
+   `docker-compose.streamlit.yml` healthchecks fixed, and the latter two
+   retargeted. (`docker-compose.override.yml`, named in an earlier draft, is
+   gitignored and was never tracked. `docker-compose.combined.yml` needs
+   nothing — it pulls a published image and declares no healthcheck.)
+6. Three CI publish workflows retargeted with a shared
+   `epic-news-<platform>` cache scope. The code-interpreter workflow keeps its
+   own scope and only has its Dockerfile path corrected — its builder shares no
+   layers with the other three, so pulling it into the shared scope would store
+   a second unrelated venv against GitHub's 10 GB cache limit.
 7. Three Makefile docker-build targets retargeted.
 8. Verification results recorded in the PR description.
 
