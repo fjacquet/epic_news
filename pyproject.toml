@@ -243,7 +243,7 @@ extend_exclude = ["scripts/"]
 # DEP002: declared but not imported in our source — intentional.
 DEP002 = [
     "litellm",          # LLM backend used by crewai at runtime; CVE-floor pin, not imported
-    "uvicorn",          # ASGI server invoked via CLI (Dockerfile.api, Makefile)
+    "uvicorn",          # ASGI server invoked via CLI (Dockerfile --target api, Makefile)
     "lxml",             # required transitively by newspaper3k at runtime
     "lxml-html-clean",  # required by newspaper3k (lxml.html.clean split-out)
     "wikipedia-mcp-server",  # launched via MCP config command string, not imported

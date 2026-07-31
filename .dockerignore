@@ -1,25 +1,28 @@
-# Git
-.git
-.gitignore
+# Allowlist, not a denylist.
+#
+# A denylist let src/epic_news/crews/.mypy_cache (234 MB) into every published
+# image, because nobody added a rule for it. Excluding everything by default
+# means a new junk directory cannot leak in without someone explicitly
+# allowing it.
 
-# Python
-.venv/
-*.pyc
-__pycache__/
+*
 
-# Local development
-.env
-.DS_Store
+!pyproject.toml
+!uv.lock
+!src/
+!templates/
+!supervisord.conf
 
-# Test artifacts
-.pytest_cache/
-.coverage
-htmlcov/
+# Junk nested inside the allowed trees. Later patterns win, so these re-exclude
+# from within the re-included directories above.
+src/**/__pycache__/
+src/**/.mypy_cache/
+src/**/.pytest_cache/
+src/**/.ruff_cache/
+src/**/*.egg-info/
+templates/**/__pycache__/
 
-# Project specific
-/checkpoints
-/db
-/output
-/reports
-/Users
-TODO.md
+# Finder droppings. The old denylist excluded these; the allowlist rewrite lost
+# the rule. A .DS_Store created by opening src/ in Finder is enough to change
+# the build context and invalidate the COPY src/ layer.
+**/.DS_Store

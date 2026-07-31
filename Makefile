@@ -156,15 +156,15 @@ all: clean dev lint test ## Full clean build (clean + dev + lint + test)
 
 docker-build-api: ## Build FastAPI Docker image
 	@echo "$(GREEN)Building FastAPI image...$(RESET)"
-	$(DOCKER) build -f Dockerfile.api -t $(PROJECT_NAME)-api:latest .
+	$(DOCKER) build -f Dockerfile --target api -t $(PROJECT_NAME)-api:latest .
 
 docker-build-streamlit: ## Build Streamlit Docker image
 	@echo "$(GREEN)Building Streamlit image...$(RESET)"
-	$(DOCKER) build -f Dockerfile.streamlit -t $(PROJECT_NAME)-streamlit:latest .
+	$(DOCKER) build -f Dockerfile --target streamlit -t $(PROJECT_NAME)-streamlit:latest .
 
 docker-build-combined: ## Build combined Docker image
 	@echo "$(GREEN)Building combined image...$(RESET)"
-	$(DOCKER) build -f Dockerfile.combined -t $(PROJECT_NAME)-combined:latest .
+	$(DOCKER) build -f Dockerfile --target combined -t $(PROJECT_NAME)-combined:latest .
 
 docker-build-code-interpreter: ## Build code interpreter Docker image
 	@echo "$(GREEN)Building code interpreter image...$(RESET)"
