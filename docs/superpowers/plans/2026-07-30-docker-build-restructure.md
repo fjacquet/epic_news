@@ -363,7 +363,7 @@ Expected: build succeeds. If it fails at the second `uv sync` with a missing `py
 - [ ] **Step 3: Verify the build tooling did not reach the image**
 
 ```bash
-docker run --rm epic_news-api:latest sh -c 'command -v git uv uvx || echo NO_BUILD_TOOLING'
+docker run --rm epic_news-api:latest sh -c 'for b in git uv uvx; do command -v "$b" && echo "FAIL_PRESENT $b"; done; echo CHECK_DONE'
 docker run --rm epic_news-api:latest sh -c 'python -c "import mypy" 2>&1 | tail -1'
 docker run --rm epic_news-api:latest sh -c 'python -c "import pytest" 2>&1 | tail -1'
 docker run --rm epic_news-api:latest id -u
@@ -371,7 +371,15 @@ docker run --rm epic_news-api:latest id -u
 
 Single-quote these so `$?` and friends are evaluated inside the container, not by the host shell.
 
-Expected: `NO_BUILD_TOOLING`; two `ModuleNotFoundError` lines; `id -u` prints a non-zero UID (not `0`).
+Loop over the binaries one at a time. Do NOT write `command -v git uv uvx` — that
+form evaluates only its FIRST operand, so one absent binary makes the whole check
+"pass". It is what hid `uv` (0.11.30, pulled in by `crewai-cli`, a main dependency
+of `crewai`) in every runtime image through an entire review round.
+
+Expected: `CHECK_DONE` with no `FAIL_PRESENT` line before it; two
+`ModuleNotFoundError` lines; `id -u` prints a non-zero UID (not `0`).
+`pip`/`pip3` are deliberately NOT in the loop — they belong to the python base
+image and stay.
 
 - [ ] **Step 3b: Verify the filesystem permission split**
 
@@ -986,14 +994,21 @@ Expected: clean. If the mypy pre-commit hook later hangs past five minutes, its 
 ```bash
 for img in api streamlit combined; do
   echo "=== $img ==="
-  docker run --rm epic_news-$img:latest sh -c "command -v git uv uvx || echo 'NO_BUILD_TOOLING'"
+  docker run --rm epic_news-$img:latest sh -c 'for b in git uv uvx; do command -v "$b" && echo "FAIL_PRESENT $b"; done; echo CHECK_DONE'
   docker run --rm epic_news-$img:latest sh -c "python -c 'import mypy' 2>&1 | tail -1"
   docker run --rm epic_news-$img:latest sh -c "python -c 'import pytest' 2>&1 | tail -1"
   echo -n "uid: "; docker run --rm epic_news-$img:latest id -u
 done
 ```
 
-Expected for each: `NO_BUILD_TOOLING`, two `ModuleNotFoundError` lines, and a non-zero uid — including `combined`.
+Expected for each: `CHECK_DONE` with no preceding `FAIL_PRESENT`, two
+`ModuleNotFoundError` lines, and a non-zero uid — including `combined`.
+
+The loop is not a stylistic choice. `command -v git uv uvx` evaluates only
+`git`, so it prints nothing, the `||` branch fires, and `uv`/`uvx` are never
+looked at — which is exactly how they shipped undetected. Before trusting any
+rewrite of this check, run it against an image known to still contain `uv` and
+confirm it reports the failure.
 
 - [ ] **Step 4: Record the rebuild-time evidence**
 

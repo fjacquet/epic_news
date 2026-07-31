@@ -230,7 +230,13 @@ must report `CACHED` in `--progress=plain` output. Record both wall-clock times.
 
 **Security.** For each of the three images:
 
-- `docker run --rm <img> sh -c "command -v git uv"` returns empty.
+- `docker run --rm <img> sh -c 'for b in git uv uvx; do command -v "$b" && echo "FAIL_PRESENT $b"; done; echo CHECK_DONE'`
+  prints `CHECK_DONE` with no `FAIL_PRESENT` line. Each binary must be tested
+  individually: `command -v git uv uvx` evaluates only its first operand, so an
+  absent `git` makes the check pass while `uv` is still present. `uv`/`uvx` are
+  removed explicitly in `runtime-base` because `crewai-cli` — a main dependency
+  of `crewai` — installs them into the venv, beyond the reach of `--no-dev`.
+  `pip`/`pip3` from the python base image remain and are not part of this check.
 - `docker run --rm <img> python -c "import mypy"` fails with `ModuleNotFoundError`.
 - `docker run --rm <img> python -c "import pytest"` fails likewise.
 - `docker run --rm <img> id -u` returns a non-zero UID — including `combined`.
