@@ -80,6 +80,7 @@ test = [
 
 [tool.crewai]
 type = "flow"
+project_id = "4ed3ce56-ed79-4cac-bc04-3a596e5bc3d7"
 
 [tool.ruff]
 line-length = 110
