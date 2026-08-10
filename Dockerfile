@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-ARG PYTHON_IMAGE=python:3.13-slim-bookworm
+ARG PYTHON_IMAGE=docker.io/library/python:3.13-slim-bookworm
 
 # ---------------------------------------------------------------------------
 # builder — resolves and installs the venv. Never shipped.
