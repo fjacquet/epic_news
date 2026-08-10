@@ -1077,7 +1077,7 @@ requires-dist = [
     { name = "coverage", marker = "extra == 'test'", specifier = ">=7.14.3" },
     { name = "crewai", extras = ["google-genai"], specifier = ">=1.15.9" },
     { name = "crewai-custom-tools", git = "https://github.com/fjacquet/crewai-custom-tools.git?rev=v0.6.0" },
-    { name = "crewai-tools", extras = ["mcp"], specifier = ">=1.15.9" },
+    { name = "crewai-tools", extras = ["mcp"], specifier = ">=1.15.12" },
     { name = "faker", marker = "extra == 'test'", specifier = ">=40.36.0" },
     { name = "fastapi", specifier = ">=0.141.1" },
     { name = "feedparser", specifier = ">=6.0.14" },
