@@ -20,6 +20,8 @@ from typing import Any
 
 from loguru import logger
 
+from .interrupt import raise_if_cancelled
+
 try:
     # Local, optional tracing (no hard dependency)
     from .tracing import trace_span
@@ -105,6 +107,9 @@ def kickoff_flow(crew_or_factory: Any, context: dict[str, Any]) -> Any:
             "🚀 Kicking off crew {} with context keys: {}", crew_name, ", ".join(sorted(context.keys()))
         )
         for attempt in range(1, attempts + 1):
+            # A Ctrl+C cannot interrupt a crew already in flight, but it must stop the
+            # next one — and every retry — from starting.
+            raise_if_cancelled(f"crew {crew_name} (attempt {attempt}/{attempts})")
             # Rebuild the crew each attempt: a Crew carries per-run task state that is
             # not safe to replay after a mid-run failure.
             crew = _get_crew_instance(crew_or_factory)
@@ -175,6 +180,9 @@ async def akickoff_flow(crew_or_factory: Any, context: dict[str, Any]) -> Any:
             ", ".join(sorted(context.keys())),
         )
         for attempt in range(1, attempts + 1):
+            # A Ctrl+C cannot interrupt a crew already in flight, but it must stop the
+            # next one — and every retry — from starting.
+            raise_if_cancelled(f"crew {crew_name} (attempt {attempt}/{attempts})")
             # Rebuild the crew each attempt: a Crew carries per-run task state that is
             # not safe to replay after a mid-run failure.
             crew = _get_crew_instance(crew_or_factory)

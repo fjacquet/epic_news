@@ -114,6 +114,7 @@ from epic_news.utils.flow_helpers import load_or_parse_model, render_and_write_h
 from epic_news.utils.holiday_report import assemble_holiday_docx
 from epic_news.utils.html.template_manager import TemplateManager
 from epic_news.utils.html.template_renderers.pestel_markdown import pestel_to_markdown
+from epic_news.utils.interrupt import install_force_quit_handler
 from epic_news.utils.logger import setup_logging
 from epic_news.utils.menu_generator import MenuGenerator
 from epic_news.utils.observability import get_observability_tools, trace_task
@@ -1642,6 +1643,9 @@ def kickoff(user_input: str | None = None):
         ``sys.exit(kickoff())``, which needs None/int — not the flow object.
     """
     setup_logging()
+    # A single Ctrl+C cannot stop a flow method: CrewAI runs it in a worker thread that
+    # keeps calling the provider and writing report files. Second Ctrl+C exits for real.
+    install_force_quit_handler()
     # Sweep/automation hook: let EPIC_NEWS_REQUEST drive the request without
     # editing the hardcoded query below. An explicit user_input arg still wins.
     # Log loudly when it fires (after setup_logging, so it lands in the configured

@@ -16,6 +16,6 @@ def test_openrouter_model_uses_openrouter_transport():
 
 
 def test_native_provider_model_leaves_transport_to_litellm():
-    llm = LLMConfig.get_openrouter_llm(model="gemini/gemini-3.5-flash")
+    llm = LLMConfig.get_openrouter_llm(model="gemini/gemini-3.7-flash")
     assert llm.base_url is None
     assert llm.is_litellm is True

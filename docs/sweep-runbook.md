@@ -21,7 +21,7 @@ bash scripts/verify_all_crews.sh
 The driver (`scripts/verify_all_crews.sh`) sets two environment variables per flow:
 
 | Env var | Purpose |
-|---|---|
+| --- | --- |
 | `MAIL=fred.jacquet@gmail.com` | Forces every sweep email to one test inbox (`content_state.py` `DEFAULT_EMAIL`). |
 | `EPIC_NEWS_REQUEST="<request>"` | The per-flow routing request. `kickoff()` honors it: `user_input = user_input or os.getenv("EPIC_NEWS_REQUEST") or None`, falling back to the hardcoded query when unset — so the normal sentinel workflow is unchanged. |
 
@@ -66,7 +66,7 @@ scaled to the risk — the wiring is mechanical and identical across crews (one
 Pydantic model with real `pypandoc` producing a valid `.docx`.
 
 | Evidence | Coverage |
-|---|---|
+| --- | --- |
 | **Live docx kickoff — tabular path** | FINDAILY: real flow, `OUTPUT_FORMAT=docx` → valid `.docx` with `<w:tbl>` tables, empty error log. |
 | **Live docx kickoff — prose path** | SAINT: real flow, `OUTPUT_FORMAT=docx` → `report.docx` 19 KB, all French section headings + Swiss content, heading styles, empty error log. |
 | **Per-assembler unit tests** | All 14 assemblers: real `pypandoc`, verbatim-fidelity + None-guard + heading-order asserts (part of the 774-test suite). |
@@ -89,10 +89,10 @@ log string is stale. Flagged for the final review to batch-fix.
 
 ## Results — 2026-07-13 (all 15 flows green)
 
-Stack: `MODEL=gemini/gemini-3.5-flash` (native, off OpenRouter) + `supports_function_calling=False` (ReAct).
+Stack: `MODEL=gemini/gemini-3.7-flash` (native, off OpenRouter) + `supports_function_calling=False` (ReAct).
 
 | # | Category | Result | Report (emailed attachment) |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | 1 | SAINT | PASS | saint report + email |
 | 2 | COOKING | PASS | recipe report + email |
 | 3 | SHOPPING | PASS | shopping advice + email |
@@ -114,7 +114,7 @@ POEM is excluded per decision.
 ### Fixes committed during the sweep
 
 | Commit | Fix |
-|---|---|
+| --- | --- |
 | `fede645` | `kickoff()` returns `None` so a successful run exits 0 (was returning the flow object → `sys.exit()` printed it and exited 1). Global — affected every flow. |
 | `f57c5e9` | `generate_rss_weekly` awaits `akickoff_flow` (was calling sync `kickoff_flow` from an async method). |
 | `b70bde0` | `generate_menu_designer` sets `state.output_file` so the menu report is the emailed attachment (was stuck on the classify path). |
