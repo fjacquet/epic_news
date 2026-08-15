@@ -4,6 +4,21 @@ All notable changes to Epic News are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [3.6.1] — 2026-08-15
+
+Ctrl+C did not stop a run. CrewAI executes every flow method through `asyncio.to_thread`, and the interrupt cancels the asyncio task but cannot cancel the OS thread running the method — so the run kept calling the provider and writing report files. On 2026-08-15 an interrupted HolidayPlanner run finished 286s after the Ctrl+C, hit `RuntimeError: cannot schedule new futures after shutdown` on every subsequent LLM call, degraded 16 of 19 sections to placeholders, and overwrote `output/holiday/itinerary.docx` — while the replacement run the user had already started was writing to the same paths.
+
+### Added
+
+- **`EPIC_NEWS_FORCE_QUIT_GRACE_SECONDS`** (default 5). Seconds the interpreter is given to unwind after a Ctrl+C before the watchdog force-quits.
+
+### Fixed
+
+- **Ctrl+C stops the run.** `src/epic_news/utils/interrupt.py` raises a cancellation flag on SIGINT, which `kickoff_flow`/`akickoff_flow` and per-section narration check before starting new provider work, and arms a daemon timer that calls `os._exit(130)` once the grace period elapses. The watchdog is what makes it reliable: a worker blocked mid-request can run no check at all. A second Ctrl+C skips the wait. Verified against a reproduction of the incident — unguarded survives a single Ctrl+C past 30s, guarded exits 6s after it.
+- **No more reports made of placeholders.** `generate_fragment` now re-raises executor- and interpreter-shutdown errors instead of swallowing them into a placeholder, and `assemble_fragments` refuses to write a DOCX when placeholders are the majority of its sections. This covers provider-down and auth failures too, not only the shutdown case. An isolated single-section failure still degrades gracefully.
+
+Trade-off: `os._exit` skips atexit hooks, `finally` blocks and buffered loguru flushes, so a run killed after the grace period can leave a partial file in `output/`. Raise `EPIC_NEWS_FORCE_QUIT_GRACE_SECONDS` to allow a longer clean unwind.
+
 ## [3.6.0] — 2026-07-31
 
 A build release. `Dockerfile.api`, `Dockerfile.streamlit` and `Dockerfile.combined` were three near-identical files that installed the dev toolchain into production, copied source above `uv sync` so every edit reinstalled every dependency, and ran healthchecks against `curl` — a binary the slim base does not ship. They are now one multi-stage `Dockerfile` with `api`, `streamlit` and `combined` targets over a shared `builder`. Size was not a goal and nothing was pruned, but dropping dev dependencies and build tooling took the api image from 3.18 GB to 1.73 GB anyway.
