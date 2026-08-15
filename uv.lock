@@ -1025,7 +1025,7 @@ wheels = [
 
 [[package]]
 name = "epic-news"
-version = "3.6.0"
+version = "3.6.1"
 source = { editable = "." }
 dependencies = [
     { name = "beautifulsoup4" },
