@@ -12,7 +12,7 @@
 
 - Package manager is **uv only** — `uv run pytest`, `uv add`; never `pip`/`poetry`.
 - Crews run **only** via `crewai flow kickoff` — never invoke a crew directly in Python.
-- LLM config comes **only** from `LLMConfig`; the stack is native Gemini `gemini/gemini-3.5-flash` with forced ReAct (already global). Never hardcode model/timeouts.
+- LLM config comes **only** from `LLMConfig`; the stack is native Gemini `gemini/gemini-3.7-flash` with forced ReAct (already global). Never hardcode model/timeouts.
 - Sweep env vars: `MAIL=fred.jacquet@gmail.com` (recipient) and `EPIC_NEWS_REQUEST` (routing request).
 - Logging via **Loguru** (`from loguru import logger`), not stdlib logging.
 - **Never** `git add -A` / `git add .`. Stage files explicitly. Do **not** stage `src/epic_news/main.py` changes beyond the Task 1 override line (it is the user's sentinel file).
@@ -50,10 +50,12 @@ Every flow task below executes this exact procedure with its row's `CATEGORY` an
 ## Task 1: `EPIC_NEWS_REQUEST` env override in `kickoff()`
 
 **Files:**
+
 - Modify: `src/epic_news/main.py` (inside `def kickoff(...)`, ~line 1494 and ~line 1524)
 - Test: `tests/flows/test_kickoff_request_override.py`
 
 **Interfaces:**
+
 - Produces: `kickoff(user_input: str | None = None)` resolves the request as
   `user_input or os.getenv("EPIC_NEWS_REQUEST") or <hardcoded query>`, then constructs
   `ReceptionFlow(user_request=<resolved>)`. Explicit `user_input` still wins over the env var.
@@ -131,10 +133,12 @@ Note: this is the **only** sanctioned `main.py` change in this plan.
 ## Task 2: `scripts/verify_all_crews.sh` sweep driver
 
 **Files:**
+
 - Create: `scripts/verify_all_crews.sh`
 - Test: manual smoke (bash script; no unit test framework for shell here)
 
 **Interfaces:**
+
 - Produces: `scripts/verify_all_crews.sh [CATEGORY]` — runs all flows in cheap→expensive
   order, or a single flow when `CATEGORY` (e.g. `COOKING`) is given. Sets `MAIL` and
   `EPIC_NEWS_REQUEST`, runs `crewai flow kickoff`, prints a `RESULT <CATEGORY>:` line.
@@ -200,6 +204,7 @@ done
 chmod +x scripts/verify_all_crews.sh
 bash -n scripts/verify_all_crews.sh   # syntax check only
 ```
+
 Expected: no output (valid syntax), exit 0.
 
 - [ ] **Step 3: Commit**
@@ -241,10 +246,12 @@ marked done.
 ## Task 17: Runbook + results table + PR
 
 **Files:**
+
 - Create: `docs/sweep-runbook.md`
 - Modify: none (spec/plan already committed)
 
 **Interfaces:**
+
 - Produces: a runbook documenting how to run the sweep and a results table
   (`CATEGORY → PASS | fix commit`), plus a PR to `main`.
 

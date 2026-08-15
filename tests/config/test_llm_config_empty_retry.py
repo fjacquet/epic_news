@@ -1,6 +1,6 @@
 """LLMConfig retries LLM.call when a provider returns empty content.
 
-gemini/gemini-3.5-flash intermittently returns a thought-only response on CrewAI
+gemini/gemini-3.7-flash intermittently returns a thought-only response on CrewAI
 ReAct steps (message.content is None with finish_reason=stop). CrewAI then raises
 "Invalid response from LLM call - None or empty" and the task dies after its three
 retries. The empties are stochastic, so re-issuing the identical call a few times

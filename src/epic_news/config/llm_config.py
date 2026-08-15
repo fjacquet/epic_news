@@ -222,7 +222,7 @@ def _wrap_call_for_react_safety(cls: type) -> None:
     """Wrap ``cls.call``/``cls.acall`` with empty-retry + tool-call coercion, in place.
 
     Two provider misbehaviours are absorbed here, both observed on
-    ``gemini/gemini-3.5-flash`` and both fatal to a whole crew run:
+    ``gemini/gemini-3.7-flash`` and both fatal to a whole crew run:
 
     *Empty responses.* Gemini intermittently returns a *thought-only* response on ReAct
     steps: the generated tokens land in a thinking block carrying a ``thought_signature``

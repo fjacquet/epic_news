@@ -13,7 +13,7 @@ import pytest
 from epic_news.config.llm_config import LLMConfig
 
 MODELS = [
-    "gemini/gemini-3.5-flash",
+    "gemini/gemini-3.7-flash",
     "openrouter/mistralai/mistral-small-2603",
     "openrouter/anthropic/claude-opus-4.8-fast",
 ]
