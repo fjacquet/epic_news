@@ -5,12 +5,48 @@
 # Template for new entries:
 # [[IgnoredVulns]]
 # id = "GHSA-xxxx-xxxx-xxxx"
-# ignoreUntil = 2026-09-01
+# ignoreUntil = 2026-12-01
 # reason = "<why this is safe/unavoidable; when to re-evaluate>"
+#
+# ---------------------------------------------------------------------------
+# chromadb: one family, one review date.
+#
+# All four entries below are the SAME finding class — they require a running
+# ChromaDB *server* with an authenticated caller (every one is PR:L against the
+# /api/v2 HTTP surface). epic_news uses chromadb strictly as an embedded on-disk
+# store through crewai_tools.RagTool: 0 direct imports, no HttpClient, no
+# `chroma run`, nothing binds a network listener. See the "Security boundary"
+# docstring in src/epic_news/rag_config.py, which is the invariant these waivers
+# rest on — if that ever changes, every entry here must be re-evaluated.
+#
+# chromadb 1.1.1 is a forced transitive pin from crewai (chromadb~=1.1.0), which
+# is a MANDATORY dependency with no `extra` marker — it cannot be dropped by
+# configuration, and switching RagTool to another vectordb provider would not
+# remove it from the lock or the SBOM.
+#
+# There is genuinely nothing to upgrade to (checked 2026-08-31):
+#   * every record is `introduced` -> `last_affected: 1.5.9`, with no `fixed` event;
+#   * 1.5.9 IS the newest release on PyPI (2026-05-05, nothing since, no prerelease);
+#   * the upstream fix is still unmerged — chroma-core/chroma PR #7602 and issue
+#     #7588 are both OPEN, and #7588 records that an earlier fix for
+#     CVE-2026-45830/45832 was ineffective.
+#
+# Why these surfaced only now: the advisories were published 2026-06-12 but
+# MODIFIED 2026-08-24, when the PyPI range was added. CI did not change; the OSV
+# data did.
+#
+# Deliberately NOT using [[PackageOverrides]] to silence chromadb wholesale. A
+# package-level ignore would also hide (a) a future advisory that DOES reach the
+# embedded client, and (b) the arrival of a fixed version. Per-id entries keep the
+# CI red until a human looks — that is the point, and it is what surfaced the
+# now-patched nltk/json-repair entries removed below.
+#
+# Re-check: https://github.com/chroma-core/chroma/pull/7602
+# ---------------------------------------------------------------------------
 
 [[IgnoredVulns]]
-id = "GHSA-f4j7-r4q5-qw2c"  # CVE-2026-45829 — chromadb pre-auth RCE (CVSS 9.3)
-ignoreUntil = 2026-09-07
+id = "GHSA-f4j7-r4q5-qw2c"  # CVE-2026-45829 — chromadb pre-auth RCE ("ChromaToast", CVSS 9.3)
+ignoreUntil = 2026-12-01
 reason = """
 Critical code-injection in ChromaDB's network SERVER API \
 (/api/v2/.../collections with trust_remote_code), affecting chromadb 1.0.0-1.5.9 \
@@ -21,33 +57,44 @@ network endpoint is never exposed. Re-evaluate when chromadb ships a fix or crew
 relaxes the pin."""
 
 [[IgnoredVulns]]
-id = "GHSA-xf7x-x43h-rpqh"  # json_repair circular JSON Schema $ref unbounded CPU DoS (High 7.5); no CVE/PYSEC aliases per OSV
-ignoreUntil = 2026-09-07
+id = "GHSA-36p7-vc44-83pf"  # CVE-2026-45833 — chromadb code injection via trust_remote_code (CVSS 9.4)
+ignoreUntil = 2026-12-01
 reason = """
-High DoS in json-repair <0.60.1 via circular $ref. json-repair is a forced \
-transitive dependency of crewai (~=0.25.2 pin) used to repair LLM JSON output; \
-no patched version is resolvable until crewai relaxes the pin — `uv lock` with a \
-json-repair>=0.60.1 floor fails against crewai 1.15.1/1.15.2. Re-evaluate when \
-crewai's json-repair requirement allows >=0.60.1."""
+The same trust_remote_code code-injection sink as GHSA-f4j7-r4q5-qw2c above, \
+republished by OSV under a separate CVE (45833 vs 45829) and NOT cross-linked as \
+an alias, so osv-scanner will not auto-filter it. Requires an authenticated caller \
+with UPDATE_COLLECTION permission to POST a malicious model repository to \
+/api/v2/tenants/.../collections/{collection_id}. Affects 0.4.17 through 1.5.9 with \
+no patched version. epic_news exposes no such endpoint — embedded use only."""
 
 [[IgnoredVulns]]
-id = "GHSA-p4gq-832x-fm9v"  # CVE-2026-54293 — nltk path traversal in nltk.data.load() (CVSS 7.5)
-ignoreUntil = 2026-09-07
+id = "GHSA-2wm9-hf6c-p5cr"  # CVE-2026-45830 — chromadb cross-tenant data access (CVSS 8.8)
+ignoreUntil = 2026-12-01
 reason = """
-URL-encoded path traversal in nltk.data.load() via the nltk: URL scheme \
-(decode-after-check flaw) allowing arbitrary local file read. Affects ALL nltk \
-versions through 3.9.4 with NO patched version available. nltk is a forced \
-transitive dependency (pulled via crewai/langchain) — epic_news has 0 direct \
-nltk imports and never calls nltk.data.load() on attacker-controlled nltk:-scheme \
-paths, so the traversal sink is unreachable. Re-evaluate when nltk ships a fix or \
-the transitive dependency is dropped."""
+Missing authorization validation lets any authenticated user read, write, update \
+or delete data in another tenant's collection. Affects 0.4.17 through 1.5.9 with no \
+patched version. The flaw is in the multi-tenant SERVER authorization path; an \
+embedded on-disk store has a single implicit tenant, no authentication layer and no \
+remote callers, so there is no cross-tenant boundary to breach."""
 
 [[IgnoredVulns]]
-id = "PYSEC-2026-597"  # Same nltk vulnerability as GHSA-p4gq-832x-fm9v / CVE-2026-54293, republished by OSV under a PYSEC id not linked as an alias
-ignoreUntil = 2026-09-07
+id = "GHSA-xph7-9rjv-w5fr"  # CVE-2026-45831 — chromadb SimpleRBACAuthorizationProvider scope bypass (CVSS 8.8)
+ignoreUntil = 2026-12-01
 reason = """
-Duplicate OSV record for the nltk.data.load() path traversal already accepted \
-above (GHSA-p4gq-832x-fm9v): osv-scanner only auto-filters ids listed as aliases, \
-and this PYSEC record is not cross-linked, so it must be ignored explicitly. \
-Same assessment applies: no patched nltk exists, epic_news never calls \
-nltk.data.load(), sink unreachable. Re-evaluate with the GHSA entry."""
+SimpleRBACAuthorizationProvider checks that a user holds a permission but never \
+which tenant/database/collection it applies to, allowing cross-tenant actions. \
+Affects 0.5.0 through 1.5.9 with no patched version. epic_news never instantiates \
+an authorization provider: RagTool uses the embedded client, where no RBAC code \
+path executes at all."""
+
+# ---------------------------------------------------------------------------
+# Removed 2026-08-31, dependencies are now patched — do not re-add without
+# re-checking uv.lock first:
+#   GHSA-xf7x-x43h-rpqh  json-repair circular $ref DoS, fixed in 0.60.1;
+#                        uv.lock now resolves json-repair 0.60.1.
+#   GHSA-p4gq-832x-fm9v  nltk.data.load() path traversal (CVE-2026-54293),
+#   PYSEC-2026-597       same finding under a non-aliased PYSEC id;
+#                        affected nltk <= 3.9.4, uv.lock now resolves 3.10.3.
+# osv-scanner reports stale entries as "unused ignores", which is the signal to
+# delete them rather than let the allowlist drift.
+# ---------------------------------------------------------------------------
