@@ -88,6 +88,38 @@ an authorization provider: RagTool uses the embedded client, where no RBAC code 
 path executes at all."""
 
 # ---------------------------------------------------------------------------
+# nltk: fixed upstream, not yet released.
+# ---------------------------------------------------------------------------
+
+[[IgnoredVulns]]
+id = "GHSA-8mgp-746c-j5xp"  # CVE-2026-81726 — nltk model-artifact APIs bypass pathsec (CVSS 7.x, high)
+ignoreUntil = 2026-12-06
+reason = """
+Model-artifact APIs (TransitionParser.train/parse, AveragedPerceptron.save/load, \
+PerceptronTagger.save_to_json, save_maxent_params) call built-in open() on \
+caller-controlled paths instead of pathsec-aware helpers, so a caller can read or \
+write outside the allowed roots. Affects nltk <= 3.10.3 with no released fix.
+
+Not reachable here. The advisory's stated precondition is an application that \
+"enables pathsec enforcement and lets untrusted workflows choose model import or \
+export paths". epic_news does neither: nltk is a transitive dependency of \
+newspaper3k, there are 0 direct nltk imports in src/ or tests/, and 0 references to \
+pathsec, TransitionParser, AveragedPerceptron, PerceptronTagger or \
+save_maxent_params anywhere in the codebase. With pathsec never enforced there is \
+no sandbox boundary for these APIs to escape, and no untrusted caller supplies a \
+model path.
+
+Unlike the chromadb family above, this one has a fix already merged upstream and is \
+only waiting on a release: nltk PRs #3757 (2026-08-18), #3759 (2026-08-18) and \
+#3813 (2026-08-28) all landed on main, but the newest PyPI release is 3.10.3 \
+(2026-08-12), cut before those merges. Drop this entry as soon as nltk publishes \
+3.10.4 or later and uv.lock resolves to it — do not extend the date without \
+re-checking https://pypi.org/project/nltk/#history first.
+
+Why this surfaced only now: GHSA-8mgp-746c-j5xp was published 2026-09-02, after the \
+2026-08-31 green run. CI did not change; the OSV data did."""
+
+# ---------------------------------------------------------------------------
 # Removed 2026-08-31, dependencies are now patched — do not re-add without
 # re-checking uv.lock first:
 #   GHSA-xf7x-x43h-rpqh  json-repair circular $ref DoS, fixed in 0.60.1;
