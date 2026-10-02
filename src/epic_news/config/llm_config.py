@@ -282,6 +282,7 @@ def _apply_react_patches(cls: type) -> None:
 def _apply_react_patches_to_tree(cls: type) -> None:
     """Apply the ReAct defences to ``cls`` and every subclass already imported."""
     _apply_react_patches(cls)
+    subclass: type
     for subclass in cls.__subclasses__():
         _apply_react_patches_to_tree(subclass)
 
