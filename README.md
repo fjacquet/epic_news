@@ -4,7 +4,7 @@
 [![Docs](https://github.com/fjacquet/epic_news/actions/workflows/docs.yml/badge.svg?branch=main)](https://fjacquet.github.io/epic_news/)
 [![Release](https://img.shields.io/github/v/release/fjacquet/epic_news)](https://github.com/fjacquet/epic_news/releases/latest)
 [![Python](https://img.shields.io/badge/python-3.13-blue)](https://www.python.org/downloads/release/python-3130/)
-[![CrewAI](https://img.shields.io/badge/crewAI-1.14%2B-purple)](https://crewai.com)
+[![CrewAI](https://img.shields.io/badge/crewAI-1.15%2B-purple)](https://crewai.com)
 [![Code style: Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
 Natural-language AI assistant for financial analysis, news, research, recipes, travel, OSINT, and more. Built on [crewAI](https://crewai.com): ask in plain English or French and the right team of AI agents (a "crew") handles your request.

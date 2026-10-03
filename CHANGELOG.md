@@ -4,6 +4,27 @@ All notable changes to Epic News are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+## [3.6.2] — 2026-10-02
+
+A maintenance release: full dependency refresh, OSV waivers re-reviewed, and the Dependabot auto-merge workflow hardened. No behaviour change.
+
+### Security
+
+- **Dependency security bumps:** `oauthlib` 3.3.1 → 4.0.0, `pyjwt` 2.13.0 → 2.15.0 and `virtualenv` 21.7.8 → 21.7.12.
+- **OSV waivers re-reviewed.** The four chromadb entries (`GHSA-f4j7-r4q5-qw2c`, `GHSA-36p7-vc44-83pf`, `GHSA-2wm9-hf6c-p5cr`, `GHSA-xph7-9rjv-w5fr`) now expire 2026-12-01; a new nltk entry (`GHSA-8mgp-746c-j5xp`) is waived until 2026-12-06. Waivers for advisories that are now patched were dropped.
+
+### Changed
+
+- `uv.lock` refreshed with `uv lock --upgrade`; `crewai` and `crewai-tools[mcp]` floors raised to >=1.15.16, and the `beautifulsoup4` cap relaxed to `<4.16`. Also `weasyprint` 69.0 → 70.0 and the `python-minor-patch` dependency groups.
+- `astral-sh/setup-uv` v9.0.0 → v10.2.0 in CI and security workflows.
+- The Dependabot auto-merge workflow now reads the PR author from `github.event.pull_request.user.login` instead of the spoofable `github.actor`, and documents why `pull_request_target` is safe there (no checkout step).
+
+### Fixed
+
+- Annotated the subclass loop variable in `_apply_react_patches_to_tree` so newer mypy passes.
+
 ## [3.6.1] — 2026-08-15
 
 Ctrl+C did not stop a run. CrewAI executes every flow method through `asyncio.to_thread`, and the interrupt cancels the asyncio task but cannot cancel the OS thread running the method — so the run kept calling the provider and writing report files. On 2026-08-15 an interrupted HolidayPlanner run finished 286s after the Ctrl+C, hit `RuntimeError: cannot schedule new futures after shutdown` on every subsequent LLM call, degraded 16 of 19 sections to placeholders, and overwrote `output/holiday/itinerary.docx` — while the replacement run the user had already started was writing to the same paths.
