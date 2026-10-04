@@ -71,15 +71,32 @@ def _with_llm_slot[T](call_fn: Callable[[], T]) -> T:
     fan-out all start LLM calls in parallel; this is the single place that bounds them.
     Reentrant per logical call: crewai's LLM.call re-invokes itself (e.g. when the
     provider rejects ``stop``), and the nested call must not take a second slot.
+
+    Never blocks an event-loop thread: crewai's async executor can make a sync call on
+    the loop thread (``summarize_messages`` on context overflow) while coroutines on
+    that same loop hold every slot, and waiting there would deadlock. On a thread
+    running an event loop the slot is taken only if one is free; otherwise the call
+    runs uncapped, with a warning. Threads without a running loop block as usual.
     """
     if _holds_slot.get():
         return call_fn()
-    with _slots():
-        token = _holds_slot.set(True)
-        try:
+    slots = _slots()
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        slots.acquire()
+    else:
+        if not slots.acquire(blocking=False):
+            logger.warning(
+                "LLM slot busy on an event-loop thread; running this call uncapped to avoid a deadlock"
+            )
             return call_fn()
-        finally:
-            _holds_slot.reset(token)
+    token = _holds_slot.set(True)
+    try:
+        return call_fn()
+    finally:
+        _holds_slot.reset(token)
+        slots.release()
 
 
 async def _awith_llm_slot[T](call_fn: Callable[[], Awaitable[T]]) -> T:
@@ -150,8 +167,10 @@ def _call_with_empty_retry(call_fn, max_retries: int, model: str = "?"):
 async def _acall_with_empty_retry(call_fn, max_retries: int, model: str = "?"):
     """Async twin of :func:`_call_with_empty_retry` for ``BaseLLM.acall``.
 
-    Tasks declared with ``async_execution=True`` reach the provider through ``acall``,
-    which returns empty content and raw tool calls exactly like the sync path does.
+    Crews started with ``akickoff`` (``akickoff_flow``: OSINT, RssWeekly) reach the
+    provider through ``acall``, which returns empty content and raw tool calls exactly
+    like the sync path does. Under the sync ``kickoff``, ``async_execution=True`` tasks
+    run in CrewAI threads and use the sync ``call``.
     """
     result = await call_fn()
     attempts = 0
@@ -343,8 +362,10 @@ def _wrap_call_for_react_safety(cls: type) -> None:
 
     *Native tool calls on a ReAct step.* See ``_coerce_tool_calls_to_react_text``.
 
-    Both entry points are wrapped: tasks with ``async_execution=True`` reach the provider
-    through ``acall`` (``agent_utils.aget_llm_response``), which carries the identical
+    Both entry points are wrapped. Under the sync ``kickoff``, tasks with
+    ``async_execution=True`` run in CrewAI threads (``Task.execute_async``) and use the
+    sync ``call``. Crews started with ``akickoff`` reach the provider through ``acall``
+    (``agent_utils.aget_llm_response``), which carries the identical
     ``if tool_calls and not available_functions: return tool_calls`` return as ``call``.
 
     Only classes that define their *own* ``call``/``acall`` are wrapped; inheritors reuse

@@ -167,3 +167,58 @@ def test_patched_call_path_goes_through_slot(monkeypatch):
     for t in threads:
         t.join()
     assert state["peak"] == 1
+
+
+def _run_on_loop_with_timeout(coro_factory, timeout: float = 5.0):
+    """Run ``asyncio.run(coro_factory())`` in a daemon thread; never hang the suite."""
+    result: list = []
+    t = threading.Thread(target=lambda: result.append(asyncio.run(coro_factory())), daemon=True)
+    t.start()
+    t.join(timeout=timeout)
+    return t.is_alive(), result
+
+
+def test_sync_call_on_loop_thread_does_not_deadlock_when_slots_held_by_coroutines(monkeypatch):
+    # Regression (final review I1): coroutines on one loop hold every slot while a
+    # sync call on that same loop thread (crewai's sync summarize_messages inside an
+    # async executor) waits for a slot. Blocking the loop would hang forever.
+    monkeypatch.setenv("LLM_MAX_CONCURRENCY", "3")
+    llm_config._reset_llm_slots()
+
+    async def holder():
+        return await llm_config._awith_llm_slot(lambda: asyncio.sleep(0.5))
+
+    async def summariser():
+        await asyncio.sleep(0.1)  # all 3 slots now held by the holders
+        return llm_config._with_llm_slot(lambda: "summary")
+
+    async def main():
+        return await asyncio.gather(*(holder() for _ in range(3)), summariser())
+
+    still_blocked, result = _run_on_loop_with_timeout(main)
+    assert not still_blocked, "sync LLM call on an event-loop thread deadlocked"
+    assert result[0][-1] == "summary"
+
+
+def test_sync_call_on_loop_thread_takes_a_free_slot(monkeypatch):
+    monkeypatch.setenv("LLM_MAX_CONCURRENCY", "1")
+    llm_config._reset_llm_slots()
+    seen: dict = {}
+
+    def body():
+        slots = llm_config._slots()
+        seen["slot_free_during_call"] = slots.acquire(blocking=False)
+        if seen["slot_free_during_call"]:
+            slots.release()
+        return "ok"
+
+    async def main():
+        return llm_config._with_llm_slot(body)
+
+    still_blocked, result = _run_on_loop_with_timeout(main)
+    assert not still_blocked
+    assert result == ["ok"]
+    assert seen["slot_free_during_call"] is False  # the call held the only slot
+    slots = llm_config._slots()
+    assert slots.acquire(blocking=False)  # and released it afterwards
+    slots.release()
