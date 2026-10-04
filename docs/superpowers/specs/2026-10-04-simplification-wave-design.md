@@ -111,7 +111,7 @@ Delete the flow's unreachable fallback branch, make `parse_menu_structure` walk 
 - CrewAI monkeypatches move from `llm_config.py` to `config/crewai_patches.py`, applied once
   at the entry points, with a docstring listing what to re-check on each CrewAI upgrade.
 - `observability.py`: keep only what the flow uses (`trace_task` or its replacement);
-  delete unused Tracer/Dashboard/HallucinationGuard after a usage check.
+  delete unused Tracer/Dashboard/HallucinationGuard (not used outside this repo).
 - Infra: drop redundant compose files and Makefile aliases (non-Python, separate PR).
 
 ## Validation
@@ -142,13 +142,14 @@ Delete the flow's unreachable fallback branch, make `parse_menu_structure` walk 
 - **Error propagation (S5):** a renderer bug now fails the run instead of sending a broken
   page; this is intended but visible.
 
+## Decisions (2026-10-04)
+
+1. The efficiency wave runs first; this wave starts after it, beginning with S1.
+2. Tracer/Dashboard/HallucinationGuard are not used outside this repo: S8 deletes whatever
+   the flow does not use.
+
 ## Open questions
 
-1. **Order of the two waves:** recommended order is S1 first (mechanical, touches every
-   crew once), then the efficiency wave (its async and menu changes become smaller on top
-   of the helpers), then S2–S8. Alternative: finish efficiency first.
-2. **Plot granularity (S4):** is one "standard crews" node in `crewai flow plot` acceptable?
-3. **Error propagation (S5):** confirm that a renderer failure should stop the run rather
+1. **Plot granularity (S4):** is one "standard crews" node in `crewai flow plot` acceptable?
+2. **Error propagation (S5):** confirm that a renderer failure should stop the run rather
    than send a fallback page.
-4. **Observability (S8):** is the Tracer/Dashboard/HallucinationGuard tooling used outside
-   this repo (e.g. scripts or notebooks), or can it go?

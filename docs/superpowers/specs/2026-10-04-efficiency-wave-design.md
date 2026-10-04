@@ -76,15 +76,15 @@ Prior failure: async tasks were turned off in d8cdfca after a raw tool-call list
 `TaskOutput.raw`; 06b8724 added coercion on the async path (`_acall_with_empty_retry`,
 `_react_safe_text`). Validate with one live run per crew before merging.
 
-Concurrency raises request rate: keep `max_rpm` per crew and check the Gemini quota tier
-(see open questions).
+Concurrency raises request rate: keep `max_rpm` per crew. All concurrency limits in this
+wave default to 3 (decided 2026-10-04).
 
 ### E3 — Menu designer and recipes
 
 - `CookingCrew` keeps only the cook task, with `output_pydantic=PaprikaRecipe`; YAML and
   JSON exports are produced in Python from the model. `generate_recipe` benefits too.
 - Recipes run concurrently: `asyncio.gather` over `akickoff_flow(CookingCrew(), ...)`,
-  bounded by a semaphore (`MENU_RECIPE_CONCURRENCY`, default 4). Order of the result list
+  bounded by a semaphore (`MENU_RECIPE_CONCURRENCY`, default 3). Order of the result list
   follows the menu, not completion order.
 
 Target: −60% tokens and ≥3× faster for a 10-recipe menu.
@@ -92,16 +92,18 @@ Target: −60% tokens and ≥3× faster for a 10-recipe menu.
 ### E4 — DOCX assembly
 
 - `assemble_fragments` narrates sections in a `ThreadPoolExecutor`
-  (`DOCX_FRAGMENT_CONCURRENCY`, default 4), keeping section order. The degraded-section
+  (`DOCX_FRAGMENT_CONCURRENCY`, default 3), keeping section order. The degraded-section
   check (more than half placeholders → refuse) is unchanged.
 - Holiday: each day fragment receives only that day's slice of the itinerary research
   when the research JSON has per-day entries; otherwise it falls back to the full text.
 
 ### E5 — Routing in one call
 
-Add `selected_crew: Literal[<CrewCategories>]` to the extraction model so
-`InformationExtractionCrew` extracts and classifies in one task; delete `ClassifyCrew`
-and the `classify` step, and route on the typed field (no substring match). Acceptance:
+Add `selected_crew: Literal[<CrewCategories>] | None` to the extraction model so
+`InformationExtractionCrew` extracts and classifies in one task, and route on the typed
+field (no substring match). `ClassifyCrew` is kept as a fallback, called only when the
+extraction leaves `selected_crew` empty (decided 2026-10-04); its result is read from
+`.pydantic.selected_crew`, not by substring. Acceptance:
 routing accuracy on a fixed set of ~25 representative requests (≥1 per crew) is equal or
 better than today, measured live before and after.
 
@@ -128,13 +130,13 @@ comparison of one live OSINT run, reviewed by the user, plus token numbers.
 5. E5 — routing in one call
 6. E6 — cross-reference synthesis
 
+## Decisions (2026-10-04)
+
+1. Concurrency limits default to 3 (E2–E4).
+2. Live-run budget of about a dozen crew runs for before/after measurements: approved.
+3. `ClassifyCrew` stays as a fallback for E5.
+4. This wave runs first; the simplification wave follows.
+
 ## Open questions
 
-1. **Gemini quota:** which rate-limit tier does the key have? It bounds safe concurrency
-   (E2–E4 default to 4).
-2. **Live-run budget:** E2–E6 each need before/after live runs. Is a budget of roughly a
-   dozen crew runs acceptable?
-3. **E5 fallback:** drop `ClassifyCrew` entirely, or keep it as a fallback when the
-   extraction field is empty?
-4. **E6 quality:** OK to judge the cross-reference change on one side-by-side run?
-5. **Order with the simplification wave:** see that spec's open questions.
+1. **E6 quality:** OK to judge the cross-reference change on one side-by-side run?
