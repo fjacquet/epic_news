@@ -8,7 +8,7 @@ name: Dependabot auto-merge
 # It is safe here because the job never checks out the PR: there is no
 # `actions/checkout` step, so no untrusted code runs with the write-scoped
 # token. Do not add one.
-on: pull_request_target # zizmor: ignore[dangerous-triggers]
+on: pull_request_target  # zizmor: ignore[dangerous-triggers]
 
 permissions:
   contents: write
