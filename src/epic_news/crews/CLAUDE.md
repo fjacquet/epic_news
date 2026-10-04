@@ -15,7 +15,7 @@ crew_name/
 └── (optional models)    # Pydantic models in src/epic_news/models/crews/
 ```
 
-## All Available Crews (25)
+## All Available Crews (24)
 
 ### Content Generation
 
@@ -34,6 +34,7 @@ crew_name/
 - **library** - Book research and recommendations
 - **legal_analysis** - Legal document analysis
 - **tech_stack** - Technology stack analysis
+- **pestel** - PESTEL analysis (6 dimension researchers + reporter)
 
 ### Planning & Recommendations
 
@@ -58,10 +59,7 @@ crew_name/
 - **geospatial_analysis** - Geographic data analysis
 - **classify** - Content classification and routing
 
-### Meta
-
-- **reception** - User request classification and crew routing (entry point)
-- **post** - Post-processing and notifications
+Routing itself is done by `ReceptionFlow` in `src/epic_news/main.py` (there is no reception crew), and report emails are sent by `epic_news.utils.email_sender` (there is no post crew).
 
 ## Crew Implementation Patterns
 
@@ -86,9 +84,9 @@ class MyCrew:
     def my_agent(self) -> Agent:
         return Agent(
             config=self.agents_config["my_agent"],
-            tools=self.my_tools,  # ALWAYS assign tools in code, NEVER in YAML
-            llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            tools=self.my_tools,  # ALWAYS assign tools in code, not in YAML
+            llm=LLMConfig.get_openrouter_llm(task_type="default"),  # timeout lives on the LLM
+            max_iter=LLMConfig.get_max_iter(),  # Agent field (Crew has no max_iter)
             verbose=True,
         )
 
@@ -106,17 +104,55 @@ class MyCrew:
             agents=self.agents,
             tasks=self.tasks,
             process=Process.sequential,
-            max_iter=LLMConfig.get_max_iter(),
             max_rpm=LLMConfig.get_max_rpm(),
             verbose=True,
         )
 ```
 
-### Two-Agent Pattern (For Clean HTML Output)
+CrewAI silently drops unknown keyword arguments. `llm_timeout=` (any object) and `Crew(max_iter=...)` are not fields and have no effect; don't add them, and don't silence `call-arg` errors with `# type: ignore`. `tests/crews/test_constructor_kwargs.py` fails on any undeclared `Agent`/`Task`/`Crew` kwarg, and `tests/crews/test_agent_settings_contract.py` checks every built agent (LLM timeout, `max_iter`, no duplicate tools, no `FileReadTool` next to web tools). See ADR-014.
 
-**Problem**: Agents with tools write action traces to output files.
+Pass the agent itself to `Task(agent=self.my_agent())`, never `agent.copy()`: CrewAI's `LLM.__copy__` drops `timeout`.
 
-**Solution**: Separate research from reporting.
+**Tool hygiene**: give each agent only the tools its tasks use. An agent with web search/scrape tools must not also hold crewai's unscoped `FileReadTool`; use `OutputFileReadTool` (`tools/output_file_read_tool.py`, scoped to `output/` by default, `root=` to change it).
+
+### MCP Tools (CrewBase-managed)
+
+```python
+from epic_news.config.mcp_config import MCPConfig, get_mcp_tools_or_empty
+
+@CrewBase
+class MyCrew:
+    agents_config = "config/agents.yaml"
+    tasks_config = "config/tasks.yaml"
+
+    mcp_server_params = MCPConfig.get_wikipedia_mcp()
+
+    @agent
+    def researcher(self) -> Agent:
+        return Agent(
+            config=self.agents_config["researcher"],
+            tools=[HybridSearchTool(), *get_mcp_tools_or_empty(self)],  # one shared adapter
+            llm=LLMConfig.get_openrouter_llm(task_type="long"),
+            max_iter=LLMConfig.get_max_iter(),
+        )
+```
+
+- `get_mcp_tools_or_empty(self)` wraps CrewBase's `get_mcp_tools()`: if the server cannot start it logs a warning and returns `[]`, and remembers the failure so the other agents don't retry.
+- CrewBase stops the adapter only after a **successful** kickoff. The flow must call `close_mcp(crew)` in a `finally` (see `generate_deep_research` / `generate_pestel` in `main.py`):
+
+```python
+crew = MyCrew()
+try:
+    output = kickoff_flow(crew, inputs)
+finally:
+    close_mcp(crew)  # safe after CrewBase's own stop, safe to call twice
+```
+
+### Two-Agent Pattern (Research + Tool-Free Reporting)
+
+**Why**: `output_pydantic` already keeps tool action traces out of the structured result. The split is kept so the reporting step runs with no tools: it only formats the research context into the Pydantic model.
+
+**Pattern**: Separate research from reporting.
 
 ```python
 @agent
@@ -131,7 +167,7 @@ def researcher(self) -> Agent:
 def reporter(self) -> Agent:
     return Agent(
         config=self.agents_config["reporter"],
-        tools=[],  # NO TOOLS = Clean output
+        tools=[],  # NO TOOLS: formatting only
         output_file="output/report.html",
     )
 
@@ -155,7 +191,7 @@ def reporting_task(self) -> Task:
 
 ### Tool Assignment Rules
 
-**CRITICAL**: Tools must be assigned programmatically, never in YAML.
+**CRITICAL**: Assign tools programmatically. CrewBase resolves a YAML `tools:` entry only by name against `@tool`-decorated methods on the crew class; any other name raises `KeyError`. The project does not use `@tool` methods, so keep tools in Python.
 
 ```python
 # ✅ CORRECT
@@ -166,7 +202,7 @@ def my_agent(self) -> Agent:
         tools=[SearchTool(), WikipediaTool()],  # Assigned here
     )
 
-# ❌ WRONG - Causes KeyError exceptions
+# ❌ WRONG - KeyError (no matching @tool method)
 # agents.yaml:
 # my_agent:
 #   tools:
@@ -197,32 +233,26 @@ Always use centralized `LLMConfig`:
 ```python
 from epic_news.config.llm_config import LLMConfig
 
-llm=LLMConfig.get_openrouter_llm(),
-llm_timeout=LLMConfig.get_timeout("default"),  # or "quick", "long"
+llm=LLMConfig.get_openrouter_llm(task_type="default"),  # or "quick", "long"
+max_iter=LLMConfig.get_max_iter(),
 ```
 
-**NEVER** hardcode model names or timeouts.
+**NEVER** hardcode model names or timeouts, and never pass `llm_timeout=` (ignored by CrewAI).
 
 ## Crew Execution Flow
 
 1. **ReceptionFlow routes request** → `generate_<crew_name>()` method in `main.py`
-2. **Crew initialization** → `MyCrew().crew()`
-3. **Kickoff with inputs** → `.kickoff(inputs=crew_inputs)`
-4. **Result parsing** → `MyModel.model_validate(json.loads(result.raw))`
-5. **HTML rendering** → `my_crew_to_html(model, output_path)`
+2. **Kickoff with inputs** → `kickoff_flow(MyCrew(), inputs)` (calls `.crew().kickoff(inputs=...)` with retries)
+3. **Result parsing** → `load_or_parse_model(json_path, MyModel, output, inputs, label)`
+4. **Rendering** → `render_and_write_html("MY_CREW", model, html_path)`, wrapped in `emit_report(...)` when the crew also supports DOCX
 
-**Example from main.py**:
+**Example from main.py** (simplified):
 
 ```python
-@listen("or(classify_flow, analyze_flow)")
-def generate_poem(self, content_state: ContentState):
-    crew_inputs = {"topic": content_state.user_query, "style": "haiku"}
-
-    result = PoemCrew().crew().kickoff(inputs=crew_inputs)
-
-    poem_model = PoemModel.model_validate(json.loads(result.raw))
-
-    poem_to_html(poem_model, html_file="output/poem/poem.html")
+output = kickoff_flow(PoemCrew(), inputs)
+dump_crewai_state(output, "POEM")
+poem_model = load_or_parse_model(self.state.output_file, PoemJSONOutput, output, inputs, "poem")
+render_and_write_html("POEM", poem_model, html_file)
 ```
 
 ## Common Crew Patterns by Type
@@ -260,29 +290,17 @@ def generate_poem(self, content_state: ContentState):
 
 ### Research Crews
 
-- SerperDev, Tavily, BraveSearch
-- WikipediaTool (via MCP)
-- Perplexity (via MCP)
+- `HybridSearchTool` (Perplexity → Brave → Serper fallback), `PerplexitySearchTool` via `web_tools.get_search_tools()`
+- Wikipedia (via MCP: `deep_research`, `pestel`)
 
 ### Financial Crews
 
-- AlphaVantage, YahooFinance, CoinMarketCap
+- `get_stock_research_tools()`, `get_crypto_research_tools()`, `get_yahoo_finance_tools()` (`tools/finance_tools.py`)
 - ExchangeRateTool
 
 ### Content Crews
 
-- ScraperFactory (FireCrawl, Jina, ScrapeNinja)
-- BatchArticleScraperTool
-
-### Communication Crews
-
-- Email tools (Gmail via Composio)
-- Slack, Discord (via Composio)
-
-### Data Analysis Crews
-
-- Custom analytics tools
-- ValidationTools
+- `scraper_factory.get_scraper()` (ScrapeNinja by default, FireCrawl via `WEB_SCRAPER_PROVIDER=firecrawl`)
 
 ## HTML Rendering
 
@@ -290,27 +308,14 @@ Each crew that generates HTML reports must:
 
 1. **Define Pydantic model** for structured output
 2. **Create renderer** in `src/epic_news/utils/html/template_renderers/`
-3. **Create factory function** in `src/epic_news/utils/html/template_renderers/`
-4. **Use TemplateManager** for rendering
-
-**Example**:
-
-```python
-from epic_news.utils.html.template_manager import TemplateManager
-
-def poem_to_html(poem_model: PoemModel, html_file: str):
-    TemplateManager.render_report(
-        crew_identifier="poem",
-        data=poem_model.model_dump(),
-        output_path=html_file,
-    )
-```
+3. **Register it** in `RendererFactory._RENDERER_MAP` under the crew key
+4. **Render from the flow** with `render_and_write_html("MY_CREW", model, html_path)` (uses `TemplateManager().render_report(selected_crew=..., content_data=...)`)
 
 See `docs/reference/RENDERING_ARCHITECTURE.md` for complete guide.
 
 ## Creating a New Crew
 
-Follow the step-by-step tutorial: `docs/tutorials/01_YOUR_FIRST_CREW.md`
+Follow the step-by-step tutorial: `docs/tutorials/getting_started.md`
 
 **Quick checklist**:
 
@@ -320,7 +325,7 @@ Follow the step-by-step tutorial: `docs/tutorials/01_YOUR_FIRST_CREW.md`
 4. Define Pydantic model in `src/epic_news/models/crews/<crew_name>.py`
 5. Create HTML renderer (if needed)
 6. Add `generate_<crew_name>()` method to ReceptionFlow in `main.py`
-7. Write structure tests in `tests/structure/test_<crew_name>_structure.py`
+7. Write structure tests in `tests/crews/test_<crew_name>_structure.py`
 
 ## Common Issues
 
@@ -351,7 +356,9 @@ See `docs/troubleshooting/COMMON_ERRORS.md` for complete troubleshooting guide.
 
 ### Tool KeyError Exceptions
 
-**Symptom**: `KeyError: 'tools'` when running crew
+**Symptom**: `KeyError: '<ToolName>'` when the crew class is built
+
+**Cause**: A YAML `tools:` entry with no matching `@tool` method on the crew class.
 
 **Solution**: Remove tools from YAML, assign in Python code only.
 
@@ -383,15 +390,15 @@ def test_poem_crew_structure():
 
 ### Timeout Configuration
 
-- **Quick tasks** (cooking, classification): `LLMConfig.get_timeout("quick")` (120s)
-- **Standard tasks** (most crews): `LLMConfig.get_timeout("default")` (300s)
-- **Complex tasks** (deep_research): `LLMConfig.get_timeout("long")` (600s)
+Set on the LLM via `LLMConfig.get_openrouter_llm(task_type=...)`:
+
+- **Quick tasks** (cooking, classification): `task_type="quick"` (120s)
+- **Standard tasks** (most crews): `task_type="default"` (300s)
+- **Complex tasks** (deep_research): `task_type="long"` (600s)
 
 ### Iteration Limits
 
-- **Simple crews**: `max_iter=3`
-- **Research crews**: `max_iter=5` (default)
-- **Deep analysis**: `max_iter=10`
+`max_iter` is an **Agent** field (CrewAI default 25). Every agent sets `max_iter=LLMConfig.get_max_iter()` (`CREW_MAX_ITER`, default 15). The only override is fin_daily's stock analyst (`max_iter=30`, one tool call per portfolio ticker), listed in `MAX_ITER_OVERRIDES` in `tests/crews/test_agent_settings_contract.py`; add new overrides there too.
 
 ### Rate Limiting
 
@@ -400,7 +407,7 @@ def test_poem_crew_structure():
 
 ## Reference Documentation
 
-- **Tutorial**: `docs/tutorials/01_YOUR_FIRST_CREW.md`
+- **Tutorial**: `docs/tutorials/getting_started.md`
 - **Troubleshooting**: `docs/troubleshooting/COMMON_ERRORS.md`
 - **Rendering**: `docs/reference/RENDERING_ARCHITECTURE.md`
 - **Main CLAUDE.md**: Root-level comprehensive guide
@@ -416,13 +423,6 @@ def test_poem_crew_structure():
 - PhD-level quality thresholds
 - Iterative replanning on quality failures
 
-### reception
-
-- Entry point for all user requests
-- Classification via classify crew
-- Routes to appropriate specialized crew
-- Maintains ContentState throughout flow
-
 ### poem
 
 - Simplest crew (excellent learning example)
@@ -433,13 +433,11 @@ def test_poem_crew_structure():
 ### menu_designer
 
 - Complex weekly planning with shopping list
-- Uses menu_generator utility
-- Validates against dietary constraints
+- Validated by `MenuPlanValidator` (via `services/menu_designer_service.py`)
 - Generates structured HTML tables
 
 ### fin_daily
 
 - Financial market analysis
-- Uses AlphaVantage + YahooFinance
-- Daily execution schedule
+- Uses `get_stock_research_tools()` + `get_crypto_research_tools()`
 - Technical indicators + sentiment analysis

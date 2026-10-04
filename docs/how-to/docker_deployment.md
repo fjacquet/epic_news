@@ -99,6 +99,10 @@ These are deliberate, and each was a bug before it was a rule:
 -   **`ModuleNotFoundError: No module named 'epic_news'`**: This error occurs when the `uvicorn` command can't find the application. `epic_news` resolves because the builder's second `uv sync --locked --no-dev` installs the project into the venv, which records `/app/src` in an editable `.pth` file. The application target is therefore `epic_news.api:app`, and `/app/src` must be copied to that exact path — a venv copied without its matching source tree imports nothing.
 -   **`ModuleNotFoundError: No module named 'src'`**: This error was caused by incorrect absolute imports within the application code (e.g., `from src.epic_news...`). The fix was to remove the `src.` prefix from all imports, as `epic_news` is the top-level package inside the container, not `src`.
 
+### Pandoc for DOCX Reports
+
+-   **DOCX reports fail with "No pandoc was found"**: `pypandoc` drives the system `pandoc` binary, which the runtime stage installs with `apt-get` (ADR-013). Keep `pandoc` in that package list. PDF export (WeasyPrint) was removed, so its Pango libraries are no longer needed.
+
 ### Application Hangs at Startup
 
 -   **Symptom**: The container starts, but the logs stop at a certain point and `uvicorn` never reports that it's running. In our case, the last log message was `Actions cache is outdated, refreshing cache...`.

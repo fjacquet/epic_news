@@ -17,7 +17,7 @@ In this tutorial, you'll create a complete **Book Recommendation Crew** from scr
 By the end, you'll understand:
 - The two-agent pattern (researcher + reporter)
 - How to define agents and tasks in YAML
-- How to create Pydantic models with legacy syntax
+- How to create Pydantic models (Python 3.13 syntax)
 - How to build HTML renderers using BeautifulSoup
 - How to integrate with ReceptionFlow
 
@@ -145,13 +145,11 @@ reporting_task:
 - `reporting_task` has explicit JSON formatting rules
 - Tasks reference agents by name
 
-## Step 4: Create Pydantic Model (Legacy Syntax)
+## Step 4: Create Pydantic Model
 
 Create `src/epic_news/models/crews/book_recommendation_report.py`:
 
 ```python
-from typing import Optional
-
 from pydantic import BaseModel, Field
 
 
@@ -180,32 +178,20 @@ class BookRecommendationReport(BaseModel):
     genre: str = Field(..., description="Genre researched")
     generation_date: str = Field(..., description="Report generation date (ISO 8601)")
     books: list[BookDetail] = Field(..., description="List of 5 recommended books")
-    summary: Optional[str] = Field(None, description="Overall genre summary")
+    summary: str | None = Field(None, description="Overall genre summary")
 
 
 ```
 
-**CRITICAL SYNTAX NOTES:**
-
-✅ **CORRECT** - Use `Optional[str]` for optional fields:
-```python
-summary: Optional[str] = Field(None, description="...")
-```
-
-❌ **WRONG** - Do NOT use Python 3.10+ Union syntax:
-```python
-summary: str | None = Field(None, description="...")  # CAUSES AttributeError
-```
-
-**Why?** CrewAI's schema parser cannot handle `X | Y` syntax. Always use `Union[X, Y]` or `Optional[X]`. See [Pydantic Validation Errors](../troubleshooting/COMMON_ERRORS.md#pydantic-validation-errors) for details.
+**Syntax note:** use Python 3.13 union syntax (`str | None`) for optional
+fields. CrewAI 1.8.0+ handles it, and Ruff (UP007/UP045) rewrites legacy
+`Optional[X]` / `Union[X, Y]` automatically.
 
 ## Step 5: Implement Crew Class
 
 Create `book_recommender_crew.py`:
 
 ```python
-from pathlib import Path
-
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from dotenv import load_dotenv
@@ -225,11 +211,8 @@ class BookRecommenderCrew:
     Uses two-agent pattern: researcher (with tools) + reporter (no tools).
     """
 
-    def __init__(self):
-        # Resolve absolute paths to config files
-        base_dir = Path(__file__).parent
-        self.agents_config = str(base_dir / "config/agents.yaml")
-        self.tasks_config = str(base_dir / "config/tasks.yaml")
+    agents_config = "config/agents.yaml"
+    tasks_config = "config/tasks.yaml"
 
     @agent
     def researcher(self) -> Agent:
@@ -238,8 +221,8 @@ class BookRecommenderCrew:
             config=self.agents_config["researcher"],
             verbose=True,
             tools=get_search_tools() + get_scrape_tools(),  # Tools assigned in code, NOT YAML
-            llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            llm=LLMConfig.get_openrouter_llm(task_type="default"),  # timeout lives on the LLM
+            max_iter=LLMConfig.get_max_iter(),  # Agent field
             respect_context_window=True,
         )
 
@@ -249,9 +232,9 @@ class BookRecommenderCrew:
         return Agent(
             config=self.agents_config["reporter"],
             verbose=True,
-            tools=[],  # NO TOOLS = No action traces in output
-            llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            tools=[],  # NO TOOLS: formatting only
+            llm=LLMConfig.get_openrouter_llm(task_type="default"),
+            max_iter=LLMConfig.get_max_iter(),
             respect_context_window=True,
             system_template="""You are a JSON formatting expert.
 
@@ -294,9 +277,7 @@ class BookRecommenderCrew:
                 agents=self.agents,
                 tasks=self.tasks,
                 process=Process.sequential,
-                llm_timeout=LLMConfig.get_timeout("default"),
-                max_iter=LLMConfig.get_max_iter(),
-                max_rpm=LLMConfig.get_max_rpm(),
+                max_rpm=LLMConfig.get_max_rpm(),  # Crew has no max_iter / llm_timeout fields
                 verbose=True,
             )
         except Exception as e:
@@ -311,19 +292,21 @@ class BookRecommenderCrew:
    ```python
    tools=get_search_tools() + get_scrape_tools()  # ✅ CORRECT
    ```
-   Never define tools in `agents.yaml` - causes `KeyError` exceptions.
+   Don't define tools in `agents.yaml`: CrewBase only resolves YAML tool names
+   against `@tool` methods on the crew class, otherwise it raises `KeyError`.
 
 2. **Two-Agent Pattern**:
    - `researcher`: Has tools, no `output_file`
    - `reporter`: NO tools, has `output_pydantic`
-   - Prevents action traces in HTML output
+   - `output_pydantic` keeps action traces out of the result; the reporter stays tool-free so it only formats
 
 3. **LLMConfig usage**:
    ```python
-   llm=LLMConfig.get_openrouter_llm()  # ✅ CORRECT
-   llm_timeout=LLMConfig.get_timeout("default")  # ✅ CORRECT
+   llm=LLMConfig.get_openrouter_llm(task_type="default")  # ✅ timeout set on the LLM
+   max_iter=LLMConfig.get_max_iter()  # ✅ on the Agent
    ```
-   Never hardcode model names or timeouts.
+   Never hardcode model names or timeouts, and never pass `llm_timeout=`:
+   CrewAI silently ignores unknown keyword arguments.
 
 4. **system_template**: Explicit JSON formatting instructions prevent escaping errors
 
@@ -608,7 +591,7 @@ class BookRecommenderRenderer(BaseRenderer):
 3. **Always implement `__init__`**:
    ```python
    def __init__(self):
-       super().__init()  # Required even if empty
+       super().__init__()  # Required: __init__ is abstract on BaseRenderer
    ```
 
 4. **Handle empty states**:
@@ -625,7 +608,7 @@ Edit `src/epic_news/utils/html/template_renderers/renderer_factory.py` to regist
 from .book_recommender_renderer import BookRecommenderRenderer
 
 class RendererFactory:
-    _renderers = {
+    _RENDERER_MAP: dict[str, type[BaseRenderer]] = {
         # ... existing renderers ...
         "BOOK_RECOMMENDER": BookRecommenderRenderer,
     }
@@ -633,53 +616,41 @@ class RendererFactory:
 
 ## Step 8: Integrate with ReceptionFlow
 
-Edit `src/epic_news/main.py` to add a method for your crew:
+Edit `src/epic_news/main.py`: route the classified crew in `determine_crew`
+and add a `generate_*` method that follows the existing ones:
 
 ```python
 from epic_news.crews.book_recommender.book_recommender_crew import BookRecommenderCrew
 from epic_news.models.crews.book_recommendation_report import BookRecommendationReport
 
-class ReceptionFlow(Flow):
+class ReceptionFlow(Flow[ContentState]):
     # ... existing code ...
 
-    @listen("generate_book_recommendations")
-    def generate_book_recommendations(self, message: str):
+    # In determine_crew():
+    #     if self.state.selected_crew == "BOOK_RECOMMENDER":
+    #         return "go_generate_book_recommendations"
+
+    @listen("go_generate_book_recommendations")
+    @trace_task(tracer)
+    def generate_book_recommendations(self):
         """Generate book recommendations for a genre."""
-        logger.info(f"📚 Generating book recommendations for: {message}")
+        self.state.output_file = "output/book_recommender/report.json"
+        inputs = self.state.to_crew_inputs()
 
-        try:
-            # Extract genre from message (or use the whole message)
-            genre = message
+        output = kickoff_flow(BookRecommenderCrew(), inputs)  # retries + tracing
+        dump_crewai_state(output, "BOOK_RECOMMENDER")
 
-            # Execute crew
-            result = BookRecommenderCrew().crew().kickoff(
-                inputs={"genre": genre}
-            )
-
-            # Parse to Pydantic model
-            report = BookRecommendationReport.model_validate(
-                json.loads(result.raw)
-            )
-
-            # Generate HTML
-            html_file = f"output/book_recommender/{genre.replace(' ', '_')}.html"
-            template_manager = TemplateManager()
-            html_content = template_manager.render_report(
-                selected_crew="BOOK_RECOMMENDER",
-                content_data=report.model_dump()
-            )
-
-            # Write file
-            Path(html_file).parent.mkdir(parents=True, exist_ok=True)
-            Path(html_file).write_text(html_content, encoding="utf-8")
-
-            logger.info(f"✅ Book recommendations saved to {html_file}")
-            return report
-
-        except Exception as e:
-            logger.error(f"❌ Error generating book recommendations: {e}")
-            raise
+        report = load_or_parse_model(
+            self.state.output_file, BookRecommendationReport, output, inputs, "book recommendations"
+        )
+        html_file = "output/book_recommender/report.html"
+        render_and_write_html("BOOK_RECOMMENDER", report, html_file)  # creates the directory
+        self.state.output_file = html_file
 ```
+
+Set `output_file="output/book_recommender/report.json"` on the reporting task
+so `load_or_parse_model` finds the JSON; it falls back to parsing the raw crew
+output otherwise. The classifier also needs to know the new crew key.
 
 ## Step 9: Test Your Crew
 
@@ -699,7 +670,7 @@ crewai flow kickoff
 **Expected output:**
 1. Researcher agent searches for top sci-fi books
 2. Reporter agent formats results as JSON
-3. HTML report generated at `output/book_recommender/science_fiction.html`
+3. HTML report generated at `output/book_recommender/report.html`
 4. Open the HTML file in a browser to see your formatted report
 
 ## Step 10: Write Structure Tests
@@ -812,7 +783,7 @@ pydantic_core.ValidationError: Invalid JSON: invalid escape at line 3
 
 **Error:** HTML file contains agent thinking/tool calls instead of clean report.
 
-**Solution:** Use **two-agent pattern** - only the reporter agent should have no tools and `output_file`. See [HTML Rendering Issues](../troubleshooting/COMMON_ERRORS.md#html-rendering-issues).
+**Solution:** Use `output_pydantic` on the final task and the **two-agent pattern** - the reporter agent has no tools and owns the `output_file`. See [HTML Rendering Issues](../troubleshooting/COMMON_ERRORS.md#html-rendering-issues).
 
 ### Issue 3: AttributeError with Union Types
 
@@ -821,16 +792,16 @@ pydantic_core.ValidationError: Invalid JSON: invalid escape at line 3
 AttributeError: 'UnionType' object has no attribute 'copy_with'
 ```
 
-**Solution:** Use legacy Pydantic syntax (`Optional[X]` not `X | None`). See [Pydantic Validation Errors](../troubleshooting/COMMON_ERRORS.md#pydantic-validation-errors).
+**Solution:** This only happened with CrewAI < 1.8.0. Upgrade CrewAI; `X | None` is the project standard.
 
 ### Issue 4: KeyError for Tools
 
 **Error:**
 ```
-KeyError: 'tools'
+KeyError: '<ToolName>'
 ```
 
-**Solution:** Never define tools in YAML - assign them programmatically in the `@agent` method. See [Crew Execution Errors](../troubleshooting/COMMON_ERRORS.md#crew-execution-errors).
+**Solution:** Don't define tools in YAML (names only resolve against `@tool` methods) - assign them programmatically in the `@agent` method. See [Crew Execution Errors](../troubleshooting/COMMON_ERRORS.md#crew-execution-errors).
 
 ### Issue 5: ModuleNotFoundError
 
@@ -839,28 +810,25 @@ KeyError: 'tools'
 ModuleNotFoundError: No module named 'epic_news'
 ```
 
-**Solution:** Run `uv pip install -e .` for editable install. See [Import/Module Errors](../troubleshooting/COMMON_ERRORS.md#import-module-errors).
+**Solution:** Run `uv pip install -e .` for editable install. See [Import/Module Errors](../troubleshooting/COMMON_ERRORS.md#importmodule-errors).
 
-### Issue 6: Renderer Not Found
+### Issue 6: Generic Layout Instead of Your Renderer
 
-**Error:**
-```
-Renderer for BOOK_RECOMMENDER not found
-```
+**Symptom:** The report uses the generic key/value layout. Unknown crew keys fall back to `GenericRenderer` silently.
 
-**Solution:** Register renderer in `RendererFactory._renderers` dictionary.
+**Solution:** Register the renderer in `RendererFactory._RENDERER_MAP` under the key passed to `render_and_write_html`.
 
 ## Key Takeaways
 
 ✅ **Always use the two-agent pattern** for HTML reports (researcher + reporter)
 ✅ **Assign tools in Python code**, never in YAML
-✅ **Use legacy Pydantic syntax** (`Optional[X]` not `X | None`)
+✅ **Use Python 3.13 union syntax** (`X | None`)
 ✅ **Add system_template** to reporter agents for JSON formatting
 ✅ **Use CSS variables with fallbacks** in renderers
 ✅ **Use `attrs["class"]`** not `class_` in BeautifulSoup
 ✅ **Always implement `__init__`** in renderer classes
 ✅ **Handle empty states** gracefully in renderers
-✅ **Use `LLMConfig`** methods, never hardcode LLM settings
+✅ **Use `LLMConfig`** methods (`get_openrouter_llm(task_type=...)`, `max_iter` on Agent), never hardcode LLM settings
 ✅ **Write structure tests** to ensure crew integrity
 
 ## Next Steps
@@ -868,8 +836,8 @@ Renderer for BOOK_RECOMMENDER not found
 - **Tutorial 2:** Adding Custom Tools (Coming soon)
 - **Tutorial 3:** Advanced HTML Rendering (Coming soon)
 - **Reference:** [Rendering Architecture](../reference/RENDERING_ARCHITECTURE.md)
-- **Reference:** [Tools Complete Reference](../reference/TOOLS_COMPLETE_REFERENCE.md)
-- **How-to:** [Debugging Crew Failures](../how-to/DEBUG_CREW_FAILURES.md)
+- **Reference:** [Tools Reference](../reference/tools.md)
+- **How-to:** [Troubleshooting](../how-to/troubleshooting.md)
 
 ## Need Help?
 

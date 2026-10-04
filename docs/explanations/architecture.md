@@ -14,17 +14,17 @@ For crews with predictable and structured output (e.g., SAINT, POEM, FINDAILY), 
 
 1. **Execute Crew**: The CrewAI flow runs as usual to generate the core content. The `.kickoff()` method returns a `CrewOutput` object.
 2. **Parse to Pydantic Model**: The raw output from the crew is parsed into a structured Pydantic model (e.g., `SaintData`, `FinancialReport`).
-3. **Render via Python Factory**: The Pydantic model is passed to a dedicated Python factory function (e.g., `saint_to_html`). This function uses a `TemplateManager` and a universal HTML template to produce the final, consistently styled report.
+3. **Render in Python**: The Pydantic model is passed to `render_and_write_html()`, which calls `TemplateManager().render_report()`. The `RendererFactory` picks the crew's `BaseRenderer` subclass and the result is injected into the universal HTML template to produce the final, consistently styled report.
 
 ```python
-# Example of the deterministic rendering flow
-report_content = SaintDailyCrew().crew().kickoff(inputs=inputs)
+# Example of the deterministic rendering flow (from ReceptionFlow.generate_saint_daily)
+output = kickoff_flow(SaintDailyCrew(), inputs)
 
-# Parse the raw output into a structured Pydantic model
-saint_model = SaintData.model_validate(json.loads(report_content.raw))
+# Load the JSON written by output_pydantic, or parse the raw crew output
+saint_model = load_or_parse_model(self.state.output_file, SaintData, output, inputs, "saint daily")
 
-# Render the final HTML using a dedicated factory
-saint_to_html(saint_model, html_file="output/saint_daily/report.html")
+# Render the final HTML through TemplateManager + SaintRenderer
+render_and_write_html("SAINT", saint_model, html_file)
 ```
 
 ### 1.2. Data Routing: From Factory to Renderer
@@ -117,7 +117,7 @@ Financial markets are highly dynamic. To provide accurate and timely analysis, a
 - **Data Staleness**: A vector database would require constant, resource-intensive updates.
 - **Scope Limitation**: A pre-populated database is limited, whereas live tools can access the entire public web.
 
-The `SaveToRagTool` is used not as a permanent knowledge base, but as a **short-term memory or "scratchpad"** for agents to share information within a single crew execution.
+Agents share information within a crew through task `context`, not through a vector store.
 
 ## 3. Case Study: Refactoring the Sales Prospecting Report
 

@@ -2,7 +2,12 @@
 
 ## Status
 
-Accepted
+Accepted. **Amended (2026-10-04)**: the principle stands; implementation details changed.
+
+- There are no per-crew `*_to_html()` factories. Flow methods call `render_and_write_html(selected_crew, model, html_path)` (`utils/flow_helpers.py`), which calls `TemplateManager().render_report(selected_crew=..., content_data=...)` and refuses paths outside `output/` ([ADR-015](ADR-015-output-trust-boundary.md)).
+- The holiday planner produces DOCX only; its HTML renderer was removed.
+- LLM- and web-derived text is escaped or sanitised before it reaches the HTML (ADR-015).
+- With `output_pydantic`, the two-agent split is no longer needed to keep action traces out of reports; it is kept so the reporting agent has no tools.
 
 ## Context
 

@@ -22,4 +22,4 @@ Problem-oriented guides for accomplishing specific tasks.
 
 - [Tutorials](../tutorials/index.md) - Learn Epic News step by step
 - [Reference](../reference/index.md) - Detailed API documentation
-- [Troubleshooting](../troubleshooting/common_errors.md) - Solve common problems
+- [Troubleshooting](../troubleshooting/COMMON_ERRORS.md) - Solve common problems

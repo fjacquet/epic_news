@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Accepted. **Amended (2026-10-04)**: no crew uses `SaveToRagTool` any more, and the unused persistent knowledge-base store (`rag_config.py`, `make update-kb`) was deleted. Retrieval is live tools only; scoped memory was removed earlier ([ADR-002](ADR-002-scoped-memory.md)), so nothing persists across executions.
 
 ## Context
 

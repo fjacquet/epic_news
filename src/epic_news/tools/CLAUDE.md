@@ -5,24 +5,23 @@ This directory contains all custom tools and tool factories for the Epic News sy
 ## Directory Contents
 
 **Note (post tools-migration cleanup)**: most standalone per-provider tools
-(web search/scrape, finance/crypto quotes, GitHub, email/OSINT lookup, RAG
-persistence) now live in the sibling `crewai_custom_tools` package, e.g.
-`from crewai_custom_tools import ScrapeNinjaTool, SaveToRagTool`. The files
+(web search/scrape, finance/crypto quotes, GitHub, email/OSINT lookup) now live
+in the sibling `crewai_custom_tools` package, e.g.
+`from crewai_custom_tools import ScrapeNinjaTool, PerplexitySearchTool`. The files
 below are what remains in `src/epic_news/tools/`.
 
 ### Tool Categories
 
 **Factories** (select/assemble tools by provider or feature flag):
-- web_tools.py, web_search_factory.py — web search/scrape tool selection
+- web_tools.py — web search/scrape/YouTube/PDF tool bundles
 - finance_tools.py — Yahoo Finance / stock / crypto / ETF tool bundles
-- github_tools.py, location_tools.py, rag_tools.py, report_tools.py, coinmarketcap_tool.py — per-domain factory functions
+- github_tools.py, location_tools.py — per-domain factory functions
 - scraper_factory.py — scraper provider selection (delegates to `crewai_custom_tools`)
-- fact_checking_factory.py, email_search.py — remaining OSINT/fact-check factories
 
-**Data & Reporting** (Group-2, kept in-repo):
-- data_centric_tools.py (MetricsCalculatorTool, KPITrackerTool, DataVisualizationTool, StructuredReportTool)
-- html_generator_tool.py, html_to_pdf_tool.py, render_report_tool.py, reporting_tool.py, universal_report_tool.py
-- utility_tools.py
+**File access**:
+- output_file_read_tool.py (`OutputFileReadTool`) — reads a text file only inside its `root` (default `output/`; fin_daily uses `root="data"` for portfolio CSVs). Resolves symlinks, refuses paths outside the root, caps reads at 200k chars, returns JSON (`content` / `truncated` / `error`).
+
+Reports are rendered by the flow (`render_and_write_html`, DOCX assemblers), not by agent tools.
 
 **Shared**:
 - _json_utils.py (JSON-output helpers: `ensure_json_str`, etc.)
@@ -35,27 +34,15 @@ Tools are organized via factory functions for centralized configuration and grac
 
 ```python
 # src/epic_news/tools/web_tools.py
-def get_web_search_tools():
-    \"\"\"Returns all web search tools with proper API key handling.\"\"\"
-    tools = []
-    
-    if os.getenv("TAVILY_API_KEY"):
-        tools.append(TavilyTool())
-    
-    if os.getenv("SERPER_API_KEY"):
-        tools.append(SerperApiTool())
-    
-    # Graceful degradation: return what's available
-    return tools
+def get_search_tools():
+    return [PerplexitySearchTool()]
 ```
 
 **Key factories**:
-- `get_web_search_tools()` - Web search providers
-- `get_github_tools()` - GitHub integrations
-- `get_finance_tools()` - Financial data tools
-- `get_location_tools()` - Geographic data tools
-- `get_rag_tools()` - RAG/vector tools
-- `get_report_tools()` - HTML/PDF generation
+- `web_tools`: `get_search_tools()`, `get_news_tools()`, `get_scrape_tools()`, `get_youtube_tools()`, `get_website_search_tools()`, `get_github_tools()`, `get_pdf_tools()`, `get_all_web_tools()`
+- `finance_tools`: `get_yahoo_finance_tools()`, `get_stock_research_tools()`, `get_crypto_research_tools()`
+- `github_tools.get_github_tools()` - GitHub integrations
+- `location_tools.get_location_tools()` - Geoapify place search
 
 ### Scraper Factory (Provider Abstraction)
 
@@ -105,7 +92,7 @@ def _run(self, **kwargs):
 ### Custom Tool Base Class Pattern
 
 ```python
-from crewai_tools import BaseTool
+from crewai.tools import BaseTool
 
 class MyCustomTool(BaseTool):
     name: str = "My Custom Tool"
@@ -148,9 +135,8 @@ SERPER_API_KEY=xxxxx
 FIRECRAWL_API_KEY=fc-xxxxx
 RAPIDAPI_KEY=rapi-xxxxx
 ALPHA_VANTAGE_API_KEY=xxxxx
-COINMARKETCAP_API_KEY=xxxxx
 ACCUWEATHER_API_KEY=xxxxx
-HUNTER_IO_API_KEY=xxxxx
+HUNTER_API_KEY=xxxxx
 AIRTABLE_API_KEY=xxxxx
 TODOIST_API_KEY=xxxxx
 ```
@@ -169,29 +155,30 @@ def get_my_tool():
 
 ### Assigning Tools to Agents
 
-**CRITICAL**: Tools MUST be assigned in Python code, NEVER in YAML files.
+**CRITICAL**: Tools MUST be assigned in Python code, not in YAML files.
 
 ```python
-from epic_news.tools.web_tools import get_web_search_tools
-from epic_news.tools.finance_tools import get_finance_tools
+from epic_news.tools.web_tools import get_search_tools
+from epic_news.tools.finance_tools import get_stock_research_tools
 
 @CrewBase
 class MyCrew:
     def __init__(self):
-        self.search_tools = get_web_search_tools()
-        self.finance_tools = get_finance_tools()
+        self.search_tools = get_search_tools()
+        self.finance_tools = get_stock_research_tools()
     
     @agent
     def researcher(self) -> Agent:
         return Agent(
             config=self.agents_config["researcher"],
             tools=self.search_tools,  # ✅ CORRECT - Assigned here
-            llm=LLMConfig.get_openrouter_llm(),
+            llm=LLMConfig.get_openrouter_llm(task_type="default"),
+            max_iter=LLMConfig.get_max_iter(),
             verbose=True,
         )
 ```
 
-**NEVER do this**:
+**Don't do this**:
 ```yaml
 # agents.yaml - ❌ WRONG
 researcher:
@@ -200,32 +187,28 @@ researcher:
     - TavilyTool
 ```
 
-**Why**: Hybrid YAML/code tool configuration causes `KeyError` exceptions.
+**Why**: CrewBase resolves YAML `tools:` names only against `@tool`-decorated methods on the crew class; any other name raises `KeyError`. The project keeps tools in Python.
 
 ### Tool Selection by Crew Type
 
-Different crews need different tool combinations:
+Different crews need different tool combinations. Give each agent only the tools its tasks use, with no duplicates, and never put crewai's unscoped `FileReadTool` on an agent that also searches or scrapes the web (use `OutputFileReadTool`). `tests/crews/test_agent_settings_contract.py` enforces the last two rules.
 
 **Research Crews** (deep_research, company_profiler):
-- Web search: Tavily, Serper, Brave
-- Wikipedia tools
+- `HybridSearchTool` (Perplexity → Brave → Serper fallback)
+- Wikipedia (MCP, deep_research and pestel)
 - Scraper factory
 
-**Financial Crews** (fin_daily, company_news):
-- Yahoo Finance tools
-- AlphaVantage
-- CoinMarketCap
+**Financial Crews** (fin_daily):
+- Yahoo Finance tools, AlphaVantage, Kraken (via `finance_tools`)
 - Exchange rate tool
 
 **Content Crews** (news_daily, rss_weekly):
-- RSS tools
-- Batch article scraper
+- `get_news_tools()` (Perplexity), `UnifiedRssTool`
 - Web scraper factory
 
 **Business Crews** (sales_prospecting, hr_intelligence):
-- Email search tools
 - GitHub tools (tech companies)
-- Hunter.io (email finding)
+- Hunter.io (email finding, from `crewai_custom_tools`)
 
 **Planning Crews** (holiday_planner, menu_designer):
 - Location tools (Geoapify)
@@ -243,7 +226,7 @@ Different crews need different tool combinations:
 
 2. **Implement tool class**:
    ```python
-   from crewai_tools import BaseTool
+   from crewai.tools import BaseTool
    from epic_news.tools._json_utils import ensure_json_str
    
    class MyNewTool(BaseTool):
@@ -262,7 +245,7 @@ Different crews need different tool combinations:
        return [MyNewTool(), MyOtherTool()]
    ```
 
-4. **Document in tools handbook**: Update `docs/2_TOOLS_HANDBOOK.md`
+4. **Document it**: Update `docs/reference/tools.md`
 
 5. **Write tests**:
    ```python
@@ -282,8 +265,7 @@ Different crews need different tool combinations:
 uv run pytest tests/tools/test_json_outputs.py
 ```
 
-**HTTP resilience** (for API tools):
-- Use `httpx` with retries via `tenacity`
+**External APIs**:
 - Mock external APIs in tests
 - No live network calls in test suite
 
@@ -340,33 +322,6 @@ class MyScrapingTool(BaseTool):
         return result  # Already JSON from scraper
 ```
 
-### 4. RAG Tools
-
-Short-term scratchpad pattern (not permanent storage):
-
-```python
-from crewai_custom_tools import SaveToRagTool
-
-# In crew __init__
-self.rag_tool = SaveToRagTool()
-
-# In agent
-@agent
-def researcher(self) -> Agent:
-    return Agent(
-        tools=[SearchTool(), self.rag_tool],
-    )
-
-# In task description
-\"\"\"
-1. Search for information
-2. Save findings to RAG using SaveToRagTool
-3. Use findings in next task
-\"\"\"
-```
-
-**Important**: RAG is used as temporary storage within a single crew execution, NOT as a persistent knowledge base.
-
 ## Performance & Optimization
 
 ### Caching
@@ -386,22 +341,6 @@ caching should implement it locally or rely on caching provided by
 - Real-time data (stock prices, news)
 - User-specific data
 - Rapidly changing information
-
-### HTTP Resilience
-
-Use `httpx` with `tenacity` for retries:
-
-```python
-import httpx
-from tenacity import retry, stop_after_attempt, wait_exponential
-
-@retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
-def _fetch_with_retry(self, url: str):
-    with httpx.Client(timeout=30.0) as client:
-        response = client.get(url)
-        response.raise_for_status()
-        return response.json()
-```
 
 ### Async Execution
 
@@ -505,14 +444,13 @@ FIRECRAWL_API_KEY=      # Alternative scraper
 ```bash
 # Financial Data
 ALPHA_VANTAGE_API_KEY=  # Fundamental company data
-COINMARKETCAP_API_KEY=  # Cryptocurrency data
 
 # Location & Weather
 ACCUWEATHER_API_KEY=    # Weather forecasts
 GEOAPIFY_API_KEY=       # Place search (uses free tier if not set)
 
 # Business Intelligence
-HUNTER_IO_API_KEY=      # Email finding
+HUNTER_API_KEY=         # Email finding
 GITHUB_TOKEN=           # GitHub API (uses public API if not set)
 
 # Productivity
@@ -527,10 +465,10 @@ BROWSERBASE_API_KEY=    # Browser automation
 ## Related Documentation
 
 - **Main CLAUDE.md**: Root-level comprehensive guide
-- **Tools Handbook**: `docs/2_TOOLS_HANDBOOK.md` (complete tool reference)
+- **Tools Reference**: `docs/reference/tools.md` (complete tool reference)
 - **Crews**: `src/epic_news/crews/CLAUDE.md` (crew patterns and tool usage)
 - **Utils**: `src/epic_news/utils/CLAUDE.md` (utility functions)
-- **Development Guide**: `docs/1_DEVELOPMENT_GUIDE.md`
+- **Development Setup**: `docs/how-to/development_setup.md`
 
 ## Key Takeaways
 
@@ -540,5 +478,4 @@ BROWSERBASE_API_KEY=    # Browser automation
 4. **Tool assignment**: In Python code (agent methods), NEVER in YAML
 5. **Scraper factory**: Abstract provider selection for easy switching
 6. **Testing**: Mock external APIs, verify JSON outputs
-7. **Performance**: Cache expensive calls, use retries for HTTP requests
-8. **RAG usage**: Temporary scratchpad within execution, not permanent storage
+7. **Performance**: Cache expensive calls
