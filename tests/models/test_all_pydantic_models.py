@@ -20,7 +20,6 @@ from epic_news.models.data_metrics import (
 from epic_news.models.extracted_info import ExtractedInfo
 
 # Tests for report, report_models, and rss_models
-from epic_news.models.report import ReportHTMLOutput
 from epic_news.models.report_models import RenderReportToolSchema, ReportImage, ReportSection
 from epic_news.models.rss_models import Article, FeedWithArticles, RssFeedParserToolInput, RssFeeds
 
@@ -109,11 +108,6 @@ def test_paprika_recipe_valid():
 def test_paprika_recipe_invalid():
     with pytest.raises(ValidationError):
         PaprikaRecipe(name="Incomplete Recipe")  # Missing ingredients and directions
-
-
-def test_report_html_output_valid():
-    model = ReportHTMLOutput(html="<html></html>")
-    assert model.html == "<html></html>"
 
 
 def test_report_section_valid():
