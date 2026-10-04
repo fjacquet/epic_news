@@ -266,10 +266,10 @@ class ReceptionFlow(Flow[ContentState]):
         """
         Classifies the user request into a predefined category.
 
-        Uses the `ClassifyCrew` and the extracted information (primarily the topic)
-        to determine which specialized crew should handle the request.
-        The result updates `self.state.selected_crew`, and the classification
-        decision is saved to `output/classify/decision.md`.
+        Uses the crew chosen during extraction (`extracted_info.selected_crew`) when it
+        is a known category; otherwise falls back to `ClassifyCrew`, which writes its
+        decision to `output/classify/decision.md`. The result updates
+        `self.state.selected_crew`.
         """
         topic = (
             self.state.extracted_info.main_subject_or_activity
