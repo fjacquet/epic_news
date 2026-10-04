@@ -200,6 +200,6 @@ Generated dashboards are available in the `output/dashboards/` directory as HTML
 
 ## Related Documentation
 
-- [DESIGN_PRINCIPLES.md](DESIGN_PRINCIPLES.md) - Design principles for Epic News Crews
-- [tools_handbook.md](tools_handbook.md) - Guide to available tools
-- [CREWAI_TOOLS_AND_MCP_GUIDE.md](CREWAI_TOOLS_AND_MCP_GUIDE.md) - Guide to CrewAI tools and MCP
+- [Architecture](../explanations/architecture.md) - Design principles for Epic News Crews
+- [Tools Reference](../reference/tools.md) - Guide to available tools
+- [MCP Setup](mcp_setup.md) - Guide to MCP servers

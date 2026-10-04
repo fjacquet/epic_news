@@ -19,36 +19,28 @@ trigger `news_daily` rather than `company_profiler`. Try
 
 ## I didn't receive the email
 
-Open `logs/epic_news.log` and look for the `📨 PostResult` line:
+Email is sent only when `EPIC_ENABLE_EMAIL` is truthy (`true`, `1`, `yes`,
+`on`); otherwise the step logs `✉️ Email sending disabled` and skips.
+Delivery is deterministic: `ReceptionFlow.send_email` calls
+`epic_news.utils.email_sender.send_report_email()`, which executes Composio
+`GMAIL_SEND_EMAIL` directly (no agent). Open `logs/epic_news.log`:
 
-- **`status=success`** → email **was** delivered. Check spam folder, and
-  verify `MAIL` in `.env` points to the address you actually check (not the
-  default `fred.jacquet@gmail.com`).
-- **`status=failure`** → read `error_message`:
+- **`📨 Email delivered to …`** → Composio confirmed delivery. Check spam,
+  and verify `MAIL` in `.env` points to the address you actually check.
+- **`❌ Email NOT sent: …`** → `EmailDeliveryError`; read the message:
   - *"No connected account found for user ID default for toolkit gmail"* →
-    you need to authorize Gmail in Composio under entity `default`. Go to
+    authorize Gmail in Composio under entity `default`. Go to
     [app.composio.dev](https://app.composio.dev), Connections → Add
     connection → Gmail → use `default` as user/entity ID.
-  - *"Failed to read content from output_file: …/report.html"* → the
-    upstream HTML rendering failed; look earlier in the log for an `❌`
-    line. The v2.1.0 attachment guard now drops missing files
-    automatically.
-- **No `📨` line at all** → the `send_email` step never reached PostCrew.
-  Look for `📬 Preparing to send email...` then check what came right
-  after.
-
-## Composio Gmail tool returns a draft instead of sending
-
-In v2.1.0+ the PostCrew explicitly requests `GMAIL_SEND_EMAIL` first and
-only falls back to `GMAIL_CREATE_EMAIL_DRAFT` if Composio doesn't return
-the send variant (typically a paid-plan limitation). Run
-
-```bash
-uv run python -c "from epic_news.config.composio_config import ComposioConfig; print([t.name for t in ComposioConfig().get_gmail_email_tools(include_send=True)])"
-```
-
-If `GMAIL_SEND_EMAIL` is missing from the list, your Composio plan does
-not expose it — re-OAuth or upgrade.
+  - *"… is not a valid email address"*, *"empty report body"* or
+    *"Attachment does not exist"* → the inputs were rejected before any API
+    call.
+  - A `ToolVersionRequiredError` / version error → set
+    `COMPOSIO_GMAIL_VERSION` to a toolkit version your account exposes.
+- **`🚫 No report was generated`** → the crew failed before writing a
+  report; look earlier in the log for an `❌` line.
+- **No `📤 Sending report` line** → the step returned early. Look for
+  `📬 Preparing to send email...` and check what came right after.
 
 ## API errors
 

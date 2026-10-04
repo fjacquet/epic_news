@@ -38,11 +38,10 @@ uses `from loguru import logger` or `self.logger`. Useful breadcrumbs:
 | `🚀 Kicking off crew <Name> with context keys: …` | `kickoff_flow()` entry |
 | `✅ Crew <Name> finished in X.XXs` | `kickoff_flow()` exit |
 | `📬 Preparing to send email...` | `ReceptionFlow.send_email` start |
-| `✉️  Email payload: recipient=… subject=… attachment=…` | Pre-kickoff payload (v2.1.0+) |
-| `🔧 Loading Gmail send tools from Composio...` | PostCrew tool discovery |
-| `✅ Loaded N Gmail send tools: […]` | Tool list returned to the agent |
-| `📨 PostResult: status=success recipient=… attachment_sent=…` | Email delivered |
-| `❌ PostResult: status=failure recipient=… error_message=…` | Email failed — read `error_message` for the cause |
+| `✉️  Email payload: recipient=… subject=… attachment=…` | Validated email inputs |
+| `📤 Sending report to … (attachment=…)` | `send_report_email()` calls Composio `GMAIL_SEND_EMAIL` |
+| `📨 Email delivered to …` | Composio confirmed delivery |
+| `❌ Email NOT sent: …` | `EmailDeliveryError` — the message gives the cause |
 
 `logs/epic_news_error.log` only receives `ERROR`/`CRITICAL` records.
 
@@ -56,42 +55,24 @@ and a `details` dict.
 Useful to verify a flow step actually ran (and how long it took) without
 reading the full log.
 
-## Email Outcome (PostResult)
+## Email Outcome
 
-When the email step runs, the PostCrew agent is required to produce a
-structured `PostResult`:
-
-| Field | Description |
-|---|---|
-| `status` | `"success"` or `"failure"` |
-| `recipient_email` | Final destination (typically `state.sendto` → `MAIL` env var) |
-| `subject` | Subject line composed by the agent |
-| `html_preserved` | `true` if HTML formatting was kept |
-| `language_preserved` | `true` if no unintended translation happened |
-| `attachment_sent` | `true` if a file was attached |
-| `attachment_filename` | Filename if attached, else `"N/A"` |
-| `error_message` | Full error from Composio if `status=failure`, else `"None"` |
-
-Since v2.1.0 this object is parsed and logged via loguru in
-`ReceptionFlow.send_email`, so failures surface in `epic_news.log` instead
-of being lost between PostCrew's stdout and the missing email.
+Email delivery is deterministic: `ReceptionFlow.send_email` calls
+`epic_news.utils.email_sender.send_report_email()`, which sends through
+Composio `GMAIL_SEND_EMAIL` and raises `EmailDeliveryError` unless Composio
+reports success. `state.email_sent` is `True` only after a confirmed
+delivery (or when `EPIC_ENABLE_EMAIL` disables the step).
 
 ## Debug Dumps
 
 `debug/crewai_state_<crew_name>_<timestamp>.json` — full CrewAI `result`
 object dumped by `dump_crewai_state` for post-mortem analysis.
 
-## Cache
-
-`cache/yahoo_news_*.json`, `cache/<provider>_<query>.json` — request
-caches honored by `requests-cache` and a few crew-specific caches.
-Safe to delete; will be repopulated on next run.
-
 ## Tracing the End-to-End Flow
 
 1. User input → `extract_info` (trace event)
 2. `classify` → picks the crew (trace event)
 3. `generate_<crew>` → kickoff + render → writes to `output/<crew>/`
-4. `send_email` → reads from `output/<crew>/report.html`, kicks off PostCrew, parses `PostResult`
+4. `send_email` → reads the report from `output/<crew>/` and sends it with `send_report_email()`
 
 Run `tail -f logs/epic_news.log` during a flow to watch this live.

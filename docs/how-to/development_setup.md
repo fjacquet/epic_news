@@ -168,7 +168,6 @@ make coverage         # Run tests with coverage
 - `make run-streamlit` - Start Streamlit app (port 8501)
 - `make run-api` - Start FastAPI server (port 8000)
 - `make run-crew` - Run CrewAI flow kickoff
-- `make update-kb` - Update knowledge base
 
 **Dependency Management**:
 - `make show-deps` - Show dependency tree

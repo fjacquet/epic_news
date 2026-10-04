@@ -48,13 +48,15 @@ from pathlib import Path
 
 from mcp import StdioServerParameters
 
-def get_wikipedia_mcp():
-    """Run the locked wikipedia-mcp-server dependency from this venv."""
-    return StdioServerParameters(
-        command=str(Path(sysconfig.get_path("scripts")) / "wikipedia-mcp"),
-        args=[],
-        env={},
-    )
+class MCPConfig:
+    @staticmethod
+    def get_wikipedia_mcp():
+        """Run the locked wikipedia-mcp-server dependency from this venv."""
+        return StdioServerParameters(
+            command=str(Path(sysconfig.get_path("scripts")) / "wikipedia-mcp"),
+            args=[],
+            env={},
+        )
 ```
 
 The server comes from the locked `wikipedia-mcp-server` dependency in
@@ -62,8 +64,7 @@ The server comes from the locked `wikipedia-mcp-server` dependency in
 
 **Crews Using Wikipedia MCP**:
 - `deep_research`: Replaces custom WikipediaTool with maintained MCP server
-- `library`: Adds Wikipedia context for book research
-- `holiday_planner`: Provides destination information
+- `pestel`: Wikipedia context for the dimension researchers
 
 **Example Usage**:
 ```python
@@ -131,18 +132,19 @@ npx package-name
 Add configuration to `src/epic_news/config/mcp_config.py`:
 
 ```python
-from mcp.server import MCPServerStdio
 import os
 
-def get_your_mcp_server():
-    """Configure Your MCP server."""
-    return MCPServerStdio(
-        command="command_to_run",  # e.g., "uvx", "npx"
-        args=["server-package@version"],
-        env={
-            "API_KEY": os.getenv("YOUR_API_KEY"),  # If needed
-        },
-    )
+from mcp import StdioServerParameters
+
+class MCPConfig:
+    @staticmethod
+    def get_your_mcp_server():
+        """Configure Your MCP server."""
+        return StdioServerParameters(
+            command="command_to_run",  # e.g., "uvx", "npx"
+            args=["server-package@version"],
+            env={"API_KEY": os.getenv("YOUR_API_KEY", "")},  # If needed
+        )
 ```
 
 ### Step 3: Update Environment Variables
@@ -156,16 +158,24 @@ YOUR_API_KEY=your_api_key_here
 
 ### Step 4: Integrate with Crews
 
-Use the MCP server in crew initialization:
+Declare the server on the crew class with `mcp_server_params` and load the
+tools with `get_mcp_tools()`. `@CrewBase` starts one shared adapter on first use
+and stops it after `kickoff()`:
 
 ```python
-from epic_news.config.mcp_config import get_your_mcp_server
+from epic_news.config.mcp_config import MCPConfig
 
 @CrewBase
 class YourCrew:
-    def __init__(self):
-        self.mcp_server = get_your_mcp_server()
-        # MCP tools are now available to agents
+    mcp_server_params = [MCPConfig.get_your_mcp_server()]
+
+    @agent
+    def researcher(self) -> Agent:
+        return Agent(
+            config=self.agents_config["researcher"],
+            tools=[*self.get_mcp_tools()],
+            llm=LLMConfig.get_openrouter_llm(task_type="default"),
+        )
 ```
 
 ### Step 5: Document the Integration
@@ -279,10 +289,13 @@ except Exception as e:
 
 ### 3. Server Lifecycle
 
-MCP servers are typically:
-- Started when crew initializes
+With CrewBase `mcp_server_params` + `get_mcp_tools()`, the adapter is:
+- Started lazily on the first `get_mcp_tools()` call
 - Shared across all agents in the crew
-- Automatically cleaned up when crew completes
+- Stopped automatically after `kickoff()` completes
+
+A hand-built `MCPServerAdapter(...)` spawns a process that keeps running until
+`.stop()` is called; avoid it in new crews.
 
 ### 4. API Key Management
 
