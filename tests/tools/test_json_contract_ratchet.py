@@ -17,11 +17,8 @@ JSON_MARKERS = ("json.dumps", "ensure_json_str", "model_dump_json", "to_json")
 # after the tools-migration cleanup (Task 6) to surviving epic_news-owned
 # tools only. Shrink-only.
 KNOWN_LEGACY: set[str] = {
-    "html_generator_tool.py",
     "html_to_pdf_tool.py",
     "render_report_tool.py",
-    "reporting_tool.py",
-    "universal_report_tool.py",
 }
 
 
