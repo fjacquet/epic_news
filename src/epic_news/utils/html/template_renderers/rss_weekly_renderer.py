@@ -7,6 +7,7 @@ Handles article lists, source information, and category organization.
 
 from typing import Any
 
+import nh3
 from bs4 import BeautifulSoup
 
 from .base_renderer import BaseRenderer
@@ -233,7 +234,8 @@ class RssWeeklyRenderer(BaseRenderer):
             summary_div = soup.new_tag("div")
             summary_div.attrs["class"] = ["summary"]  # type: ignore[assignment]
             try:
-                fragment = BeautifulSoup(summary, "html.parser")
+                # Feed HTML is untrusted: drop scripts, event handlers and javascript: URLs.
+                fragment = BeautifulSoup(nh3.clean(summary), "html.parser")
                 summary_div.append(fragment)
             except Exception:
                 # Fall back to plain text if parsing fails

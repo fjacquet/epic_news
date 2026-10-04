@@ -42,6 +42,7 @@ dependencies = [
     # --- Numerical / data ---
     "markdown-it-py>=4.0.0",
     "pypandoc>=1.17",
+    "nh3>=0.3.7",
 ]
 
 [project.scripts]

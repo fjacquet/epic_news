@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import Any
 
 from crewai.tools import BaseTool
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from epic_news.models.data_metrics import (
     KPI,
@@ -393,7 +393,7 @@ class StructuredReportTool(BaseTool):
                 )
 
                 # Create Jinja2 environment
-                env = Environment(loader=FileSystemLoader(templates_dir))
+                env = Environment(loader=FileSystemLoader(templates_dir), autoescape=select_autoescape(["html", "xml"]))
                 template = env.get_template("data_report_template.html")
 
                 # Render the template

@@ -290,3 +290,25 @@ def test_header_date_rendered_when_present():
 
     assert 'class="rss-date"' in html
     assert "Semaine du 30 juin 2026" in html
+
+
+def test_article_summary_html_is_sanitized():
+    """Feed-supplied summary HTML keeps safe markup but loses scripts and handlers."""
+    data = {
+        "articles": [
+            {
+                "title": "Hostile feed",
+                "summary": (
+                    "<p>Bonjour <b>monde</b></p><script>alert(1)</script>"
+                    '<img src="x" onerror="alert(2)"><a href="javascript:alert(3)">clic</a>'
+                ),
+            }
+        ]
+    }
+
+    html = _render(data)
+
+    assert "<b>monde</b>" in html
+    assert "<script>alert(1)</script>" not in html
+    assert "onerror" not in html
+    assert "javascript:" not in html
