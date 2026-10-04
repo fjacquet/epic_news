@@ -48,6 +48,8 @@ except Exception:  # pragma: no cover - fallback if tracing is unavailable
 # the whole multi-agent crew 2-3x turns one slow run into ~40 min of waste and rarely
 # succeeds, because the cause is structural (oversized context / overloaded provider),
 # not a transient blip. Timeouts fail fast so the caller sees the real error immediately.
+# Default is a single attempt: LiteLLM already retries the failing call (num_retries=2),
+# and replaying a whole crew re-runs every finished task. Raise CREW_KICKOFF_ATTEMPTS to opt in.
 _TRANSIENT_ERROR_MARKERS: tuple[str, ...] = (
     "no tool calls or function call found",
     "'nonetype' object is not iterable",
@@ -71,7 +73,7 @@ def _is_transient_error(exc: BaseException) -> bool:
 
 def _retry_settings() -> tuple[int, float]:
     """Read retry attempts and base backoff seconds from the environment."""
-    attempts = max(1, int(os.getenv("CREW_KICKOFF_ATTEMPTS", "3")))
+    attempts = max(1, int(os.getenv("CREW_KICKOFF_ATTEMPTS", "1")))
     backoff = max(0.0, float(os.getenv("CREW_KICKOFF_BACKOFF_SECONDS", "5")))
     return attempts, backoff
 

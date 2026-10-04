@@ -192,3 +192,11 @@ async def test_async_failure_is_not_logged_as_success():
 
     assert "ERROR" in {level for level, _ in records}
     assert not any(msg.startswith("📊 Crew") for _, msg in records), "failure logged as success"
+
+
+def test_default_is_a_single_attempt(monkeypatch):
+    monkeypatch.delenv("CREW_KICKOFF_ATTEMPTS", raising=False)
+    from epic_news.utils.flow_enforcement import _retry_settings
+
+    attempts, _ = _retry_settings()
+    assert attempts == 1
