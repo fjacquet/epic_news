@@ -78,6 +78,7 @@ nav:
       - Composio Setup: how-to/composio_setup.md
       - MCP Setup: how-to/mcp_setup.md
       - Docker Deployment: how-to/docker_deployment.md
+      - Expose the API to n8n: how-to/expose-api-n8n.md
       - Observability: how-to/observability.md
       - Troubleshooting: how-to/troubleshooting.md
       - Bug Reporting: how-to/bug_reporting.md
