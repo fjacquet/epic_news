@@ -1,11 +1,11 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai_custom_tools import HybridSearchTool
-from crewai_tools import ScrapeWebsiteTool
 from dotenv import load_dotenv
 
 from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.sales_prospecting_report import SalesProspectingReport
+from epic_news.tools.capped_scrape_tool import CappedScrapeWebsiteTool
 
 load_dotenv()
 
@@ -21,7 +21,7 @@ class SalesProspectingCrew:
     def company_researcher(self) -> Agent:
         return Agent(
             config=self.agents_config["company_researcher"],  # type: ignore[index]
-            tools=[HybridSearchTool(), ScrapeWebsiteTool()],
+            tools=[HybridSearchTool(), CappedScrapeWebsiteTool()],
             llm=LLMConfig.get_openrouter_llm(),
             max_iter=LLMConfig.get_max_iter(),
             verbose=True,
@@ -32,7 +32,7 @@ class SalesProspectingCrew:
     def org_structure_analyst(self) -> Agent:
         return Agent(
             config=self.agents_config["org_structure_analyst"],  # type: ignore[index]
-            tools=[HybridSearchTool(), ScrapeWebsiteTool()],
+            tools=[HybridSearchTool(), CappedScrapeWebsiteTool()],
             llm=LLMConfig.get_openrouter_llm(),
             max_iter=LLMConfig.get_max_iter(),
             verbose=True,
@@ -43,7 +43,7 @@ class SalesProspectingCrew:
     def contact_finder(self) -> Agent:
         return Agent(
             config=self.agents_config["contact_finder"],  # type: ignore[index]
-            tools=[HybridSearchTool(), ScrapeWebsiteTool()],
+            tools=[HybridSearchTool(), CappedScrapeWebsiteTool()],
             llm=LLMConfig.get_openrouter_llm(),
             max_iter=LLMConfig.get_max_iter(),
             verbose=True,

@@ -36,7 +36,7 @@ uses `from loguru import logger` or `self.logger`. Useful breadcrumbs:
 |---|---|
 | `📰 Generating RSS weekly report (new pipeline)...` | Crew start |
 | `🚀 Kicking off crew <Name> with context keys: …` | `kickoff_flow()` entry |
-| `✅ Crew <Name> finished in X.XXs` | `kickoff_flow()` exit |
+| `📊 Crew <Name> took X.XXs — tokens: total=… prompt=… completion=… cached=… requests=…` | `kickoff_flow()` exit |
 | `📬 Preparing to send email...` | `ReceptionFlow.send_email` start |
 | `✉️  Email payload: recipient=… subject=… attachment=…` | Validated email inputs |
 | `📤 Sending report to … (attachment=…)` | `send_report_email()` calls Composio `GMAIL_SEND_EMAIL` |

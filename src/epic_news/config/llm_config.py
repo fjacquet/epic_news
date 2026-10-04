@@ -1,10 +1,13 @@
 """Centralized LLM configuration (OpenRouter and native LiteLLM routes)."""
 
 import asyncio
+import contextvars
 import json
 import os
 import random
+import threading
 import time
+from collections.abc import Awaitable, Callable
 from typing import Any, Literal
 
 from crewai import LLM
@@ -32,6 +35,69 @@ _EMPTY_RETRY_MAX_DELAY = 8.0
 # Module-level so tests can replace them and never sleep for real.
 _sleep = time.sleep
 _async_sleep = asyncio.sleep
+
+_llm_slots: threading.BoundedSemaphore | None = None
+_llm_slots_lock = threading.Lock()
+_holds_slot: contextvars.ContextVar[bool] = contextvars.ContextVar("llm_holds_slot", default=False)
+
+
+def _llm_concurrency() -> int:
+    """Max simultaneous LLM calls in this process (LLM_MAX_CONCURRENCY, default 3)."""
+    try:
+        return max(1, int(os.getenv("LLM_MAX_CONCURRENCY", "3")))
+    except ValueError:
+        return 3
+
+
+def _slots() -> threading.BoundedSemaphore:
+    global _llm_slots
+    with _llm_slots_lock:
+        if _llm_slots is None:
+            _llm_slots = threading.BoundedSemaphore(_llm_concurrency())
+        return _llm_slots
+
+
+def _reset_llm_slots() -> None:
+    """Re-read LLM_MAX_CONCURRENCY on next use (tests only)."""
+    global _llm_slots
+    with _llm_slots_lock:
+        _llm_slots = None
+
+
+def _with_llm_slot[T](call_fn: Callable[[], T]) -> T:
+    """Run one LLM call while holding a process-wide concurrency slot.
+
+    CrewAI async tasks, the DOCX section pool, the menu recipe pool and the OSINT
+    fan-out all start LLM calls in parallel; this is the single place that bounds them.
+    Reentrant per logical call: crewai's LLM.call re-invokes itself (e.g. when the
+    provider rejects ``stop``), and the nested call must not take a second slot.
+    """
+    if _holds_slot.get():
+        return call_fn()
+    with _slots():
+        token = _holds_slot.set(True)
+        try:
+            return call_fn()
+        finally:
+            _holds_slot.reset(token)
+
+
+async def _awith_llm_slot[T](call_fn: Callable[[], Awaitable[T]]) -> T:
+    """Async twin of _with_llm_slot; waits for a slot without blocking the event loop.
+
+    Polls a non-blocking acquire so a cancelled waiter can never leak a slot.
+    """
+    if _holds_slot.get():
+        return await call_fn()
+    slots = _slots()
+    while not slots.acquire(blocking=False):
+        await asyncio.sleep(0.02)
+    token = _holds_slot.set(True)
+    try:
+        return await call_fn()
+    finally:
+        _holds_slot.reset(token)
+        slots.release()
 
 
 def _empty_retry_delay(attempt: int) -> float:
@@ -290,7 +356,7 @@ def _wrap_call_for_react_safety(cls: type) -> None:
 
         def call(self, *args, **kwargs):
             result = _call_with_empty_retry(
-                lambda: original_call(self, *args, **kwargs),
+                lambda: _with_llm_slot(lambda: original_call(self, *args, **kwargs)),
                 _empty_retries_from_env(),
                 getattr(self, "model", "?"),
             )
@@ -304,7 +370,7 @@ def _wrap_call_for_react_safety(cls: type) -> None:
 
         async def acall(self, *args, **kwargs):
             result = await _acall_with_empty_retry(
-                lambda: original_acall(self, *args, **kwargs),
+                lambda: _awith_llm_slot(lambda: original_acall(self, *args, **kwargs)),
                 _empty_retries_from_env(),
                 getattr(self, "model", "?"),
             )

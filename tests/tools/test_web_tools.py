@@ -10,6 +10,7 @@ from crewai_tools import (
     YoutubeVideoSearchTool,
 )
 
+from epic_news.tools.capped_scrape_tool import CappedScrapeWebsiteTool
 from epic_news.tools.scraper_factory import get_scraper
 from epic_news.tools.web_tools import (
     get_all_web_tools,
@@ -95,7 +96,7 @@ def test_get_all_web_tools():
     expected_types = {
         PerplexitySearchTool,
         primary_scraper_type,
-        ScrapeWebsiteTool,
+        CappedScrapeWebsiteTool,
         WebsiteSearchTool,
         PDFSearchTool,
         YoutubeVideoSearchTool,

@@ -9,10 +9,11 @@ from crewai_custom_tools import PerplexitySearchTool
 from crewai_tools import (
     GithubSearchTool,
     PDFSearchTool,
-    ScrapeWebsiteTool,
     WebsiteSearchTool,
     YoutubeVideoSearchTool,
 )
+
+from epic_news.tools.capped_scrape_tool import CappedScrapeWebsiteTool
 
 
 def get_search_tools():
@@ -50,7 +51,7 @@ def get_scrape_tools():
 
     return [
         get_scraper(),  # Primary scraping tool - selected via WEB_SCRAPER_PROVIDER
-        ScrapeWebsiteTool(),  # Backup scraper from crewai_tools
+        CappedScrapeWebsiteTool(),  # Backup scraper from crewai_tools
     ]
 
 
