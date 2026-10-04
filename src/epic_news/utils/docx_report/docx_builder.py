@@ -22,7 +22,8 @@ def build_docx(fragments: list[tuple[str, str]], meta: dict[str, str], output_pa
     markdown = "\n".join(parts)
 
     Path(output_path).parent.mkdir(parents=True, exist_ok=True)
-    extra_args = ["--toc", "--standalone"]
+    # --sandbox: fragments are LLM output; stop pandoc reading local files or URLs they reference.
+    extra_args = ["--toc", "--standalone", "--sandbox"]
     if _REFERENCE_DOC.exists():
         extra_args += ["--reference-doc", str(_REFERENCE_DOC)]
     # LLM fragment bodies use `---` as separators. Disable yaml_metadata_block so every

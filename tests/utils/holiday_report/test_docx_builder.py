@@ -1,8 +1,15 @@
+import base64
+import zipfile
 from pathlib import Path
 
 from docx import Document
 
-from epic_news.utils.docx_report import build_docx
+from epic_news.utils.docx_report import build_docx, docx_builder
+
+# 1x1 transparent PNG
+_TINY_PNG = base64.b64decode(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+)
 
 
 def _all_text(path: str) -> str:
@@ -29,6 +36,49 @@ def test_build_docx_writes_headings_and_body(tmp_path: Path):
     assert "Introduction" in text
     assert "Jour 1" in text
     assert "Montreux" in text
+
+
+def test_build_docx_still_applies_reference_doc_in_sandbox(tmp_path: Path, monkeypatch):
+    """--sandbox must not stop pandoc from reading the reference doc given on the command line."""
+    reference = tmp_path / "reference.docx"
+    ref_doc = Document()
+    ref_doc.styles["Normal"].font.name = "Sandbox Test Font"
+    ref_doc.save(str(reference))
+    monkeypatch.setattr(docx_builder, "_REFERENCE_DOC", reference)
+
+    out = tmp_path / "styled.docx"
+    build_docx([("Intro", "Texte.")], {"title": "Carnet"}, str(out))
+
+    assert Document(str(out)).styles["Normal"].font.name == "Sandbox Test Font"
+
+
+def test_build_docx_does_not_embed_local_files(tmp_path: Path, monkeypatch):
+    """Untrusted markdown must not pull arbitrary local files into the DOCX."""
+    secret = tmp_path / "secret.png"
+    secret.write_bytes(_TINY_PNG)
+    out = tmp_path / "guide.docx"
+
+    build_docx(
+        [("Intro", f"![leak]({secret.as_uri()})\n\n![hosts](file:///etc/hosts)\n\n![abs]({secret})")],
+        {"title": "Carnet"},
+        str(out),
+    )
+
+    with zipfile.ZipFile(out) as archive:
+        media = [name for name in archive.namelist() if name.startswith("word/media/")]
+    assert media == []
+
+
+def test_build_docx_runs_pandoc_sandboxed(tmp_path: Path, monkeypatch):
+    captured: dict = {}
+
+    def fake_convert_text(*args, **kwargs):
+        captured.update(kwargs)
+
+    monkeypatch.setattr(docx_builder.pypandoc, "convert_text", fake_convert_text)
+    build_docx([("Intro", "x")], {"title": "Carnet"}, str(tmp_path / "x.docx"))
+
+    assert "--sandbox" in captured["extra_args"]
 
 
 def test_build_docx_survives_thematic_break_fences(tmp_path: Path):
