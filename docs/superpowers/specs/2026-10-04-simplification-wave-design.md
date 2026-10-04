@@ -159,8 +159,5 @@ Delete the flow's unreachable fallback branch, make `parse_menu_structure` walk 
 2. Every crew stays its own `@listen` Flow step; no generic dispatcher (S4).
 3. Tracer/Dashboard/HallucinationGuard are not used outside this repo: S8 deletes whatever
    the flow does not use.
-
-## Open questions
-
-1. **Error propagation (S5):** confirm that a renderer failure should stop the run rather
-   than send a fallback page.
+4. A renderer failure stops the run with a clear error in the logs; no fallback "Erreur"
+   page is rendered or emailed (S5).
