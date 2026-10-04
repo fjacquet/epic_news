@@ -64,7 +64,6 @@ from epic_news.models.content_state import ContentState
 from epic_news.models.crews.book_summary_report import BookSummaryReport
 from epic_news.models.crews.company_news_report import CompanyNewsReport
 from epic_news.models.crews.company_profiler_report import CompanyProfileReport
-from epic_news.models.crews.cooking_recipe import PaprikaRecipe
 from epic_news.models.crews.cross_reference_report import CrossReferenceReport
 from epic_news.models.crews.deep_research import DeepResearchReport
 from epic_news.models.crews.financial_report import FinancialReport
@@ -112,6 +111,7 @@ from epic_news.utils.interrupt import install_force_quit_handler
 from epic_news.utils.logger import setup_logging
 from epic_news.utils.menu_generator import MenuGenerator
 from epic_news.utils.observability import get_observability_tools, trace_task
+from epic_news.utils.recipe_export import export_recipe, recipe_from_result
 from epic_news.utils.report_utils import (
     generate_rss_weekly_html_report,
     load_rss_weekly_report,
@@ -702,21 +702,8 @@ class ReceptionFlow(Flow[ContentState]):
         cooking_result = kickoff_flow(CookingCrew(), crew_inputs)
         dump_crewai_state(cooking_result, "COOKING")
 
-        # Prefer JSON, then YAML, then fall back to CrewAI output parsing
-        recipe_model: PaprikaRecipe | None = None
-        try:
-            with open(self.state.output_file, encoding="utf-8") as f:
-                recipe_model = PaprikaRecipe.model_validate(json.load(f))
-            self.logger.info("📄 Loaded recipe model from saved JSON file")
-        except Exception:
-            try:
-                import yaml
-
-                with open(crew_inputs["patrika_file"], encoding="utf-8") as f:
-                    recipe_model = PaprikaRecipe.model_validate(yaml.safe_load(f))
-                self.logger.info("📄 Loaded recipe model from saved YAML file")
-            except Exception:
-                recipe_model = parse_crewai_output(cooking_result, PaprikaRecipe, crew_inputs)
+        recipe_model = recipe_from_result(cooking_result, crew_inputs)
+        export_recipe(recipe_model, crew_inputs["patrika_file"], crew_inputs["output_file"])
 
         html_file = f"{self.state.output_dir}/{self.state.topic_slug}.html"
         emit_report(
@@ -863,7 +850,12 @@ class ReceptionFlow(Flow[ContentState]):
                     "output_file": f"output/cooking/{recipe_slug}.json",  # Add missing output_file variable
                 }
 
-                cooking_crew.kickoff(inputs=recipe_request)
+                recipe_result = cooking_crew.kickoff(inputs=recipe_request)
+                export_recipe(
+                    recipe_from_result(recipe_result, recipe_request),
+                    recipe_request["patrika_file"],
+                    recipe_request["output_file"],
+                )
 
             except Exception as e:
                 self.logger.error(f"  ❌ Error with {recipe_code}: {e}")

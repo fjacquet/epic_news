@@ -12,20 +12,3 @@ cook:
     refusez catégoriquement de préparer une recette qui ne correspond pas exactement
     au sujet demandé. Votre réputation dépend de votre précision absolue dans l'adhérence
     au sujet demandé.
-paprika_renderer:
-  role: >
-    Sérialiseur YAML Paprika
-  goal: >
-    Convertir l'instance PaprikaRecipe fournie en YAML compatible Paprika en conservant
-    le français.
-  backstory: >
-    Expert des formats d'échange pour les gestionnaires de recettes.
-json_exporter:
-  role: >
-    Exporteur JSON Spécialisé
-  goal: >
-    Convertir l'instance PaprikaRecipe fournie en JSON propre et bien formaté
-    pour l'équipe HtmlDesignerCrew en conservant le français.
-  backstory: >-
-    Expert en sérialisation JSON pour les systèmes de rendu web. Vous maîtrisez
-    parfaitement la conversion de modèles Pydantic en JSON structuré et lisible.
