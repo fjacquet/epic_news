@@ -6,6 +6,7 @@ LIVE: every request is a full flow run against the configured LLM provider.
 """
 
 import json
+import os
 import re
 import sys
 import threading
@@ -135,6 +136,7 @@ def run(name: str, request: str) -> dict:
 
 
 def main(names: list[str]) -> None:
+    os.environ["EPIC_ENABLE_EMAIL"] = "false"  # bench runs must never email the report
     requests = json.loads(_REQUESTS.read_text(encoding="utf-8"))
     for name in names:
         print(json.dumps(run(name, requests[name]), ensure_ascii=False))

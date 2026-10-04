@@ -70,8 +70,8 @@ object dumped by `dump_crewai_state` for post-mortem analysis.
 
 ## Tracing the End-to-End Flow
 
-1. User input → `extract_info` (trace event)
-2. `classify` → picks the crew (trace event)
+1. User input → `extract_info` → extracts the inputs and picks the crew (trace event)
+2. `classify` → keeps that crew, or falls back to `ClassifyCrew` when none is usable (trace event)
 3. `generate_<crew>` → kickoff + render → writes to `output/<crew>/`
 4. `send_email` → reads the report from `output/<crew>/` and sends it with `send_report_email()`
 
