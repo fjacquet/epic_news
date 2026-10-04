@@ -15,7 +15,6 @@ from .deep_research_renderer import DeepResearchRenderer
 from .financial_renderer import FinancialRenderer
 from .generic_renderer import GenericRenderer
 from .geospatial_analysis_renderer import GeospatialAnalysisRenderer
-from .holiday_renderer import HolidayRenderer
 from .hr_intelligence_renderer import HRIntelligenceRenderer
 from .legal_analysis_renderer import LegalAnalysisRenderer
 from .meeting_prep_renderer import MeetingPrepRenderer
@@ -50,7 +49,6 @@ class RendererFactory:
         "FINDAILY": FinancialRenderer,
         "GENERIC": GenericRenderer,
         "GEOSPATIAL_ANALYSIS": GeospatialAnalysisRenderer,
-        "HOLIDAY_PLANNER": HolidayRenderer,
         "HR_INTELLIGENCE": HRIntelligenceRenderer,
         "LEGAL_ANALYSIS": LegalAnalysisRenderer,
         "MEETING_PREP": MeetingPrepRenderer,
@@ -91,17 +89,6 @@ class RendererFactory:
             List of supported crew type strings
         """
         return list(cls._RENDERER_MAP.keys())
-
-    @classmethod
-    def register_renderer(cls, crew_type: str, renderer_class: type[BaseRenderer]) -> None:
-        """
-        Register a new renderer for a crew type.
-
-        Args:
-            crew_type: Type of crew
-            renderer_class: Renderer class to register
-        """
-        cls._RENDERER_MAP[crew_type] = renderer_class
 
     @classmethod
     def has_specialized_renderer(cls, crew_type: str) -> bool:

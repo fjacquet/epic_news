@@ -1,7 +1,7 @@
 """Unit tests for epic_news.utils.diagnostics.parsing.
 
 Covers the public API (parse_crewai_output) and the private helper
-functions (_attempt_json_repair, _transform_holiday_planner_data) that
+function (_attempt_json_repair) that
 implement the JSON cleaning/repair logic used to coerce noisy CrewAI
 LLM output into validated Pydantic models.
 """
@@ -17,7 +17,6 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from epic_news.utils.diagnostics.parsing import (
     _attempt_json_repair,
-    _transform_holiday_planner_data,
     parse_crewai_output,
 )
 
@@ -50,14 +49,6 @@ class SalesProspectingReport(BaseModel):
     model_config = ConfigDict(extra="allow")
 
     sales_metrics: dict[str, Any] = Field(default_factory=dict)
-
-
-class HolidayPlannerReport(BaseModel):
-    model_config = ConfigDict(extra="allow")
-
-    itinerary: list[dict[str, Any]] = Field(default_factory=list)
-    sources: list[Any] = Field(default_factory=list)
-    accommodations: list[dict[str, Any]] = Field(default_factory=list)
 
 
 # ---------------------------------------------------------------------------
@@ -252,30 +243,6 @@ def test_sales_prospecting_normalizes_trend_when_value_dict_already_complete():
     assert metric == {"type": "rating", "value": {"value": 4, "trend": "up"}}
 
 
-def test_holiday_planner_coerces_day_date_activities_and_transforms_sources_and_accommodations():
-    raw = json.dumps(
-        {
-            "itinerary": [{"day": 1, "date": 20260715, "activities": "single-activity"}],
-            "sources": ["https://example.com/a", {"title": "B", "url": "y", "type": "z"}],
-            "accommodations": [{"nom": "Hotel X", "adresse": "1 rue"}],
-        }
-    )
-    fake = FakeCrewOutput(raw=raw)
-    result = parse_crewai_output(fake, HolidayPlannerReport)
-
-    # int day/date coerced to strings; scalar activities wrapped in a list.
-    assert result.itinerary == [{"day": "1", "date": "20260715", "activities": ["single-activity"]}]
-
-    # URL strings converted to Source-like dicts; existing dicts pass through.
-    assert result.sources == [
-        {"title": "a", "url": "https://example.com/a", "type": "reference"},
-        {"title": "B", "url": "y", "type": "z"},
-    ]
-
-    # French nom/adresse renamed to name/address; description defaults to name.
-    assert result.accommodations == [{"name": "Hotel X", "address": "1 rue", "description": "Hotel X"}]
-
-
 # ---------------------------------------------------------------------------
 # _attempt_json_repair: direct unit tests
 # ---------------------------------------------------------------------------
@@ -343,108 +310,3 @@ def test_repair_converts_python_style_booleans_and_none_to_json_literals():
     repaired = _attempt_json_repair('{"a": True, "b": False, "c": None}')
     parsed = json.loads(repaired)
     assert parsed == {"a": True, "b": False, "c": None}
-
-
-# ---------------------------------------------------------------------------
-# _transform_holiday_planner_data: direct unit tests
-# ---------------------------------------------------------------------------
-
-
-def test_transform_converts_url_strings_and_passes_through_dict_sources():
-    data = {
-        "sources": [
-            "https://example.com/page",
-            {"title": "Existing", "url": "x", "type": "y"},
-            "https://example.com/",  # trailing slash -> empty title -> "Source"
-        ]
-    }
-    result = _transform_holiday_planner_data(data)
-    assert result["sources"] == [
-        {"title": "page", "url": "https://example.com/page", "type": "reference"},
-        {"title": "Existing", "url": "x", "type": "y"},
-        {"title": "Source", "url": "https://example.com/", "type": "reference"},
-    ]
-
-
-def test_transform_leaves_empty_sources_list_untouched():
-    data = {"sources": []}
-    result = _transform_holiday_planner_data(data)
-    assert result["sources"] == []
-
-
-def test_transform_leaves_non_list_sources_untouched():
-    data = {"sources": "not-a-list"}
-    result = _transform_holiday_planner_data(data)
-    assert result["sources"] == "not-a-list"
-
-
-def test_transform_no_sources_key_is_a_no_op():
-    data = {"unrelated": True}
-    result = _transform_holiday_planner_data(data)
-    assert result == {"unrelated": True}
-
-
-def test_transform_itinerary_derives_day_from_jour_and_deletes_jour():
-    data = {"itinerary": [{"jour": "Jour 2 - 15 Juillet"}]}
-    result = _transform_holiday_planner_data(data)
-    # "jour" is deleted as soon as "day" is derived, so no "date" key is set
-    # in this path (the date-derivation branch below never gets to run).
-    assert result["itinerary"] == [{"day": 2}]
-
-
-def test_transform_itinerary_defaults_day_to_1_when_jour_has_no_second_token():
-    data = {"itinerary": [{"jour": "Jour"}]}
-    result = _transform_holiday_planner_data(data)
-    assert result["itinerary"] == [{"day": 1}]
-
-
-def test_transform_itinerary_jour_without_jour_substring_yields_empty_item():
-    data = {"itinerary": [{"jour": "Somewhere"}]}
-    result = _transform_holiday_planner_data(data)
-    # "Jour" substring not found -> "day" never set; "jour" still deleted.
-    assert result["itinerary"] == [{}]
-
-
-def test_transform_itinerary_derives_date_only_when_day_already_present():
-    """When 'day' is already set, the jour-deletion branch is skipped, so
-    'jour' survives into the second block which derives 'date' from it by
-    splitting on '-'. This leaves a stray French 'jour' key in the output."""
-    data = {"itinerary": [{"day": 1, "jour": "Something-15 Juillet"}]}
-    result = _transform_holiday_planner_data(data)
-    assert result["itinerary"] == [{"day": 1, "jour": "Something-15 Juillet", "date": "15 Juillet"}]
-
-
-def test_transform_itinerary_date_defaults_to_tbd_without_dash():
-    data = {"itinerary": [{"day": 1, "jour": "NoDashHere"}]}
-    result = _transform_holiday_planner_data(data)
-    assert result["itinerary"] == [{"day": 1, "jour": "NoDashHere", "date": "TBD"}]
-
-
-def test_transform_accommodations_renames_french_fields_and_fills_defaults():
-    data = {"accommodations": [{"nom": "Hotel Test", "adresse": "123 Street"}]}
-    result = _transform_holiday_planner_data(data)
-    assert result["accommodations"] == [
-        {"name": "Hotel Test", "address": "123 Street", "description": "Hotel Test"}
-    ]
-
-
-def test_transform_accommodations_empty_dict_gets_defaults():
-    data = {"accommodations": [{}]}
-    result = _transform_holiday_planner_data(data)
-    assert result["accommodations"] == [
-        {"address": "Address not specified", "description": "Accommodation option"}
-    ]
-
-
-def test_transform_accommodations_keeps_nom_when_name_already_present():
-    data = {"accommodations": [{"name": "Already named", "nom": "ShouldStay"}]}
-    result = _transform_holiday_planner_data(data)
-    # "nom" is only renamed/deleted when "name" is absent; here it survives.
-    assert result["accommodations"] == [
-        {
-            "name": "Already named",
-            "nom": "ShouldStay",
-            "address": "Address not specified",
-            "description": "Already named",
-        }
-    ]

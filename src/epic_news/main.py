@@ -216,7 +216,6 @@ class ReceptionFlow(Flow[ContentState]):
 
         self.state.email_sent = False
         self.state.user_request = self._user_request
-        # return "feed_user_request" # Implicitly returns the method name as the next step
 
     @listen("feed_user_request")
     @trace_task(tracer)
@@ -248,7 +247,6 @@ class ReceptionFlow(Flow[ContentState]):
             self.logger.info("✅ Information extraction complete.")
         else:
             self.logger.warning("⚠️ Information extraction failed or returned no data.")
-        # return "extract_info" # Implicitly returns the method name as the next step
 
     @listen("extract_info")
     @trace_task(tracer)
@@ -299,7 +297,6 @@ class ReceptionFlow(Flow[ContentState]):
         self.logger.info(
             f"✅ Classification complete. Raw: '{raw_classification}', Selected crew: {self.state.selected_crew}"
         )
-        # return "classify" # Implicitly returns the method name as the next step
 
     @router("classify")
     @trace_task(tracer)
@@ -366,7 +363,6 @@ class ReceptionFlow(Flow[ContentState]):
         if not self.state.output_file:
             self.state.output_file = "output/unknown_request_error.md"
             self.logger.warning(f"Output file not set, defaulting to {self.state.output_file}")
-        # return "go_unknown" # Implicitly returns method name
 
     @listen("go_generate_poem")
     @trace_task(tracer)
@@ -1729,6 +1725,3 @@ if __name__ == "__main__":
     # see USE_CASES.md in the project root directory.
     # Examples: "Analyze my portfolio", "Recipe for cookies", "News about AI"
     kickoff(user_input="What stocks are in my portfolio?")
-
-    # To generate a plot of the flow, uncomment the following line:
-    # plot()

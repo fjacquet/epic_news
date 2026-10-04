@@ -8,7 +8,6 @@ application using Loguru.
 import os
 import sys
 from pathlib import Path
-from typing import Any
 
 from loguru import logger
 
@@ -58,19 +57,3 @@ def setup_logging(
             backtrace=True,
             diagnose=True,
         )
-
-
-def get_logger(name: str, log_level: str | None = None) -> Any:
-    """
-    Get a logger with the given name.
-
-    Args:
-        name: The name of the logger (usually __name__)
-        log_level: Optional specific log level for this logger
-
-    Returns:
-        A Loguru logger instance
-    """
-    if log_level:
-        logger.configure(handlers=[{"sink": sys.stdout, "level": log_level.upper()}])
-    return logger.bind(name=name)

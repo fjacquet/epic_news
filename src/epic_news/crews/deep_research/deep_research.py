@@ -98,17 +98,6 @@ class DeepResearchCrew:
             verbose=True,
         )
 
-    # # Quality Assurance - QA and editorial review
-    # @agent
-    # def quality_assurance(self) -> Agent:
-    #     """Quality assurance agent for editorial review and fact-checking."""
-    #     return Agent(
-    #         config=self.agents_config["quality_assurance"],
-    #         tools=[],  # QA and editing, no external tools needed
-    #         llm="gpt-5-mini",
-    #         verbose=True,
-    #     )
-
     # Task 1: Research Planning
     @task
     def reformulate_task(self) -> Task:
@@ -166,26 +155,6 @@ class DeepResearchCrew:
             output_pydantic=DeepResearchReport,
         )
 
-    # # Task 6: Quality Assurance (Final)
-    # @task
-    # def quality_assurance_task(self) -> Task:
-    #     """Quality assurance and final validation task."""
-    #     # Import at the method level to avoid circular imports
-    #     from epic_news.models.crews.deep_research_report import DeepResearchReport
-
-    #     return Task(
-    #         config=self.tasks_config["quality_assurance_task"],
-    #         verbose=True,
-    #         context=[
-    #             self.research_planning_task(),
-    #             self.information_collection_task(),
-    #             self.wikipedia_research_task(),
-    #             self.data_analysis_task(),
-    #             self.report_writing_task(),
-    #         ],
-    #         output_pydantic=DeepResearchReport,
-    #     )
-
     @crew
     def crew(self) -> Crew:
         """Creates the DeepResearch crew with 6-agent sequential process."""
@@ -197,6 +166,4 @@ class DeepResearchCrew:
             max_iter=LLMConfig.get_max_iter(),
             max_rpm=LLMConfig.get_max_rpm(),
             verbose=True,
-            # manager_llm="gpt-4.1-nano",
-            # planning=True,
         )

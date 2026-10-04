@@ -221,23 +221,3 @@ def normalize_structured_data_report(data: dict[str, Any]) -> dict[str, Any]:
                 kpi["value"]["trend"] = normalize_trend_direction(kpi["value"]["trend"])
 
     return data
-
-
-def normalize_sales_prospecting_report(data: dict[str, Any]) -> dict[str, Any]:
-    """
-    Normalize a SalesProspectingReport dictionary to ensure all enum values match expected values.
-
-    Args:
-        data: The input data dictionary representing a SalesProspectingReport
-
-    Returns:
-        A normalized dictionary with corrected enum values
-    """
-    if not data:
-        return data
-
-    # Normalize sales_metrics field
-    if "sales_metrics" in data and isinstance(data["sales_metrics"], dict):
-        data["sales_metrics"] = normalize_structured_data_report(data["sales_metrics"])
-
-    return data

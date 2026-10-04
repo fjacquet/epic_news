@@ -18,9 +18,6 @@ from loguru import logger
 
 from epic_news.utils.directory_utils import ensure_output_directory
 
-# Configure logging
-# logger = logging.getLogger("observability")
-
 # Constants
 TRACE_DIR = "traces"
 DASHBOARD_DATA_DIR = os.path.join("output", "dashboard_data")
@@ -240,16 +237,6 @@ class HallucinationGuard:
 
         return results
 
-    def add_known_fact(self, key: str, value: Any) -> None:
-        """
-        Add a known fact to the guard.
-
-        Args:
-            key: Fact key
-            value: Fact value
-        """
-        self.known_facts[key] = value
-
     def validate_output(
         self, output: str, context: dict[str, Any], fix_hallucinations: bool = False
     ) -> dict[str, Any]:
@@ -359,26 +346,6 @@ class Dashboard:
         if category:
             return self.metrics.get(category, {})  # type: ignore[no-any-return]
         return self.metrics
-
-    @classmethod
-    def load_dashboard(cls, dashboard_id: str) -> "Dashboard":
-        """
-        Load a dashboard from a file.
-
-        Args:
-            dashboard_id: ID of the dashboard to load
-
-        Returns:
-            Dashboard: The loaded dashboard
-        """
-        dashboard = cls(dashboard_id)
-        data_file = os.path.join(DASHBOARD_DATA_DIR, f"{dashboard_id}.json")
-
-        if os.path.exists(data_file):
-            with open(data_file) as f:
-                dashboard.metrics = json.load(f)
-
-        return dashboard
 
 
 # Decorators for observability

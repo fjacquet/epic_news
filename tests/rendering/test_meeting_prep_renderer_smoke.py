@@ -1,10 +1,6 @@
-"""
-Test script for the MeetingPrepRenderer integration.
-This script creates a sample MeetingPrepReport and renders it to HTML.
-"""
+"""Smoke test: a sample MeetingPrepReport renders to HTML via TemplateManager."""
 
 import json
-from pathlib import Path
 
 from epic_news.models.crews.meeting_prep_report import MeetingPrepReport
 from epic_news.utils.html.template_manager import TemplateManager
@@ -81,32 +77,19 @@ def generate_sample_meeting_prep_data():
     return MeetingPrepReport.model_validate(sample_data)
 
 
-def test_meeting_prep_renderer():
-    """Test the MeetingPrepRenderer by generating HTML from a sample report."""
-    # Create output directory if it doesn't exist
-    output_dir = Path("output/meeting")
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    # Generate sample data
+def test_meeting_prep_renderer(tmp_path):
+    """Render a sample report with MeetingPrepRenderer and write it under tmp_path."""
     meeting_prep_report = generate_sample_meeting_prep_data()
-    print(f"✅ Created sample MeetingPrepReport: {meeting_prep_report.company_profile.name}")
 
-    # Save JSON for reference
-    with open(output_dir / "sample_meeting_prep.json", "w", encoding="utf-8") as f:
-        f.write(json.dumps(meeting_prep_report.model_dump(), indent=2, ensure_ascii=False))
-    print(f"✅ Saved sample JSON to {output_dir / 'sample_meeting_prep.json'}")
+    json_path = tmp_path / "sample_meeting_prep.json"
+    json_path.write_text(
+        json.dumps(meeting_prep_report.model_dump(), indent=2, ensure_ascii=False), encoding="utf-8"
+    )
 
-    # Generate HTML using TemplateManager
-    html_output_path = output_dir / "meeting_preparation_test.html"
-    tm = TemplateManager()
-    html = tm.render_report("MEETING_PREP", meeting_prep_report)
-    with open(html_output_path, "w", encoding="utf-8") as f:
-        f.write(html)
-    print("✅ Generated HTML using MeetingPrepRenderer")
-    print(f"✅ Saved HTML to {html_output_path}")
+    html = TemplateManager().render_report("MEETING_PREP", meeting_prep_report)
+    html_path = tmp_path / "meeting_preparation_test.html"
+    html_path.write_text(html, encoding="utf-8")
 
-    print(f"\nTest completed. Please check the HTML output at: file://{html_output_path.resolve()}")
-
-
-if __name__ == "__main__":
-    test_meeting_prep_renderer()
+    assert html_path.read_text(encoding="utf-8") == html
+    assert "Acme Corporation" in html
+    assert "Jean Dupont" in html

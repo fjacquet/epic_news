@@ -49,11 +49,6 @@ FONT_FAMILY = (
 FONT_SIZE_SCREEN = "1rem"
 FONT_SIZE_PRINT = "9pt"
 LINE_HEIGHT_PRINT = "1.35"
-BORDER_RADIUS = "8px"
-CONTAINER_MAX_WIDTH = "1200px"
-
-# Flat dict for programmatic access by renderers
-UI_THEME = {**{f"light_{k}": v for k, v in _LIGHT.items()}, **{f"dark_{k}": v for k, v in _DARK.items()}}
 
 
 def generate_theme_css() -> str:

@@ -3,7 +3,7 @@ from unittest.mock import mock_open, patch
 from loguru import logger
 from pydantic import BaseModel
 
-from epic_news.utils.debug_utils import (
+from epic_news.utils.diagnostics import (
     analyze_crewai_output,
     dump_crewai_state,
     log_state_keys,

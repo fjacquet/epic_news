@@ -1,14 +1,11 @@
 """Tests for the report_utils module using pytest."""
 
-import os
-
 import pytest
 from faker import Faker
 
 from epic_news.utils.report_utils import (
     _FALLBACK_RECIPIENT,
     prepare_email_params,
-    setup_crew_output_directory,
 )
 
 # Initialize Faker
@@ -76,42 +73,3 @@ def test_prepare_email_params_trims_valid_recipient(mock_state):
     mock_state.sendto = "  user@example.com  "
     params = prepare_email_params(mock_state)
     assert params["recipient_email"] == "user@example.com"
-
-
-def test_setup_crew_output_directory_exists(mocker):
-    """Test setup_crew_output_directory when directory already exists."""
-    # Setup
-    crew_name = fake.word()
-    # setup_crew_output_directory lowercases the crew name, so the expected
-    # path must too. fake.word() is unseeded and occasionally returns a
-    # capitalized token (e.g. "American"), which made this assertion flaky.
-    expected_path = os.path.join("output", crew_name.lower())
-
-    # Mock dependencies
-    mock_ensure_output_directory = mocker.patch("epic_news.utils.report_utils.ensure_output_directory")
-    mocker.patch("os.path.exists", return_value=True)
-
-    # Execute
-    result = setup_crew_output_directory(crew_name)
-
-    # Assert
-    assert result == expected_path
-    mock_ensure_output_directory.assert_called_once_with(expected_path)
-
-
-def test_setup_crew_output_directory_create(mocker):
-    """Test setup_crew_output_directory when directory needs to be created."""
-    # Setup
-    crew_name = fake.word()
-    expected_path = os.path.join("output", crew_name.lower())
-
-    # Mock dependencies
-    mock_ensure_output_directory = mocker.patch("epic_news.utils.report_utils.ensure_output_directory")
-    mocker.patch("os.path.exists", return_value=False)
-
-    # Execute
-    result = setup_crew_output_directory(crew_name)
-
-    # Assert
-    assert result == expected_path
-    mock_ensure_output_directory.assert_called_once_with(expected_path)

@@ -31,11 +31,6 @@ from epic_news.crews.menu_designer.menu_designer import MenuDesignerCrew
 from epic_news.crews.news_daily.news_daily import NewsDailyCrew
 from epic_news.crews.pestel.pestel_crew import PestelCrew
 from epic_news.crews.poem.poem_crew import PoemCrew
-from epic_news.crews.post.post_crew import PostCrew
-
-# ReceptionCrew is referenced nowhere outside its own package (dead-code
-# candidate for the refactor phase) but the LLM contract still applies.
-from epic_news.crews.reception.reception_crew import ReceptionCrew
 from epic_news.crews.rss_weekly.rss_weekly_crew import RssWeeklyCrew
 from epic_news.crews.saint_daily.saint_daily import SaintDailyCrew
 from epic_news.crews.sales_prospecting.sales_prospecting_crew import (
@@ -64,8 +59,6 @@ ALL_CREW_CLASSES = [
     NewsDailyCrew,
     PestelCrew,
     PoemCrew,
-    PostCrew,
-    ReceptionCrew,
     RssWeeklyCrew,
     SaintDailyCrew,
     SalesProspectingCrew,

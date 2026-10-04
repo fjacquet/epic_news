@@ -13,11 +13,10 @@
 #
 # All four entries below are the SAME finding class — they require a running
 # ChromaDB *server* with an authenticated caller (every one is PR:L against the
-# /api/v2 HTTP surface). epic_news uses chromadb strictly as an embedded on-disk
-# store through crewai_tools.RagTool: 0 direct imports, no HttpClient, no
-# `chroma run`, nothing binds a network listener. See the "Security boundary"
-# docstring in src/epic_news/rag_config.py, which is the invariant these waivers
-# rest on — if that ever changes, every entry here must be re-evaluated.
+# /api/v2 HTTP surface). epic_news does not use chromadb at all: 0 direct
+# imports, no RagTool, no HttpClient, no `chroma run`, nothing binds a network
+# listener. That is the invariant these waivers rest on — if epic_news ever
+# starts a ChromaDB server or client, every entry here must be re-evaluated.
 #
 # chromadb 1.1.1 is a forced transitive pin from crewai (chromadb~=1.1.0), which
 # is a MANDATORY dependency with no `extra` marker — it cannot be dropped by

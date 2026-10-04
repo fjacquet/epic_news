@@ -2,7 +2,7 @@
 Tracing utilities for Epic News flows and tools.
 
 - Initializes an optional Langfuse client from environment variables if available.
-- Provides a `trace_span` context manager and `@traced` decorator to annotate
+- Provides a `trace_span` context manager to annotate
   kickoff calls, agent runs, and tool invocations.
 
 Environment variables (optional):
@@ -15,11 +15,8 @@ from __future__ import annotations
 
 import os
 import time
-from collections.abc import Callable
 from contextlib import contextmanager, suppress
-from typing import Any, TypeVar
-
-T = TypeVar("T")
+from typing import Any
 
 # Soft dependency on langfuse
 _langfuse = None
@@ -60,16 +57,3 @@ def trace_span(name: str, attrs: dict[str, Any] | None = None):
         if not _langfuse:
             # Fallback could log timing if needed; kept minimal by design
             _ = time.perf_counter() - start
-
-
-def traced(name: str) -> Callable[[Callable[..., T]], Callable[..., T]]:
-    """Decorator to wrap a function within a trace_span named `name`."""
-
-    def decorator(func: Callable[..., T]) -> Callable[..., T]:
-        def wrapper(*args: Any, **kwargs: Any) -> T:
-            with trace_span(name, {"func": func.__name__}):
-                return func(*args, **kwargs)
-
-        return wrapper
-
-    return decorator

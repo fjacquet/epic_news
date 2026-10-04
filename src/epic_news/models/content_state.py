@@ -19,7 +19,6 @@ from epic_news.models.crews.cross_reference_report import CrossReferenceReport
 from epic_news.models.crews.deep_research import DeepResearchReport
 from epic_news.models.crews.financial_report import FinancialReport
 from epic_news.models.crews.geospatial_analysis_report import GeospatialAnalysisReport
-from epic_news.models.crews.holiday_planner_report import HolidayPlannerReport
 from epic_news.models.crews.hr_intelligence_report import HRIntelligenceReport
 from epic_news.models.crews.legal_analysis_report import LegalAnalysisReport
 from epic_news.models.crews.meeting_prep_report import MeetingPrepReport
@@ -158,7 +157,7 @@ class ContentState(BaseModel):
 
     # Specialized Reports
     location_report: Any | None = None
-    holiday_plan: Optional["HolidayPlannerReport"] = None
+    holiday_plan: Any | None = None
     recipe: Optional["PaprikaRecipe"] = None
     menu_designer_report: Optional["WeeklyMenuPlan"] = None
     menu_plan: Optional["WeeklyMenuPlan"] = None

@@ -29,12 +29,6 @@ class NewsItem(BaseModel):
         return self.lien or "#"
 
 
-class NewsSection(BaseModel):
-    """News section containing multiple news items."""
-
-    items: list[NewsItem] = Field(default_factory=list, description="List of news items in this section")
-
-
 class NewsDailyReport(BaseModel):
     """Complete NewsDaily report structure matching the crew's expected JSON output."""
 
