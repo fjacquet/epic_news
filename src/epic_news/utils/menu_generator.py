@@ -8,8 +8,6 @@ from typing import Any
 
 from loguru import logger
 
-# logger = logging.getLogger(__name__)
-
 
 class MenuGenerator:
     """Utilities for menu generation and recipe management."""

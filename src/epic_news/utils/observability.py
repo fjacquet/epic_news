@@ -18,9 +18,6 @@ from loguru import logger
 
 from epic_news.utils.directory_utils import ensure_output_directory
 
-# Configure logging
-# logger = logging.getLogger("observability")
-
 # Constants
 TRACE_DIR = "traces"
 DASHBOARD_DATA_DIR = os.path.join("output", "dashboard_data")
