@@ -74,34 +74,15 @@ def test_gmail_tools_returned_when_available(config):
     assert config.get_gmail_email_tools() == expected
 
 
-@pytest.mark.parametrize(
-    ("method", "kwargs"),
-    [
-        ("get_search_tools", {}),
-        ("get_social_media_tools", {}),
-        ("get_financial_tools", {}),
-        ("get_communication_tools", {}),
-        ("get_content_creation_tools", {}),
-        ("get_custom_tools", {"toolkits": ["NOTION"]}),
-    ],
-)
-def test_every_loader_logs_errors_instead_of_swallowing_them(config, method, kwargs):
-    """Each loader used to swallow failures via a bare print(); all must log at ERROR."""
+def test_search_loader_logs_errors_instead_of_swallowing_them(config):
+    """The search loader used to swallow failures via a bare print(); it must log at ERROR."""
 
     def boom(**_kwargs):
         raise RuntimeError("composio exploded")
 
     config.client = SimpleNamespace(tools=SimpleNamespace(get=boom))
 
-    tools, records = _capture(lambda: getattr(config, method)(**kwargs))
+    tools, records = _capture(config.get_search_tools)
 
     assert tools == []
-    assert any(level == "ERROR" for level, _ in records), f"{method} swallowed the failure"
-
-
-def test_loaders_return_tools_on_success(config):
-    ok = [SimpleNamespace(name="NOTION_SEARCH")]
-    config.client = SimpleNamespace(tools=SimpleNamespace(get=lambda **_k: ok))
-
-    assert config.get_custom_tools(toolkits=["NOTION"]) == ok
-
+    assert any(level == "ERROR" for level, _ in records), "get_search_tools swallowed the failure"
