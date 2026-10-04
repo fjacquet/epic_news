@@ -29,6 +29,11 @@ comprehensive_information_extraction_task:
     in English or the language is ambiguous, set output_language to "English".
     Examples: "Fait moi un rapport..." → "French"; "Trouve la recette..."
     → "French"; "Give me a report..." → "English".
+    ALSO choose `selected_crew`: the ONE team that should handle the request,
+    among exactly these names: {categories}. Use this guide:
+    {routing_guide}
+    Write the name in capitals exactly as listed. If no team clearly fits,
+    leave selected_crew null.
     Here is the user request you need to analyze: "{user_request}"
   expected_output: >
     A perfectly structured Pydantic object of type 'ExtractedInfo'. You MUST

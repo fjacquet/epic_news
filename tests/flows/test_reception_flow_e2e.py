@@ -6,6 +6,7 @@ paths are cwd-relative).
 """
 
 import json
+from types import SimpleNamespace
 
 from epic_news.main import ReceptionFlow
 from epic_news.models.extracted_info import ExtractedInfo
@@ -41,7 +42,7 @@ def _fake_kickoff_factory(classification: str, poem_json: str):
                 ),
             )
         if crew_name == "ClassifyCrew":
-            return FakeCrewOutput(raw=classification)
+            return FakeCrewOutput(raw=classification, pydantic=SimpleNamespace(selected_crew=classification))
         if crew_name == "PoemCrew":
             return FakeCrewOutput(raw=poem_json)
         raise AssertionError(f"Unexpected crew kicked off: {crew_name}")

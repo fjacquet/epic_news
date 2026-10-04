@@ -14,6 +14,7 @@ from pathlib import Path
 import pytest
 import yaml
 
+from epic_news.config.routing_guide import ROUTING_GUIDE
 from epic_news.models.content_state import CrewCategories
 
 CONFIG_PATH = (
@@ -26,6 +27,13 @@ def classify_tasks() -> dict:
     return yaml.safe_load(CONFIG_PATH.read_text(encoding="utf-8"))
 
 
+def _full_prompt(classify_tasks: dict) -> str:
+    """Task description with the shared routing guide substituted in."""
+    description = classify_tasks["classification_task"]["description"]
+    assert "{routing_guide}" in description
+    return description.replace("{routing_guide}", ROUTING_GUIDE)
+
+
 def test_classify_tasks_yaml_loads(classify_tasks: dict) -> None:
     assert "classification_task" in classify_tasks
     task = classify_tasks["classification_task"]
@@ -35,7 +43,7 @@ def test_classify_tasks_yaml_loads(classify_tasks: dict) -> None:
 
 def test_classify_prompt_mentions_pestel_triggers(classify_tasks: dict) -> None:
     """Regression guard: removing PESTEL routing keywords would break classification."""
-    description = classify_tasks["classification_task"]["description"].lower()
+    description = _full_prompt(classify_tasks).lower()
     for token in ("pestel", "pestle", "macro-environment"):
         assert token in description, f"PESTEL trigger '{token}' missing from prompt"
 
@@ -43,7 +51,7 @@ def test_classify_prompt_mentions_pestel_triggers(classify_tasks: dict) -> None:
 def test_classify_prompt_mentions_deepresearch_guidance(classify_tasks: dict) -> None:
     """Regression guard: topic/tech research ("what's new in framework X") must be
     routable to DEEPRESEARCH rather than swallowed by NEWSDAILY's news keywords."""
-    description = classify_tasks["classification_task"]["description"]
+    description = _full_prompt(classify_tasks)
     assert "DEEPRESEARCH" in description, "DEEPRESEARCH routing guidance missing from prompt"
     lowered = description.lower()
     for token in ("framework", "state of the art"):
@@ -53,7 +61,7 @@ def test_classify_prompt_mentions_deepresearch_guidance(classify_tasks: dict) ->
 def test_classify_prompt_references_core_categories(classify_tasks: dict) -> None:
     """Each category we route on must be discoverable in the prompt — at minimum
     the high-traffic ones. Missing categories cause silent misrouting."""
-    description = classify_tasks["classification_task"]["description"]
+    description = _full_prompt(classify_tasks)
     must_appear = {
         "COOKING",
         "MENU",
@@ -76,7 +84,7 @@ def test_classify_referenced_categories_exist_in_crew_categories(
 ) -> None:
     """Every uppercase token-like category mentioned in the prompt must exist in
     CrewCategories — catches drift when a category is renamed or removed."""
-    description = classify_tasks["classification_task"]["description"]
+    description = _full_prompt(classify_tasks)
     known = set(CrewCategories.to_dict().values())
 
     # Every category explicitly called out as a routing target in the prompt.

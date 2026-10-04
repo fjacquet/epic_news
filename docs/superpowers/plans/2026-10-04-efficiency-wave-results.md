@@ -44,5 +44,8 @@ E3 menu run: 28/28 recipes generated, wall 175.9 s vs 808.3 s baseline (sequenti
 | Date | Change | Accuracy | BAD lines | Wall (s) | LiteLLM calls | Prompt | Completion | Total |
 |---|---|---|---|---|---|---|---|---|
 | 2026-10-04 | E5 baseline routing | 30/30 | none | 321.5 | 90 | 174872 | 45353 | 220225 |
+| 2026-10-04 | E5 single-call routing | 30/30 | none | 229.1 | 60 | 154870 | 31821 | 186691 |
 
 Two-step routing (InformationExtractionCrew then ClassifyCrew) over the 30 requests in `scripts/routing_eval_requests.json`, one at a time: about 10.7 s and 7.3k tokens per request, 3 LLM calls per request. Only the extraction and classification crews ran; no email was sent. An earlier run printed `litellm calls=0` because CrewAI resets `litellm.callbacks` each time it builds an LLM; the counter is now registered in `success_callback` and `_async_success_callback`.
+
+E5 single-call routing: the extraction crew now also picks the crew (`ExtractedInfo.selected_crew`) and ClassifyCrew runs only when that field is empty or invalid. Accuracy is unchanged at 30/30. The ClassifyCrew fallback was used 0 times (0 `🔁` lines in `logs/epic_news.log` during the run), so each request made 2 LLM calls (enrichment and extraction) instead of 3. Wall clock fell 29% (321.5 s to 229.1 s) and total tokens 15% (220,225 to 186,691). The extraction prompt grew by the routing guide, which is why prompt tokens fall less than the call count.
