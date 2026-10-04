@@ -9,7 +9,6 @@ on:
 
 permissions:
   contents: read
-  actions: write
 
 jobs:
 
@@ -20,6 +19,8 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v7
+      with:
+        persist-credentials: false
 
     - name: Stub .env with sentinel test values
       # CI must NEVER use real API keys for tests. pyproject.toml already
@@ -43,7 +44,7 @@ jobs:
         python-version: '3.13'
 
     - name: Install the latest version of uv and activate the environment
-      uses: astral-sh/setup-uv@v10.2.0
+      uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7  # v10.2.0
       with:
         activate-environment: true
         enable-cache: true
@@ -65,7 +66,7 @@ jobs:
       run: make coverage
 
     - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@v7
+      uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5  # v7.1.1
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         slug: fjacquet/epic_news
