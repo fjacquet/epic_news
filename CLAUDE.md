@@ -80,7 +80,7 @@ The application uses a **single flow orchestration** pattern (`src/epic_news/mai
 
 Each crew follows: `crew_name/{config/agents.yaml, config/tasks.yaml, crew_name_crew.py}` with `@CrewBase`, `@agent`, `@task`, `@crew` decorators. See `src/epic_news/crews/CLAUDE.md` for full code examples.
 
-**CRITICAL**: Tools must be assigned in `@agent` methods, NEVER in `agents.yaml` (causes `KeyError`).
+**CRITICAL**: Assign tools in `@agent` methods, not in `agents.yaml`. CrewBase resolves a YAML `tools:` entry only by name against `@tool`-decorated methods on the crew class; any other name raises `KeyError`. Keeping tools in Python is the project rule.
 
 ### Pydantic Models
 
@@ -88,11 +88,11 @@ Use Python 3.13 union syntax (`X | None`, `X | Y`) for all new code. Ruff auto-u
 
 ### HTML Report Generation: Two-Agent Pattern
 
-Separate research (has tools, no `output_file`) from reporting (NO tools, has `output_file`) to avoid action traces in output. See `src/epic_news/crews/CLAUDE.md` for code examples.
+Separate research (has tools, no `output_file`) from reporting (NO tools, has `output_file`). `output_pydantic` already keeps action traces out of the structured output; the split is kept so the reporting step runs tool-free. See `src/epic_news/crews/CLAUDE.md` for code examples.
 
 ### HTML Rendering Architecture
 
-Pipeline: Crew result → Pydantic model → `*_to_html()` factory → `TemplateManager.render_report()` → `BaseRenderer` subclass.
+Pipeline: Crew result → Pydantic model (`load_or_parse_model`) → `render_and_write_html()` → `TemplateManager().render_report(selected_crew=..., content_data=...)` → `RendererFactory` → `BaseRenderer` subclass. `emit_report()` chooses HTML or DOCX.
 
 See `src/epic_news/utils/CLAUDE.md` for full rendering system docs.
 
@@ -108,7 +108,6 @@ The project uses **real-time data fetching** instead of traditional RAG:
 
 - **Rationale**: Financial markets change constantly; vector databases would be stale
 - **Approach**: Agents use live tools (Perplexity, Tavily, YahooFinance, etc.) for every execution
-- **SaveToRagTool**: Used as a short-term scratchpad within a single crew execution, not permanent storage
 
 ### Tool Output Standardization
 
@@ -124,9 +123,11 @@ All tool `_run()` methods must return **JSON strings** parseable by `json.loads(
 
 All config via `LLMConfig` (`src/epic_news/config/llm_config.py`):
 
-- `LLMConfig.get_openrouter_llm()` — LLM instance (supports opt-in `reasoning_effort` for Magistral models)
-- `LLMConfig.get_timeout("quick"|"default"|"long")` — 120s / 300s / 600s
-- `LLMConfig.get_max_iter()` / `LLMConfig.get_max_rpm()` — crew limits (default: 5 / 20)
+- `LLMConfig.get_openrouter_llm(task_type="quick"|"default"|"long")` — LLM instance with the matching timeout (120s / 300s / 600s, from `LLMConfig.get_timeout()`) set on the LLM itself; supports opt-in `reasoning_effort` (Magistral; Gemini 3 defaults to medium and gets no temperature)
+- `LLMConfig.get_max_iter()` — pass as `max_iter=` on each `Agent` (default 5). CrewAI `Crew` has no `max_iter` field
+- `LLMConfig.get_max_rpm()` — `max_rpm=` on the `Crew` (default 20)
+
+**Timeouts**: always `llm=LLMConfig.get_openrouter_llm(task_type=...)`. Never pass `llm_timeout=` to an `Agent`/`Crew`/`Task`: it is not a CrewAI field and is silently ignored (the call then uses LiteLLM's 600s default).
 
 ### Environment Variables
 
@@ -136,18 +137,22 @@ Key `.env` settings: `OPENROUTER_API_KEY`, `MODEL` (default: `openrouter/mistral
 
 ## MCP Servers
 
-Wikipedia MCP (`wikipedia-mcp-server`) configured in `src/epic_news/config/mcp_config.py` via `get_wikipedia_mcp()`. Used by: `deep_research`, `library`, `holiday_planner`. MCP tools are transparent to crews.
+Wikipedia MCP (`wikipedia-mcp-server`) configured in `src/epic_news/config/mcp_config.py` via `MCPConfig.get_wikipedia_mcp()`. Used by: `deep_research`, `pestel`. Wire MCP servers through CrewBase: set `mcp_server_params` on the crew class and call `self.get_mcp_tools()` in the `@agent` method; CrewBase closes the adapter after `kickoff()`. Do not hold a long-lived `MCPServerAdapter` yourself (it spawns a process that leaks if never stopped).
 
 ## Composio Tools
 
 Composio 1.0 integration via `ComposioConfig` (`src/epic_news/config/composio_config.py`):
 
-- `get_search_tools()` — Reddit, Twitter, HackerNews (used by: `company_news`, `news_daily`)
-- `get_communication_tools()` — Gmail, Slack, Discord, Notion (used by: `post`)
-- `get_financial_tools()` — CoinMarketCap (used by: `fin_daily`)
-- `get_content_creation_tools()` — Canva, Airtable
+- `get_search_tools()` — Reddit, Twitter, HackerNews search tools (used by: `company_news`)
+- `get_gmail_email_tools()` — Gmail toolkit for agents (currently unused)
 
-**Note**: Gmail uses `CREATE_EMAIL_DRAFT` (not deprecated `GMAIL_SEND_EMAIL`). Requires `COMPOSIO_API_KEY` in `.env`.
+Report emails are sent deterministically by `epic_news.utils.email_sender.send_report_email()`, which calls Composio `GMAIL_SEND_EMAIL` directly (no agent). Requires `COMPOSIO_API_KEY` in `.env`.
+
+Not to be confused with `epic_news.tools.web_tools.get_search_tools()` (`PerplexitySearchTool`), which most crews use.
+
+## API
+
+`src/epic_news/api.py` (FastAPI, `make run-api`) exposes `GET /health` and `POST /kickoff`. Settings: `EPIC_API_TOKEN` (bearer token required on `/kickoff`), `EPIC_API_BIND` (listen address; keep loopback unless fronted by a proxy), `EPIC_API_MAX_CONCURRENT` (cap on concurrent runs). See `docs/how-to/expose-api-n8n.md`.
 
 ## Code Style Specifics
 
@@ -178,14 +183,15 @@ Configuration in `src/epic_news/utils/logger.py`.
 
 1. **Using `pip` instead of `uv`** → Always use `uv`
 2. **Running crews directly** → Always use `crewai flow kickoff`
-3. **Tools in YAML files** → Tools must be assigned in Python code
+3. **Tools in YAML files** → Assign tools in Python code (YAML names only resolve against `@tool` methods, else `KeyError`)
 4. **Legacy Union syntax in new code** → Use modern `X | Y` and `X | None` (Python 3.13+)
 5. **Single-agent HTML reports** → Use two-agent pattern (researcher + reporter)
 6. **Constructor injection for context** → Use `.kickoff(inputs=crew_inputs)`
 7. **Using `os.makedirs()` in crews** → Use centralized `ensure_output_directories()`
-8. **Hardcoded LLM configuration** → Always use `LLMConfig.get_openrouter_llm()`, `LLMConfig.get_timeout()`, etc.
+8. **Hardcoded LLM configuration** → Always use `LLMConfig.get_openrouter_llm(task_type=...)`, `LLMConfig.get_max_iter()`, etc.
 9. **Hardcoded model names** → Use `MODEL` from `.env` via `LLMConfig`, never `llm="gpt-4o-mini"`
 10. **Enabling CrewAI `Memory`/RAG** → Project uses real-time retrieval, not memory; never pass `memory=Memory(...)` to a `Flow`/`Crew` (a LanceDB store with no embedder crashes kickoff)
+11. **Unknown kwargs on CrewAI objects** → CrewAI silently drops unknown keyword arguments (`llm_timeout=`, `Crew(max_iter=...)`). Don't hide call-arg errors with `# type: ignore`; check the field exists (`"x" in Agent.model_fields`)
 
 ## Python Version
 
@@ -203,9 +209,10 @@ This project requires **Python 3.13** (`requires-python = ">=3.13,<3.14"`). The 
 
 ## Key Documentation
 
-- `docs/1_DEVELOPMENT_GUIDE.md`: Comprehensive development guide
-- `docs/3_ARCHITECTURAL_PATTERNS.md`: Detailed architectural patterns
-- `docs/2_TOOLS_HANDBOOK.md`: All available tools and their usage
+- `docs/how-to/development_setup.md`: Development setup and workflow
+- `docs/explanations/architecture.md`: Architecture and patterns
+- `docs/adr/`: Architecture decision records
+- `docs/reference/tools.md`: Available tools and their usage
 - `README.md`: User-facing documentation and use cases
 
 ## Subdirectory CLAUDE.md Files
