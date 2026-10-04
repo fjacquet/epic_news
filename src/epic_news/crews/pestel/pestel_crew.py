@@ -58,13 +58,11 @@ class PestelCrew:
                 ScrapeWebsiteTool(),
                 *self.wikipedia_tools,
             ],
-            llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("long"),
+            llm=LLMConfig.get_openrouter_llm(task_type="long"),
+            max_iter=LLMConfig.get_max_iter(),
             verbose=True,
             allow_delegation=False,
             respect_context_window=True,
-            reasoning=False,
-            max_reasoning_attempts=3,
         )
 
     @agent
@@ -96,13 +94,11 @@ class PestelCrew:
         return Agent(
             config=self.agents_config["pestel_reporter"],  # type: ignore[index]
             tools=[],
-            llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("long"),
+            llm=LLMConfig.get_openrouter_llm(task_type="long"),
+            max_iter=LLMConfig.get_max_iter(),
             verbose=True,
             allow_delegation=False,
             respect_context_window=True,
-            reasoning=False,
-            max_reasoning_attempts=3,
         )
 
     @task
@@ -165,11 +161,10 @@ class PestelCrew:
 
     @crew
     def crew(self) -> Crew:
-        return Crew(  # type: ignore[call-arg]
+        return Crew(
             agents=self.agents,  # type: ignore[attr-defined]
             tasks=self.tasks,  # type: ignore[attr-defined]
             process=Process.sequential,
-            max_iter=LLMConfig.get_max_iter(),
             max_rpm=LLMConfig.get_max_rpm(),
             verbose=True,
         )

@@ -23,7 +23,7 @@ class LibraryCrew:
             respect_context_window=True,
             tools=get_search_tools() + get_scrape_tools() + get_report_tools(),
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
         )
 
     @agent
@@ -35,7 +35,7 @@ class LibraryCrew:
             respect_context_window=True,
             tools=[],
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
         )
 
     @task
@@ -61,8 +61,6 @@ class LibraryCrew:
             agents=self.agents,  # type: ignore[attr-defined]
             tasks=self.tasks,  # type: ignore[attr-defined]
             process=Process.sequential,
-            llm_timeout=LLMConfig.get_timeout("default"),
-            max_iter=LLMConfig.get_max_iter(),
-            max_rpm=LLMConfig.get_max_rpm(),  # type: ignore[call-arg]
+            max_rpm=LLMConfig.get_max_rpm(),
             verbose=True,
         )

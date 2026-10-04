@@ -32,12 +32,10 @@ class TechStackCrew:
             config=self.agents_config["tech_researcher"],  # type: ignore[index]
             tools=all_tools,
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
             verbose=True,
             allow_delegation=False,
             respect_context_window=True,
-            reasoning=False,
-            max_reasoning_attempts=3,
         )
 
     @agent
@@ -47,12 +45,10 @@ class TechStackCrew:
             config=self.agents_config["tech_reporter"],  # type: ignore[index]
             tools=[],  # No tools for reporter to ensure clean output
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
             verbose=True,
             allow_delegation=False,
             respect_context_window=True,
-            reasoning=False,
-            max_reasoning_attempts=3,
         )
 
     @task
@@ -60,9 +56,8 @@ class TechStackCrew:
         """Identify the company's tech stack"""
         return Task(
             config=self.tasks_config["tech_stack_identification"],  # type: ignore[arg-type, index]
-            agent=self.tech_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.tech_researcher(),  # type: ignore[call-arg]
             async_execution=False,
-            verbose=True,
         )
 
     @task
@@ -70,9 +65,8 @@ class TechStackCrew:
         """Analyze the company's tech stack"""
         return Task(
             config=self.tasks_config["tech_stack_analysis"],  # type: ignore[arg-type, index]
-            agent=self.tech_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.tech_researcher(),  # type: ignore[call-arg]
             async_execution=False,
-            verbose=True,
         )
 
     @task
@@ -80,9 +74,8 @@ class TechStackCrew:
         """Analyze the company's open source contributions"""
         return Task(
             config=self.tasks_config["open_source_contributions"],  # type: ignore[arg-type, index]
-            agent=self.tech_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.tech_researcher(),  # type: ignore[call-arg]
             async_execution=False,
-            verbose=True,
         )
 
     @task
@@ -90,9 +83,8 @@ class TechStackCrew:
         """Assess the company's tech talent"""
         return Task(
             config=self.tasks_config["tech_talent_assessment"],  # type: ignore[arg-type, index]
-            agent=self.tech_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.tech_researcher(),  # type: ignore[call-arg]
             async_execution=False,
-            verbose=True,
         )
 
     @task
@@ -117,8 +109,6 @@ class TechStackCrew:
             agents=self.agents,  # type: ignore[attr-defined]
             tasks=self.tasks,  # type: ignore[attr-defined]
             process=Process.sequential,
-            llm_timeout=LLMConfig.get_timeout("default"),  # type: ignore[call-arg]
-            max_iter=LLMConfig.get_max_iter(),
             max_rpm=LLMConfig.get_max_rpm(),
             verbose=True,
         )

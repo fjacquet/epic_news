@@ -19,8 +19,8 @@ class InformationExtractionCrew:
         """Agent that rewrites the raw request into a clean, faithful brief."""
         return Agent(
             config=cast(dict[str, Any], self.agents_config)["prompt_enricher_agent"],
-            llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("quick"),
+            llm=LLMConfig.get_openrouter_llm(task_type="quick"),
+            max_iter=LLMConfig.get_max_iter(),
             verbose=True,
         )
 
@@ -30,7 +30,7 @@ class InformationExtractionCrew:
         return Agent(
             config=cast(dict[str, Any], self.agents_config)["detailed_request_analyzer_agent"],
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
             verbose=True,
         )
 

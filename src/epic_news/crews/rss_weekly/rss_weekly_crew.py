@@ -28,7 +28,7 @@ class RssWeeklyCrew:
             config=self.agents_config["content_reader_agent"],  # type: ignore[index]
             tools=[FileReadTool()],
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
             verbose=True,
             allow_delegation=False,
         )
@@ -41,7 +41,7 @@ class RssWeeklyCrew:
             config=self.agents_config["translator_agent"],  # type: ignore[index]
             tools=[],  # NO TOOLS = No action traces in output
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
             verbose=True,
             allow_delegation=False,
         )
@@ -73,8 +73,6 @@ class RssWeeklyCrew:
             agents=self.agents,  # type: ignore[attr-defined]
             tasks=self.tasks,  # type: ignore[attr-defined]
             process=Process.sequential,
-            llm_timeout=LLMConfig.get_timeout("default"),
-            max_iter=LLMConfig.get_max_iter(),
-            max_rpm=LLMConfig.get_max_rpm(),  # type: ignore[call-arg]
+            max_rpm=LLMConfig.get_max_rpm(),
             verbose=True,
         )

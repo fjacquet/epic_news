@@ -34,11 +34,9 @@ class LegalAnalysisCrew:
             verbose=True,
             tools=all_tools,
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
             allow_delegation=False,
             respect_context_window=True,
-            reasoning=False,
-            max_reasoning_attempts=5,
         )
 
     @agent
@@ -48,12 +46,10 @@ class LegalAnalysisCrew:
             config=self.agents_config["legal_reporter"],  # type: ignore[index]
             tools=[],  # No tools for reporter to ensure clean output
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
             verbose=True,
             allow_delegation=False,
             respect_context_window=True,
-            reasoning=False,
-            max_reasoning_attempts=3,
         )
 
     @task
@@ -61,9 +57,8 @@ class LegalAnalysisCrew:
         """Assess the company's legal compliance status"""
         return Task(
             config=self.tasks_config["legal_compliance_assessment"],  # type: ignore[arg-type, index]
-            agent=self.legal_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.legal_researcher(),  # type: ignore[call-arg]
             async_execution=False,
-            verbose=True,
         )
 
     @task
@@ -71,9 +66,8 @@ class LegalAnalysisCrew:
         """Analyze the company's intellectual property portfolio"""
         return Task(
             config=self.tasks_config["intellectual_property_analysis"],  # type: ignore[arg-type, index]
-            agent=self.legal_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.legal_researcher(),  # type: ignore[call-arg]
             async_execution=False,
-            verbose=True,
         )
 
     @task
@@ -81,9 +75,8 @@ class LegalAnalysisCrew:
         """Assess the company's regulatory risks"""
         return Task(
             config=self.tasks_config["regulatory_risk_assessment"],  # type: ignore[arg-type, index]
-            agent=self.legal_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.legal_researcher(),  # type: ignore[call-arg]
             async_execution=False,
-            verbose=True,
         )
 
     @task
@@ -91,9 +84,8 @@ class LegalAnalysisCrew:
         """Analyze the company's litigation history"""
         return Task(
             config=self.tasks_config["litigation_history_analysis"],  # type: ignore[arg-type, index]
-            agent=self.legal_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.legal_researcher(),  # type: ignore[call-arg]
             async_execution=False,
-            verbose=True,
         )
 
     @task
@@ -118,8 +110,6 @@ class LegalAnalysisCrew:
             agents=self.agents,  # type: ignore[attr-defined]
             tasks=self.tasks,  # type: ignore[attr-defined]
             process=Process.sequential,
-            llm_timeout=LLMConfig.get_timeout("default"),  # type: ignore[call-arg]
-            max_iter=LLMConfig.get_max_iter(),
             max_rpm=LLMConfig.get_max_rpm(),
             verbose=True,
         )

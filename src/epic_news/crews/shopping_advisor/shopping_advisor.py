@@ -28,7 +28,7 @@ class ShoppingAdvisorCrew:
             tools=get_search_tools() + get_scrape_tools(),
             verbose=True,
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
         )
 
     @agent
@@ -38,7 +38,7 @@ class ShoppingAdvisorCrew:
             tools=get_search_tools() + get_scrape_tools(),
             verbose=True,
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
         )
 
     @agent
@@ -48,7 +48,7 @@ class ShoppingAdvisorCrew:
             tools=get_search_tools() + get_scrape_tools(),
             verbose=True,
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
         )
 
     @agent
@@ -58,7 +58,7 @@ class ShoppingAdvisorCrew:
             tools=[],
             verbose=True,
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
         )
 
     @task

@@ -74,9 +74,7 @@ class CompanyNewsCrew:
             tools=self.search_tools,
             verbose=True,
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
-            reasoning=False,
-            max_reasoning_attempts=3,
+            max_iter=LLMConfig.get_max_iter(),
             respect_context_window=True,
         )
 
@@ -92,9 +90,7 @@ class CompanyNewsCrew:
             tools=self.search_tools,
             verbose=True,
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
-            reasoning=False,
-            max_reasoning_attempts=3,
+            max_iter=LLMConfig.get_max_iter(),
             respect_context_window=True,
         )
 
@@ -110,9 +106,7 @@ class CompanyNewsCrew:
             tools=[],  # Gold standard: no tools for reporting agent
             verbose=True,
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
-            reasoning=False,
-            max_reasoning_attempts=3,
+            max_iter=LLMConfig.get_max_iter(),
             respect_context_window=True,
         )
 
@@ -132,11 +126,9 @@ class CompanyNewsCrew:
         """
         # Create task config with dynamic topic
         task_config: dict[str, Any] = dict(self.tasks_config["research_task"])  # type: ignore[index, arg-type]
-        return Task(
+        return Task(  # type: ignore[call-arg]
             config=task_config,
-            verbose=True,  # type: ignore[call-arg]
             async_execution=False,  # Parallel execution for better performance
-            llm_timeout=LLMConfig.get_timeout("default"),
         )
 
     @task
@@ -152,11 +144,9 @@ class CompanyNewsCrew:
         """
         # Create task config with dynamic topic
         task_config: dict[str, Any] = dict(self.tasks_config["analysis_task"])  # type: ignore[index, arg-type]
-        return Task(
+        return Task(  # type: ignore[call-arg]
             config=task_config,
             context=[self.research_task()],  # This task depends on research
-            verbose=True,
-            llm_timeout=LLMConfig.get_timeout("default"),  # type: ignore[call-arg]
         )
 
     @task
@@ -173,14 +163,12 @@ class CompanyNewsCrew:
         # Create task config with dynamic topic
         task_config: dict[str, Any] = dict(self.tasks_config["editing_task"])  # type: ignore[index, arg-type]
 
-        return Task(
+        return Task(  # type: ignore[call-arg]
             config=task_config,
             context=[
                 self.research_task(),
                 self.analysis_task(),
             ],  # This task depends on all previous tasks
-            verbose=True,
-            llm_timeout=LLMConfig.get_timeout("default"),  # type: ignore[call-arg]
             output_pydantic=CompanyNewsReport,
         )
 
@@ -202,10 +190,7 @@ class CompanyNewsCrew:
                 tasks=self.tasks,  # type: ignore[attr-defined] # Automatically created by the @task decorator
                 process=Process.sequential,  # Hierarchical process for parallel execution
                 verbose=True,  # Enable verbose output for better debugging
-                llm_timeout=LLMConfig.get_timeout("default"),
-                max_iter=LLMConfig.get_max_iter(),  # type: ignore[call-arg]
                 max_rpm=LLMConfig.get_max_rpm(),
-                max_retries=2,
             )
         except Exception as e:
             # Fail fast with explicit error message

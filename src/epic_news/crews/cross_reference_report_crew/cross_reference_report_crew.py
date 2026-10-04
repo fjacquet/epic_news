@@ -39,11 +39,9 @@ class CrossReferenceReportCrew:
             verbose=True,
             tools=all_tools,
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
             allow_delegation=True,
             respect_context_window=True,
-            reasoning=False,
-            max_reasoning_attempts=5,
         )
 
     @agent
@@ -53,12 +51,10 @@ class CrossReferenceReportCrew:
             config=self.agents_config["osint_reporter"],  # type: ignore[index]
             tools=[],  # No tools for reporter to ensure clean output
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
             verbose=True,
             allow_delegation=False,
             respect_context_window=True,
-            reasoning=False,
-            max_reasoning_attempts=3,
         )
 
     @task
@@ -68,7 +64,7 @@ class CrossReferenceReportCrew:
             config=self.tasks_config["intelligence_requirements_planning"],  # type: ignore[index,arg-type]
             description="Develop comprehensive intelligence requirements",
             expected_output="A structured JSON object outlining intelligence requirements",
-            agent=self.osint_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.osint_researcher(),  # type: ignore[call-arg]
             async_execution=False,
         )
 
@@ -79,7 +75,7 @@ class CrossReferenceReportCrew:
             config=self.tasks_config["intelligence_collection_coordination"],  # type: ignore[index,arg-type]
             description="Coordinate intelligence collection activities",
             expected_output="A comprehensive JSON object detailing collection coordination",
-            agent=self.osint_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.osint_researcher(),  # type: ignore[call-arg]
             async_execution=False,
         )
 
@@ -90,7 +86,7 @@ class CrossReferenceReportCrew:
             config=self.tasks_config["intelligence_analysis_integration"],  # type: ignore[index,arg-type]
             description="Integrate intelligence analysis from all specialized crews",
             expected_output="A comprehensive JSON object integrating intelligence analysis",
-            agent=self.osint_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.osint_researcher(),  # type: ignore[call-arg]
             async_execution=False,
         )
 
@@ -101,7 +97,7 @@ class CrossReferenceReportCrew:
             config=self.tasks_config["intelligence_product_development"],  # type: ignore[index,arg-type]
             description="Develop final intelligence products",
             expected_output="A comprehensive JSON object serving as final intelligence products",
-            agent=self.osint_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.osint_researcher(),  # type: ignore[call-arg]
             async_execution=False,
         )
 

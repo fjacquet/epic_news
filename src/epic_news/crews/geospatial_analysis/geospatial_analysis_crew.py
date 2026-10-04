@@ -36,11 +36,9 @@ class GeospatialAnalysisCrew:
             verbose=True,
             tools=all_tools,
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
             allow_delegation=False,
             respect_context_window=True,
-            reasoning=False,
-            max_reasoning_attempts=5,
             max_retry_limit=3,
         )
 
@@ -52,11 +50,9 @@ class GeospatialAnalysisCrew:
             verbose=True,
             tools=[],  # No tools for reporter to ensure clean output
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
             allow_delegation=False,
             respect_context_window=True,
-            reasoning=False,
-            max_reasoning_attempts=3,
         )
 
     @task
@@ -64,9 +60,8 @@ class GeospatialAnalysisCrew:
         """Map the company's physical locations"""
         return Task(
             config=self.tasks_config["physical_location_mapping"],  # type: ignore[arg-type, index]
-            agent=self.geospatial_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.geospatial_researcher(),  # type: ignore[call-arg]
             async_execution=False,
-            verbose=True,
         )
 
     @task
@@ -74,9 +69,8 @@ class GeospatialAnalysisCrew:
         """Assess geospatial risks for the company's locations"""
         return Task(
             config=self.tasks_config["geospatial_risk_assessment"],  # type: ignore[arg-type, index]
-            agent=self.geospatial_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.geospatial_researcher(),  # type: ignore[call-arg]
             async_execution=False,
-            verbose=True,
         )
 
     @task
@@ -84,9 +78,8 @@ class GeospatialAnalysisCrew:
         """Map the company's supply chain geospatially"""
         return Task(
             config=self.tasks_config["supply_chain_mapping"],  # type: ignore[arg-type, index]
-            agent=self.geospatial_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.geospatial_researcher(),  # type: ignore[call-arg]
             async_execution=False,
-            verbose=True,
         )
 
     @task
@@ -111,7 +104,5 @@ class GeospatialAnalysisCrew:
             tasks=self.tasks,  # type: ignore[attr-defined]
             process=Process.sequential,
             verbose=True,
-            llm_timeout=LLMConfig.get_timeout("default"),
-            max_iter=LLMConfig.get_max_iter(),  # type: ignore[call-arg]
             max_rpm=LLMConfig.get_max_rpm(),
         )

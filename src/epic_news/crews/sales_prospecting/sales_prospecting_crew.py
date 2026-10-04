@@ -32,9 +32,8 @@ class SalesProspectingCrew:
             + get_report_tools()
             + get_data_centric_tools(),
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
             verbose=True,
-            max_reasoning_attempts=5,
             respect_context_window=True,
         )
 
@@ -51,9 +50,8 @@ class SalesProspectingCrew:
             + get_report_tools()
             + get_data_centric_tools(),
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
             verbose=True,
-            max_reasoning_attempts=5,
             respect_context_window=True,
         )
 
@@ -70,9 +68,8 @@ class SalesProspectingCrew:
             + get_report_tools()
             + get_data_centric_tools(),
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
             verbose=True,
-            max_reasoning_attempts=5,
             respect_context_window=True,
         )
 
@@ -82,10 +79,8 @@ class SalesProspectingCrew:
             config=self.agents_config["sales_strategist"],  # type: ignore[index]
             tools=[],
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
             verbose=True,
-            reasoning=False,
-            max_reasoning_attempts=5,
             respect_context_window=True,
         )
 

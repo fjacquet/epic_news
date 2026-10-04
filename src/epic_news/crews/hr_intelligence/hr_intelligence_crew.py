@@ -34,11 +34,9 @@ class HRIntelligenceCrew:
             verbose=True,
             tools=all_tools,
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
             allow_delegation=False,
             respect_context_window=True,
-            reasoning=False,
-            max_reasoning_attempts=3,
         )
 
     @agent
@@ -49,10 +47,9 @@ class HRIntelligenceCrew:
             verbose=True,
             tools=[],  # No tools for reporter to ensure clean output
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
             allow_delegation=False,
             respect_context_window=True,
-            reasoning=False,
         )
 
     @task
@@ -60,9 +57,8 @@ class HRIntelligenceCrew:
         """Assess the company's leadership team"""
         return Task(
             config=self.tasks_config["leadership_team_assessment"],  # type: ignore[arg-type, index]
-            agent=self.hr_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.hr_researcher(),  # type: ignore[call-arg]
             async_execution=False,
-            verbose=True,
         )
 
     @task
@@ -70,9 +66,8 @@ class HRIntelligenceCrew:
         """Analyze employee reviews and sentiment"""
         return Task(
             config=self.tasks_config["employee_sentiment_analysis"],  # type: ignore[arg-type, index]
-            agent=self.hr_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.hr_researcher(),  # type: ignore[call-arg]
             async_execution=False,
-            verbose=True,
         )
 
     @task
@@ -80,9 +75,8 @@ class HRIntelligenceCrew:
         """Assess the company's organizational culture"""
         return Task(
             config=self.tasks_config["organizational_culture_assessment"],  # type: ignore[arg-type, index]
-            agent=self.hr_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.hr_researcher(),  # type: ignore[call-arg]
             async_execution=False,
-            verbose=True,
         )
 
     @task
@@ -90,9 +84,8 @@ class HRIntelligenceCrew:
         """Analyze the company's talent acquisition strategy"""
         return Task(
             config=self.tasks_config["talent_acquisition_strategy"],  # type: ignore[arg-type, index]
-            agent=self.hr_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.hr_researcher(),  # type: ignore[call-arg]
             async_execution=False,
-            verbose=True,
         )
 
     @task
@@ -117,8 +110,6 @@ class HRIntelligenceCrew:
             agents=self.agents,  # type: ignore[attr-defined]
             tasks=self.tasks,  # type: ignore[attr-defined]
             process=Process.sequential,
-            llm_timeout=LLMConfig.get_timeout("default"),  # type: ignore[call-arg]
-            max_iter=LLMConfig.get_max_iter(),
             max_rpm=LLMConfig.get_max_rpm(),
             verbose=True,
         )

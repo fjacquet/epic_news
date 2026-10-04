@@ -45,7 +45,7 @@ class DeepResearchCrew:
             config=self.agents_config["research_strategist"],  # type: ignore[index]
             tools=[],  # Strategic planning, no external tools needed
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
             verbose=True,
         )
 
@@ -63,11 +63,9 @@ class DeepResearchCrew:
                 # Wikipedia MCP tools (encyclopedic research)
                 *self.wikipedia_tools,  # Adds search and fetch tools from Wikipedia MCP
             ],
-            llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("long"),
+            llm=LLMConfig.get_openrouter_llm(task_type="long"),
+            max_iter=LLMConfig.get_max_iter(),
             verbose=True,
-            reasoning=False,
-            max_reasoning_attempts=3,
         )
 
     # Data Analyst - Critical analysis and synthesis of the collected corpus
@@ -81,8 +79,8 @@ class DeepResearchCrew:
         return Agent(
             config=self.agents_config["data_analyst"],  # type: ignore[index]
             tools=[],
-            llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("long"),
+            llm=LLMConfig.get_openrouter_llm(task_type="long"),
+            max_iter=LLMConfig.get_max_iter(),
             verbose=True,
         )
 
@@ -94,7 +92,7 @@ class DeepResearchCrew:
             config=self.agents_config["report_writer"],  # type: ignore[index]
             tools=[],  # Report writing, no external tools needed
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
             verbose=True,
         )
 
@@ -102,17 +100,15 @@ class DeepResearchCrew:
     @task
     def reformulate_task(self) -> Task:
         """Reformulate task."""
-        return Task(
+        return Task(  # type: ignore[call-arg]
             config=self.tasks_config["reformulate_task"],  # type: ignore[arg-type, index]
-            verbose=True,  # type: ignore[call-arg]
         )
 
     @task
     def research_planning_task(self) -> Task:
         """Research planning and methodology task."""
-        return Task(
+        return Task(  # type: ignore[call-arg]
             config=self.tasks_config["research_planning_task"],  # type: ignore[arg-type, index]
-            verbose=True,  # type: ignore[call-arg]
         )
 
     # Task 2: Information Collection
@@ -121,7 +117,6 @@ class DeepResearchCrew:
         """Information collection task."""
         return Task(
             config=self.tasks_config["information_collection_task"],  # type: ignore[arg-type, index]
-            verbose=True,  # type: ignore[call-arg]
             context=[
                 self.research_planning_task(),  # type: ignore[call-arg]
             ],
@@ -133,7 +128,6 @@ class DeepResearchCrew:
         """Data analysis and synthesis task."""
         return Task(
             config=self.tasks_config["data_analysis_task"],  # type: ignore[arg-type, index]
-            verbose=True,  # type: ignore[call-arg]
             context=[
                 self.research_planning_task(),  # type: ignore[call-arg]
                 self.information_collection_task(),  # type: ignore[call-arg]
@@ -146,7 +140,6 @@ class DeepResearchCrew:
         """Report writing task."""
         return Task(
             config=self.tasks_config["report_writing_task"],  # type: ignore[arg-type, index]
-            verbose=True,  # type: ignore[call-arg]
             context=[
                 self.research_planning_task(),  # type: ignore[call-arg]
                 self.information_collection_task(),  # type: ignore[call-arg]
@@ -162,8 +155,6 @@ class DeepResearchCrew:
             agents=self.agents,  # type: ignore[attr-defined]
             tasks=self.tasks,  # type: ignore[attr-defined] # Automatically created from the tasks above
             process=Process.sequential,
-            llm_timeout=LLMConfig.get_timeout("default"),  # type: ignore[call-arg]
-            max_iter=LLMConfig.get_max_iter(),
             max_rpm=LLMConfig.get_max_rpm(),
             verbose=True,
         )

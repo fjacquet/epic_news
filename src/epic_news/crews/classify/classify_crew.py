@@ -25,7 +25,7 @@ class ClassifyCrew:
         return Agent(
             config=cast(dict[str, Any], self.agents_config)["classifier"],
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
             verbose=True,
         )
 

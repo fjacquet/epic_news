@@ -30,10 +30,8 @@ class MenuDesignerCrew:
             # DirectoryReadTool() defaults to the CWD and exposes the whole repo.
             tools=get_search_tools() + [FileReadTool(), DirectoryReadTool("output/menu_designer")],
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
             respect_context_window=True,
-            reasoning=False,
-            max_reasoning_attempts=3,
             verbose=True,
         )
 
@@ -44,10 +42,8 @@ class MenuDesignerCrew:
             config=self.agents_config["menu_reporter"],
             tools=[],
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
             respect_context_window=True,
-            reasoning=False,
-            max_reasoning_attempts=3,
             verbose=True,
         )
 
@@ -77,6 +73,5 @@ class MenuDesignerCrew:
             tasks=self.tasks,  # type: ignore[attr-defined]
             process=Process.sequential,
             verbose=True,
-            max_iter=LLMConfig.get_max_iter(),  # type: ignore[call-arg]
             max_rpm=LLMConfig.get_max_rpm(),
         )

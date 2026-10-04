@@ -17,7 +17,7 @@ class PoemCrew:
         return Agent(
             config=cast(dict[str, Any], self.agents_config)["poem_writer"],
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
             respect_context_window=True,
             verbose=True,
             system_template="""You are a JSON formatting expert poet. Your output MUST be valid JSON.

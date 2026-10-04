@@ -28,12 +28,10 @@ class MeetingPrepCrew:
             config=self.agents_config["lead_researcher_agent"],  # type: ignore[index]
             tools=get_search_tools() + get_scrape_tools() + get_yahoo_finance_tools(),
             allow_delegation=False,
-            reasoning=False,
-            max_reasoning_attempts=3,
             verbose=True,
             respect_context_window=True,
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
         )
 
     @agent
@@ -48,7 +46,7 @@ class MeetingPrepCrew:
             verbose=True,
             respect_context_window=True,
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
         )
 
     @agent
@@ -59,12 +57,10 @@ class MeetingPrepCrew:
         return Agent(
             config=self.agents_config["sales_strategist_agent"],  # type: ignore[index]
             tools=get_search_tools() + get_scrape_tools() + get_yahoo_finance_tools(),
-            reasoning=False,
-            max_reasoning_attempts=3,
             verbose=True,
             respect_context_window=True,
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
         )
 
     @agent
@@ -78,7 +74,7 @@ class MeetingPrepCrew:
             verbose=True,
             respect_context_window=True,
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
         )
 
     @task
@@ -138,8 +134,6 @@ class MeetingPrepCrew:
                 agents=self.agents,  # type: ignore[attr-defined]
                 tasks=self.tasks,  # type: ignore[attr-defined]
                 process=Process.sequential,
-                llm_timeout=LLMConfig.get_timeout("default"),  # type: ignore[call-arg]
-                max_iter=LLMConfig.get_max_iter(),
                 max_rpm=10,  # Keeping existing custom value (lower than default 20)
                 verbose=True,
             )

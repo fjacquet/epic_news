@@ -21,7 +21,7 @@ class NewsDailyCrew:
             config=self.agents_config["news_researcher"],
             tools=get_news_tools() + get_search_tools(),
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
             verbose=True,
         )
 
@@ -31,80 +31,70 @@ class NewsDailyCrew:
             config=self.agents_config["content_curator"],
             tools=[],
             verbose=True,
-            reasoning=False,
-            max_reasoning_attempts=3,
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
         )
 
     @task
     def suisse_romande_news_task(self) -> Task:
         return Task(
             config=self.tasks_config["suisse_romande_news_task"],
-            agent=self.news_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.news_researcher(),  # type: ignore[call-arg]
             async_execution=False,
-            verbose=True,
         )
 
     @task
     def suisse_news_task(self) -> Task:
         return Task(
             config=self.tasks_config["suisse_news_task"],
-            agent=self.news_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.news_researcher(),  # type: ignore[call-arg]
             async_execution=False,
-            verbose=True,
         )
 
     @task
     def france_news_task(self) -> Task:
         return Task(
             config=self.tasks_config["france_news_task"],
-            agent=self.news_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.news_researcher(),  # type: ignore[call-arg]
             async_execution=False,
-            verbose=True,
         )
 
     @task
     def europe_news_task(self) -> Task:
         return Task(
             config=self.tasks_config["europe_news_task"],
-            agent=self.news_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.news_researcher(),  # type: ignore[call-arg]
             async_execution=False,
-            verbose=True,
         )
 
     @task
     def world_news_task(self) -> Task:
         return Task(
             config=self.tasks_config["world_news_task"],
-            agent=self.news_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.news_researcher(),  # type: ignore[call-arg]
             async_execution=False,
-            verbose=True,
         )
 
     @task
     def wars_news_task(self) -> Task:
         return Task(
             config=self.tasks_config["wars_news_task"],
-            agent=self.news_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.news_researcher(),  # type: ignore[call-arg]
             async_execution=False,
-            verbose=True,
         )
 
     @task
     def economy_news_task(self) -> Task:
         return Task(
             config=self.tasks_config["economy_news_task"],
-            agent=self.news_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.news_researcher(),  # type: ignore[call-arg]
             async_execution=False,
-            verbose=True,
         )
 
     @task
     def content_curation_task(self) -> Task:
         return Task(
             config=self.tasks_config["content_curation_task"],
-            verbose=True,  # type: ignore[call-arg]
             context=[
                 self.suisse_romande_news_task(),  # type: ignore[call-arg]
                 self.suisse_news_task(),  # type: ignore[call-arg]
@@ -120,7 +110,6 @@ class NewsDailyCrew:
     def final_report_generation_task(self) -> Task:
         return Task(
             config=self.tasks_config["final_report_generation_task"],
-            verbose=True,  # type: ignore[call-arg]
             context=[self.content_curation_task()],  # type: ignore[call-arg]
             output_pydantic=NewsDailyReport,
         )
