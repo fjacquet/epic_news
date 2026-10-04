@@ -39,7 +39,9 @@ class FinDailyCrew:
                 get_scraper(),
             ],
             llm=LLMConfig.get_openrouter_llm(),
-            max_iter=LLMConfig.get_max_iter(),
+            # Analyses every ticker of the 60+ line portfolio CSV, roughly one tool call
+            # each; the CREW_MAX_ITER default would cut it off partway through.
+            max_iter=30,
             verbose=True,
         )
 

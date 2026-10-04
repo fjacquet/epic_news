@@ -28,12 +28,23 @@ def test_every_agent_llm_has_a_timeout(crew_cls):
     assert not offenders, f"{crew_cls.__name__}: agents whose LLM has no timeout: {offenders}"
 
 
+# Agents that deliberately override LLMConfig.get_max_iter(): (crew class, role) -> max_iter.
+MAX_ITER_OVERRIDES = {
+    # Analyses every ticker of the 60+ line portfolio CSV, roughly one tool call each.
+    ("FinDailyCrew", "Senior Stock Analyst"): 30,
+}
+
+
 @pytest.mark.parametrize("crew_cls", ALL_CREW_CLASSES, ids=lambda c: c.__name__)
 def test_every_agent_uses_configured_max_iter(crew_cls):
     """Crew(max_iter=...) is not a field; the cap must be set on each Agent."""
-    expected = LLMConfig.get_max_iter()
-    offenders = [f"{a.role!r} (max_iter={a.max_iter})" for a in _agents(crew_cls) if a.max_iter != expected]
-    assert not offenders, f"{crew_cls.__name__}: agents not capped at {expected}: {offenders}"
+    default = LLMConfig.get_max_iter()
+    offenders = []
+    for a in _agents(crew_cls):
+        expected = MAX_ITER_OVERRIDES.get((crew_cls.__name__, a.role.strip()), default)
+        if a.max_iter != expected:
+            offenders.append(f"{a.role!r} (max_iter={a.max_iter}, expected {expected})")
+    assert not offenders, f"{crew_cls.__name__}: agents with the wrong max_iter: {offenders}"
 
 
 @pytest.mark.parametrize("crew_cls", ALL_CREW_CLASSES, ids=lambda c: c.__name__)
