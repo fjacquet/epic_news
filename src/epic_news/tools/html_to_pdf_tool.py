@@ -6,8 +6,6 @@ from urllib.request import url2pathname
 from crewai.tools import BaseTool
 from pydantic import BaseModel, Field
 
-from epic_news.utils.path_utils import get_project_root
-
 # Try to import WeasyPrint, but make it optional
 try:
     from weasyprint import HTML
@@ -22,8 +20,11 @@ except (ImportError, OSError) as e:
 
 
 def _output_root() -> Path:
-    """The only directory the tool may read HTML/resources from or write PDFs to."""
-    return (get_project_root() / "output").resolve()
+    """The only directory the tool may read HTML/resources from or write PDFs to.
+
+    Same root as ``render_and_write_html``: ``output/`` under the working directory.
+    """
+    return Path("output").resolve()
 
 
 def _is_inside(path: Path, root: Path) -> bool:
