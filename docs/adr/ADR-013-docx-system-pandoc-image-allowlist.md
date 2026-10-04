@@ -18,6 +18,7 @@ DOCX reports are assembled from Markdown fragments written by the LLM (`src/epic
 - Use system pandoc: `pandoc` is installed by `apt` in `.github/workflows/ci.yml` and in the Dockerfile runtime stage; `pypandoc` (not `pypandoc-binary`) is the Python dependency.
 - Convert in two passes:
   1. Markdown → pandoc JSON with `--lua-filter safe_images.lua`. JSON output fetches no resources. The filter keeps only images whose path is under `output/` (relative `output/...` or absolute under the resolved output root) and replaces every other image (URLs, any `scheme:` URI, `..`, other absolute paths) with its alt text. The root arrives as the `epic_image_root` metadata field, which the filter deletes so it never reaches the DOCX properties.
+     The same pass also runs `strip_rules.lua` (#218), which drops every `HorizontalRule`: LLM fragments separate paragraphs with `---`, and headings already structure the report. Markdown is read as `markdown-yaml_metadata_block` so `---` stays a rule instead of breaking YAML parsing.
   2. JSON → DOCX with `--toc --standalone --reference-doc`. Pandoc only sees allowed images, so it can only fetch those.
 - Do not use `--sandbox`.
 

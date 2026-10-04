@@ -25,5 +25,5 @@ ADR-001 made `openrouter/mistralai/mistral-small-2603` the default model. The pr
 
 - Lower thinking cost and latency than the API default, with predictable behaviour.
 - Switching models stays a `.env` change; the Gemini-specific rules apply automatically.
-- The fallback constant in `llm_config.py` and `MODEL` in `.env.example` still name Mistral Small; align them in a follow-up so a fresh checkout matches this decision.
+- The fallback constant (`_DEFAULT_MODEL` in `src/epic_news/config/llm_config.py`) and `MODEL` in `.env.example` were aligned to `gemini/gemini-3.8-flash` in #219, so a fresh checkout matches this decision. `.env.example` keeps `openrouter/mistralai/mistral-small-2603` as the commented OpenRouter alternative.
 - Key precedence (`GOOGLE_API_KEY` before `GEMINI_API_KEY`) must be handled in `.env`, not in code.
