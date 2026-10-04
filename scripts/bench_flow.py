@@ -8,9 +8,12 @@ LIVE: every request is a full flow run against the configured LLM provider.
 import json
 import re
 import sys
+import threading
 import time
 from pathlib import Path
 
+import litellm
+from litellm.integrations.custom_logger import CustomLogger
 from loguru import logger
 
 import epic_news.main as main_mod
@@ -42,6 +45,47 @@ def parse_usage_line(line: str) -> dict | None:
     }
 
 
+class UsageCounter(CustomLogger):
+    """Sum every successful LiteLLM call, including structured-output ones CrewAI misses."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self._lock = threading.Lock()
+        self.calls = 0
+        self.prompt = 0
+        self.completion = 0
+        self.total = 0
+
+    def _record(self, response_obj) -> None:
+        usage = response_obj.get("usage") if hasattr(response_obj, "get") else None
+        if usage is None:
+            usage = getattr(response_obj, "usage", None)
+
+        def _field(key: str) -> int:
+            value = usage.get(key) if isinstance(usage, dict) else getattr(usage, key, None)
+            return int(value or 0)
+
+        with self._lock:
+            self.calls += 1
+            self.prompt += _field("prompt_tokens")
+            self.completion += _field("completion_tokens")
+            self.total += _field("total_tokens")
+
+    def log_success_event(self, kwargs, response_obj, start_time, end_time) -> None:
+        self._record(response_obj)
+
+    async def async_log_success_event(self, kwargs, response_obj, start_time, end_time) -> None:
+        self._record(response_obj)
+
+    def as_dict(self) -> dict:
+        return {
+            "calls": self.calls,
+            "prompt": self.prompt,
+            "completion": self.completion,
+            "total": self.total,
+        }
+
+
 def run(name: str, request: str) -> dict:
     crews: list[dict] = []
 
@@ -60,14 +104,23 @@ def run(name: str, request: str) -> dict:
         sink_ids.append(logger.add(sink, level="INFO"))
 
     main_mod.setup_logging = setup_logging_then_capture
+    counter = UsageCounter()
+    litellm.callbacks.append(counter)
     start = time.perf_counter()
     try:
         main_mod.kickoff(user_input=request)
     finally:
+        if counter in litellm.callbacks:
+            litellm.callbacks.remove(counter)
         main_mod.setup_logging = original_setup
         for sink_id in sink_ids:
             logger.remove(sink_id)
-    return {"name": name, "elapsed_s": round(time.perf_counter() - start, 1), "crews": crews}
+    return {
+        "name": name,
+        "elapsed_s": round(time.perf_counter() - start, 1),
+        "crews": crews,
+        "litellm": counter.as_dict(),
+    }
 
 
 def main(names: list[str]) -> None:
