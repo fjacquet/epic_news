@@ -1166,24 +1166,17 @@ class ReceptionFlow(Flow[ContentState]):
             f"(geo={inputs['geography']}, lang={inputs['language']})"
         )
 
-        pestel_crew = PestelCrew()
-        try:
-            output = kickoff_flow(pestel_crew, inputs)
-            dump_crewai_state(output, "PESTEL")
+        # PestelCrew's Wikipedia MCP server is stopped by CrewBase's after-kickoff hook.
+        output = kickoff_flow(PestelCrew(), inputs)
+        dump_crewai_state(output, "PESTEL")
 
-            try:
-                pestel_model = load_or_parse_model(
-                    self.state.output_file, PestelReport, output, inputs, "PESTEL"
-                )
-            except (ValueError, ValidationError) as exc:
-                self.logger.error(
-                    f"⚠️ PESTEL parsing failed; emitting stub report so email step can attach a file. {exc}"
-                )
-                pestel_model = _stub_pestel_report(
-                    inputs.get("topic", "N/A"), inputs["current_date"], str(exc)
-                )
-        finally:
-            pestel_crew.close()
+        try:
+            pestel_model = load_or_parse_model(self.state.output_file, PestelReport, output, inputs, "PESTEL")
+        except (ValueError, ValidationError) as exc:
+            self.logger.error(
+                f"⚠️ PESTEL parsing failed; emitting stub report so email step can attach a file. {exc}"
+            )
+            pestel_model = _stub_pestel_report(inputs.get("topic", "N/A"), inputs["current_date"], str(exc))
 
         self.state.pestel_report = pestel_model
 

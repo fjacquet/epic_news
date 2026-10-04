@@ -1,13 +1,10 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai_custom_tools import HybridSearchTool
-from crewai_tools import (
-    MCPServerAdapter,
-    ScrapeWebsiteTool,
-)
+from crewai_tools import ScrapeWebsiteTool
 
 from epic_news.config.llm_config import LLMConfig
-from epic_news.config.mcp_config import MCPConfig
+from epic_news.config.mcp_config import MCPConfig, get_mcp_tools_or_empty
 from epic_news.models.crews.deep_research_report import DeepResearchReport
 
 
@@ -25,16 +22,9 @@ class DeepResearchCrew:
     agents_config = "config/agents.yaml"
     tasks_config = "config/tasks.yaml"
 
-    # Initialize Wikipedia MCP server
-    _wikipedia_mcp = None
-
-    @property
-    def wikipedia_tools(self):
-        """Get Wikipedia MCP tools (lazy initialization)."""
-        if self._wikipedia_mcp is None:
-            wikipedia_params = MCPConfig.get_wikipedia_mcp()
-            self._wikipedia_mcp = MCPServerAdapter(wikipedia_params)
-        return self._wikipedia_mcp.tools
+    # Wikipedia MCP server: @CrewBase starts it lazily on the first get_mcp_tools()
+    # call and stops it in an after-kickoff hook.
+    mcp_server_params = MCPConfig.get_wikipedia_mcp()
 
     # Research Strategist - Planning and methodology
     @agent
@@ -59,7 +49,7 @@ class DeepResearchCrew:
                 HybridSearchTool(),
                 ScrapeWebsiteTool(),
                 # Wikipedia MCP tools (encyclopedic research)
-                *self.wikipedia_tools,  # Adds search and fetch tools from Wikipedia MCP
+                *get_mcp_tools_or_empty(self),  # Adds search and fetch tools from Wikipedia MCP
             ],
             llm=LLMConfig.get_openrouter_llm(task_type="long"),
             max_iter=LLMConfig.get_max_iter(),

@@ -9,11 +9,30 @@ Available MCP Servers:
 
 import sysconfig
 from pathlib import Path
+from typing import Any
 
+from crewai.tools import BaseTool
 from dotenv import load_dotenv
+from loguru import logger
 from mcp import StdioServerParameters
 
 load_dotenv()
+
+
+def get_mcp_tools_or_empty(crew: Any) -> list[BaseTool]:
+    """Return ``crew.get_mcp_tools()``, or ``[]`` when the MCP server cannot start.
+
+    ``crew`` is a ``@CrewBase`` instance declaring ``mcp_server_params``; CrewBase
+    owns the adapter and stops it after kickoff. MCP tools are supplementary, so a
+    server that fails to start must not take the whole crew down with it.
+    """
+    try:
+        return list(crew.get_mcp_tools())
+    except Exception as exc:
+        logger.warning(
+            f"⚠️ MCP server unavailable for {type(crew).__name__}; continuing without its tools: {exc}"
+        )
+        return []
 
 
 class MCPConfig:

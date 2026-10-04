@@ -10,10 +10,10 @@ from __future__ import annotations
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai_custom_tools import HybridSearchTool
-from crewai_tools import MCPServerAdapter, ScrapeWebsiteTool
+from crewai_tools import ScrapeWebsiteTool
 
 from epic_news.config.llm_config import LLMConfig
-from epic_news.config.mcp_config import MCPConfig
+from epic_news.config.mcp_config import MCPConfig, get_mcp_tools_or_empty
 from epic_news.models.crews.pestel_report import PestelReport
 
 
@@ -24,30 +24,9 @@ class PestelCrew:
     agents_config = "config/agents.yaml"
     tasks_config = "config/tasks.yaml"
 
-    _wikipedia_mcp: MCPServerAdapter | None = None
-
-    @property
-    def wikipedia_tools(self):
-        """Lazy initialization of Wikipedia MCP tools."""
-        adapter = self._wikipedia_mcp
-        if adapter is None:
-            adapter = MCPServerAdapter(MCPConfig.get_wikipedia_mcp())
-            self._wikipedia_mcp = adapter
-        return adapter.tools
-
-    def close(self) -> None:
-        """Stop the Wikipedia MCP server process to release resources.
-
-        MCPServerAdapter.__init__ spawns the MCP server process; without an
-        explicit stop() it persists until garbage collection. Callers should
-        invoke close() in a finally block after crew.kickoff() completes.
-        """
-        adapter = self._wikipedia_mcp
-        if adapter is not None:
-            try:
-                adapter.stop()
-            finally:
-                self._wikipedia_mcp = None
+    # Wikipedia MCP server: @CrewBase starts one shared adapter on the first
+    # get_mcp_tools() call and stops it in an after-kickoff hook.
+    mcp_server_params = MCPConfig.get_wikipedia_mcp()
 
     def _researcher(self, config_key: str) -> Agent:
         """Build a dimension researcher with the shared tool set."""
@@ -56,7 +35,7 @@ class PestelCrew:
             tools=[
                 HybridSearchTool(),
                 ScrapeWebsiteTool(),
-                *self.wikipedia_tools,
+                *get_mcp_tools_or_empty(self),
             ],
             llm=LLMConfig.get_openrouter_llm(task_type="long"),
             max_iter=LLMConfig.get_max_iter(),
