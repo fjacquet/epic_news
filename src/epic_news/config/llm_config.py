@@ -1,8 +1,11 @@
-"""Centralized LLM configuration for OpenRouter."""
+"""Centralized LLM configuration (OpenRouter and native LiteLLM routes)."""
 
+import asyncio
 import json
 import os
-from typing import Any
+import random
+import time
+from typing import Any, Literal
 
 from crewai import LLM
 from crewai.llms.base_llm import BaseLLM
@@ -10,6 +13,39 @@ from dotenv import load_dotenv
 from loguru import logger
 
 load_dotenv()
+
+_DEFAULT_MODEL = "openrouter/mistralai/mistral-small-2603"
+_DEFAULT_OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
+
+# LiteLLM-level retries for transient provider errors (429 / 5xx), per completion call.
+_LITELLM_NUM_RETRIES = 2
+
+# Applied when LLM_REASONING_EFFORT is unset for Gemini 3: without it the API
+# defaults to thinking level "high" (slow, token-hungry).
+_GEMINI3_DEFAULT_REASONING_EFFORT = "medium"
+
+# Re-issues of an identical call that came back empty (see _wrap_call_for_react_safety).
+_DEFAULT_EMPTY_RETRIES = "2"
+_EMPTY_RETRY_BASE_DELAY = 0.5
+_EMPTY_RETRY_MAX_DELAY = 8.0
+
+# Module-level so tests can replace them and never sleep for real.
+_sleep = time.sleep
+_async_sleep = asyncio.sleep
+
+
+def _empty_retry_delay(attempt: int) -> float:
+    """Backoff before retry ``attempt`` (1-based): exponential, capped, with jitter.
+
+    Nominal delay is ``0.5s * 2**(attempt-1)`` capped at 8s; the actual delay is drawn
+    uniformly from 50-100% of it so parallel agents don't retry in lockstep.
+    """
+    nominal = min(_EMPTY_RETRY_MAX_DELAY, _EMPTY_RETRY_BASE_DELAY * 2 ** (attempt - 1))
+    return random.uniform(nominal / 2, nominal)  # noqa: S311 - jitter, not crypto
+
+
+def _empty_retries_from_env() -> int:
+    return int(os.getenv("LLM_EMPTY_RETRIES", _DEFAULT_EMPTY_RETRIES))
 
 
 def _is_empty_llm_response(result: object) -> bool:
@@ -26,18 +62,21 @@ def _is_empty_llm_response(result: object) -> bool:
 def _call_with_empty_retry(call_fn, max_retries: int, model: str = "?"):
     """Invoke ``call_fn`` and re-invoke it while it returns an empty LLM response.
 
-    Retries at most ``max_retries`` times, then returns the last (possibly empty)
-    result so the caller's normal empty-handling still applies. Extracted from the
-    ``LLM.call`` patch so the retry loop is unit-testable without live calls.
+    Retries at most ``max_retries`` times, sleeping :func:`_empty_retry_delay` before
+    each retry, then returns the last (possibly empty) result so the caller's normal
+    empty-handling still applies. Extracted from the ``LLM.call`` patch so the retry
+    loop is unit-testable without live calls.
     """
     result = call_fn()
     attempts = 0
     while attempts < max_retries and _is_empty_llm_response(result):
         attempts += 1
+        delay = _empty_retry_delay(attempts)
         logger.warning(
             f"Empty response from LLM '{model}' (likely Gemini thought-only turn); "
-            f"retrying {attempts}/{max_retries}"
+            f"retrying {attempts}/{max_retries} in {delay:.2f}s"
         )
+        _sleep(delay)
         result = call_fn()
     return result
 
@@ -52,10 +91,12 @@ async def _acall_with_empty_retry(call_fn, max_retries: int, model: str = "?"):
     attempts = 0
     while attempts < max_retries and _is_empty_llm_response(result):
         attempts += 1
+        delay = _empty_retry_delay(attempts)
         logger.warning(
             f"Empty response from async LLM '{model}' (likely Gemini thought-only turn); "
-            f"retrying {attempts}/{max_retries}"
+            f"retrying {attempts}/{max_retries} in {delay:.2f}s"
         )
+        await _async_sleep(delay)
         result = await call_fn()
     return result
 
@@ -230,9 +271,9 @@ def _wrap_call_for_react_safety(cls: type) -> None:
     it is not a length cut-off). CrewAI's ``_validate_and_finalize_llm_response`` rejects
     it with ``ValueError: Invalid response from LLM call - None or empty``. The empties
     are stochastic (~40-60% per call on the worst prompts) and, counter-intuitively, get
-    worse with thinking disabled — so re-issuing the identical call a handful of times
-    reliably yields text. Tune the ceiling with ``LLM_EMPTY_RETRIES`` (default 6); 0
-    disables it.
+    worse with thinking disabled — so re-issuing the identical call usually yields text.
+    Retries back off exponentially with jitter (0.5s base, 8s cap). Tune the ceiling with
+    ``LLM_EMPTY_RETRIES`` (default 2); 0 disables it.
 
     *Native tool calls on a ReAct step.* See ``_coerce_tool_calls_to_react_text``.
 
@@ -250,7 +291,7 @@ def _wrap_call_for_react_safety(cls: type) -> None:
         def call(self, *args, **kwargs):
             result = _call_with_empty_retry(
                 lambda: original_call(self, *args, **kwargs),
-                int(os.getenv("LLM_EMPTY_RETRIES", "6")),
+                _empty_retries_from_env(),
                 getattr(self, "model", "?"),
             )
             return _react_safe_text(self, result)
@@ -264,7 +305,7 @@ def _wrap_call_for_react_safety(cls: type) -> None:
         async def acall(self, *args, **kwargs):
             result = await _acall_with_empty_retry(
                 lambda: original_acall(self, *args, **kwargs),
-                int(os.getenv("LLM_EMPTY_RETRIES", "6")),
+                _empty_retries_from_env(),
                 getattr(self, "model", "?"),
             )
             return _react_safe_text(self, result)
@@ -340,34 +381,33 @@ _force_react_tool_calling()
 
 
 class LLMConfig:
-    """Centralized LLM configuration using OpenRouter.
+    """Centralized LLM configuration: OpenRouter or a native LiteLLM provider route.
 
-    This class provides a single source of truth for LLM configuration across
-    all crews in the epic_news project. It uses OpenRouter as the primary LLM
-    provider, allowing flexible model selection while maintaining cost efficiency.
+    Single source of truth for LLM configuration across all crews in epic_news.
+    ``MODEL`` picks the route: ``openrouter/...`` goes through OpenRouter's
+    OpenAI-compatible endpoint; any other LiteLLM prefix (``gemini/``,
+    ``vertex_ai/``, ``anthropic/``, ...) uses that provider natively.
 
     Environment Variables:
         MODEL: Model identifier (default: "openrouter/mistralai/mistral-small-2603")
-        OPENROUTER_API_KEY: OpenRouter API key
-        LLM_TEMPERATURE: Response randomness (0.0-2.0, default: 0.7)
+        OPENROUTER_API_KEY: OpenRouter API key (openrouter/ route only)
+        OPENROUTER_BASE_URL: OpenRouter endpoint (default: https://openrouter.ai/api/v1)
+        LLM_TEMPERATURE: Response randomness (0.0-2.0, default: 0.7; never applied
+            to Gemini models, which should keep their default of 1.0)
         LLM_MAX_TOKENS: Maximum response tokens (optional)
+        LLM_REASONING_EFFORT: none/minimal/low/medium/high. Opt-in, except for
+            Gemini 3 models where it defaults to "medium"
         LLM_TIMEOUT_QUICK: Timeout for quick tasks (default: 120s)
         LLM_TIMEOUT_DEFAULT: Timeout for standard tasks (default: 300s)
         LLM_TIMEOUT_LONG: Timeout for complex tasks (default: 600s)
+        LLM_EMPTY_RETRIES: Re-issues of a call that returned empty text (default: 2)
         CREW_MAX_ITER: Maximum iterations per crew (default: 5)
         CREW_MAX_RPM: Maximum requests per minute (default: 20)
-        OPENROUTER_MIDDLE_OUT: Enable middle-out compression (default: true)
-
-    OpenRouter Transforms:
-        The "middle-out" transform automatically compresses prompts that exceed
-        the model's context window by removing content from the middle while
-        preserving the beginning (system prompts) and end (recent context).
-        This is enabled by default to prevent context overflow errors.
 
     Usage:
         >>> from epic_news.config.llm_config import LLMConfig
         >>> llm = LLMConfig.get_openrouter_llm()
-        >>> timeout = LLMConfig.get_timeout("long")
+        >>> slow_llm = LLMConfig.get_openrouter_llm(task_type="long")
     """
 
     @staticmethod
@@ -375,96 +415,73 @@ class LLMConfig:
         model: str | None = None,
         temperature: float | None = None,
         max_tokens: int | None = None,
-        enable_middle_out: bool | None = None,
         reasoning_effort: str | None = None,
+        task_type: Literal["quick", "default", "long"] = "default",
     ) -> LLM:
-        """Get CrewAI LLM instance configured for OpenRouter.
+        """Build the CrewAI LLM every agent should use.
 
-        This method creates a CrewAI LLM instance configured to use
-        OpenRouter's API. It reads configuration from environment variables,
-        with sensible defaults for missing values.
+        Despite the historical name this is route-aware: OpenRouter transport is
+        applied only to ``openrouter/`` models (see class docstring).
 
         Args:
             model: Model name (e.g., "openrouter/mistralai/mistral-small-2603").
                    If None, uses MODEL from .env.
-            temperature: LLM temperature (0.0-2.0). Controls response randomness.
-                        Lower values (0.0-0.3) are more deterministic.
-                        Higher values (0.7-2.0) are more creative.
-                        If None, uses LLM_TEMPERATURE from .env (default: 0.7).
-            max_tokens: Maximum response tokens. Limits response length.
-                       If None, uses LLM_MAX_TOKENS from .env (unlimited if not set).
-            enable_middle_out: Enable OpenRouter's middle-out compression to handle
-                              context overflow. When enabled, prompts exceeding the
-                              model's context window are automatically compressed.
-                              If None, uses OPENROUTER_MIDDLE_OUT from .env (default: true).
-            reasoning_effort: Reasoning effort level for models that support it
-                             (e.g., Mistral Magistral: "low", "medium", "high").
-                             If None, reads LLM_REASONING_EFFORT from .env.
-                             Only applied when set to a non-empty value other than "none".
+            temperature: LLM temperature (0.0-2.0). If None, uses LLM_TEMPERATURE
+                        from .env (default: 0.7) — except for Gemini models on any
+                        route, where the env default is not sent (Gemini 3 should
+                        run at its default 1.0). An explicit value is always sent.
+            max_tokens: Maximum response tokens. If None, uses LLM_MAX_TOKENS
+                       from .env (unlimited if not set).
+            reasoning_effort: "none", "minimal", "low", "medium" or "high". If None,
+                             reads LLM_REASONING_EFFORT from .env. When unset/empty,
+                             Gemini 3 models default to "medium" (LiteLLM maps it
+                             to thinking_level); other models send nothing. "none"
+                             sends nothing, except on Gemini 3 where it is sent
+                             (LiteLLM maps it to the lowest thinking level; leaving
+                             it out would mean the API default "high").
+                             On ``openrouter/`` models it is sent as
+                             ``extra_body={"reasoning": {"effort": ...}}``: LiteLLM
+                             drops a top-level ``reasoning_effort`` for OpenRouter
+                             models it doesn't know to support reasoning.
+            task_type: Per-call request timeout tier, see :meth:`get_timeout`.
 
         Returns:
-            CrewAI LLM instance configured for OpenRouter API.
+            CrewAI LLM instance (always LiteLLM-backed).
 
         Example:
-            >>> # Use default configuration (with middle-out enabled)
             >>> llm = LLMConfig.get_openrouter_llm()
-            >>>
-            >>> # Override temperature for creative tasks
             >>> creative_llm = LLMConfig.get_openrouter_llm(temperature=1.2)
-            >>>
-            >>> # Use different model
-            >>> opus_llm = LLMConfig.get_openrouter_llm(
-            ...     model="openrouter/anthropic/claude-3.5-sonnet"
-            ... )
-            >>>
-            >>> # Disable middle-out for precise context control
-            >>> precise_llm = LLMConfig.get_openrouter_llm(enable_middle_out=False)
+            >>> research_llm = LLMConfig.get_openrouter_llm(task_type="long")
         """
-        # Get model from parameter or environment
-        model_name = model or os.getenv("MODEL", "openrouter/mistralai/mistral-small-2603")
+        resolved_model = model or os.getenv("MODEL") or _DEFAULT_MODEL
+        model_lower = resolved_model.lower()
+        is_openrouter = model_lower.startswith("openrouter/")
+        is_gemini = "gemini" in model_lower
+        is_gemini3 = "gemini-3" in model_lower  # same test LiteLLM uses
 
-        # Get temperature from parameter or environment
+        # Gemini 3+ deprecates temperature/top_p/top_k and LiteLLM recommends keeping
+        # the default 1.0. Drop the env-derived default on every route
+        # (gemini/, vertex_ai/, openrouter/google/); an explicit caller value is kept.
         temp = temperature
-        if temp is None:
-            temp_str = os.getenv("LLM_TEMPERATURE", "0.7")
-            temp = float(temp_str)
+        if temp is None and not is_gemini:
+            temp = float(os.getenv("LLM_TEMPERATURE", "0.7"))
 
-        # Get max_tokens from parameter or environment
         tokens = max_tokens
         if tokens is None:
             max_tokens_str = os.getenv("LLM_MAX_TOKENS")
             if max_tokens_str is not None and max_tokens_str.strip():
                 tokens = int(max_tokens_str)
 
-        # Get middle-out setting from parameter or environment (default: enabled)
-        middle_out = enable_middle_out
-        if middle_out is None:
-            middle_out_str = os.getenv("OPENROUTER_MIDDLE_OUT", "true").lower()
-            middle_out = middle_out_str in ("true", "1", "yes", "on")
-
-        # Resolve reasoning_effort from parameter or environment (opt-in only).
-        # Normalize empty/"none" to None: the LiteLLM LLM class validates this
-        # against Literal['none','low','medium','high'] and rejects "" (the old
-        # native provider silently tolerated the empty string).
-        effort = reasoning_effort
+        # Normalize the value itself: LiteLLM validates against a lowercase Literal,
+        # so "LOW"/" Low " must become "low", and "" must become None.
+        effort: str | None = reasoning_effort
         if effort is None:
             effort = os.getenv("LLM_REASONING_EFFORT", "")
-        # Normalize the value itself (not just the sentinel check): LiteLLM
-        # validates against a lowercase Literal, so "LOW"/" Low " must become "low".
-        effort = effort.strip().lower() if effort else ""
-        if effort in ("none", ""):
+        effort = effort.strip().lower()
+        if not effort:
+            effort = _GEMINI3_DEFAULT_REASONING_EFFORT if is_gemini3 else None
+        elif effort == "none" and not is_gemini3:
             effort = None
-
-        # Note: OpenRouter middle-out transforms are not supported by CrewAI's
-        # native LLM class (which uses its own OpenAI client). OpenRouter handles
-        # context overflow gracefully server-side regardless.
-
-        resolved_model = model_name or "openrouter/mistralai/mistral-small-2603"
-
-        # Gemini 3+ deprecates temperature/top_p/top_k (LiteLLM DeprecationWarning).
-        # Drop the env-derived default there; an explicit caller value is kept.
-        if resolved_model.startswith("gemini/") and temperature is None:
-            temp = None
 
         # Route-aware transport. Only "openrouter/"-prefixed models go through
         # OpenRouter's OpenAI-compatible endpoint (api_key + base_url below). Every
@@ -472,9 +489,15 @@ class LLMConfig:
         # provider that resolves its own credentials from the environment (e.g.
         # GEMINI_API_KEY for gemini/), so forcing OpenRouter's base_url/api_key
         # would break it. Leave both unset and let LiteLLM take the native route.
-        if resolved_model.startswith("openrouter/"):
+        # Keys CrewAI's LLM does not declare land in ``additional_params`` and are
+        # forwarded verbatim to litellm.completion (crewai LLM._prepare_completion_params).
+        extra: dict[str, Any] = {"num_retries": _LITELLM_NUM_RETRIES}
+        if is_openrouter:
             api_key: str | None = os.getenv("OPENROUTER_API_KEY")
-            base_url: str | None = "https://openrouter.ai/api/v1"
+            base_url: str | None = os.getenv("OPENROUTER_BASE_URL") or _DEFAULT_OPENROUTER_BASE_URL
+            if effort is not None:
+                extra["extra_body"] = {"reasoning": {"effort": effort}}
+                effort = None
         else:
             api_key = None
             base_url = None
@@ -495,6 +518,8 @@ class LLMConfig:
             temperature=temp,
             max_tokens=tokens,
             reasoning_effort=effort,  # type: ignore[arg-type]
+            timeout=LLMConfig.get_timeout(task_type),
+            **extra,
         )
         # Contract marker asserted by tests/crews/test_agent_llm_contract.py —
         # distinguishes LLMConfig-configured agents from CrewAI env-fallback LLMs.

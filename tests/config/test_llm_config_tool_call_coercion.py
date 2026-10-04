@@ -20,6 +20,7 @@ from types import SimpleNamespace
 from crewai import LLM
 from crewai.llms.base_llm import BaseLLM
 
+from epic_news.config import llm_config
 from epic_news.config.llm_config import _coerce_tool_calls_to_react_text
 
 
@@ -157,6 +158,11 @@ class TestAsyncCallWrapper:
 
     def test_acall_retries_empty_responses(self, monkeypatch):
         monkeypatch.setenv("LLM_EMPTY_RETRIES", "3")
+
+        async def no_sleep(seconds: float) -> None:
+            return None
+
+        monkeypatch.setattr(llm_config, "_async_sleep", no_sleep)
         seen = {"n": 0}
 
         class _FlakyAsyncProvider(BaseLLM):

@@ -8,12 +8,31 @@ yields text. These tests exercise the retry loop deterministically (no live call
 plus the emptiness predicate and confirm the class patch is applied.
 """
 
-from crewai import LLM
+import asyncio
 
+import pytest
+from crewai import LLM
+from crewai.llms.base_llm import BaseLLM
+
+from epic_news.config import llm_config
 from epic_news.config.llm_config import (
+    _acall_with_empty_retry,
     _call_with_empty_retry,
     _is_empty_llm_response,
 )
+
+
+@pytest.fixture(autouse=True)
+def sleeps(monkeypatch):
+    """Record backoff delays instead of sleeping for real (sync and async)."""
+    delays: list[float] = []
+
+    async def fake_async_sleep(seconds: float) -> None:
+        delays.append(seconds)
+
+    monkeypatch.setattr(llm_config, "_sleep", delays.append)
+    monkeypatch.setattr(llm_config, "_async_sleep", fake_async_sleep)
+    return delays
 
 
 def test_is_empty_llm_response_predicate():
@@ -75,3 +94,45 @@ def test_max_retries_zero_disables_retry():
 
 def test_llm_call_is_patched():
     assert getattr(LLM, "_retry_on_empty_patched", False) is True
+
+
+def test_backoff_sleeps_once_per_retry_and_grows(sleeps):
+    _call_with_empty_retry(lambda: "", max_retries=4, model="m")
+    assert len(sleeps) == 4
+    # Exponential base 0.5s with jitter in [50%, 100%] of the nominal delay.
+    for attempt, delay in enumerate(sleeps, start=1):
+        nominal = min(8.0, 0.5 * 2 ** (attempt - 1))
+        assert nominal / 2 <= delay <= nominal
+
+
+def test_backoff_is_capped(sleeps):
+    _call_with_empty_retry(lambda: "", max_retries=10, model="m")
+    assert max(sleeps) <= 8.0
+    assert sleeps[-1] >= 4.0  # nominal capped at 8s, jitter keeps it >= half
+
+
+def test_no_sleep_when_first_call_succeeds(sleeps):
+    _call_with_empty_retry(lambda: "text", max_retries=4, model="m")
+    assert sleeps == []
+
+
+def test_async_backoff_uses_async_sleep(sleeps):
+    async def call_fn():
+        return ""
+
+    asyncio.run(_acall_with_empty_retry(call_fn, max_retries=3, model="m"))
+    assert len(sleeps) == 3
+
+
+def test_default_empty_retries_is_two(monkeypatch, sleeps):
+    monkeypatch.delenv("LLM_EMPTY_RETRIES", raising=False)
+    seen = {"n": 0}
+
+    class _AlwaysEmpty(BaseLLM):
+        def call(self, messages, **kwargs):
+            seen["n"] += 1
+            return ""
+
+    _AlwaysEmpty(model="fake/model").call([])
+    assert seen["n"] == 3  # 1 initial + 2 retries
+    assert len(sleeps) == 2
