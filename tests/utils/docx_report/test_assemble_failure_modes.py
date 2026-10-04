@@ -8,6 +8,7 @@ still logged "DOCX written" and clobbered ``output/holiday/itinerary.docx``
 with a file containing nothing but placeholders.
 """
 
+import time
 from pathlib import Path
 
 import pytest
@@ -16,12 +17,14 @@ from epic_news.utils.docx_report import Section, assemble_fragments
 
 
 class _RaisingLLM:
-    def __init__(self, exc: BaseException):
+    def __init__(self, exc: BaseException, delay: float = 0.0):
         self.exc = exc
+        self.delay = delay
         self.calls = 0
 
     def call(self, messages):
         self.calls += 1
+        time.sleep(self.delay)
         raise self.exc
 
 
@@ -41,24 +44,24 @@ class _FlakyLLM:
 _META = {"title": "T", "author": "Epic News", "date": ""}
 
 
-def test_executor_shutdown_aborts_immediately(tmp_path):
-    """Shutdown is unrecoverable: abort on the first one, write nothing."""
-    llm = _RaisingLLM(RuntimeError("cannot schedule new futures after shutdown"))
+def test_executor_shutdown_aborts_immediately(tmp_path, monkeypatch):
+    """Shutdown is unrecoverable: abort, stop unstarted sections, write nothing."""
+    monkeypatch.setenv("DOCX_FRAGMENT_CONCURRENCY", "2")
+    llm = _RaisingLLM(RuntimeError("cannot schedule new futures after shutdown"), delay=0.05)
     out = tmp_path / "r.docx"
 
     with pytest.raises(RuntimeError, match="cannot schedule new futures"):
         assemble_fragments(
-            [
-                Section("Intro", instruction="i", context="c"),
-                Section("Budget", instruction="i", context="c"),
-            ],
+            [Section(f"S{i}", instruction="i", context="c") for i in range(10)],
             _META,
             str(out),
             llm,
             system="sys",
         )
 
-    assert llm.calls == 1  # no burning through the remaining sections
+    # Narration is parallel (2 workers): each worker may start one more section before
+    # the pool cancels the rest, so at most 2 x workers calls happen.
+    assert llm.calls <= 4
     assert not out.exists()
 
 

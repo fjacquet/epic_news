@@ -4,6 +4,7 @@ from typing import Any
 
 from loguru import logger
 
+from epic_news.utils.concurrency import bounded_map
 from epic_news.utils.docx_report.docx_builder import build_docx
 from epic_news.utils.docx_report.fragments import generate_fragment, placeholder_for
 from epic_news.utils.docx_report.sections import Section
@@ -17,16 +18,25 @@ def assemble_fragments(
     A single failed narration degrades to a placeholder, but a report whose majority is
     placeholders is not a report: it would silently overwrite the previous, good output
     with an empty shell. In that case abort before writing anything.
+
+    Narrated sections run in parallel (DOCX_FRAGMENT_CONCURRENCY, default 3); output keeps
+    section order.
     """
-    fragments: list[tuple[str, str]] = []
-    placeholders = 0
-    for s in sections:
-        if s.body is not None:
-            fragments.append((s.heading, s.body))
-            continue
-        fragment = generate_fragment(s.heading, s.instruction or "", s.context or "", llm, system)
-        placeholders += fragment == placeholder_for(s.heading)
-        fragments.append((s.heading, fragment))
+
+    def _render(section: Section) -> str:
+        if section.body is not None:
+            return section.body
+        return generate_fragment(
+            section.heading, section.instruction or "", section.context or "", llm, system
+        )
+
+    bodies = bounded_map(_render, sections, "DOCX_FRAGMENT_CONCURRENCY")
+    fragments = [(s.heading, body) for s, body in zip(sections, bodies, strict=True)]
+    placeholders = sum(
+        1
+        for s, body in zip(sections, bodies, strict=True)
+        if s.body is None and body == placeholder_for(s.heading)
+    )
 
     if placeholders * 2 > len(sections):
         logger.error(
