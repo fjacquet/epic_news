@@ -393,7 +393,9 @@ class StructuredReportTool(BaseTool):
                 )
 
                 # Create Jinja2 environment
-                env = Environment(loader=FileSystemLoader(templates_dir), autoescape=select_autoescape(["html", "xml"]))
+                env = Environment(
+                    loader=FileSystemLoader(templates_dir), autoescape=select_autoescape(["html", "xml"])
+                )
                 template = env.get_template("data_report_template.html")
 
                 # Render the template

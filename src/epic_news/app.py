@@ -48,7 +48,8 @@ def get_session_log_queue(session_state) -> Queue:
             StreamlitLogSink(queue), format="{time:YYYY-MM-DD HH:mm:ss} - {level} - {message}"
         )
         session_state["log_queue"] = queue
-    return session_state["log_queue"]
+    session_queue: Queue = session_state["log_queue"]
+    return session_queue
 
 
 log_queue = get_session_log_queue(st.session_state)

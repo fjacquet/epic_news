@@ -33,7 +33,9 @@ def require_token(
     """Check the bearer token against EPIC_API_TOKEN; fail closed if it is unset."""
     expected = os.getenv("EPIC_API_TOKEN", "")
     if not expected:
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="API token not configured")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="API token not configured"
+        )
     supplied = credentials.credentials if credentials else ""
     if not hmac.compare_digest(supplied.encode(), expected.encode()):
         raise HTTPException(
@@ -75,6 +77,8 @@ async def kickoff_endpoint(request: KickoffRequest, background_tasks: Background
     concurrency cap (EPIC_API_MAX_CONCURRENT) is reached.
     """
     if not _kickoff_slots.acquire(blocking=False):
-        raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="A kickoff is already running")
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="A kickoff is already running"
+        )
     background_tasks.add_task(_run_kickoff, user_input=request.user_request)
     return {"message": "Crew kickoff initiated successfully.", "user_request": request.user_request}

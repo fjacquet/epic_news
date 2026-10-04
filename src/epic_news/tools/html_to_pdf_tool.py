@@ -17,7 +17,7 @@ try:
 except (ImportError, OSError) as e:
     WEASYPRINT_AVAILABLE = False
     HTML = None
-    URLFetcher = object  # type: ignore[assignment,misc]
+    URLFetcher = object
     _weasyprint_error = str(e)
 
 
@@ -41,7 +41,7 @@ def is_allowed_resource_url(url: str, root: Path) -> bool:
     return False
 
 
-class OutputOnlyURLFetcher(URLFetcher):  # type: ignore[misc,valid-type]
+class OutputOnlyURLFetcher(URLFetcher):
     """WeasyPrint fetcher that blocks network access and files outside output/."""
 
     def __init__(self, root: Path, **kwargs):
@@ -99,9 +99,13 @@ class HtmlToPdfTool(BaseTool):
 
             root = _output_root()
             if not _is_inside(Path(html_file_path), root):
-                return f"Error: HTML file path '{html_file_path}' must be inside the project output directory."
+                return (
+                    f"Error: HTML file path '{html_file_path}' must be inside the project output directory."
+                )
             if not _is_inside(Path(output_pdf_path), root):
-                return f"Error: Output PDF path '{output_pdf_path}' must be inside the project output directory."
+                return (
+                    f"Error: Output PDF path '{output_pdf_path}' must be inside the project output directory."
+                )
 
             if not os.path.exists(html_file_path):
                 return f"Error: HTML input file not found at '{html_file_path}'."
