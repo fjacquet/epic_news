@@ -44,8 +44,9 @@ class _FlakyLLM:
 _META = {"title": "T", "author": "Epic News", "date": ""}
 
 
-def test_executor_shutdown_aborts_immediately(tmp_path):
+def test_executor_shutdown_aborts_immediately(tmp_path, monkeypatch):
     """Shutdown is unrecoverable: abort, stop unstarted sections, write nothing."""
+    monkeypatch.setenv("DOCX_FRAGMENT_CONCURRENCY", "2")
     llm = _RaisingLLM(RuntimeError("cannot schedule new futures after shutdown"), delay=0.05)
     out = tmp_path / "r.docx"
 
@@ -58,8 +59,9 @@ def test_executor_shutdown_aborts_immediately(tmp_path):
             system="sys",
         )
 
-    # Narration is parallel (3 workers): in-flight calls may finish, the rest never start.
-    assert llm.calls < 10
+    # Narration is parallel (2 workers): each worker may start one more section before
+    # the pool cancels the rest, so at most 2 x workers calls happen.
+    assert llm.calls <= 4
     assert not out.exists()
 
 
