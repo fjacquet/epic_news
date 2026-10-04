@@ -5,6 +5,7 @@ Gère l'utilisation des templates HTML unifiés avec support du dark mode
 et expérience utilisateur cohérente.
 """
 
+import html
 from datetime import datetime
 from functools import cache
 from pathlib import Path
@@ -113,7 +114,7 @@ class TemplateManager:
             # Replace placeholders in the template
             html_content = template_html.replace("{{ theme_css_vars }}", generate_theme_css())
             html_content = html_content.replace("{{ static_css }}", _load_static_css())
-            html_content = html_content.replace("{{ report_title }}", title)
+            html_content = html_content.replace("{{ report_title }}", html.escape(title, quote=False))
             html_content = html_content.replace("{{ report_body|safe }}", body_content)
             html_content = html_content.replace(
                 "{{ generation_date }}", datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -138,8 +139,8 @@ class TemplateManager:
             </head>
             <body>
                 <h1>Erreur lors de la génération du rapport</h1>
-                <p>Une erreur s'est produite: {e}</p>
-                <pre>{str(content_data)[:1000]}...</pre>
+                <p>Une erreur s'est produite: {html.escape(str(e))}</p>
+                <pre>{html.escape(str(content_data)[:1000])}...</pre>
             </body>
             </html>
             """

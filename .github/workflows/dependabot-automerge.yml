@@ -8,7 +8,7 @@ name: Dependabot auto-merge
 # It is safe here because the job never checks out the PR: there is no
 # `actions/checkout` step, so no untrusted code runs with the write-scoped
 # token. Do not add one.
-on: pull_request_target # zizmor: ignore[dangerous-triggers]
+on: pull_request_target  # zizmor: ignore[dangerous-triggers]
 
 permissions:
   contents: write
@@ -21,7 +21,15 @@ jobs:
     # zizmor flags as spoofable (bot-conditions).
     if: github.event.pull_request.user.login == 'dependabot[bot]'
     steps:
-      - name: Enable auto-merge for Dependabot PRs
+      - name: Fetch Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98  # v3.1.0
+
+      # Only patch and minor bumps merge unattended; majors wait for a human.
+      - name: Enable auto-merge for patch and minor updates
+        if: >-
+          steps.metadata.outputs.update-type == 'version-update:semver-patch' ||
+          steps.metadata.outputs.update-type == 'version-update:semver-minor'
         run: gh pr merge --auto --rebase "$PR_URL"
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}

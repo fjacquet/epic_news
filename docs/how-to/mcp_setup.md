@@ -43,15 +43,22 @@ uv tool install wikipedia-mcp-server
 
 **Configuration** (`src/epic_news/config/mcp_config.py`):
 ```python
-from mcp.server import MCPServerStdio
+import sysconfig
+from pathlib import Path
+
+from mcp import StdioServerParameters
 
 def get_wikipedia_mcp():
-    """Configure Wikipedia MCP server."""
-    return MCPServerStdio(
-        command="uvx",
-        args=["wikipedia-mcp-server@latest"],
+    """Run the locked wikipedia-mcp-server dependency from this venv."""
+    return StdioServerParameters(
+        command=str(Path(sysconfig.get_path("scripts")) / "wikipedia-mcp"),
+        args=[],
+        env={},
     )
 ```
+
+The server comes from the locked `wikipedia-mcp-server` dependency in
+`uv.lock`; it is never fetched at runtime (no `uvx ...@latest`).
 
 **Crews Using Wikipedia MCP**:
 - `deep_research`: Replaces custom WikipediaTool with maintained MCP server
@@ -211,7 +218,7 @@ Update:
 3. Test server manually:
    ```bash
    # Run server in isolation
-   uvx wikipedia-mcp-server@latest
+   uv run wikipedia-mcp
    ```
 
 ### Tool Not Found

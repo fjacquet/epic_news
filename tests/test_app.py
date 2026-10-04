@@ -1,7 +1,36 @@
 from queue import Queue
 from unittest.mock import MagicMock, mock_open, patch
 
-from epic_news.app import run_crew_thread
+from epic_news.app import get_session_log_queue, render_html_report, run_crew_thread
+
+
+@patch("epic_news.app.logger")
+def test_session_log_sink_registered_once_per_session(mock_logger):
+    """Reruns of the same session must reuse the queue and not add another loguru sink."""
+    session_state: dict = {}
+
+    first = get_session_log_queue(session_state)
+    second = get_session_log_queue(session_state)
+
+    assert first is second
+    mock_logger.add.assert_called_once()
+
+
+@patch("epic_news.app.logger")
+def test_each_session_gets_its_own_log_queue(mock_logger):
+    queue_a = get_session_log_queue({})
+    queue_b = get_session_log_queue({})
+
+    assert queue_a is not queue_b
+    assert mock_logger.add.call_count == 2
+
+
+@patch("epic_news.app.st")
+def test_html_report_fallback_is_not_rendered_unsafely(mock_st):
+    render_html_report("<script>alert(1)</script><p>Report</p>")
+
+    mock_st.html.assert_called_once_with("<script>alert(1)</script><p>Report</p>")
+    mock_st.markdown.assert_not_called()
 
 
 @patch("epic_news.app.kickoff")

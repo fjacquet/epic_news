@@ -4,7 +4,7 @@ services:
     container_name: epic-news-api
     restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "${EPIC_API_BIND:-127.0.0.1}:8000:8000"
     volumes:
       - ./.env:/app/.env
       - ./db:/app/db
@@ -13,6 +13,8 @@ services:
     environment:
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1
+      - EPIC_API_TOKEN=${EPIC_API_TOKEN:-}
+      - EPIC_API_MAX_CONCURRENT=${EPIC_API_MAX_CONCURRENT:-1}
     networks:
       - epic-news-network
     healthcheck:
@@ -27,7 +29,7 @@ services:
     container_name: epic-news-streamlit
     restart: unless-stopped
     ports:
-      - "8501:8501"
+      - "127.0.0.1:8501:8501"
     volumes:
       - ./.env:/app/.env
       - ./db:/app/db
