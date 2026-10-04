@@ -2,6 +2,7 @@ import asyncio
 import contextlib
 import threading
 import time
+from concurrent.futures import Future
 
 import pytest
 
@@ -222,3 +223,107 @@ def test_sync_call_on_loop_thread_takes_a_free_slot(monkeypatch):
     slots = llm_config._slots()
     assert slots.acquire(blocking=False)  # and released it afterwards
     slots.release()
+
+
+def _assert_all_slots_free(limit: int) -> None:
+    slots = llm_config._slots()
+    taken = [slots.acquire(blocking=False) for _ in range(limit + 1)]
+    for ok in taken:
+        if ok:
+            slots.release()
+    assert taken == [True] * limit + [False]
+
+
+def test_sync_waiter_gives_up_after_slot_wait_and_runs_uncapped(monkeypatch):
+    monkeypatch.setenv("LLM_MAX_CONCURRENCY", "1")
+    monkeypatch.setenv("LLM_SLOT_WAIT_SECONDS", "0.2")
+    llm_config._reset_llm_slots()
+    slots = llm_config._slots()
+    slots.acquire()  # held elsewhere for the whole call
+    result: list = []
+    t = threading.Thread(target=lambda: result.append(llm_config._with_llm_slot(lambda: "ran")), daemon=True)
+    t.start()
+    t.join(timeout=5)
+    slots.release()
+    assert not t.is_alive()
+    assert result == ["ran"]
+    _assert_all_slots_free(1)  # the uncapped call released nothing it did not take
+
+
+def test_uncapped_call_is_reentrant_and_nested_call_does_not_wait(monkeypatch):
+    monkeypatch.setenv("LLM_MAX_CONCURRENCY", "1")
+    monkeypatch.setenv("LLM_SLOT_WAIT_SECONDS", "0.5")
+    llm_config._reset_llm_slots()
+    slots = llm_config._slots()
+    slots.acquire()
+    seen: dict = {}
+
+    def outer():
+        seen["holds"] = llm_config._holds_slot.get()
+        start = time.monotonic()
+        seen["nested"] = llm_config._with_llm_slot(lambda: "in")
+        seen["nested_seconds"] = time.monotonic() - start
+        return "out"
+
+    result: list = []
+    t = threading.Thread(target=lambda: result.append(llm_config._with_llm_slot(outer)), daemon=True)
+    t.start()
+    t.join(timeout=5)
+    slots.release()
+    assert result == ["out"]
+    assert seen["holds"] is True
+    assert seen["nested"] == "in"
+    assert seen["nested_seconds"] < 0.25  # did not wait another 0.5 s
+    _assert_all_slots_free(1)
+
+
+def test_async_waiter_gives_up_after_slot_wait_and_runs_uncapped(monkeypatch):
+    monkeypatch.setenv("LLM_MAX_CONCURRENCY", "1")
+    monkeypatch.setenv("LLM_SLOT_WAIT_SECONDS", "0.2")
+    llm_config._reset_llm_slots()
+    slots = llm_config._slots()
+    slots.acquire()
+
+    async def body():
+        return "ran"
+
+    async def main():
+        return await asyncio.wait_for(llm_config._awith_llm_slot(body), timeout=5)
+
+    still_blocked, result = _run_on_loop_with_timeout(main)
+    slots.release()
+    assert not still_blocked
+    assert result == ["ran"]
+    _assert_all_slots_free(1)
+
+
+def test_multi_chunk_summary_on_helper_loop_does_not_deadlock(monkeypatch):
+    # Regression (final review I1, multi-chunk variant): coroutines on loop A hold every
+    # slot; the loop-A thread blocks on a pool future whose worker runs
+    # asyncio.run(_awith_llm_slot(...)) (crewai summarize_messages with several chunks).
+    monkeypatch.setenv("LLM_MAX_CONCURRENCY", "3")
+    monkeypatch.setenv("LLM_SLOT_WAIT_SECONDS", "0.3")
+    llm_config._reset_llm_slots()
+
+    async def holder():
+        return await llm_config._awith_llm_slot(lambda: asyncio.sleep(0.5))
+
+    async def chunk():
+        return "summary"
+
+    async def summariser():
+        await asyncio.sleep(0.1)  # all 3 slots now held by the holders
+        # A daemon helper (not a ThreadPoolExecutor, whose workers are joined at exit)
+        # so a deadlock fails the test instead of hanging the interpreter.
+        future: Future = Future()
+        coro = llm_config._awith_llm_slot(chunk)
+        threading.Thread(target=lambda: future.set_result(asyncio.run(coro)), daemon=True).start()
+        return future.result()  # blocks the loop-A thread, like crewai's pool.submit(...).result()
+
+    async def main():
+        return await asyncio.gather(*(holder() for _ in range(3)), summariser())
+
+    still_blocked, result = _run_on_loop_with_timeout(main)
+    assert not still_blocked, "multi-chunk summary on a helper loop deadlocked"
+    assert result[0][-1] == "summary"
+    _assert_all_slots_free(3)

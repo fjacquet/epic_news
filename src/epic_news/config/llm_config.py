@@ -49,6 +49,14 @@ def _llm_concurrency() -> int:
         return 3
 
 
+def _slot_wait_seconds() -> float:
+    """Longest wait for an LLM slot before running uncapped (LLM_SLOT_WAIT_SECONDS, default 120)."""
+    try:
+        return max(0.0, float(os.getenv("LLM_SLOT_WAIT_SECONDS", "120")))
+    except ValueError:
+        return 120.0
+
+
 def _slots() -> threading.BoundedSemaphore:
     global _llm_slots
     with _llm_slots_lock:
@@ -72,11 +80,17 @@ def _with_llm_slot[T](call_fn: Callable[[], T]) -> T:
     Reentrant per logical call: crewai's LLM.call re-invokes itself (e.g. when the
     provider rejects ``stop``), and the nested call must not take a second slot.
 
-    Never blocks an event-loop thread: crewai's async executor can make a sync call on
-    the loop thread (``summarize_messages`` on context overflow) while coroutines on
-    that same loop hold every slot, and waiting there would deadlock. On a thread
-    running an event loop the slot is taken only if one is free; otherwise the call
-    runs uncapped, with a warning. Threads without a running loop block as usual.
+    The cap is a soft limit, so it can never hang a run:
+
+    * A thread running an event loop never waits: crewai's async executor can make a
+      sync call on the loop thread (``summarize_messages`` on context overflow) while
+      coroutines on that same loop hold every slot. The slot is taken only if one is
+      free; otherwise the call runs uncapped, with a warning.
+    * Other threads wait at most LLM_SLOT_WAIT_SECONDS (default 120), then run uncapped
+      with a warning.
+
+    An uncapped call still marks itself as holding a slot, so its nested calls do not
+    wait again; it never releases a slot it did not take.
     """
     if _holds_slot.get():
         return call_fn()
@@ -84,37 +98,51 @@ def _with_llm_slot[T](call_fn: Callable[[], T]) -> T:
     try:
         asyncio.get_running_loop()
     except RuntimeError:
-        slots.acquire()
+        wait = _slot_wait_seconds()
+        acquired = slots.acquire(timeout=wait)
+        if not acquired:
+            logger.warning(f"Waited {wait:g}s for an LLM slot; running this call uncapped")
     else:
-        if not slots.acquire(blocking=False):
+        acquired = slots.acquire(blocking=False)
+        if not acquired:
             logger.warning(
                 "LLM slot busy on an event-loop thread; running this call uncapped to avoid a deadlock"
             )
-            return call_fn()
     token = _holds_slot.set(True)
     try:
         return call_fn()
     finally:
         _holds_slot.reset(token)
-        slots.release()
+        if acquired:
+            slots.release()
 
 
 async def _awith_llm_slot[T](call_fn: Callable[[], Awaitable[T]]) -> T:
     """Async twin of _with_llm_slot; waits for a slot without blocking the event loop.
 
-    Polls a non-blocking acquire so a cancelled waiter can never leak a slot.
+    Polls a non-blocking acquire so a cancelled waiter can never leak a slot. Stops
+    polling after LLM_SLOT_WAIT_SECONDS (default 120) and runs the call uncapped with a
+    warning: a helper loop polling here may be what the slot holders are waiting on
+    (crewai's multi-chunk ``summarize_messages`` blocks the loop thread on it).
     """
     if _holds_slot.get():
         return await call_fn()
     slots = _slots()
-    while not slots.acquire(blocking=False):
+    wait = _slot_wait_seconds()
+    deadline = time.monotonic() + wait
+    acquired = slots.acquire(blocking=False)
+    while not acquired and time.monotonic() < deadline:
         await asyncio.sleep(0.02)
+        acquired = slots.acquire(blocking=False)
+    if not acquired:
+        logger.warning(f"Waited {wait:g}s for an LLM slot; running this call uncapped")
     token = _holds_slot.set(True)
     try:
         return await call_fn()
     finally:
         _holds_slot.reset(token)
-        slots.release()
+        if acquired:
+            slots.release()
 
 
 def _empty_retry_delay(attempt: int) -> float:
