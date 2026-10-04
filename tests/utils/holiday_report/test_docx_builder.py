@@ -167,3 +167,17 @@ def test_build_docx_survives_thematic_break_fences(tmp_path: Path):
     text = _all_text(str(out))
     assert "Note importante" in text
     assert "Fin." in text
+
+
+def test_build_docx_drops_horizontal_rules(tmp_path: Path, monkeypatch):
+    """LLM fragments separate paragraphs with `---` / `***`; no rule may reach the DOCX."""
+    monkeypatch.chdir(tmp_path)
+    out = tmp_path / "output" / "guide.docx"
+
+    build_docx([("Intro", "Un.\n\n---\n\nDeux.\n\n***\n\nTrois.")], {"title": "Carnet"}, str(out))
+
+    with zipfile.ZipFile(out) as archive:
+        body = archive.read("word/document.xml").decode()
+    assert 'o:hr="t"' not in body
+    text = _all_text(str(out))
+    assert "Un." in text and "Deux." in text and "Trois." in text

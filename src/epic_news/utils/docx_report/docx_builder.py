@@ -7,6 +7,7 @@ from loguru import logger
 
 _REFERENCE_DOC = Path(__file__).parent / "reference.docx"
 _SAFE_IMAGES_FILTER = Path(__file__).parent / "safe_images.lua"
+_STRIP_RULES_FILTER = Path(__file__).parent / "strip_rules.lua"
 
 
 def build_docx(fragments: list[tuple[str, str]], meta: dict[str, str], output_path: str) -> str:
@@ -29,7 +30,8 @@ def build_docx(fragments: list[tuple[str, str]], meta: dict[str, str], output_pa
     # DOCX media before running filters. (--sandbox is not an option: distro pandoc
     # builds cannot write DOCX under it.)
     # LLM fragment bodies use `---` as separators. Disable yaml_metadata_block so every
-    # `---` stays a thematic break (otherwise Pandoc dies with exitcode 64).
+    # `---` stays a thematic break (otherwise Pandoc dies with exitcode 64); the
+    # strip_rules filter then drops those breaks so no horizontal rule reaches the DOCX.
     cleaned = pypandoc.convert_text(
         markdown,
         to="json",
@@ -37,6 +39,8 @@ def build_docx(fragments: list[tuple[str, str]], meta: dict[str, str], output_pa
         extra_args=[
             "--lua-filter",
             str(_SAFE_IMAGES_FILTER),
+            "--lua-filter",
+            str(_STRIP_RULES_FILTER),
             "--metadata",
             f"epic_image_root={Path('output').resolve()}",
         ],
