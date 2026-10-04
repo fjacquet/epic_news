@@ -105,13 +105,14 @@ def run(name: str, request: str) -> dict:
 
     main_mod.setup_logging = setup_logging_then_capture
     counter = UsageCounter()
-    litellm.callbacks.append(counter)
+    # CrewAI resets litellm.callbacks on every LLM it builds, so register in success_callback.
+    litellm.success_callback.append(counter)
     start = time.perf_counter()
     try:
         main_mod.kickoff(user_input=request)
     finally:
-        if counter in litellm.callbacks:
-            litellm.callbacks.remove(counter)
+        if counter in litellm.success_callback:
+            litellm.success_callback.remove(counter)
         main_mod.setup_logging = original_setup
         for sink_id in sink_ids:
             logger.remove(sink_id)
