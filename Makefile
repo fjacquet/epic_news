@@ -6,7 +6,7 @@
         pre-commit security type-check deps-audit sbom \
         docker-build-api docker-build-streamlit docker-build-combined \
         docker-build-code-interpreter docker-build-all \
-        run-streamlit run-api run-crew update-kb \
+        run-streamlit run-api run-crew \
         clean-pyc clean-test clean-build clean-all \
         show-deps show-outdated sync lock validate ci-checks all
 
@@ -204,9 +204,6 @@ plot: ## Generate crew plot/diagram
 	@export DYLD_LIBRARY_PATH="/opt/homebrew/lib:$$DYLD_LIBRARY_PATH" && \
 	export PKG_CONFIG_PATH="/opt/homebrew/lib/pkgconfig:$$PKG_CONFIG_PATH" && \
 	crewai flow plot
-
-update-kb: ## Update knowledge base
-	@./bin/update_kb.sh
 
 ##@ Cleanup
 
