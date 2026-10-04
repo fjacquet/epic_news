@@ -42,7 +42,6 @@ from epic_news.crews.company_news.company_news_crew import CompanyNewsCrew
 from epic_news.crews.company_profiler.company_profiler_crew import CompanyProfilerCrew
 from epic_news.crews.cooking.cooking_crew import CookingCrew
 from epic_news.crews.cross_reference_report_crew.cross_reference_report_crew import CrossReferenceReportCrew
-from epic_news.crews.cross_reference_report_crew.synthesis_crew import CrossReferenceSynthesisCrew
 from epic_news.crews.deep_research.deep_research import DeepResearchCrew
 from epic_news.crews.fin_daily.fin_daily import FinDailyCrew
 from epic_news.crews.geospatial_analysis.geospatial_analysis_crew import GeospatialAnalysisCrew
@@ -147,33 +146,6 @@ hallucination_guard = observability_tools["hallucination_guard"]
 # state.output_file still points here at email time, no crew produced a report and the
 # email step must refuse to deliver this JSON as if it were one.
 CLASSIFY_DECISION_FILE = "output/classify/decision.md"
-
-_OSINT_SOURCE_FILES = (
-    "company_profile",
-    "tech_stack",
-    "web_presence",
-    "hr_intelligence",
-    "legal_analysis",
-    "geospatial_analysis",
-)
-
-
-def _cross_reference_mode() -> str:
-    """CROSS_REFERENCE_MODE: 'synthesis' or the default 'research'."""
-    mode = os.getenv("CROSS_REFERENCE_MODE", "research").strip().lower()
-    return mode if mode in {"research", "synthesis"} else "research"
-
-
-def _osint_reports_json(osint_dir: Path) -> str:
-    """Compact JSON of the OSINT reports present in osint_dir (unreadable files skipped)."""
-    reports: dict[str, Any] = {}
-    for name in _OSINT_SOURCE_FILES:
-        path = osint_dir / f"{name}.json"
-        try:
-            reports[name] = json.loads(path.read_text(encoding="utf-8"))
-        except (OSError, ValueError):
-            logger.warning(f"⚠️ OSINT report {path} missing or unreadable; left out of the synthesis")
-    return json.dumps(reports, ensure_ascii=False, separators=(",", ":"))
 
 
 def _category_from_classification(result: Any, categories: dict[str, str]) -> str:
@@ -1351,10 +1323,6 @@ class ReceptionFlow(Flow[ContentState]):
             except Exception:
                 model = parse_crewai_output(output, model_class, crew_inputs)
 
-            if _cross_reference_mode() == "synthesis":
-                # The crews' own output_file is not always written; the synthesis reads these files.
-                Path(json_file).write_text(model.model_dump_json(), encoding="utf-8")
-
             html_content = template_manager.render_report(
                 selected_crew=template_id, content_data=model.model_dump()
             )
@@ -1403,12 +1371,7 @@ class ReceptionFlow(Flow[ContentState]):
 
         crew_inputs = inputs.copy()
         crew_inputs["output_file"] = json_file
-        if _cross_reference_mode() == "synthesis":
-            crew_inputs["osint_reports"] = _osint_reports_json(Path("output/osint"))
-            self.logger.info("🔗 Cross-reference mode: synthesis of the OSINT reports")
-            output = await akickoff_flow(CrossReferenceSynthesisCrew(), crew_inputs)
-        else:
-            output = await akickoff_flow(CrossReferenceReportCrew(), crew_inputs)
+        output = await akickoff_flow(CrossReferenceReportCrew(), crew_inputs)
         self.state.cross_reference_report = output
 
         dump_crewai_state(output, "CROSS_REFERENCE_REPORT")

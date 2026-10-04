@@ -58,3 +58,5 @@ E5 single-call routing: the extraction crew now also picks the crew (`ExtractedI
 | 2026-10-04 | E6 synthesis | 692.8 | CrossReferenceSynthesisCrew | 17.13 | 0 (not reported; output_pydantic call) | 79 | 1361182 | 421837 | 1783019 |
 
 Each run executes the six OSINT crews again (target: Logitech), and those vary a lot from run to run (CompanyProfilerCrew: 1,404k tokens in the research run, 440k in the synthesis run), so wall clock and LiteLLM totals mix that noise with the cross-reference step. The cross-reference crew seconds are the clean comparison: 262.9 s (5 requests, 97k tokens) for research versus 17.1 s for synthesis (CrewAI reports 0 tokens because the single call is structured output). Output files: `output/osint/compare/{research,synthesis}.{html,json}`.
+
+Decision (2026-10-04): the user kept the research mode; the synthesis mode was removed.
