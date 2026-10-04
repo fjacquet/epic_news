@@ -65,7 +65,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PATH=/app/.venv/bin:$PATH
 
 # WeasyPrint runtime libraries, imported by tools/html_to_pdf_tool.py.
+# pandoc: system binary used by pypandoc for DOCX reports.
 RUN apt-get update && apt-get install -y --no-install-recommends \
+        pandoc \
         libpango-1.0-0 \
         libpangoft2-1.0-0 \
         libharfbuzz0b \

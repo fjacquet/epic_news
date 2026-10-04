@@ -49,6 +49,9 @@ jobs:
         enable-cache: true
         prune-cache: false
 
+    - name: Install pandoc (used by pypandoc for DOCX reports)
+      run: sudo apt-get update && sudo apt-get install -y --no-install-recommends pandoc
+
     - name: Install dependencies using Makefile
       run: make dev
 
