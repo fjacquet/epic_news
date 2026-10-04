@@ -1,6 +1,7 @@
 """Centralized LLM configuration (OpenRouter and native LiteLLM routes)."""
 
 import asyncio
+import contextvars
 import json
 import os
 import random
@@ -37,6 +38,7 @@ _async_sleep = asyncio.sleep
 
 _llm_slots: threading.BoundedSemaphore | None = None
 _llm_slots_lock = threading.Lock()
+_holds_slot: contextvars.ContextVar[bool] = contextvars.ContextVar("llm_holds_slot", default=False)
 
 
 def _llm_concurrency() -> int:
@@ -67,18 +69,34 @@ def _with_llm_slot[T](call_fn: Callable[[], T]) -> T:
 
     CrewAI async tasks, the DOCX section pool, the menu recipe pool and the OSINT
     fan-out all start LLM calls in parallel; this is the single place that bounds them.
+    Reentrant per logical call: crewai's LLM.call re-invokes itself (e.g. when the
+    provider rejects ``stop``), and the nested call must not take a second slot.
     """
-    with _slots():
+    if _holds_slot.get():
         return call_fn()
+    with _slots():
+        token = _holds_slot.set(True)
+        try:
+            return call_fn()
+        finally:
+            _holds_slot.reset(token)
 
 
 async def _awith_llm_slot[T](call_fn: Callable[[], Awaitable[T]]) -> T:
-    """Async twin of _with_llm_slot; waits for a slot without blocking the event loop."""
+    """Async twin of _with_llm_slot; waits for a slot without blocking the event loop.
+
+    Polls a non-blocking acquire so a cancelled waiter can never leak a slot.
+    """
+    if _holds_slot.get():
+        return await call_fn()
     slots = _slots()
-    await asyncio.to_thread(slots.acquire)
+    while not slots.acquire(blocking=False):
+        await asyncio.sleep(0.02)
+    token = _holds_slot.set(True)
     try:
         return await call_fn()
     finally:
+        _holds_slot.reset(token)
         slots.release()
 
 
