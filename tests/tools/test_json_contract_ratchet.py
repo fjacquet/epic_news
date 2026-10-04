@@ -18,7 +18,6 @@ JSON_MARKERS = ("json.dumps", "ensure_json_str", "model_dump_json", "to_json")
 # tools only. Shrink-only.
 KNOWN_LEGACY: set[str] = {
     "html_to_pdf_tool.py",
-    "render_report_tool.py",
 }
 
 
