@@ -1296,6 +1296,11 @@ class ReceptionFlow(Flow[ContentState]):
             ),
         ]
 
+        # A crew that fails this run must not leave a previous run's report (maybe another
+        # target) for the consolidated report to pick up.
+        for _, json_file, *_rest in parallel_crews:
+            Path(json_file).unlink(missing_ok=True)
+
         # Create async tasks for all 6 crews
         async def run_crew(
             crew_name: str,
@@ -1322,6 +1327,9 @@ class ReceptionFlow(Flow[ContentState]):
                 self.logger.info(f"📄 Loaded {crew_name} model from saved JSON file")
             except Exception:
                 model = parse_crewai_output(output, model_class, crew_inputs)
+
+            # The crews' own output_file is not always written; the consolidated report reads these.
+            Path(json_file).write_text(model.model_dump_json(), encoding="utf-8")
 
             html_content = template_manager.render_report(
                 selected_crew=template_id, content_data=model.model_dump()
