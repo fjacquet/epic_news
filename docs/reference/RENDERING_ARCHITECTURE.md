@@ -2,7 +2,7 @@
 
 **Audience:** Developers creating crews with HTML output
 **Scope:** Complete guide to epic_news rendering system
-**Related Docs:** [CLAUDE.md](../../CLAUDE.md), [Tutorial: Creating Your First Crew](../tutorials/01_YOUR_FIRST_CREW.md)
+**Related Docs:** [CLAUDE.md](../../CLAUDE.md), [Tutorial: Creating Your First Crew](../tutorials/getting_started.md)
 
 ## Overview
 
@@ -211,21 +211,9 @@ class RendererFactory:
 
     _RENDERER_MAP: dict[str, type[BaseRenderer]] = {
         "BOOK_SUMMARY": BookSummaryRenderer,
-        "COOKING": CookingRenderer,
-        "DEEPRESEARCH": DeepResearchRenderer,
-        "FINDAILY": FinancialRenderer,
-        "GENERIC": GenericRenderer,
-        "HOLIDAY_PLANNER": HolidayRenderer,
-        "MEETING_PREP": MeetingPrepRenderer,
-        "MENU": MenuRenderer,
-        "NEWSDAILY": NewsDailyRenderer,
-        "POEM": PoemRenderer,
-        "RSS_WEEKLY": RssWeeklyRenderer,
-        "SAINT": SaintRenderer,
-        "SHOPPING": ShoppingRenderer,
         "COMPANY_NEWS": CompanyNewsRenderer,
-        "CROSS_REFERENCE_REPORT": CrossReferenceReportRenderer,
-        "SALESPROSPECTING": SalesProspectingRenderer,
+        # ... one entry per crew key (see table below) ...
+        "GENERIC": GenericRenderer,
     }
 
     @classmethod
@@ -235,36 +223,48 @@ class RendererFactory:
         return renderer_class()
 
     @classmethod
+    def get_supported_crew_types(cls) -> list[str]:
+        return list(cls._RENDERER_MAP.keys())
+
+    @classmethod
     def has_specialized_renderer(cls, crew_type: str) -> bool:
         """Check if a crew type has a specialized renderer."""
         return crew_type in cls._RENDERER_MAP
-
-    @classmethod
-    def register_renderer(cls, crew_type: str, renderer_class: type[BaseRenderer]) -> None:
-        """Register a new renderer for a crew type."""
-        cls._RENDERER_MAP[crew_type] = renderer_class
 ```
 
-**Supported Renderers (16 total):**
+New renderers are registered by adding an entry to `_RENDERER_MAP` (there is no
+runtime registration method).
 
-| Crew Type | Renderer Class | Description |
-|-----------|----------------|-------------|
-| `BOOK_SUMMARY` | `BookSummaryRenderer` | Book analysis with chapters, themes |
-| `COMPANY_NEWS` | `CompanyNewsRenderer` | Company news with sentiment analysis |
-| `COOKING` | `CookingRenderer` | Recipe with ingredients, instructions |
-| `CROSS_REFERENCE_REPORT` | `CrossReferenceReportRenderer` | Multi-source analysis |
-| `DEEPRESEARCH` | `DeepResearchRenderer` | Comprehensive research reports |
-| `FINDAILY` | `FinancialRenderer` | Financial data with tables, metrics |
-| `GENERIC` | `GenericRenderer` | Fallback for any data structure |
-| `HOLIDAY_PLANNER` | `HolidayRenderer` | Travel itinerary with activities |
-| `MEETING_PREP` | `MeetingPrepRenderer` | Meeting agenda with topics |
-| `MENU` | `MenuRenderer` | Weekly meal plan |
-| `NEWSDAILY` | `NewsDailyRenderer` | Daily news by category |
-| `POEM` | `PoemRenderer` | Poetry with verses, themes |
-| `RSS_WEEKLY` | `RssWeeklyRenderer` | RSS feed aggregation |
-| `SAINT` | `SaintRenderer` | Saint information with history |
-| `SALESPROSPECTING` | `SalesProspectingRenderer` | Sales leads with contact info |
-| `SHOPPING` | `ShoppingRenderer` | Product recommendations |
+**Supported Renderers:**
+
+| Crew Type | Renderer Class |
+|-----------|----------------|
+| `BOOK_SUMMARY` | `BookSummaryRenderer` |
+| `COMPANY_NEWS` | `CompanyNewsRenderer` |
+| `COMPANY_PROFILE` | `CompanyProfilerRenderer` |
+| `COOKING` | `CookingRenderer` |
+| `CROSS_REFERENCE_REPORT` | `CrossReferenceReportRenderer` |
+| `DEEPRESEARCH` | `DeepResearchRenderer` |
+| `FINDAILY` | `FinancialRenderer` |
+| `GENERIC` | `GenericRenderer` (fallback for unknown keys) |
+| `GEOSPATIAL_ANALYSIS` | `GeospatialAnalysisRenderer` |
+| `HR_INTELLIGENCE` | `HRIntelligenceRenderer` |
+| `LEGAL_ANALYSIS` | `LegalAnalysisRenderer` |
+| `MEETING_PREP` | `MeetingPrepRenderer` |
+| `MENU` | `MenuRenderer` |
+| `NEWSDAILY` | `NewsDailyRenderer` |
+| `OSINT_GLOBAL` | `OSINTGlobalRenderer` |
+| `PESTEL` | `PestelRenderer` |
+| `POEM` | `PoemRenderer` |
+| `RSS_WEEKLY` | `RssWeeklyRenderer` |
+| `SAINT` | `SaintRenderer` |
+| `SALES_PROSPECTING`, `SALESPROSPECTING` | `SalesProspectingRenderer` |
+| `SHOPPING` | `ShoppingRenderer` |
+| `TECH_STACK` | `TechStackRenderer` |
+| `WEB_PRESENCE` | `WebPresenceRenderer` |
+
+The holiday planner has no HTML renderer: it produces DOCX only
+(`epic_news.utils.holiday_report.assemble_holiday_docx`).
 
 ### 4. Specialized Renderers
 
@@ -343,22 +343,22 @@ class PoemRenderer(BaseRenderer):
 
 ```python
 # In src/epic_news/main.py
-@listen("generate_poem")
-def generate_poem(self, message: str):
-    result = PoemCrew().crew().kickoff(inputs={"subject": message})
+@listen("go_generate_poem")
+@trace_task(tracer)
+def generate_poem(self):
+    self.state.output_file = "output/poem/poem.json"
+    inputs = self.state.to_crew_inputs()
 
-    # Parse to Pydantic model
-    poem_report = PoemJSONOutput.model_validate(json.loads(result.raw))
+    output = kickoff_flow(PoemCrew(), inputs)
+    dump_crewai_state(output, "POEM")
 
-    # Render to HTML
-    template_manager = TemplateManager()
-    html_content = template_manager.render_report(
-        selected_crew="POEM",
-        content_data=poem_report.model_dump()
-    )
+    # Load the JSON written by output_pydantic (falls back to parsing the raw output)
+    poem_model = load_or_parse_model(self.state.output_file, PoemJSONOutput, output, inputs, "poem")
 
-    # Write file
-    Path("output/poem/poem.html").write_text(html_content, encoding="utf-8")
+    # TemplateManager().render_report(selected_crew="POEM", content_data=...) + write
+    html_file = "output/poem/poem.html"
+    render_and_write_html("POEM", poem_model, html_file)
+    self.state.output_file = html_file
 ```
 
 **2. TemplateManager Orchestration**
@@ -552,37 +552,23 @@ class RendererFactory:
     }
 ```
 
-### Step 3: Update __init__.py
+### Step 3: Use in ReceptionFlow
 
-Edit `src/epic_news/utils/html/template_renderers/__init__.py`:
-
-```python
-from .my_crew_renderer import MyCrewRenderer
-
-__all__ = [
-    # ... existing exports ...
-    "MyCrewRenderer",
-]
-```
-
-### Step 4: Use in ReceptionFlow
-
-In `src/epic_news/main.py`:
+In `src/epic_news/main.py`, follow the existing `generate_*` methods:
 
 ```python
-@listen("generate_my_crew_report")
-def generate_my_crew_report(self, message: str):
-    result = MyCrewCrew().crew().kickoff(inputs={"topic": message})
+@listen("go_generate_my_crew_report")
+@trace_task(tracer)
+def generate_my_crew_report(self):
+    self.state.output_file = "output/my_crew/report.json"
+    inputs = self.state.to_crew_inputs()
 
-    report = MyCrewReport.model_validate(json.loads(result.raw))
+    output = kickoff_flow(MyCrewCrew(), inputs)
+    report = load_or_parse_model(self.state.output_file, MyCrewReport, output, inputs, "my crew")
 
-    template_manager = TemplateManager()
-    html_content = template_manager.render_report(
-        selected_crew="MY_CREW",  # Must match RendererFactory key
-        content_data=report.model_dump()
-    )
-
-    Path("output/my_crew/report.html").write_text(html_content, encoding="utf-8")
+    html_file = "output/my_crew/report.html"
+    render_and_write_html("MY_CREW", report, html_file)  # key must match RendererFactory
+    self.state.output_file = html_file
 ```
 
 ## Best Practices
@@ -997,7 +983,7 @@ The epic_news rendering system provides:
 
 ## Related Documentation
 
-- [Tutorial: Creating Your First Crew](../tutorials/01_YOUR_FIRST_CREW.md) - Complete crew creation guide
+- [Tutorial: Creating Your First Crew](../tutorials/getting_started.md) - Complete crew creation guide
 - [CLAUDE.md](../../CLAUDE.md) - Architectural patterns and project standards
 - [COMMON_ERRORS.md](../troubleshooting/COMMON_ERRORS.md) - HTML rendering troubleshooting
 

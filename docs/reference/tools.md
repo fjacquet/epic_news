@@ -7,21 +7,19 @@ This handbook provides a comprehensive overview of all tools available to agents
 ### 1.1. Modular Architecture & Factories
 
 - **Factory Pattern**: Use factory functions to organize and provide tools. This allows for centralized management and easy modification.
-- **Domain Separation**: Group tools by functionality into separate files (e.g., `web_tools.py`, `document_tools.py`).
+- **Domain Separation**: Group tools by functionality into separate files (e.g., `web_tools.py`, `finance_tools.py`, `github_tools.py`).
 - **Graceful Degradation**: If a tool fails to initialize (e.g., missing API key), the factory should handle it gracefully (e.g., return an empty list) so the application can proceed without it.
 
 ```python
-# Example: src/epic_news/tools/document_tools.py
-def get_document_tools():
-    return [FileReadTool(), FileWriteTool(), PDFSearchTool()]
+# Example: src/epic_news/tools/web_tools.py
+def get_search_tools():
+    return [PerplexitySearchTool()]
 
-# Example: Graceful degradation
-def get_github_tools():
-    try:
-        from crewai_tools import GithubSearchTool
-        return [GithubSearchTool(gh_token=os.getenv('GITHUB_TOKEN'))]
-    except (ImportError, Exception):
-        return [] # Return empty list if dependencies or keys are missing
+# Example: graceful degradation (src/epic_news/tools/github_tools.py)
+def get_github_tools() -> list[BaseTool]:
+    if not os.getenv("GITHUB_TOKEN"):
+        return []  # tool unavailable without a token
+    return [GitHubSearchTool()]
 ```
 
 ### 1.2. API Key Management
@@ -47,11 +45,11 @@ RAPIDAPI_KEY=rapi-xxxxxx
 #### 1.3.1. Testing Policy (PR-001)
 
 - **JSON outputs only**: Tool `_run()` results MUST be JSON strings. See `src/epic_news/tools/_json_utils.py::ensure_json_str()`.
-- **HTTP resilience**: External calls should use `httpx` with retries (`tenacity`) and avoid live network in tests via stubs/mocks.
+- **No live network in tests**: mock external APIs with stubs.
 - **Run tests**:
 
   ```bash
-  uv run pytest -q tests/tools/test_json_outputs.py tests/tools/test_http_resilience.py
+  uv run pytest -q tests/tools/test_json_outputs.py tests/tools/test_json_contract_ratchet.py
   ```
 
 - See also README section “Testing” for full-suite commands and linting.
@@ -114,7 +112,7 @@ result_json = scraper.run({"url": "https://example.com"})
 | **YahooFinanceNewsTool** | Custom | Fetches the latest financial news for a specific ticker. | No |
 | **YahooFinanceHistoryTool** | Custom | Gets historical price data for a ticker. | No |
 | **YahooFinanceCompanyInfoTool**| Custom | Gets detailed company information (summary, industry). | No |
-| **AlphaVantageCompanyTool** | Custom | Fetches fundamental company data (P/E, EPS). | `ALPHA_VANTAGE_API_KEY` |
+| **AlphaVantageOverviewTool** | Custom | Fetches fundamental company data (P/E, EPS). | `ALPHA_VANTAGE_API_KEY` |
 | **CoinMarketCapInfoTool** | Custom | Gets detailed info for a cryptocurrency. | `COINMARKETCAP_API_KEY` |
 | **KrakenTickerInfoTool** | Custom | Fetches real-time ticker data from Kraken exchange. | No |
 | **TechStackAnalysisTool** | Custom | Identifies the technology stack of a website. | `SERPER_API_KEY` |
@@ -134,7 +132,6 @@ result_json = scraper.run({"url": "https://example.com"})
 | Tool | Source | Description | API Key Required |
 |---|---|---|---|
 | **RagTool** | CrewAI/Composio | Generic Retrieval-Augmented Generation capabilities. | Varies |
-| **SaveToRagTool** | Custom | Persists text into the RAG vector database. | No |
 | **DallETool** | CrewAI | Generates images using DALL-E. | `OPENAI_API_KEY` |
 | **VisionTool** | CrewAI | Provides computer vision and image analysis. | `OPENAI_API_KEY` |
 
@@ -148,28 +145,10 @@ result_json = scraper.run({"url": "https://example.com"})
 | **WikipediaTools** | Custom | A suite of tools to search and process Wikipedia articles. | No |
 | **ComposioTool** | CrewAI | Gateway to integrate with over 200 third-party apps. | `COMPOSIO_API_KEY` |
 
-## 3. Multi-Crew Protocol (MCP)
+## 3. Model Context Protocol (MCP)
 
-> **Note**: The integration of MCP is currently experimental and not fully implemented. This section is for future reference.
-
-### 3.1. Overview
-
-The Multi-Crew Protocol (MCP) is designed to enable:
-
-- Cross-crew communication and data sharing.
-- Distributed workflow orchestration.
-- Scalable multi-agent system architecture.
-
-### 3.2. Key Features
-
-- **Crew Interconnectivity**: Seamless communication between different crews.
-- **State Synchronization**: Shared state management across crew boundaries.
-- **Event Propagation**: Real-time event broadcasting and handling.
-
-### 3.3. Integration with epic_news
-
-MCP could enhance our project by:
-
-- Enabling deeper crew specialization (e.g., separate research and analysis crews).
-- Improving scalability for larger workloads.
-- Facilitating real-time collaboration between different analysis domains.
+MCP servers are configured in `src/epic_news/config/mcp_config.py` (`MCPConfig`).
+The Wikipedia MCP server (`MCPConfig.get_wikipedia_mcp()`) is used by the
+`deep_research` and `pestel` crews. New crews should declare servers through
+CrewBase `mcp_server_params` and load tools with `self.get_mcp_tools()`; CrewBase
+stops the adapter after `kickoff()`. See [MCP Setup](../how-to/mcp_setup.md).

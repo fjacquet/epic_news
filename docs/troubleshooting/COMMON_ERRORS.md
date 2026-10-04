@@ -55,8 +55,7 @@ Add explicit JSON formatting instructions to the agent that generates JSON outpu
 def poem_writer(self) -> Agent:
     return Agent(
         config=self.agents_config["poem_writer"],
-        llm=LLMConfig.get_openrouter_llm(),
-        llm_timeout=LLMConfig.get_timeout("default"),
+        llm=LLMConfig.get_openrouter_llm(task_type="default"),
         respect_context_window=True,
         verbose=True,
         system_template="""You are a JSON formatting expert. Your output MUST be valid JSON.
@@ -204,43 +203,23 @@ AttributeError: 'UnionType' object has no attribute '__name__'
 
 #### Root Cause
 
-Python 3.10+ Union syntax (`X | Y`) is incompatible with CrewAI's schema parser. CrewAI requires legacy `typing.Union` syntax.
+CrewAI < 1.8.0 could not parse Python 3.10+ union syntax (`X | Y`) in
+`output_pydantic` models. CrewAI 1.8.0+ supports it.
 
 #### Solution
 
-```python
-from typing import Union, Optional, List  # Import legacy types
+Upgrade CrewAI (`uv add "crewai>=1.8.0"`). Keep the project standard:
 
-# ❌ WRONG - Modern Python 3.10+ syntax
+```python
 class Report(BaseModel):
     title: str | None = None
     count: int | float = 0
     items: list[str] = []
-
-# ✅ CORRECT - Legacy syntax for CrewAI
-class Report(BaseModel):
-    title: Optional[str] = None
-    count: Union[int, float] = 0
-    items: List[str] = []
 ```
-
-#### Find/Replace for Fixing
-
-**Pattern 1: Optional fields**
-- Find: `: (\w+) \| None`
-- Replace: `: Optional[$1]`
-
-**Pattern 2: Union types**
-- Find: `: (\w+) \| (\w+)`
-- Replace: `: Union[$1, $2]`
-
-**Pattern 3: Generic types**
-- Find: `: list\[(\w+)\]`
-- Replace: `: List[$1]`
 
 #### Reference
 
-See **CLAUDE.md** section: "Pydantic Models: Legacy Union Syntax Required"
+See **CLAUDE.md** section: "Pydantic Models"
 
 ---
 
@@ -280,7 +259,7 @@ print(f"Model expects fields: {MyModel.model_fields.keys()}")
 ```python
 class Report(BaseModel):
     required_field: str
-    optional_field: Optional[str] = "default"  # Won't fail if missing
+    optional_field: str | None = "default"  # Won't fail if missing
 ```
 
 #### Solutions
@@ -332,7 +311,9 @@ Final Answer: <actual content>
 
 #### Root Cause
 
-Reporter agent has tools assigned, which causes CrewAI to write action logs to the output file.
+The task writing `output_file` returns free text from an agent with tools.
+`output_pydantic` on the final task already yields a clean structured result;
+keeping the reporter tool-free makes it a pure formatting step.
 
 #### Solution
 
@@ -388,7 +369,9 @@ KeyError: 'tool_name'
 
 #### Root Cause
 
-Tools defined in `agents.yaml` instead of Python code. CrewAI requires tools to be assigned programmatically.
+Tools listed in `agents.yaml`. CrewBase resolves YAML tool names only against
+`@tool`-decorated methods on the crew class; any other name raises `KeyError`.
+The project assigns tools in Python.
 
 #### Solution
 
@@ -428,10 +411,10 @@ See **CLAUDE.md** section: "CRITICAL: Tools must be assigned programmatically in
 
 **1. Check LLM timeout:**
 ```python
-@crew
-def crew(self) -> Crew:
-    return Crew(
-        llm_timeout=LLMConfig.get_timeout("long"),  # Increase from "default" (300s) to "long" (600s)
+@agent
+def researcher(self) -> Agent:
+    return Agent(
+        llm=LLMConfig.get_openrouter_llm(task_type="long"),  # "default" (300s) -> "long" (600s)
     )
 ```
 
@@ -462,10 +445,10 @@ research_task:
 
 **5. Check max_iter limit:**
 ```python
-@crew
-def crew(self) -> Crew:
-    return Crew(
-        max_iter=5,  # If agent is looping, increase this
+@agent
+def researcher(self) -> Agent:
+    return Agent(
+        max_iter=5,  # Agent field; Crew(max_iter=...) is silently ignored
     )
 ```
 
@@ -499,17 +482,17 @@ tag.attrs["class"] = ["container", "my-class"]  # Multiple classes as list
 
 #### Reference
 
-See **3_ARCHITECTURAL_PATTERNS.md** section: "BeautifulSoup Class Attribute Handling"
+See `src/epic_news/utils/CLAUDE.md` section "BaseRenderer rules"
 
 ---
 
-### Error: Renderer not found for crew identifier
+### Issue: Report rendered with the generic layout
 
 #### Symptom
 
-```
-ValueError: No renderer found for crew identifier 'my_crew'
-```
+The HTML report shows a generic key/value dump instead of the crew-specific
+layout. `RendererFactory.create_renderer()` never raises: an unknown crew key
+silently falls back to `GenericRenderer`.
 
 #### Solution Checklist
 
@@ -519,27 +502,23 @@ ValueError: No renderer found for crew identifier 'my_crew'
 from epic_news.utils.html.template_renderers.base_renderer import BaseRenderer
 
 class MyCrewRenderer(BaseRenderer):
-    crew_identifier = "my_crew"  # MUST match factory usage
+    def __init__(self):  # REQUIRED: __init__ is abstract on BaseRenderer
+        pass
 
-    def __init__(self):  # REQUIRED even if empty
-        super().__init__()
-
-    def render_body(self, soup, data):
-        container = soup.new_tag("div")
-        container.attrs["class"] = ["container", "py-4"]
+    def render(self, data: dict) -> str:
+        soup = self.create_soup("div")
         # ... build HTML
-        return container
+        return str(soup)
 ```
 
-**2. Verify file naming:**
-- File: `my_crew_renderer.py`
-- Class: `MyCrewRenderer`
-- Identifier: `"my_crew"`
+**2. Register it** in `RendererFactory._RENDERER_MAP`
+(`src/epic_news/utils/html/template_renderers/renderer_factory.py`) under the
+key the flow passes to `render_and_write_html("MY_CREW", ...)`.
 
-**3. Check TemplateManager registration:**
+**3. Check registration:**
 ```bash
-python -c "from epic_news.utils.html.template_manager import TemplateManager; print(list(TemplateManager._renderers.keys()))"
-# Should include 'my_crew'
+uv run python -c "from epic_news.utils.html.template_renderers.renderer_factory import RendererFactory; print(RendererFactory.get_supported_crew_types())"
+# Should include 'MY_CREW'
 ```
 
 ---
@@ -612,12 +591,14 @@ tool = TavilyTool(cache=True)  # Reuse results within session
 
 **3. Add retry logic:**
 ```python
-@crew
-def crew(self) -> Crew:
-    return Crew(
-        max_retry_limit=3,  # Retry failed API calls
+@agent
+def researcher(self) -> Agent:
+    return Agent(
+        max_retry_limit=3,  # Agent field; ignored on Crew
     )
 ```
+
+`kickoff_flow()` also retries transient provider errors for the whole crew.
 
 **4. Batch operations:**
 - Process multiple items in one crew run
@@ -668,21 +649,10 @@ ImportError: cannot import name 'X' from partially initialized module 'Y'
 
 #### Solution
 
-**Option 1: Move import to function scope**
-```python
-# ❌ WRONG - Top level import
-from epic_news.utils.helper import func
+Project rule: imports stay at the top of the file, so break the cycle instead
+of moving the import into a function.
 
-def my_function():
-    return func()
-
-# ✅ CORRECT - Inside function
-def my_function():
-    from epic_news.utils.helper import func
-    return func()
-```
-
-**Option 2: Restructure dependencies**
+**Restructure dependencies**
 - Extract shared code to separate module
 - Use dependency injection instead of direct imports
 - Avoid importing from `__init__.py` files
@@ -697,11 +667,11 @@ def my_function():
 
 **1. Check LLM timeout:**
 ```python
-# Is it timing out?
-@crew
-def crew(self) -> Crew:
-    return Crew(
-        llm_timeout=LLMConfig.get_timeout("long"),  # 600s
+# The timeout lives on the LLM; `llm_timeout=` is not a CrewAI field and is ignored
+@agent
+def researcher(self) -> Agent:
+    return Agent(
+        llm=LLMConfig.get_openrouter_llm(task_type="long"),  # 600s
     )
 ```
 
@@ -719,9 +689,10 @@ grep "Action:" logs/epic_news.log | tail -20
 
 **4. Monitor max_iter:**
 ```python
-@crew
-def crew(self) -> Crew:
-    return Crew(
+# max_iter is an Agent field (Crew has none; CrewAI default is 25)
+@agent
+def researcher(self) -> Agent:
+    return Agent(
         max_iter=3,  # Reduce from 5 if agent loops
     )
 ```
@@ -778,7 +749,7 @@ When you encounter any error:
 - [ ] Check logs: `tail -f logs/epic_news.log`
 - [ ] Verify .env file has required API keys
 - [ ] Confirm package installed: `uv pip install -e .`
-- [ ] Check Pydantic models use legacy Union syntax (`Optional[X]` not `X | None`)
+- [ ] Check CrewAI is >= 1.8.0 if `X | None` fields fail to parse
 - [ ] Validate crew structure: researcher (tools) + reporter (no tools)
 - [ ] Enable verbose mode: `verbose=True` on agents
 - [ ] Dump raw output: `print(result.raw)`
@@ -792,9 +763,9 @@ When you encounter any error:
 ### 1. Search existing documentation
 
 - **CLAUDE.md** for architectural patterns and critical rules
-- **1_DEVELOPMENT_GUIDE.md** for setup and workflow issues
-- **3_ARCHITECTURAL_PATTERNS.md** for design solutions
-- **2_TOOLS_HANDBOOK.md** for tool usage patterns
+- **how-to/development_setup.md** for setup and workflow issues
+- **explanations/architecture.md** for design solutions
+- **reference/tools.md** for tool usage patterns
 
 ### 2. Check example crews
 
@@ -820,13 +791,15 @@ logger.debug(f"Raw output: {result.raw}")
 
 Isolate the problem:
 ```python
-# test_minimal.py
-from epic_news.crews.my_crew.my_crew import MyCrew
+# e.g. tests/crews/test_poem_smoke.py: builds the crew, makes no LLM call
+from epic_news.crews.poem.poem_crew import PoemCrew
 
-inputs = {"topic": "test"}
-result = MyCrew().crew().kickoff(inputs=inputs)
-print(result.raw)
+def test_poem_crew_builds():
+    crew = PoemCrew().crew()
+    assert crew.agents and crew.tasks
 ```
+
+End-to-end runs still go through `crewai flow kickoff`.
 
 ### 5. Ask for help with context
 
@@ -843,7 +816,7 @@ Include:
 **Most Common Errors:**
 
 1. **JSON escaping** - Use `system_template` with explicit escaping rules
-2. **Pydantic Union syntax** - Use `Optional[X]` not `X | None`
+2. **Pydantic Union syntax** - Upgrade CrewAI to 1.8.0+; use `X | None`
 3. **Action traces in HTML** - Two-agent pattern (researcher + reporter)
 4. **Tools in YAML** - Assign tools in Python code, not YAML
 5. **ModuleNotFoundError** - Run `uv pip install -e .`
@@ -853,8 +826,8 @@ Include:
 | Error | Quick Fix |
 |-------|-----------|
 | JSON escaping | Add `system_template` to agent |
-| Union syntax | Replace `X \| None` with `Optional[X]` |
-| Action traces | Reporter agent must have `tools=[]` |
+| Union syntax | Upgrade CrewAI (>= 1.8.0) |
+| Action traces | `output_pydantic` on the final task; reporter `tools=[]` |
 | Tools KeyError | Move tool assignment from YAML to Python |
 | Module not found | Run `uv pip install -e .` |
 | 401 Unauthorized | Check API keys in `.env` |
@@ -862,9 +835,9 @@ Include:
 
 **Next Steps:**
 
-- [Development Guide](../docs/1_DEVELOPMENT_GUIDE.md) - Setup and workflow
-- [Architectural Patterns](../docs/3_ARCHITECTURAL_PATTERNS.md) - Design patterns
-- [Your First Crew Tutorial](../tutorials/01_YOUR_FIRST_CREW.md) - Step-by-step guide (coming soon)
+- [Development Setup](../how-to/development_setup.md) - Setup and workflow
+- [Architecture](../explanations/architecture.md) - Design patterns
+- [Your First Crew Tutorial](../tutorials/getting_started.md) - Step-by-step guide
 
 ---
 
