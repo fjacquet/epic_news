@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+**Superseded (2026-10-04)** by [ADR-016](ADR-016-gemini-3-8-flash-default-model.md) — the default model is now Gemini 3.8 Flash on the native `gemini/` route. The opt-in `reasoning_effort` described below is now sent through `extra_body.reasoning` on OpenRouter routes, because LiteLLM drops a top-level `reasoning_effort` for models it does not know support reasoning (Magistral).
 
 ## Context
 
