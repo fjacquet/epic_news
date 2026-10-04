@@ -62,12 +62,17 @@ def render_and_write_html(
 
     Returns:
         The final output path.
+
+    Raises:
+        ValueError: if html_path does not resolve inside the ``output/`` directory.
     """
+    out = Path(html_path)
+    if not out.resolve().is_relative_to(Path("output").resolve()):
+        raise ValueError(f"Refusing to write report outside output/: {html_path}")
     html = TemplateManager().render_report(
         selected_crew=selected_crew,
         content_data=model.model_dump(),
     )
-    out = Path(html_path)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(html, encoding="utf-8")
     return out

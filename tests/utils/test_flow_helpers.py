@@ -95,9 +95,28 @@ def test_render_and_write_html_creates_parent_dir_and_writes(tmp_path: Path, mon
 
     monkeypatch.setattr(flow_helpers.TemplateManager, "render_report", _fake_render)
 
-    target = tmp_path / "nested" / "deep" / "report.html"
+    monkeypatch.chdir(tmp_path)
+    target = Path("output") / "nested" / "deep" / "report.html"
     result = render_and_write_html("POEM", _DummyModel(name="eve", value=1), target)
 
     assert result == target
     assert target.exists()
     assert target.read_text(encoding="utf-8") == "<html>POEM:eve</html>"
+
+
+@pytest.mark.parametrize(
+    "bad_path",
+    ["output/../escaped.html", "elsewhere/report.html", "ABSOLUTE"],
+)
+def test_render_and_write_html_refuses_paths_outside_output(tmp_path: Path, monkeypatch, bad_path):
+    from epic_news.utils import flow_helpers
+
+    monkeypatch.setattr(flow_helpers.TemplateManager, "render_report", lambda self, **_: "<html/>")
+    monkeypatch.chdir(tmp_path)
+    if bad_path == "ABSOLUTE":
+        bad_path = str(tmp_path / "absolute-escape.html")
+
+    with pytest.raises(ValueError):
+        render_and_write_html("POEM", _DummyModel(name="eve"), bad_path)
+
+    assert not Path(bad_path).exists()

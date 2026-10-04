@@ -956,7 +956,7 @@ class ReceptionFlow(Flow[ContentState]):
 
         # Set output file path
         topic = self.state.extracted_info.topic or "product-recommendation"
-        topic_slug = topic.lower().replace(" ", "-").replace("'", "").replace('"', "")
+        topic_slug = create_topic_slug(topic)
         html_file = f"output/shopping_advisor/shopping-advice-{topic_slug}.html"
 
         emit_report(
