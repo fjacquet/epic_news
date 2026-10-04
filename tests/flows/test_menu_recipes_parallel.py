@@ -29,7 +29,7 @@ def test_one_failing_recipe_does_not_stop_the_others(monkeypatch):
     results = [flow._generate_menu_recipe(_spec(n)) for n in ("Risotto", "Soupe", "Tarte")]
 
     assert [r.name if r else None for r in results] == ["Risotto", None, "Tarte"]
-    assert ("Risotto", "output/cooking/risotto.yaml", "output/cooking/risotto.json") in written
+    assert ("Risotto", "output/cooking/ris-risotto.yaml", "output/cooking/ris-risotto.json") in written
 
 
 def test_cancellation_is_not_swallowed(monkeypatch):
@@ -53,3 +53,19 @@ def test_menu_recipes_use_bounded_map(monkeypatch):
     monkeypatch.setattr(flow, "_generate_menu_recipe", lambda spec: spec["name"])
     assert flow._generate_menu_recipes([_spec("A"), _spec("B")]) == ["A", "B"]
     assert calls["env_var"] == "MENU_RECIPE_CONCURRENCY"
+
+
+def test_same_name_different_codes_get_distinct_files(monkeypatch):
+    written = []
+    monkeypatch.setattr(
+        main_mod,
+        "kickoff_flow",
+        lambda crew, inputs: SimpleNamespace(
+            pydantic=PaprikaRecipe(name=inputs["topic"], ingredients="x", directions="y")
+        ),
+    )
+    monkeypatch.setattr(main_mod, "export_recipe", lambda r, y, j: written.append(y))
+    flow = _flow()
+    flow._generate_menu_recipe({**_spec("Entrée du jour"), "code": "LUN-L-S01"})
+    flow._generate_menu_recipe({**_spec("Entrée du jour"), "code": "LUN-D-S02"})
+    assert len(set(written)) == 2

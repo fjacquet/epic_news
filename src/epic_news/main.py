@@ -841,7 +841,7 @@ class ReceptionFlow(Flow[ContentState]):
 
     def _generate_menu_recipe(self, recipe_spec: dict[str, Any]) -> PaprikaRecipe | None:
         """Generate and export one menu recipe; log and skip it on a provider failure."""
-        recipe_slug = create_topic_slug(recipe_spec["name"])
+        recipe_slug = create_topic_slug(f"{recipe_spec['code']} {recipe_spec['name']}")
         request = {
             "topic": recipe_spec["name"],
             "topic_slug": recipe_slug,
