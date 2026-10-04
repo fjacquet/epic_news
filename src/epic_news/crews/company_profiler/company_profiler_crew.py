@@ -1,14 +1,11 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai_custom_tools import HybridSearchTool
-from crewai_tools import PDFSearchTool
 from dotenv import load_dotenv
 
 from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.company_profiler_report import CompanyProfileReport
 from epic_news.tools.finance_tools import get_yahoo_finance_tools
-from epic_news.tools.html_to_pdf_tool import HtmlToPdfTool
-from epic_news.tools.report_tools import get_report_tools
 from epic_news.tools.scraper_factory import get_scraper
 
 load_dotenv()
@@ -22,23 +19,17 @@ class CompanyProfilerCrew:
     @agent
     def company_researcher(self) -> Agent:
         """Creates the company researcher agent with tools for data gathering"""
-        # Get all tools
-        search_tools = [HybridSearchTool(), get_scraper(), PDFSearchTool()]
-        finance_tools = get_yahoo_finance_tools()
-        html_to_pdf_tool = HtmlToPdfTool()
-
-        all_tools = search_tools + finance_tools + [html_to_pdf_tool] + get_report_tools()
+        # Research tools only: rendering/PDF happen in the flow, never in this agent.
+        all_tools = [HybridSearchTool(), get_scraper()] + get_yahoo_finance_tools()
 
         return Agent(
             config=self.agents_config["company_researcher"],  # type: ignore
             tools=all_tools,
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
             verbose=True,
             allow_delegation=False,
             respect_context_window=True,
-            reasoning=False,
-            max_reasoning_attempts=3,
         )
 
     @agent
@@ -48,12 +39,10 @@ class CompanyProfilerCrew:
             config=self.agents_config["company_reporter"],  # type: ignore
             tools=[],  # No tools to prevent action traces in output
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
             verbose=True,
             allow_delegation=False,
             respect_context_window=True,
-            reasoning=False,
-            max_reasoning_attempts=3,
         )
 
     @task
@@ -61,7 +50,7 @@ class CompanyProfilerCrew:
         """Collect foundational information about the company"""
         return Task(
             config=self.tasks_config["company_core_info"],  # type: ignore
-            agent=self.company_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.company_researcher(),  # type: ignore[call-arg]
             async_execution=False,
         )
 
@@ -70,7 +59,7 @@ class CompanyProfilerCrew:
         """Research and document the company history"""
         return Task(
             config=self.tasks_config["company_history"],  # type: ignore
-            agent=self.company_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.company_researcher(),  # type: ignore[call-arg]
             async_execution=False,
         )
 
@@ -79,7 +68,7 @@ class CompanyProfilerCrew:
         """Analyze the company financial statements"""
         return Task(
             config=self.tasks_config["company_financials"],  # type: ignore
-            agent=self.company_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.company_researcher(),  # type: ignore[call-arg]
             async_execution=False,
         )
 
@@ -88,7 +77,7 @@ class CompanyProfilerCrew:
         """Evaluate the company market position"""
         return Task(
             config=self.tasks_config["company_market_position"],  # type: ignore
-            agent=self.company_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.company_researcher(),  # type: ignore[call-arg]
             async_execution=False,
         )
 
@@ -97,7 +86,7 @@ class CompanyProfilerCrew:
         """Document the company products and services"""
         return Task(
             config=self.tasks_config["company_products_services"],  # type: ignore
-            agent=self.company_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.company_researcher(),  # type: ignore[call-arg]
             async_execution=False,
         )
 
@@ -106,7 +95,7 @@ class CompanyProfilerCrew:
         """Research and analyze the company management team"""
         return Task(
             config=self.tasks_config["company_management"],  # type: ignore
-            agent=self.company_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.company_researcher(),  # type: ignore[call-arg]
             async_execution=False,
         )
 
@@ -115,7 +104,7 @@ class CompanyProfilerCrew:
         """Research and document any legal or regulatory issues"""
         return Task(
             config=self.tasks_config["company_legal_compliance"],  # type: ignore
-            agent=self.company_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.company_researcher(),  # type: ignore[call-arg]
             async_execution=False,
         )
 
@@ -148,7 +137,6 @@ class CompanyProfilerCrew:
             agents=self.agents,  # type: ignore
             tasks=self.tasks,  # type: ignore
             process=Process.sequential,  # Sequential to avoid needing a manager
-            max_iter=LLMConfig.get_max_iter(),
             max_rpm=LLMConfig.get_max_rpm(),
             verbose=True,
         )

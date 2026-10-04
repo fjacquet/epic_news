@@ -1,12 +1,10 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai_custom_tools import HybridSearchTool
-from crewai_tools import PDFSearchTool
 from dotenv import load_dotenv
 
 from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.web_presence_report import WebPresenceReport
-from epic_news.tools.report_tools import get_report_tools
 from epic_news.tools.scraper_factory import get_scraper
 
 load_dotenv()
@@ -20,21 +18,17 @@ class WebPresenceCrew:
     @agent
     def web_researcher(self) -> Agent:
         """Creates the web researcher agent with tools for data gathering"""
-        # get_report_tools() already includes HtmlToPdfTool; don't add it twice.
-        search_tools = [HybridSearchTool(), get_scraper(), PDFSearchTool()]
-
-        all_tools = search_tools + get_report_tools()
+        # Research tools only: rendering/PDF happen in the flow, never in this agent.
+        all_tools = [HybridSearchTool(), get_scraper()]
 
         return Agent(
             config=self.agents_config["web_researcher"],  # type: ignore[index]
             tools=all_tools,
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
             verbose=True,
             allow_delegation=False,
             respect_context_window=True,
-            reasoning=False,
-            max_reasoning_attempts=5,
             max_retry_limit=3,
         )
 
@@ -45,12 +39,10 @@ class WebPresenceCrew:
             config=self.agents_config["web_reporter"],  # type: ignore[index]
             tools=[],  # No tools for reporter to ensure clean output
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
             verbose=True,
             allow_delegation=False,
             respect_context_window=True,
-            reasoning=False,
-            max_reasoning_attempts=3,
         )
 
     @task
@@ -58,7 +50,7 @@ class WebPresenceCrew:
         """Conduct a comprehensive audit of the target's web presence"""
         return Task(  # type: ignore[call-arg]
             config=self.tasks_config["web_presence_audit"],  # type: ignore[index, arg-type]
-            agent=self.web_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.web_researcher(),  # type: ignore[call-arg]
             async_execution=False,
         )
 
@@ -67,7 +59,7 @@ class WebPresenceCrew:
         """Analyze the target's social media footprint across platforms"""
         return Task(  # type: ignore[call-arg]
             config=self.tasks_config["social_media_footprint"],  # type: ignore[index, arg-type]
-            agent=self.web_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.web_researcher(),  # type: ignore[call-arg]
             async_execution=False,
         )
 
@@ -76,7 +68,7 @@ class WebPresenceCrew:
         """Analyze the target's domain infrastructure and technical footprint"""
         return Task(  # type: ignore[call-arg]
             config=self.tasks_config["domain_infrastructure_analysis"],  # type: ignore[index, arg-type]
-            agent=self.web_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.web_researcher(),  # type: ignore[call-arg]
             async_execution=False,
         )
 
@@ -85,7 +77,7 @@ class WebPresenceCrew:
         """Analyze potential data leaks and breaches related to the target"""
         return Task(  # type: ignore[call-arg]
             config=self.tasks_config["data_leak_analysis"],  # type: ignore[index, arg-type]
-            agent=self.web_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.web_researcher(),  # type: ignore[call-arg]
             async_execution=False,
         )
 
@@ -94,7 +86,7 @@ class WebPresenceCrew:
         """Analyze the web presence of competitors to identify best practices"""
         return Task(  # type: ignore[call-arg]
             config=self.tasks_config["competitive_web_presence_analysis"],  # type: ignore[index, arg-type]
-            agent=self.web_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.web_researcher(),  # type: ignore[call-arg]
             async_execution=False,
         )
 

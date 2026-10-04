@@ -1,11 +1,8 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
-from crewai_tools import DirectoryReadTool, FileReadTool, PDFSearchTool
 
 from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.cross_reference_report import CrossReferenceReport
-from epic_news.tools.html_to_pdf_tool import HtmlToPdfTool
-from epic_news.tools.report_tools import get_report_tools
 from epic_news.tools.web_tools import get_scrape_tools, get_search_tools
 
 
@@ -19,31 +16,19 @@ class CrossReferenceReportCrew:
     @agent
     def osint_researcher(self) -> Agent:
         """Creates the OSINT researcher agent with tools for data gathering"""
-        # Get all tools
-        search_tools = get_search_tools()
-        scrape_tools = get_scrape_tools()
-        html_to_pdf_tool = HtmlToPdfTool()
-        directory_read_tool = DirectoryReadTool("output/osint")
-        file_read_tool = FileReadTool()
-        pdf_search_tool = PDFSearchTool()
-
-        all_tools = (
-            search_tools
-            + scrape_tools
-            + [html_to_pdf_tool, directory_read_tool, file_read_tool, pdf_search_tool]
-            + get_report_tools()
-        )
+        # Research tools only. None of this agent's tasks read local files (the
+        # output/osint aggregation task, global_reporting, runs on osint_reporter), so
+        # it holds no file reader next to its web tools.
+        all_tools = get_search_tools() + get_scrape_tools()
 
         return Agent(
             config=self.agents_config["osint_researcher"],  # type: ignore[index]
             verbose=True,
             tools=all_tools,
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
             allow_delegation=True,
             respect_context_window=True,
-            reasoning=False,
-            max_reasoning_attempts=5,
         )
 
     @agent
@@ -53,12 +38,10 @@ class CrossReferenceReportCrew:
             config=self.agents_config["osint_reporter"],  # type: ignore[index]
             tools=[],  # No tools for reporter to ensure clean output
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
             verbose=True,
             allow_delegation=False,
             respect_context_window=True,
-            reasoning=False,
-            max_reasoning_attempts=3,
         )
 
     @task
@@ -68,7 +51,7 @@ class CrossReferenceReportCrew:
             config=self.tasks_config["intelligence_requirements_planning"],  # type: ignore[index,arg-type]
             description="Develop comprehensive intelligence requirements",
             expected_output="A structured JSON object outlining intelligence requirements",
-            agent=self.osint_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.osint_researcher(),  # type: ignore[call-arg]
             async_execution=False,
         )
 
@@ -79,7 +62,7 @@ class CrossReferenceReportCrew:
             config=self.tasks_config["intelligence_collection_coordination"],  # type: ignore[index,arg-type]
             description="Coordinate intelligence collection activities",
             expected_output="A comprehensive JSON object detailing collection coordination",
-            agent=self.osint_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.osint_researcher(),  # type: ignore[call-arg]
             async_execution=False,
         )
 
@@ -90,7 +73,7 @@ class CrossReferenceReportCrew:
             config=self.tasks_config["intelligence_analysis_integration"],  # type: ignore[index,arg-type]
             description="Integrate intelligence analysis from all specialized crews",
             expected_output="A comprehensive JSON object integrating intelligence analysis",
-            agent=self.osint_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.osint_researcher(),  # type: ignore[call-arg]
             async_execution=False,
         )
 
@@ -101,7 +84,7 @@ class CrossReferenceReportCrew:
             config=self.tasks_config["intelligence_product_development"],  # type: ignore[index,arg-type]
             description="Develop final intelligence products",
             expected_output="A comprehensive JSON object serving as final intelligence products",
-            agent=self.osint_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.osint_researcher(),  # type: ignore[call-arg]
             async_execution=False,
         )
 

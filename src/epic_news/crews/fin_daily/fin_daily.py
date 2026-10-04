@@ -1,11 +1,12 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
-from crewai_custom_tools import KrakenAssetListTool, KrakenTickerInfoTool
-from crewai_tools import DirectoryReadTool, FileReadTool
+from crewai_custom_tools import KrakenAssetListTool
+from crewai_tools import DirectoryReadTool
 
 from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.financial_report import FinancialReport
 from epic_news.tools.finance_tools import get_crypto_research_tools, get_stock_research_tools
+from epic_news.tools.output_file_read_tool import OutputFileReadTool
 from epic_news.tools.scraper_factory import get_scraper
 
 
@@ -29,14 +30,18 @@ class FinDailyCrew:
             config=self.agents_config["stock_analyst"],  # type: ignore[index]
             tools=get_stock_research_tools()
             + [
-                FileReadTool(),
+                # Reads the portfolio CSVs ({stock_csv_path}/{etf_csv_path} under data/);
+                # scoped so scraped content cannot steer it to other local files.
+                OutputFileReadTool(root="data"),
                 # Scope to this crew's own output dir; a bare DirectoryReadTool()
                 # defaults to the CWD and exposes the whole repo.
                 DirectoryReadTool("output/findaily"),
                 get_scraper(),
             ],
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            # Analyses every ticker of the 60+ line portfolio CSV, roughly one tool call
+            # each; the CREW_MAX_ITER default would cut it off partway through.
+            max_iter=30,
             verbose=True,
         )
 
@@ -44,14 +49,10 @@ class FinDailyCrew:
     def crypto_analyst(self) -> Agent:
         return Agent(
             config=self.agents_config["crypto_analyst"],  # type: ignore[index]
-            tools=get_crypto_research_tools()
-            + [
-                KrakenAssetListTool(),
-                KrakenTickerInfoTool(),
-                get_scraper(),
-            ],
+            # get_crypto_research_tools() already includes KrakenTickerInfoTool.
+            tools=get_crypto_research_tools() + [KrakenAssetListTool(), get_scraper()],
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
             verbose=True,
         )
 
@@ -61,7 +62,7 @@ class FinDailyCrew:
             config=self.agents_config["investment_strategist"],  # type: ignore[index]
             # No tools - synthesizes from context provided by analyst tasks
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
             verbose=True,
         )
 
@@ -86,7 +87,7 @@ class FinDailyCrew:
             config=self.tasks_config["etf_portfolio_analysis_task"],  # type: ignore[index, arg-type]
             # Own agent instance: shares the stock_analyst role with the stock analysis
             # task, so it keeps a distinct executor of its own.
-            agent=self.stock_analyst().copy(),  # type: ignore[call-arg]
+            agent=self.stock_analyst(),  # type: ignore[call-arg]
             async_execution=False,
         )
 

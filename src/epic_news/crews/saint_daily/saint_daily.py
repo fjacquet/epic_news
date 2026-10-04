@@ -35,7 +35,7 @@ class SaintDailyCrew:
             tools=research_tools,
             verbose=True,
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
             respect_context_window=True,
         )
 
@@ -46,7 +46,7 @@ class SaintDailyCrew:
             tools=[],  # NO TOOLS = No action traces
             verbose=True,
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
             respect_context_window=True,
         )
 
@@ -55,7 +55,6 @@ class SaintDailyCrew:
         return Task(
             config=self.tasks_config["saint_research_task"],  # type: ignore[arg-type, index]
             agent=self.saint_researcher(),  # type: ignore[call-arg]
-            verbose=True,
         )
 
     @task
@@ -65,7 +64,6 @@ class SaintDailyCrew:
             agent=self.saint_reporter(),  # type: ignore[call-arg]
             context=[self.saint_research_task()],  # type: ignore[call-arg]
             output_pydantic=SaintData,
-            verbose=True,
         )
 
     @crew
@@ -76,5 +74,4 @@ class SaintDailyCrew:
             tasks=self.tasks,  # type: ignore[attr-defined]
             process=Process.sequential,
             verbose=True,
-            respect_context_window=True,  # type: ignore[call-arg]
         )

@@ -1,15 +1,10 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai_custom_tools import HybridSearchTool
-from crewai_tools import PDFSearchTool
 from dotenv import load_dotenv
 
 from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.legal_analysis_report import LegalAnalysisReport
-from epic_news.tools.html_to_pdf_tool import HtmlToPdfTool
-
-# Import RAG tools
-from epic_news.tools.report_tools import get_report_tools
 from epic_news.tools.scraper_factory import get_scraper
 
 load_dotenv()
@@ -23,22 +18,17 @@ class LegalAnalysisCrew:
     @agent
     def legal_researcher(self) -> Agent:
         """Creates the legal researcher agent with tools for data gathering"""
-        # Get all tools
-        search_tools = [HybridSearchTool(), get_scraper(), PDFSearchTool()]
-        html_to_pdf_tool = HtmlToPdfTool()
-
-        all_tools = search_tools + [html_to_pdf_tool] + get_report_tools()
+        # Research tools only: rendering/PDF happen in the flow, never in this agent.
+        all_tools = [HybridSearchTool(), get_scraper()]
 
         return Agent(
             config=self.agents_config["legal_researcher"],  # type: ignore[index]
             verbose=True,
             tools=all_tools,
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
             allow_delegation=False,
             respect_context_window=True,
-            reasoning=False,
-            max_reasoning_attempts=5,
         )
 
     @agent
@@ -48,12 +38,10 @@ class LegalAnalysisCrew:
             config=self.agents_config["legal_reporter"],  # type: ignore[index]
             tools=[],  # No tools for reporter to ensure clean output
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
             verbose=True,
             allow_delegation=False,
             respect_context_window=True,
-            reasoning=False,
-            max_reasoning_attempts=3,
         )
 
     @task
@@ -61,9 +49,8 @@ class LegalAnalysisCrew:
         """Assess the company's legal compliance status"""
         return Task(
             config=self.tasks_config["legal_compliance_assessment"],  # type: ignore[arg-type, index]
-            agent=self.legal_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.legal_researcher(),  # type: ignore[call-arg]
             async_execution=False,
-            verbose=True,
         )
 
     @task
@@ -71,9 +58,8 @@ class LegalAnalysisCrew:
         """Analyze the company's intellectual property portfolio"""
         return Task(
             config=self.tasks_config["intellectual_property_analysis"],  # type: ignore[arg-type, index]
-            agent=self.legal_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.legal_researcher(),  # type: ignore[call-arg]
             async_execution=False,
-            verbose=True,
         )
 
     @task
@@ -81,9 +67,8 @@ class LegalAnalysisCrew:
         """Assess the company's regulatory risks"""
         return Task(
             config=self.tasks_config["regulatory_risk_assessment"],  # type: ignore[arg-type, index]
-            agent=self.legal_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.legal_researcher(),  # type: ignore[call-arg]
             async_execution=False,
-            verbose=True,
         )
 
     @task
@@ -91,9 +76,8 @@ class LegalAnalysisCrew:
         """Analyze the company's litigation history"""
         return Task(
             config=self.tasks_config["litigation_history_analysis"],  # type: ignore[arg-type, index]
-            agent=self.legal_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.legal_researcher(),  # type: ignore[call-arg]
             async_execution=False,
-            verbose=True,
         )
 
     @task
@@ -118,8 +102,6 @@ class LegalAnalysisCrew:
             agents=self.agents,  # type: ignore[attr-defined]
             tasks=self.tasks,  # type: ignore[attr-defined]
             process=Process.sequential,
-            llm_timeout=LLMConfig.get_timeout("default"),  # type: ignore[call-arg]
-            max_iter=LLMConfig.get_max_iter(),
             max_rpm=LLMConfig.get_max_rpm(),
             verbose=True,
         )

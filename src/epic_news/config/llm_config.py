@@ -401,7 +401,7 @@ class LLMConfig:
         LLM_TIMEOUT_DEFAULT: Timeout for standard tasks (default: 300s)
         LLM_TIMEOUT_LONG: Timeout for complex tasks (default: 600s)
         LLM_EMPTY_RETRIES: Re-issues of a call that returned empty text (default: 2)
-        CREW_MAX_ITER: Maximum iterations per crew (default: 5)
+        CREW_MAX_ITER: Maximum iterations per agent (default: 15)
         CREW_MAX_RPM: Maximum requests per minute (default: 20)
 
     Usage:
@@ -555,19 +555,19 @@ class LLMConfig:
 
     @staticmethod
     def get_max_iter() -> int:
-        """Get max iterations for crew execution.
+        """Get max iterations per agent (pass it as ``Agent(max_iter=...)``).
 
-        Returns the maximum number of iterations a crew can perform before
-        stopping. This prevents infinite loops while allowing complex tasks
-        to iterate as needed.
+        Returns the maximum number of reasoning/tool iterations an agent can
+        perform on a task before it is forced to answer. This prevents infinite
+        loops while allowing complex tasks to iterate as needed.
 
         Returns:
-            Maximum iterations (default: 5).
+            Maximum iterations (default: 15).
 
         Example:
-            >>> max_iter = LLMConfig.get_max_iter()  # 5
+            >>> max_iter = LLMConfig.get_max_iter()  # 15
         """
-        return int(os.getenv("CREW_MAX_ITER", "5"))
+        return int(os.getenv("CREW_MAX_ITER", "15"))
 
     @staticmethod
     def get_max_rpm() -> int:

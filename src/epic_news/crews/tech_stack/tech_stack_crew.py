@@ -1,14 +1,11 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai_custom_tools import HybridSearchTool
-from crewai_tools import PDFSearchTool
 from dotenv import load_dotenv
 
 from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.tech_stack_report import TechStackReport
 from epic_news.tools.github_tools import get_github_tools
-from epic_news.tools.html_to_pdf_tool import HtmlToPdfTool
-from epic_news.tools.report_tools import get_report_tools
 from epic_news.tools.scraper_factory import get_scraper
 
 load_dotenv()
@@ -22,22 +19,17 @@ class TechStackCrew:
     @agent
     def tech_researcher(self) -> Agent:
         """Creates the tech researcher agent with tools for data gathering"""
-        # Get all tools
-        search_tools = [HybridSearchTool(), get_scraper(), PDFSearchTool()]
-        tech_tools = get_github_tools()
-        html_to_pdf_tool = HtmlToPdfTool()
-        all_tools = search_tools + tech_tools + [html_to_pdf_tool] + get_report_tools()
+        # Research tools only: rendering/PDF happen in the flow, never in this agent.
+        all_tools = [HybridSearchTool(), get_scraper()] + get_github_tools()
 
         return Agent(
             config=self.agents_config["tech_researcher"],  # type: ignore[index]
             tools=all_tools,
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
             verbose=True,
             allow_delegation=False,
             respect_context_window=True,
-            reasoning=False,
-            max_reasoning_attempts=3,
         )
 
     @agent
@@ -47,12 +39,10 @@ class TechStackCrew:
             config=self.agents_config["tech_reporter"],  # type: ignore[index]
             tools=[],  # No tools for reporter to ensure clean output
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
             verbose=True,
             allow_delegation=False,
             respect_context_window=True,
-            reasoning=False,
-            max_reasoning_attempts=3,
         )
 
     @task
@@ -60,9 +50,8 @@ class TechStackCrew:
         """Identify the company's tech stack"""
         return Task(
             config=self.tasks_config["tech_stack_identification"],  # type: ignore[arg-type, index]
-            agent=self.tech_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.tech_researcher(),  # type: ignore[call-arg]
             async_execution=False,
-            verbose=True,
         )
 
     @task
@@ -70,9 +59,8 @@ class TechStackCrew:
         """Analyze the company's tech stack"""
         return Task(
             config=self.tasks_config["tech_stack_analysis"],  # type: ignore[arg-type, index]
-            agent=self.tech_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.tech_researcher(),  # type: ignore[call-arg]
             async_execution=False,
-            verbose=True,
         )
 
     @task
@@ -80,9 +68,8 @@ class TechStackCrew:
         """Analyze the company's open source contributions"""
         return Task(
             config=self.tasks_config["open_source_contributions"],  # type: ignore[arg-type, index]
-            agent=self.tech_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.tech_researcher(),  # type: ignore[call-arg]
             async_execution=False,
-            verbose=True,
         )
 
     @task
@@ -90,9 +77,8 @@ class TechStackCrew:
         """Assess the company's tech talent"""
         return Task(
             config=self.tasks_config["tech_talent_assessment"],  # type: ignore[arg-type, index]
-            agent=self.tech_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.tech_researcher(),  # type: ignore[call-arg]
             async_execution=False,
-            verbose=True,
         )
 
     @task
@@ -117,8 +103,6 @@ class TechStackCrew:
             agents=self.agents,  # type: ignore[attr-defined]
             tasks=self.tasks,  # type: ignore[attr-defined]
             process=Process.sequential,
-            llm_timeout=LLMConfig.get_timeout("default"),  # type: ignore[call-arg]
-            max_iter=LLMConfig.get_max_iter(),
             max_rpm=LLMConfig.get_max_rpm(),
             verbose=True,
         )

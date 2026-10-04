@@ -1,15 +1,10 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai_custom_tools import HybridSearchTool
-from crewai_tools import PDFSearchTool
 from dotenv import load_dotenv
 
 from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.hr_intelligence_report import HRIntelligenceReport
-from epic_news.tools.html_to_pdf_tool import HtmlToPdfTool
-
-# Import RAG tools
-from epic_news.tools.report_tools import get_report_tools
 from epic_news.tools.scraper_factory import get_scraper
 
 load_dotenv()
@@ -23,22 +18,17 @@ class HRIntelligenceCrew:
     @agent
     def hr_researcher(self) -> Agent:
         """Creates the HR researcher agent with tools for data gathering"""
-        # Get all tools
-        search_tools = [HybridSearchTool(), get_scraper(), PDFSearchTool()]
-        html_to_pdf_tool = HtmlToPdfTool()
-
-        all_tools = search_tools + [html_to_pdf_tool] + get_report_tools()
+        # Research tools only: rendering/PDF happen in the flow, never in this agent.
+        all_tools = [HybridSearchTool(), get_scraper()]
 
         return Agent(
             config=self.agents_config["hr_researcher"],  # type: ignore[index]
             verbose=True,
             tools=all_tools,
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
             allow_delegation=False,
             respect_context_window=True,
-            reasoning=False,
-            max_reasoning_attempts=3,
         )
 
     @agent
@@ -49,10 +39,9 @@ class HRIntelligenceCrew:
             verbose=True,
             tools=[],  # No tools for reporter to ensure clean output
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
             allow_delegation=False,
             respect_context_window=True,
-            reasoning=False,
         )
 
     @task
@@ -60,9 +49,8 @@ class HRIntelligenceCrew:
         """Assess the company's leadership team"""
         return Task(
             config=self.tasks_config["leadership_team_assessment"],  # type: ignore[arg-type, index]
-            agent=self.hr_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.hr_researcher(),  # type: ignore[call-arg]
             async_execution=False,
-            verbose=True,
         )
 
     @task
@@ -70,9 +58,8 @@ class HRIntelligenceCrew:
         """Analyze employee reviews and sentiment"""
         return Task(
             config=self.tasks_config["employee_sentiment_analysis"],  # type: ignore[arg-type, index]
-            agent=self.hr_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.hr_researcher(),  # type: ignore[call-arg]
             async_execution=False,
-            verbose=True,
         )
 
     @task
@@ -80,9 +67,8 @@ class HRIntelligenceCrew:
         """Assess the company's organizational culture"""
         return Task(
             config=self.tasks_config["organizational_culture_assessment"],  # type: ignore[arg-type, index]
-            agent=self.hr_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.hr_researcher(),  # type: ignore[call-arg]
             async_execution=False,
-            verbose=True,
         )
 
     @task
@@ -90,9 +76,8 @@ class HRIntelligenceCrew:
         """Analyze the company's talent acquisition strategy"""
         return Task(
             config=self.tasks_config["talent_acquisition_strategy"],  # type: ignore[arg-type, index]
-            agent=self.hr_researcher().copy(),  # type: ignore[call-arg]
+            agent=self.hr_researcher(),  # type: ignore[call-arg]
             async_execution=False,
-            verbose=True,
         )
 
     @task
@@ -117,8 +102,6 @@ class HRIntelligenceCrew:
             agents=self.agents,  # type: ignore[attr-defined]
             tasks=self.tasks,  # type: ignore[attr-defined]
             process=Process.sequential,
-            llm_timeout=LLMConfig.get_timeout("default"),  # type: ignore[call-arg]
-            max_iter=LLMConfig.get_max_iter(),
             max_rpm=LLMConfig.get_max_rpm(),
             verbose=True,
         )

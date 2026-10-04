@@ -22,10 +22,7 @@ class HolidayPlannerCrew:
             config=self.agents_config["travel_researcher"],  # type: ignore[index]
             tools=get_search_tools() + get_youtube_tools() + get_scrape_tools() + [ExchangeRateTool()],
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
             verbose=False,
-            reasoning=False,
-            max_reasoning_attempts=3,
             allow_delegation=True,
             respect_context_window=True,
             max_iter=LLMConfig.get_max_iter(),
@@ -37,10 +34,7 @@ class HolidayPlannerCrew:
             config=self.agents_config["accommodation_specialist"],  # type: ignore[index]
             tools=get_search_tools() + get_scrape_tools() + [ExchangeRateTool()],
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
             verbose=False,
-            reasoning=False,
-            max_reasoning_attempts=3,
             allow_delegation=True,
             respect_context_window=True,
             max_iter=LLMConfig.get_max_iter(),
@@ -52,10 +46,7 @@ class HolidayPlannerCrew:
             config=self.agents_config["itinerary_architect"],  # type: ignore[index]
             tools=get_search_tools() + get_scrape_tools() + get_youtube_tools() + [ExchangeRateTool()],
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
             verbose=False,
-            reasoning=False,
-            max_reasoning_attempts=3,
             allow_delegation=True,
             respect_context_window=True,
             max_iter=LLMConfig.get_max_iter(),
@@ -67,7 +58,6 @@ class HolidayPlannerCrew:
             config=self.agents_config["budget_manager"],  # type: ignore[index]
             tools=get_search_tools() + get_scrape_tools() + [ExchangeRateTool()],
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
             verbose=False,
             allow_delegation=False,
             respect_context_window=True,
@@ -108,9 +98,6 @@ class HolidayPlannerCrew:
             agents=self.agents,  # type: ignore[attr-defined]
             tasks=self.tasks,  # type: ignore[attr-defined]
             process=Process.sequential,
-            llm_timeout=LLMConfig.get_timeout("default"),  # type: ignore[call-arg]
-            max_iter=LLMConfig.get_max_iter(),
             max_rpm=30,  # Keeping existing custom value
-            max_retry_limit=5,
             verbose=False,
         )

@@ -9,11 +9,53 @@ Available MCP Servers:
 
 import sysconfig
 from pathlib import Path
+from typing import Any
 
+from crewai.tools import BaseTool
 from dotenv import load_dotenv
+from loguru import logger
 from mcp import StdioServerParameters
 
 load_dotenv()
+
+
+def get_mcp_tools_or_empty(crew: Any) -> list[BaseTool]:
+    """Return ``crew.get_mcp_tools()``, or ``[]`` when the MCP server cannot start.
+
+    ``crew`` is a ``@CrewBase`` instance declaring ``mcp_server_params``; CrewBase
+    owns the adapter and stops it after a successful kickoff (see :func:`close_mcp`
+    for the failure path). MCP tools are supplementary, so a server that fails to
+    start must not take the whole crew down with it. A failed start is remembered on
+    the crew instance so the remaining agents don't each retry (and time out).
+    """
+    if getattr(crew, "_mcp_start_failed", False):
+        return []
+    try:
+        return list(crew.get_mcp_tools())
+    except Exception as exc:
+        crew._mcp_start_failed = True
+        logger.warning(
+            f"⚠️ MCP server unavailable for {type(crew).__name__}; continuing without its tools: {exc}"
+        )
+        return []
+
+
+def close_mcp(crew: Any) -> None:
+    """Stop the crew's CrewBase-managed MCP adapter, if one was started.
+
+    CrewBase stops the adapter only in an after-kickoff hook, i.e. after a
+    *successful* kickoff; call this in a ``finally`` so a failed run does not leak
+    the server subprocess. Safe after that hook and safe to call twice: the
+    reference is cleared before stopping, and stop errors are logged, not raised.
+    """
+    adapter = getattr(crew, "_mcp_server_adapter", None)
+    if adapter is None:
+        return
+    crew._mcp_server_adapter = None
+    try:
+        adapter.stop()
+    except Exception as exc:
+        logger.warning(f"⚠️ Error stopping MCP server for {type(crew).__name__}: {exc}")
 
 
 class MCPConfig:

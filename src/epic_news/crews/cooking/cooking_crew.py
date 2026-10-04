@@ -36,11 +36,10 @@ class CookingCrew:
         """
         return Agent(
             config=self.agents_config["cook"],
-            llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("quick"),
+            llm=LLMConfig.get_openrouter_llm(task_type="quick"),
+            max_iter=LLMConfig.get_max_iter(),
             verbose=True,
             respect_context_window=True,
-            reasoning=False,
         )
 
     @agent
@@ -48,11 +47,10 @@ class CookingCrew:
         """Paprika renderer agent that serialises recipe to YAML."""
         return Agent(
             config=self.agents_config["paprika_renderer"],
-            llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("quick"),
+            llm=LLMConfig.get_openrouter_llm(task_type="quick"),
+            max_iter=LLMConfig.get_max_iter(),
             verbose=True,
             respect_context_window=True,
-            reasoning=False,
         )
 
     @agent
@@ -60,11 +58,10 @@ class CookingCrew:
         """Agent that exports the PaprikaRecipe to JSON for downstream crews."""
         return Agent(
             config=self.agents_config["json_exporter"],
-            llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("quick"),
+            llm=LLMConfig.get_openrouter_llm(task_type="quick"),
+            max_iter=LLMConfig.get_max_iter(),
             verbose=True,
             respect_context_window=True,
-            reasoning=False,
         )
 
     @task
@@ -85,7 +82,6 @@ class CookingCrew:
             config=self.tasks_config["paprika_yaml_task"],  # type: ignore[call-arg]
             agent=self.paprika_renderer(),  # type: ignore[call-arg]
             context=[self.cook_task()],  # type: ignore
-            verbose=True,
         )
 
     @task
@@ -95,7 +91,6 @@ class CookingCrew:
             config=self.tasks_config["recipe_state_task"],  # type: ignore[call-arg]
             agent=self.json_exporter(),  # type: ignore[call-arg]
             context=[self.cook_task()],  # type: ignore
-            verbose=True,
         )
 
     @crew
@@ -108,7 +103,6 @@ class CookingCrew:
                 tasks=self.tasks,  # type: ignore[attr-defined]
                 process=Process.sequential,
                 verbose=True,
-                max_iter=LLMConfig.get_max_iter(),  # type: ignore[call-arg]
                 max_rpm=LLMConfig.get_max_rpm(),
             )
         except Exception as e:

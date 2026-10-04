@@ -3,7 +3,6 @@ from crewai.project import CrewBase, agent, crew, task
 
 from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.book_summary_report import BookSummaryReport
-from epic_news.tools.report_tools import get_report_tools
 from epic_news.tools.web_tools import get_scrape_tools, get_search_tools
 
 
@@ -21,9 +20,9 @@ class LibraryCrew:
             config=self.agents_config["researcher"],  # type: ignore[index]
             verbose=True,
             respect_context_window=True,
-            tools=get_search_tools() + get_scrape_tools() + get_report_tools(),
+            tools=get_search_tools() + get_scrape_tools(),
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
         )
 
     @agent
@@ -35,7 +34,7 @@ class LibraryCrew:
             respect_context_window=True,
             tools=[],
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
         )
 
     @task
@@ -61,8 +60,6 @@ class LibraryCrew:
             agents=self.agents,  # type: ignore[attr-defined]
             tasks=self.tasks,  # type: ignore[attr-defined]
             process=Process.sequential,
-            llm_timeout=LLMConfig.get_timeout("default"),
-            max_iter=LLMConfig.get_max_iter(),
-            max_rpm=LLMConfig.get_max_rpm(),  # type: ignore[call-arg]
+            max_rpm=LLMConfig.get_max_rpm(),
             verbose=True,
         )

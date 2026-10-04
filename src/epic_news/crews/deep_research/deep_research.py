@@ -1,14 +1,10 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai_custom_tools import HybridSearchTool
-from crewai_tools import (
-    FileReadTool,
-    MCPServerAdapter,
-    ScrapeWebsiteTool,
-)
+from crewai_tools import ScrapeWebsiteTool
 
 from epic_news.config.llm_config import LLMConfig
-from epic_news.config.mcp_config import MCPConfig
+from epic_news.config.mcp_config import MCPConfig, get_mcp_tools_or_empty
 from epic_news.models.crews.deep_research_report import DeepResearchReport
 
 
@@ -26,16 +22,9 @@ class DeepResearchCrew:
     agents_config = "config/agents.yaml"
     tasks_config = "config/tasks.yaml"
 
-    # Initialize Wikipedia MCP server
-    _wikipedia_mcp = None
-
-    @property
-    def wikipedia_tools(self):
-        """Get Wikipedia MCP tools (lazy initialization)."""
-        if self._wikipedia_mcp is None:
-            wikipedia_params = MCPConfig.get_wikipedia_mcp()
-            self._wikipedia_mcp = MCPServerAdapter(wikipedia_params)
-        return self._wikipedia_mcp.tools
+    # Wikipedia MCP server: @CrewBase starts it lazily on the first get_mcp_tools()
+    # call and stops it in an after-kickoff hook.
+    mcp_server_params = MCPConfig.get_wikipedia_mcp()
 
     # Research Strategist - Planning and methodology
     @agent
@@ -45,7 +34,7 @@ class DeepResearchCrew:
             config=self.agents_config["research_strategist"],  # type: ignore[index]
             tools=[],  # Strategic planning, no external tools needed
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
             verbose=True,
         )
 
@@ -59,15 +48,12 @@ class DeepResearchCrew:
                 # Hybrid search (Perplexity → Brave → Serper cascading fallback)
                 HybridSearchTool(),
                 ScrapeWebsiteTool(),
-                FileReadTool(),
                 # Wikipedia MCP tools (encyclopedic research)
-                *self.wikipedia_tools,  # Adds search and fetch tools from Wikipedia MCP
+                *get_mcp_tools_or_empty(self),  # Adds search and fetch tools from Wikipedia MCP
             ],
-            llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("long"),
+            llm=LLMConfig.get_openrouter_llm(task_type="long"),
+            max_iter=LLMConfig.get_max_iter(),
             verbose=True,
-            reasoning=False,
-            max_reasoning_attempts=3,
         )
 
     # Data Analyst - Critical analysis and synthesis of the collected corpus
@@ -81,8 +67,8 @@ class DeepResearchCrew:
         return Agent(
             config=self.agents_config["data_analyst"],  # type: ignore[index]
             tools=[],
-            llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("long"),
+            llm=LLMConfig.get_openrouter_llm(task_type="long"),
+            max_iter=LLMConfig.get_max_iter(),
             verbose=True,
         )
 
@@ -94,7 +80,7 @@ class DeepResearchCrew:
             config=self.agents_config["report_writer"],  # type: ignore[index]
             tools=[],  # Report writing, no external tools needed
             llm=LLMConfig.get_openrouter_llm(),
-            llm_timeout=LLMConfig.get_timeout("default"),
+            max_iter=LLMConfig.get_max_iter(),
             verbose=True,
         )
 
@@ -102,17 +88,15 @@ class DeepResearchCrew:
     @task
     def reformulate_task(self) -> Task:
         """Reformulate task."""
-        return Task(
+        return Task(  # type: ignore[call-arg]
             config=self.tasks_config["reformulate_task"],  # type: ignore[arg-type, index]
-            verbose=True,  # type: ignore[call-arg]
         )
 
     @task
     def research_planning_task(self) -> Task:
         """Research planning and methodology task."""
-        return Task(
+        return Task(  # type: ignore[call-arg]
             config=self.tasks_config["research_planning_task"],  # type: ignore[arg-type, index]
-            verbose=True,  # type: ignore[call-arg]
         )
 
     # Task 2: Information Collection
@@ -121,7 +105,6 @@ class DeepResearchCrew:
         """Information collection task."""
         return Task(
             config=self.tasks_config["information_collection_task"],  # type: ignore[arg-type, index]
-            verbose=True,  # type: ignore[call-arg]
             context=[
                 self.research_planning_task(),  # type: ignore[call-arg]
             ],
@@ -133,7 +116,6 @@ class DeepResearchCrew:
         """Data analysis and synthesis task."""
         return Task(
             config=self.tasks_config["data_analysis_task"],  # type: ignore[arg-type, index]
-            verbose=True,  # type: ignore[call-arg]
             context=[
                 self.research_planning_task(),  # type: ignore[call-arg]
                 self.information_collection_task(),  # type: ignore[call-arg]
@@ -146,7 +128,6 @@ class DeepResearchCrew:
         """Report writing task."""
         return Task(
             config=self.tasks_config["report_writing_task"],  # type: ignore[arg-type, index]
-            verbose=True,  # type: ignore[call-arg]
             context=[
                 self.research_planning_task(),  # type: ignore[call-arg]
                 self.information_collection_task(),  # type: ignore[call-arg]
@@ -162,8 +143,6 @@ class DeepResearchCrew:
             agents=self.agents,  # type: ignore[attr-defined]
             tasks=self.tasks,  # type: ignore[attr-defined] # Automatically created from the tasks above
             process=Process.sequential,
-            llm_timeout=LLMConfig.get_timeout("default"),  # type: ignore[call-arg]
-            max_iter=LLMConfig.get_max_iter(),
             max_rpm=LLMConfig.get_max_rpm(),
             verbose=True,
         )

@@ -41,6 +41,8 @@ from dotenv import load_dotenv
 from loguru import logger
 from pydantic import PydanticDeprecatedSince20, PydanticDeprecatedSince211, ValidationError
 
+from epic_news.config.mcp_config import close_mcp
+
 # Patch CrewAI's Pydantic schema parser to support Python 3.10 ``X | Y`` unions
 from epic_news.crews.classify.classify_crew import ClassifyCrew
 from epic_news.crews.company_news.company_news_crew import CompanyNewsCrew
@@ -1076,7 +1078,12 @@ class ReceptionFlow(Flow[ContentState]):
         inputs["output_file"] = output_file
 
         # Kickoff-only orchestration
-        output = kickoff_flow(DeepResearchCrew(), inputs)
+        deep_research_crew = DeepResearchCrew()
+        try:
+            output = kickoff_flow(deep_research_crew, inputs)
+        finally:
+            # CrewBase stops the Wikipedia MCP server only after a successful kickoff.
+            close_mcp(deep_research_crew)
         dump_crewai_state(output, "DEEP_RESEARCH")
 
         # Attempt to load the JSON file written by the crew (preferred, authoritative source)
@@ -1169,21 +1176,18 @@ class ReceptionFlow(Flow[ContentState]):
         pestel_crew = PestelCrew()
         try:
             output = kickoff_flow(pestel_crew, inputs)
-            dump_crewai_state(output, "PESTEL")
-
-            try:
-                pestel_model = load_or_parse_model(
-                    self.state.output_file, PestelReport, output, inputs, "PESTEL"
-                )
-            except (ValueError, ValidationError) as exc:
-                self.logger.error(
-                    f"⚠️ PESTEL parsing failed; emitting stub report so email step can attach a file. {exc}"
-                )
-                pestel_model = _stub_pestel_report(
-                    inputs.get("topic", "N/A"), inputs["current_date"], str(exc)
-                )
         finally:
-            pestel_crew.close()
+            # CrewBase stops the Wikipedia MCP server only after a successful kickoff.
+            close_mcp(pestel_crew)
+        dump_crewai_state(output, "PESTEL")
+
+        try:
+            pestel_model = load_or_parse_model(self.state.output_file, PestelReport, output, inputs, "PESTEL")
+        except (ValueError, ValidationError) as exc:
+            self.logger.error(
+                f"⚠️ PESTEL parsing failed; emitting stub report so email step can attach a file. {exc}"
+            )
+            pestel_model = _stub_pestel_report(inputs.get("topic", "N/A"), inputs["current_date"], str(exc))
 
         self.state.pestel_report = pestel_model
 
