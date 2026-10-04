@@ -23,7 +23,6 @@ def configure_tool_logging(mute_tools: bool = True, log_level: str = "WARNING") 
     tool_loggers = [
         "crewai.tools",
         "langchain.tools",
-        "weasyprint",  # HTML to PDF tool
         "requests",  # HTTP requests from tools
         "urllib3",  # HTTP library
         "serpapi",  # Search tools

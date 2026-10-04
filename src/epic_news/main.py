@@ -19,18 +19,10 @@ Key functionalities include:
 - Utility functions to kickoff the flow (`kickoff`) and plot its structure (`plot`).
 """
 
-# Set environment variables for WeasyPrint library dependencies on macOS
-import os
-import sys
-
-# Only set these on macOS
-if sys.platform == "darwin":
-    os.environ["DYLD_LIBRARY_PATH"] = f"/opt/homebrew/lib:{os.environ.get('DYLD_LIBRARY_PATH', '')}"
-    os.environ["PKG_CONFIG_PATH"] = f"/opt/homebrew/lib/pkgconfig:{os.environ.get('PKG_CONFIG_PATH', '')}"
-
 import asyncio
 import datetime
 import json
+import os
 import re
 import warnings
 from pathlib import Path
