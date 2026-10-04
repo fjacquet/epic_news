@@ -9,10 +9,9 @@ import json
 import time
 from pathlib import Path
 
-import litellm
-
 from epic_news.main import ReceptionFlow
 from epic_news.utils.directory_utils import ensure_output_directories
+from epic_news.utils.interrupt import RunCancelledError
 
 _DATA = Path(__file__).with_name("routing_eval_requests.json")
 _BENCH = Path(__file__).with_name("bench_flow.py")
@@ -38,19 +37,23 @@ def main() -> None:
     ensure_output_directories()
     rows = json.loads(_DATA.read_text(encoding="utf-8"))
     counter = bench_flow.UsageCounter()
-    # CrewAI resets litellm.callbacks on every LLM it builds, so register in success_callback.
-    litellm.success_callback.append(counter)
+    bench_flow.register_counter(counter)
     start = time.perf_counter()
     results = []
     try:
         for row in rows:
-            actual = route(row["request"])
+            try:
+                actual = route(row["request"])
+            except RunCancelledError:
+                raise
+            except Exception as exc:
+                actual = "ERROR"
+                print(f"error {type(exc).__name__}: {exc}")
             results.append((row["expected"], actual))
             mark = "OK " if actual == row["expected"] else "BAD"
             print(f"{mark} expected={row['expected']:<26} actual={actual:<26} {row['request']}")
     finally:
-        if counter in litellm.success_callback:
-            litellm.success_callback.remove(counter)
+        bench_flow.unregister_counter(counter)
     correct, total = score(results)
     print(f"accuracy={correct}/{total}")
     print(

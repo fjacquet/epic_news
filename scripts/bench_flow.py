@@ -86,6 +86,18 @@ class UsageCounter(CustomLogger):
         }
 
 
+def register_counter(counter: UsageCounter) -> None:
+    """CrewAI resets litellm.callbacks per LLM; sync calls read success_callback, async ones the private list."""
+    litellm.success_callback.append(counter)
+    litellm._async_success_callback.append(counter)
+
+
+def unregister_counter(counter: UsageCounter) -> None:
+    for registry in (litellm.success_callback, litellm._async_success_callback):
+        if counter in registry:
+            registry.remove(counter)
+
+
 def run(name: str, request: str) -> dict:
     crews: list[dict] = []
 
@@ -105,14 +117,12 @@ def run(name: str, request: str) -> dict:
 
     main_mod.setup_logging = setup_logging_then_capture
     counter = UsageCounter()
-    # CrewAI resets litellm.callbacks on every LLM it builds, so register in success_callback.
-    litellm.success_callback.append(counter)
+    register_counter(counter)
     start = time.perf_counter()
     try:
         main_mod.kickoff(user_input=request)
     finally:
-        if counter in litellm.success_callback:
-            litellm.success_callback.remove(counter)
+        unregister_counter(counter)
         main_mod.setup_logging = original_setup
         for sink_id in sink_ids:
             logger.remove(sink_id)

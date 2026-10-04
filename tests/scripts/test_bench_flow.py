@@ -49,3 +49,30 @@ def test_usage_counter_sums_sync_and_async_events():
     counter.log_success_event({}, sync_resp, None, None)
     asyncio.run(counter.async_log_success_event({}, Resp(), None, None))
     assert counter.as_dict() == {"calls": 2, "prompt": 17, "completion": 8, "total": 25}
+
+
+def test_counter_counts_sync_and_async_calls():
+    import litellm
+
+    messages = [{"role": "user", "content": "x"}]
+    counter = bench_flow.UsageCounter()
+    bench_flow.register_counter(counter)
+
+    async def _async_call() -> None:
+        await litellm.acompletion(model="gpt-4o-mini", messages=messages, mock_response="hi")
+        for _ in range(40):  # async success handlers run as background tasks
+            if counter.calls >= 2:
+                return
+            await asyncio.sleep(0.05)
+
+    try:
+        assert counter in litellm.success_callback
+        assert counter in litellm._async_success_callback
+        litellm.completion(model="gpt-4o-mini", messages=messages, mock_response="hi")
+        assert counter.calls == 1
+        asyncio.run(_async_call())
+        assert counter.calls == 2
+    finally:
+        bench_flow.unregister_counter(counter)
+    assert counter not in litellm.success_callback
+    assert counter not in litellm._async_success_callback

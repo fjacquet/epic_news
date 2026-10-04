@@ -23,5 +23,10 @@
   {"request": "PESTLE analysis of the EU electric car market", "expected": "PESTEL"},
   {"request": "Fais-moi le résumé hebdomadaire de mes flux RSS", "expected": "RSS"},
   {"request": "Quel est le saint du jour ?", "expected": "SAINT"},
-  {"request": "Daily saint please", "expected": "SAINT"}
+  {"request": "Daily saint please", "expected": "SAINT"},
+  {"request": "Je pars deux jours à Rome, que visiter ?", "expected": "HOLIDAY_PLANNER"},
+  {"request": "Qu'a annoncé Nestlé cette semaine ?", "expected": "COMPANY_NEWS"},
+  {"request": "Que dois-je savoir avant de rencontrer le CEO d'UBS jeudi ?", "expected": "MEETING_PREP"},
+  {"request": "Qui fête-t-on aujourd'hui ?", "expected": "SAINT"},
+  {"request": "Fais une recherche approfondie sur l'histoire et la science de la fermentation du pain au levain", "expected": "DEEPRESEARCH"}
 ]
