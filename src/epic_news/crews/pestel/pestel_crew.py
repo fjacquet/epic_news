@@ -10,11 +10,11 @@ from __future__ import annotations
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai_custom_tools import HybridSearchTool
-from crewai_tools import ScrapeWebsiteTool
 
 from epic_news.config.llm_config import LLMConfig
 from epic_news.config.mcp_config import MCPConfig, get_mcp_tools_or_empty
 from epic_news.models.crews.pestel_report import PestelReport
+from epic_news.tools.capped_scrape_tool import CappedScrapeWebsiteTool
 
 
 @CrewBase
@@ -34,7 +34,7 @@ class PestelCrew:
             config=self.agents_config[config_key],  # type: ignore[index]
             tools=[
                 HybridSearchTool(),
-                ScrapeWebsiteTool(),
+                CappedScrapeWebsiteTool(),
                 *get_mcp_tools_or_empty(self),
             ],
             llm=LLMConfig.get_openrouter_llm(task_type="long"),
