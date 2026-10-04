@@ -26,6 +26,9 @@ logged by `kickoff_flow`). Model: value of `MODEL` in `.env` at run time.
 | 2026-10-04 | E2 news_daily async | news_daily | 252.3 | InformationExtractionCrew | 6.44 | 882 | 1 |
 | 2026-10-04 | E2 news_daily async | news_daily | 252.3 | ClassifyCrew | 1.54 | 0 | 0 |
 | 2026-10-04 | E2 news_daily async | news_daily | 252.3 | NewsDailyCrew | 241.41 | 158029 | 16 |
+| 2026-10-04 | E4 docx parallel + day slices | holiday | 286.6 | InformationExtractionCrew | 10.57 | 1359 | 1 |
+| 2026-10-04 | E4 docx parallel + day slices | holiday | 286.6 | ClassifyCrew | 1.83 | 0 | 0 |
+| 2026-10-04 | E4 docx parallel + day slices | holiday | 286.6 | HolidayPlannerCrew | 231.31 | 168928 | 10 |
 
 Notes: the menu request runs `MenuDesignerService`, which does not go through `kickoff_flow`, so only wall clock is available for it. An `OpenExchangeRates` HTTP 403 was logged during the holiday run (tool error, run completed).
 

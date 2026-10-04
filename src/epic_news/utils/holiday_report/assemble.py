@@ -1,5 +1,7 @@
 """Turn holiday research outputs into a DOCX via bounded fragments."""
 
+import json
+import re
 from typing import Any
 
 from loguru import logger
@@ -32,6 +34,50 @@ def _trip_summary(inputs: dict) -> str:
     )
 
 
+_FENCE = re.compile(r"```(?:json)?\s*(.*?)```", re.DOTALL)
+# "daily" does not contain "day", so both are listed; "jour" covers French keys.
+_DAY_KEY_HINTS = ("day", "daily", "jour")
+
+
+def _find_day_list(node: Any, n_days: int) -> list[dict] | None:
+    """Depth-first search for a list of n_days objects stored under a day-like key."""
+    if isinstance(node, dict):
+        for key, value in node.items():
+            if (
+                any(hint in str(key).lower() for hint in _DAY_KEY_HINTS)
+                and isinstance(value, list)
+                and len(value) == n_days
+                and all(isinstance(item, dict) for item in value)
+            ):
+                return value
+        children: list[Any] = list(node.values())
+    elif isinstance(node, list):
+        children = node
+    else:
+        return None
+    for child in children:
+        found = _find_day_list(child, n_days)
+        if found:
+            return found
+    return None
+
+
+def _day_slices(itinerary: str, n_days: int) -> list[str] | None:
+    """One JSON string per day when the itinerary research holds a per-day list, else None."""
+    text = itinerary.strip()
+    fenced = _FENCE.search(text)
+    if fenced:
+        text = fenced.group(1)
+    try:
+        data = json.loads(text)
+    except ValueError:
+        return None
+    days = _find_day_list(data, n_days)
+    if not days:
+        return None
+    return [json.dumps(day, ensure_ascii=False) for day in days]
+
+
 def assemble_holiday_docx(crew_result: Any, inputs: dict, output_path: str, llm: Any = None) -> str:
     """Build the holiday DOCX from research outputs using bounded fragment calls."""
     llm = llm or LLMConfig.get_openrouter_llm()
@@ -53,6 +99,9 @@ def assemble_holiday_docx(crew_result: Any, inputs: dict, output_path: str, llm:
     # Itinerary: skeleton then one fragment per day (bounded regardless of trip length).
     skeleton = generate_skeleton(itinerary, summary, llm)
     logger.info("🗓️ Itinerary skeleton: {} day(s)", len(skeleton.days))
+    day_slices = _day_slices(itinerary, len(skeleton.days))
+    if day_slices is None:
+        logger.info("🗓️ No per-day research list found; each day gets the full itinerary research")
     if len(skeleton.days) > MAX_ITINERARY_DAYS:
         logger.warning(
             "⚠️ Itinerary skeleton has {} days, exceeding cap of {}; dropping {} day(s)",
@@ -66,7 +115,7 @@ def assemble_holiday_docx(crew_result: Any, inputs: dict, output_path: str, llm:
             Section(
                 heading,
                 f"Détaille cette journée: {day.label}. Étapes: {', '.join(day.stops) or 'à préciser'}.",
-                f"{summary}\n\nRecherche itinéraire:\n{itinerary}",
+                f"{summary}\n\nRecherche itinéraire:\n{day_slices[i - 1] if day_slices else itinerary}",
             )
         )
 
