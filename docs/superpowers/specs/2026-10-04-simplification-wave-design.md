@@ -23,8 +23,10 @@ itself and hides behaviour in long functions:
 
 ## Goals
 
-1. One source of truth for crew keys, titles, renderers and output paths.
-2. `main.py` ≤ 1,100 lines; no function above complexity 20 (radon D) in `src`.
+1. One source of truth for crew keys, titles, renderers and output paths, while every crew
+   stays an explicit Flow step.
+2. `main.py` ≤ 1,350 lines (every crew keeps its own Flow step); no function above
+   complexity 20 (radon D) in `src`.
 3. Crew modules without repeated LLM/agent boilerplate; `type: ignore` in crews −80%.
 4. Behaviour preserved: every PR is a refactor proven by tests, except where noted.
 
@@ -68,20 +70,29 @@ flow, state and DOCX; `models/crews/deep_research_report.py:24`, the crew's
 `utils/extractors/`. Characterisation: the rendered HTML for a recorded deep-research output
 is unchanged.
 
-### S4 — Crew registry and one standard handler
+### S4 — Crew metadata in one place; Flow steps stay explicit
 
-`crew_registry.py` holds one `CrewSpec(key, crew_factory, model_cls, json_path, html_path,
-docx_assembler, title, prepare_inputs=None)` per crew. The router becomes a dict lookup; the
-`or_(...)` list is built from the registry; `TemplateManager` titles and `RendererFactory`
-keys are read from it (fixing the existing drift). A single `run_standard_crew` listener
-handles the crews whose `generate_*` follow the common steps (kickoff → load model →
-`emit_report`): poem, news_company, findaily, news_daily, saint_daily, book_summary,
-meeting_prep, sales_prospecting, pestel. Custom methods stay for RSS, menu, recipe,
-shopping, deep research, OSINT and holiday.
+The Flow structure is not changed: every crew keeps its own `@listen` step
+(`generate_poem`, `generate_pestel`, ...), `@router determine_crew` keeps returning the step
+name, and `crewai flow plot` keeps one node per crew. Collapsing crews into one generic
+listener was considered and rejected (2026-10-04): it hides the flow behind a dispatch
+table, against the CrewAI Flow model.
 
-Visible change: `crewai flow plot` shows one node for the standard crews instead of one per
-crew. Tests on flow wiring (`test_flow_wiring`, `test_determine_crew_router`, per-crew
-wiring tests) are rewritten against the registry.
+What changes:
+
+- `crew_registry.py` holds metadata only: one `CrewSpec(key, title, model_cls, json_path,
+  html_path, docx_assembler)` per crew. `TemplateManager` titles, `RendererFactory` keys and
+  `CrewCategories` read from it, fixing the existing drift (no COMPANY_NEWS title, "RSS" vs
+  "RSS_WEEKLY"). The registry does not route and does not run crews.
+- A flow helper `_run_standard(spec, crew, inputs)` holds the steps the standard crews
+  repeat (kickoff → dump state → load model → `emit_report`). Each standard `generate_*`
+  becomes a short, readable step that prepares its inputs and calls the helper: poem,
+  news_company, findaily, news_daily, saint_daily, book_summary, meeting_prep,
+  sales_prospecting, pestel. Custom steps stay fully written out for RSS, menu, recipe,
+  shopping, deep research, OSINT and holiday.
+- The `or_(...)` list of report steps feeding `send_email` stays explicit in the decorator.
+- Existing flow wiring tests stay valid; add a test that every `CrewSpec` key has a router
+  branch, a listener and a renderer.
 
 ### S5 — Rendering
 
@@ -127,7 +138,7 @@ Delete the flow's unreachable fallback branch, make `parse_menu_structure` walk 
 1. S1 — crew factory helpers
 2. S2 — parsing validators + `json_repair`
 3. S3 — deep research standard path
-4. S4 — crew registry + standard handler
+4. S4 — crew metadata registry + standard-step helper
 5. S5 — rendering
 6. S6 — flow state
 7. S7 — menu
@@ -135,8 +146,8 @@ Delete the flow's unreachable fallback branch, make `parse_menu_structure` walk 
 
 ## Risks
 
-- **Large diffs in `main.py` (S4, S6):** mitigated by registry-first, one crew group per
-  commit, characterisation tests.
+- **Large diffs in `main.py` (S4, S6):** mitigated by one crew per commit and
+  characterisation tests; the Flow graph itself does not change.
 - **Parsing tolerance (S2, S3):** messy LLM output that parses today might not tomorrow;
   mitigated by replaying recorded raw outputs from `debug/`.
 - **Error propagation (S5):** a renderer bug now fails the run instead of sending a broken
@@ -145,11 +156,11 @@ Delete the flow's unreachable fallback branch, make `parse_menu_structure` walk 
 ## Decisions (2026-10-04)
 
 1. The efficiency wave runs first; this wave starts after it, beginning with S1.
-2. Tracer/Dashboard/HallucinationGuard are not used outside this repo: S8 deletes whatever
+2. Every crew stays its own `@listen` Flow step; no generic dispatcher (S4).
+3. Tracer/Dashboard/HallucinationGuard are not used outside this repo: S8 deletes whatever
    the flow does not use.
 
 ## Open questions
 
-1. **Plot granularity (S4):** is one "standard crews" node in `crewai flow plot` acceptable?
-2. **Error propagation (S5):** confirm that a renderer failure should stop the run rather
+1. **Error propagation (S5):** confirm that a renderer failure should stop the run rather
    than send a fallback page.
