@@ -13,12 +13,15 @@ not a delivery confirmed by the API, so ``email_sent`` can never be a guess.
 
 from __future__ import annotations
 
+import importlib
 import os
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from composio import Composio
 from loguru import logger
+
+if TYPE_CHECKING:
+    from composio import Composio
 
 GMAIL_SEND_EMAIL = "GMAIL_SEND_EMAIL"
 
@@ -40,6 +43,12 @@ def _upload_root() -> Path:
     return Path(os.getenv("EPIC_OUTPUT_DIR", "output")).resolve()
 
 
+def _composio_class() -> type[Composio]:
+    """Load Composio on first use: importing it costs ~2 s and most runs never email."""
+    composio_cls: type[Composio] = importlib.import_module("composio").Composio
+    return composio_cls
+
+
 def build_client(api_key: str | None = None) -> Composio:
     """Composio client allowed to upload attachments from the output directory.
 
@@ -52,7 +61,7 @@ def build_client(api_key: str | None = None) -> Composio:
     if not key:
         raise EmailDeliveryError("COMPOSIO_API_KEY is not set; cannot send email.")
 
-    return Composio(
+    return _composio_class()(
         api_key=key,
         dangerously_allow_auto_upload_download_files=True,
         file_upload_dirs=[str(_upload_root())],

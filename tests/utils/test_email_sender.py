@@ -155,7 +155,7 @@ def test_build_client_confines_uploads_to_the_output_dir(monkeypatch, tmp_path):
     captured = {}
     monkeypatch.setenv("COMPOSIO_API_KEY", "test-key-not-real")
     monkeypatch.setenv("EPIC_OUTPUT_DIR", str(tmp_path))
-    monkeypatch.setattr(email_sender, "Composio", lambda **kw: captured.update(kw) or object())
+    monkeypatch.setattr(email_sender, "_composio_class", lambda: lambda **kw: captured.update(kw) or object())
 
     email_sender.build_client()
 
