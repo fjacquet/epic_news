@@ -1,0 +1,56 @@
+"""Routing guide shared by the extraction crew (primary) and ClassifyCrew (fallback).
+
+Single source for the category descriptions and keyword hints used to pick a crew.
+"""
+
+from epic_news.models.content_state import CrewCategories
+
+ROUTING_GUIDE = (
+    "IMPORTANT DISTINCTIONS: - COOKING: For requests about individual recipes, single "
+    "dishes, specific cooking techniques, or ingredient-focused queries - MENU: For "
+    "requests about meal planning, weekly menus, menu design, multiple recipes for a "
+    "period, shopping lists, or dietary planning over time - SHOPPING: For product "
+    "purchase advice, price comparisons, product recommendations, buying guides, or "
+    "consumer advice requests - FINDAILY: For financial advice, investment "
+    "recommendations, portfolio analysis, stock market insights, crypto analysis, "
+    "financial planning, daily financial reports - NEWSDAILY: For GENERAL daily news "
+    "digests spanning many topics — world and current events, breaking news, the day's "
+    "headlines. NOT for research about one specific subject, technology, product, or "
+    "software framework (use DEEPRESEARCH). - COMPANY_NEWS: For company-specific news, "
+    "corporate updates, business intelligence about specific companies or organizations -"
+    " DEEPRESEARCH: For in-depth research on ONE specific subject — a technology, "
+    "software framework, library, SDK, programming language, scientific concept, method, "
+    'or the question "what\'s new / latest developments / state of the art in X". Prefer '
+    "this over NEWSDAILY whenever the request targets a specific topic rather than "
+    "general current events. - HOLIDAY_PLANNER: For vacation planning, travel "
+    "itineraries, destination research - BOOK_SUMMARY: For book summaries, reading "
+    "recommendations, literary analysis, book reviews, author information, literature "
+    "queries, book analysis, tell me about book, livre, roman, auteur - MEETING_PREP: For"
+    " meeting preparation, agenda creation, research for meetings - PESTEL: For PESTEL / "
+    "PESTLE strategic analysis requests covering Political, Economic, Social, "
+    "Technological, Environmental, Legal dimensions on any subject (company, sector, "
+    'country, product). Triggers: "PESTEL", "PESTLE", "analyse PESTEL", "rapport PESTEL",'
+    ' "PESTEL analysis", "macro-environment analysis", "strategic environment". - And so '
+    'on for other categories... Pay special attention to keywords like: - "menu", '
+    '"weekly", "planner", "planning", "multiple recipes", "shopping list" → MENU - '
+    '"recipe", "dish", "cooking technique", "ingredient", "single meal", "risotto" → '
+    'COOKING - "achat", "acheter", "conseil", "prix", "comparaison", "recommandation", '
+    '"produit" → SHOPPING - "financier", "finance", "investissement", "bourse", "crypto",'
+    ' "portefeuille", "conseil financier" → FINDAILY - "actualités générales", "nouvelles'
+    ' générales", "general news", "événements", "journal", "information" → NEWSDAILY - '
+    '"company news", "corporate news", "news for company", "enterprise news", "business '
+    'updates", "company updates" → COMPANY_NEWS - "nouveautés d\'un '
+    'framework/langage/librairie", "framework", "librairie", "SDK", "latest features", '
+    '"developments in", "state of the art", "deep dive", "veille technologique", '
+    '"recherche approfondie", "crewai", "python framework" → DEEPRESEARCH - "book", '
+    '"livre", "roman", "auteur", "author", "tell me about",  → BOOK_SUMMARY - "saint", '
+    '"saint du jour", "daily saint", "saint daily" → SAINT - "poem", "poème", "poetry", '
+    '"poésie" → POEM - "pestel", "pestle", "analyse pestel", "rapport pestel", "pestel '
+    'analysis", "macro-environment", "political economic social technological '
+    'environmental legal" → PESTEL'
+)
+
+
+def routing_categories() -> str:
+    """Comma-separated crew categories offered to the model (UNKNOWN excluded)."""
+    return ", ".join(name for name in CrewCategories.to_dict() if name != CrewCategories.UNKNOWN)

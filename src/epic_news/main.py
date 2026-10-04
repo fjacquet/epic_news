@@ -34,6 +34,7 @@ from loguru import logger
 from pydantic import PydanticDeprecatedSince20, PydanticDeprecatedSince211, ValidationError
 
 from epic_news.config.mcp_config import close_mcp
+from epic_news.config.routing_guide import ROUTING_GUIDE, routing_categories
 
 # Patch CrewAI's Pydantic schema parser to support Python 3.10 ``X | Y`` unions
 from epic_news.crews.classify.classify_crew import ClassifyCrew
@@ -60,7 +61,7 @@ from epic_news.crews.sales_prospecting.sales_prospecting_crew import SalesProspe
 from epic_news.crews.shopping_advisor.shopping_advisor import ShoppingAdvisorCrew
 from epic_news.crews.tech_stack.tech_stack_crew import TechStackCrew
 from epic_news.crews.web_presence.web_presence_crew import WebPresenceCrew
-from epic_news.models.content_state import ContentState
+from epic_news.models.content_state import ContentState, CrewCategories
 from epic_news.models.crews.book_summary_report import BookSummaryReport
 from epic_news.models.crews.company_news_report import CompanyNewsReport
 from epic_news.models.crews.company_profiler_report import CompanyProfileReport
@@ -146,6 +147,14 @@ hallucination_guard = observability_tools["hallucination_guard"]
 # email step must refuse to deliver this JSON as if it were one.
 CLASSIFY_DECISION_FILE = "output/classify/decision.md"
 
+
+def _category_from_classification(result: Any, categories: dict[str, str]) -> str:
+    """Category chosen by ClassifyCrew's typed output; UNKNOWN when missing or invalid."""
+    model = getattr(result, "pydantic", None)
+    selected = (getattr(model, "selected_crew", "") or "").strip().upper()
+    return selected if selected in categories else CrewCategories.UNKNOWN
+
+
 """                                                                                      """
 """                     All the magic is here                                            """
 """                                                                                      """
@@ -227,7 +236,14 @@ class ReceptionFlow(Flow[ContentState]):
         self.logger.info("🤖 Kicking off Information Extraction Crew...")
         # Instantiate and run the information extraction crew (kickoff-only)
         extraction_crew = InformationExtractionCrew()
-        extracted_data = kickoff_flow(extraction_crew, {"user_request": self.state.user_request})
+        extracted_data = kickoff_flow(
+            extraction_crew,
+            {
+                "user_request": self.state.user_request,
+                "categories": routing_categories(),
+                "routing_guide": ROUTING_GUIDE,
+            },
+        )
 
         dump_crewai_state(extracted_data, "EXTRACTED_INFO")
         # The enrich task runs first, so its brief is the first task output. Store it as
@@ -250,10 +266,10 @@ class ReceptionFlow(Flow[ContentState]):
         """
         Classifies the user request into a predefined category.
 
-        Uses the `ClassifyCrew` and the extracted information (primarily the topic)
-        to determine which specialized crew should handle the request.
-        The result updates `self.state.selected_crew`, and the classification
-        decision is saved to `output/classify/decision.md`.
+        Uses the crew chosen during extraction (`extracted_info.selected_crew`) when it
+        is a known category; otherwise falls back to `ClassifyCrew`, which writes its
+        decision to `output/classify/decision.md`. The result updates
+        `self.state.selected_crew`.
         """
         topic = (
             self.state.extracted_info.main_subject_or_activity
@@ -264,35 +280,22 @@ class ReceptionFlow(Flow[ContentState]):
         # Define the output file path for the classification decision.
         self.state.output_file = CLASSIFY_DECISION_FILE
 
-        # Prepare input data for classification using the centralized method from ContentState.
-        inputs = self.state.to_crew_inputs()
-
-        # Instantiate and run the classification crew (kickoff-only)
-        classify_crew = ClassifyCrew()
-        classification_result = kickoff_flow(classify_crew, inputs)
-        dump_crewai_state(classification_result, "CLASSIFICATION")
-
-        # Parse the result and update the state with the selected crew category.
-        # The classification_result might contain 'Thought: ...' prefixes.
-        # We need to extract the actual category name that appears first in the response.
-        raw_classification = str(classification_result)  # Ensure it's a string
-        parsed_category = "UNKNOWN"  # Default to UNKNOWN
-
-        # Find the first occurrence of any category in the response
-        earliest_position = len(raw_classification)
-        for category_key in self.state.categories:
-            position = raw_classification.find(category_key)
-            if position != -1 and position < earliest_position:
-                earliest_position = position
-                parsed_category = category_key
+        candidate = (getattr(self.state.extracted_info, "selected_crew", None) or "").strip().upper()
+        if candidate in self.state.categories and candidate != CrewCategories.UNKNOWN:
+            parsed_category = candidate
+            self.logger.info(f"✅ Crew selected during extraction: {parsed_category}")
+        else:
+            self.logger.info("🔁 Extraction gave no usable crew; falling back to ClassifyCrew")
+            inputs = {**self.state.to_crew_inputs(), "routing_guide": ROUTING_GUIDE}
+            classification_result = kickoff_flow(ClassifyCrew(), inputs)
+            dump_crewai_state(classification_result, "CLASSIFICATION")
+            parsed_category = _category_from_classification(classification_result, self.state.categories)
 
         self.state.selected_crew = parsed_category
         # Runtime output-format intent from the request text. The OUTPUT_FORMAT env flag
         # still overrides this at resolve time (see resolve_output_format).
         self.state.output_format = self.state.output_format or parse_output_format(self.state.user_request)
-        self.logger.info(
-            f"✅ Classification complete. Raw: '{raw_classification}', Selected crew: {self.state.selected_crew}"
-        )
+        self.logger.info(f"✅ Classification complete. Selected crew: {self.state.selected_crew}")
 
     @router("classify")
     @trace_task(tracer)

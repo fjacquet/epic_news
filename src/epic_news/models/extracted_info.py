@@ -55,3 +55,8 @@ class ExtractedInfo(BaseModel):
             "Default to 'English' when the request is in English or ambiguous."
         ),
     )
+    selected_crew: str | None = Field(
+        default=None,
+        description="The single team that should handle the request: one of the category names "
+        "listed in the task, in capitals, or null when no team clearly fits.",
+    )
