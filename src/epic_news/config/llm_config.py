@@ -1,7 +1,10 @@
-"""Centralized LLM configuration for OpenRouter."""
+"""Centralized LLM configuration (OpenRouter and native LiteLLM routes)."""
 
+import asyncio
 import json
 import os
+import random
+import time
 from typing import Any
 
 from crewai import LLM
@@ -10,6 +13,29 @@ from dotenv import load_dotenv
 from loguru import logger
 
 load_dotenv()
+
+# Re-issues of an identical call that came back empty (see _wrap_call_for_react_safety).
+_DEFAULT_EMPTY_RETRIES = "2"
+_EMPTY_RETRY_BASE_DELAY = 0.5
+_EMPTY_RETRY_MAX_DELAY = 8.0
+
+# Module-level so tests can replace them and never sleep for real.
+_sleep = time.sleep
+_async_sleep = asyncio.sleep
+
+
+def _empty_retry_delay(attempt: int) -> float:
+    """Backoff before retry ``attempt`` (1-based): exponential, capped, with jitter.
+
+    Nominal delay is ``0.5s * 2**(attempt-1)`` capped at 8s; the actual delay is drawn
+    uniformly from 50-100% of it so parallel agents don't retry in lockstep.
+    """
+    nominal = min(_EMPTY_RETRY_MAX_DELAY, _EMPTY_RETRY_BASE_DELAY * 2 ** (attempt - 1))
+    return random.uniform(nominal / 2, nominal)  # noqa: S311 - jitter, not crypto
+
+
+def _empty_retries_from_env() -> int:
+    return int(os.getenv("LLM_EMPTY_RETRIES", _DEFAULT_EMPTY_RETRIES))
 
 
 def _is_empty_llm_response(result: object) -> bool:
@@ -26,18 +52,21 @@ def _is_empty_llm_response(result: object) -> bool:
 def _call_with_empty_retry(call_fn, max_retries: int, model: str = "?"):
     """Invoke ``call_fn`` and re-invoke it while it returns an empty LLM response.
 
-    Retries at most ``max_retries`` times, then returns the last (possibly empty)
-    result so the caller's normal empty-handling still applies. Extracted from the
-    ``LLM.call`` patch so the retry loop is unit-testable without live calls.
+    Retries at most ``max_retries`` times, sleeping :func:`_empty_retry_delay` before
+    each retry, then returns the last (possibly empty) result so the caller's normal
+    empty-handling still applies. Extracted from the ``LLM.call`` patch so the retry
+    loop is unit-testable without live calls.
     """
     result = call_fn()
     attempts = 0
     while attempts < max_retries and _is_empty_llm_response(result):
         attempts += 1
+        delay = _empty_retry_delay(attempts)
         logger.warning(
             f"Empty response from LLM '{model}' (likely Gemini thought-only turn); "
-            f"retrying {attempts}/{max_retries}"
+            f"retrying {attempts}/{max_retries} in {delay:.2f}s"
         )
+        _sleep(delay)
         result = call_fn()
     return result
 
@@ -52,10 +81,12 @@ async def _acall_with_empty_retry(call_fn, max_retries: int, model: str = "?"):
     attempts = 0
     while attempts < max_retries and _is_empty_llm_response(result):
         attempts += 1
+        delay = _empty_retry_delay(attempts)
         logger.warning(
             f"Empty response from async LLM '{model}' (likely Gemini thought-only turn); "
-            f"retrying {attempts}/{max_retries}"
+            f"retrying {attempts}/{max_retries} in {delay:.2f}s"
         )
+        await _async_sleep(delay)
         result = await call_fn()
     return result
 
@@ -230,9 +261,9 @@ def _wrap_call_for_react_safety(cls: type) -> None:
     it is not a length cut-off). CrewAI's ``_validate_and_finalize_llm_response`` rejects
     it with ``ValueError: Invalid response from LLM call - None or empty``. The empties
     are stochastic (~40-60% per call on the worst prompts) and, counter-intuitively, get
-    worse with thinking disabled — so re-issuing the identical call a handful of times
-    reliably yields text. Tune the ceiling with ``LLM_EMPTY_RETRIES`` (default 6); 0
-    disables it.
+    worse with thinking disabled — so re-issuing the identical call usually yields text.
+    Retries back off exponentially with jitter (0.5s base, 8s cap). Tune the ceiling with
+    ``LLM_EMPTY_RETRIES`` (default 2); 0 disables it.
 
     *Native tool calls on a ReAct step.* See ``_coerce_tool_calls_to_react_text``.
 
@@ -250,7 +281,7 @@ def _wrap_call_for_react_safety(cls: type) -> None:
         def call(self, *args, **kwargs):
             result = _call_with_empty_retry(
                 lambda: original_call(self, *args, **kwargs),
-                int(os.getenv("LLM_EMPTY_RETRIES", "6")),
+                _empty_retries_from_env(),
                 getattr(self, "model", "?"),
             )
             return _react_safe_text(self, result)
@@ -264,7 +295,7 @@ def _wrap_call_for_react_safety(cls: type) -> None:
         async def acall(self, *args, **kwargs):
             result = await _acall_with_empty_retry(
                 lambda: original_acall(self, *args, **kwargs),
-                int(os.getenv("LLM_EMPTY_RETRIES", "6")),
+                _empty_retries_from_env(),
                 getattr(self, "model", "?"),
             )
             return _react_safe_text(self, result)
