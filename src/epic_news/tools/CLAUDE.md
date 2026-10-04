@@ -15,12 +15,13 @@ below are what remains in `src/epic_news/tools/`.
 **Factories** (select/assemble tools by provider or feature flag):
 - web_tools.py — web search/scrape/YouTube/PDF tool bundles
 - finance_tools.py — Yahoo Finance / stock / crypto / ETF tool bundles
-- github_tools.py, location_tools.py, report_tools.py — per-domain factory functions
+- github_tools.py, location_tools.py — per-domain factory functions
 - scraper_factory.py — scraper provider selection (delegates to `crewai_custom_tools`)
 
-**Data & Reporting** (kept in-repo):
-- data_centric_tools.py (MetricsCalculatorTool, KPITrackerTool, DataVisualizationTool, StructuredReportTool; `get_data_centric_tools()`)
-- html_to_pdf_tool.py (HtmlToPdfTool), render_report_tool.py (RenderReportTool)
+**File access**:
+- output_file_read_tool.py (`OutputFileReadTool`) — reads a text file only inside its `root` (default `output/`; fin_daily uses `root="data"` for portfolio CSVs). Resolves symlinks, refuses paths outside the root, caps reads at 200k chars, returns JSON (`content` / `truncated` / `error`).
+
+Reports are rendered by the flow (`render_and_write_html`, DOCX assemblers), not by agent tools.
 
 **Shared**:
 - _json_utils.py (JSON-output helpers: `ensure_json_str`, etc.)
@@ -42,8 +43,6 @@ def get_search_tools():
 - `finance_tools`: `get_yahoo_finance_tools()`, `get_stock_research_tools()`, `get_crypto_research_tools()`
 - `github_tools.get_github_tools()` - GitHub integrations
 - `location_tools.get_location_tools()` - Geoapify place search
-- `report_tools.get_report_tools()` - RenderReportTool (+ HtmlToPdfTool when available)
-- `data_centric_tools.get_data_centric_tools()` - metrics/KPI/report tools
 
 ### Scraper Factory (Provider Abstraction)
 
@@ -192,7 +191,7 @@ researcher:
 
 ### Tool Selection by Crew Type
 
-Different crews need different tool combinations:
+Different crews need different tool combinations. Give each agent only the tools its tasks use, with no duplicates, and never put crewai's unscoped `FileReadTool` on an agent that also searches or scrapes the web (use `OutputFileReadTool`). `tests/crews/test_agent_settings_contract.py` enforces the last two rules.
 
 **Research Crews** (deep_research, company_profiler):
 - `HybridSearchTool` (Perplexity → Brave → Serper fallback)

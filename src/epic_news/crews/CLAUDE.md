@@ -109,31 +109,44 @@ class MyCrew:
         )
 ```
 
-CrewAI silently drops unknown keyword arguments. `llm_timeout=` (any object) and `Crew(max_iter=...)` are not fields and have no effect; don't add them, and don't silence `call-arg` errors with `# type: ignore`.
+CrewAI silently drops unknown keyword arguments. `llm_timeout=` (any object) and `Crew(max_iter=...)` are not fields and have no effect; don't add them, and don't silence `call-arg` errors with `# type: ignore`. `tests/crews/test_constructor_kwargs.py` fails on any undeclared `Agent`/`Task`/`Crew` kwarg, and `tests/crews/test_agent_settings_contract.py` checks every built agent (LLM timeout, `max_iter`, no duplicate tools, no `FileReadTool` next to web tools). See ADR-014.
+
+Pass the agent itself to `Task(agent=self.my_agent())`, never `agent.copy()`: CrewAI's `LLM.__copy__` drops `timeout`.
+
+**Tool hygiene**: give each agent only the tools its tasks use. An agent with web search/scrape tools must not also hold crewai's unscoped `FileReadTool`; use `OutputFileReadTool` (`tools/output_file_read_tool.py`, scoped to `output/` by default, `root=` to change it).
 
 ### MCP Tools (CrewBase-managed)
 
 ```python
-from epic_news.config.mcp_config import MCPConfig
+from epic_news.config.mcp_config import MCPConfig, get_mcp_tools_or_empty
 
 @CrewBase
 class MyCrew:
     agents_config = "config/agents.yaml"
     tasks_config = "config/tasks.yaml"
 
-    mcp_server_params = [MCPConfig.get_wikipedia_mcp()]
+    mcp_server_params = MCPConfig.get_wikipedia_mcp()
 
     @agent
     def researcher(self) -> Agent:
         return Agent(
             config=self.agents_config["researcher"],
-            tools=[*self.get_mcp_tools()],  # lazily starts one shared adapter
+            tools=[HybridSearchTool(), *get_mcp_tools_or_empty(self)],  # one shared adapter
             llm=LLMConfig.get_openrouter_llm(task_type="long"),
             max_iter=LLMConfig.get_max_iter(),
         )
 ```
 
-`@CrewBase` shuts the adapter down after `kickoff()`; no manual `close()` is needed. Without `mcp_server_params`, `get_mcp_tools()` returns `[]`.
+- `get_mcp_tools_or_empty(self)` wraps CrewBase's `get_mcp_tools()`: if the server cannot start it logs a warning and returns `[]`, and remembers the failure so the other agents don't retry.
+- CrewBase stops the adapter only after a **successful** kickoff. The flow must call `close_mcp(crew)` in a `finally` (see `generate_deep_research` / `generate_pestel` in `main.py`):
+
+```python
+crew = MyCrew()
+try:
+    output = kickoff_flow(crew, inputs)
+finally:
+    close_mcp(crew)  # safe after CrewBase's own stop, safe to call twice
+```
 
 ### Two-Agent Pattern (Research + Tool-Free Reporting)
 
@@ -289,11 +302,6 @@ render_and_write_html("POEM", poem_model, html_file)
 
 - `scraper_factory.get_scraper()` (ScrapeNinja by default, FireCrawl via `WEB_SCRAPER_PROVIDER=firecrawl`)
 
-### Data Analysis Crews
-
-- Custom analytics tools
-- ValidationTools
-
 ## HTML Rendering
 
 Each crew that generates HTML reports must:
@@ -390,11 +398,7 @@ Set on the LLM via `LLMConfig.get_openrouter_llm(task_type=...)`:
 
 ### Iteration Limits
 
-`max_iter` is an **Agent** field (CrewAI default 25; project default `LLMConfig.get_max_iter()` = 5):
-
-- **Simple crews**: `max_iter=3`
-- **Research crews**: `max_iter=5` (default)
-- **Deep analysis**: `max_iter=10`
+`max_iter` is an **Agent** field (CrewAI default 25). Every agent sets `max_iter=LLMConfig.get_max_iter()` (`CREW_MAX_ITER`, default 15). The only override is fin_daily's stock analyst (`max_iter=30`, one tool call per portfolio ticker), listed in `MAX_ITER_OVERRIDES` in `tests/crews/test_agent_settings_contract.py`; add new overrides there too.
 
 ### Rate Limiting
 

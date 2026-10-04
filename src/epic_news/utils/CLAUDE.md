@@ -54,7 +54,8 @@ render_and_write_html("POEM", model, "output/poem/poem.html")  # returns the Pat
   and validates the JSON file the task wrote; on a missing/invalid file falls back to
   `parse_crewai_output(fallback_output, model_cls, inputs)`.
 - `render_and_write_html(selected_crew, model, html_path)`: `TemplateManager().render_report`
-  + write; creates the parent directory itself.
+  + write; creates the parent directory itself and raises `ValueError` if `html_path` does
+  not resolve inside `output/` (ADR-015).
 - `emit_report(state, selected_crew, render_html, assemble_docx=None)`: picks DOCX or HTML
   (`OUTPUT_FORMAT` env > `state.output_format` > `"html"`), runs the matching zero-arg
   closure, sets and returns `state.output_file`.
@@ -74,6 +75,8 @@ html = TemplateManager().render_report(selected_crew="POEM", content_data=model.
 - `render_report` is an **instance** method returning a string; it does not write files
   (use `render_and_write_html`). It fills `{{ theme_css_vars }}` (from
   `config/ui_theme.py`), `{{ static_css }}` (`templates/css/report.css`), title, body and date.
+  The title and the error fallback are HTML-escaped; renderers must escape untrusted text too
+  (BeautifulSoup `.string` does).
 - `RendererFactory` (classmethods): `create_renderer(crew_type)`,
   `has_specialized_renderer(crew_type)`, `get_supported_crew_types()`. Keys are upper-case
   crew identifiers (`POEM`, `COOKING`, `FINDAILY`, `NEWSDAILY`, `DEEPRESEARCH`, `PESTEL`, ...);
@@ -119,7 +122,9 @@ class MyCrewRenderer(BaseRenderer):
 - `assemble_fragments(sections, meta, output_path, llm, system)` builds the DOCX and refuses
   to write when more than half the sections degraded to placeholders.
 - `build_docx(fragments, meta, output_path)` is the deterministic Pandoc step
-  (`reference.docx` styles, TOC).
+  (`reference.docx` styles, TOC). It runs two passes (ADR-013): Markdown → JSON with the
+  `safe_images.lua` (only images under `output/`) and `strip_rules.lua` (no horizontal rules)
+  filters, then JSON → DOCX. System `pandoc` must be on `PATH`.
 - Per-crew assemblers live in `docx_report/crews/` (`assemble_cooking_docx`,
   `assemble_news_daily_docx`, ...). Holiday planner: `holiday_report.assemble_holiday_docx`.
 

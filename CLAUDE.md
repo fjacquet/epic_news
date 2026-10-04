@@ -119,25 +119,35 @@ All tool `_run()` methods must return **JSON strings** parseable by `json.loads(
 - Directory creation is centralized via `ensure_output_directories()` (called at startup)
 - **Never** use `os.makedirs()` in crew/task logic
 
-## LLM Configuration - OpenRouter
+## LLM Configuration
 
-All config via `LLMConfig` (`src/epic_news/config/llm_config.py`):
+All config via `LLMConfig` (`src/epic_news/config/llm_config.py`). Default model: Gemini 3.8 Flash on LiteLLM's native route (`gemini/gemini-3.8-flash`, ADR-016); any `openrouter/...` model goes through OpenRouter. The method keeps its historical name `get_openrouter_llm()` for both routes.
 
 - `LLMConfig.get_openrouter_llm(task_type="quick"|"default"|"long")` — LLM instance with the matching timeout (120s / 300s / 600s, from `LLMConfig.get_timeout()`) set on the LLM itself; supports opt-in `reasoning_effort` (Magistral). Gemini models get no default temperature (LiteLLM keeps 1.0); Gemini 3 reasoning defaults to `medium`
-- `LLMConfig.get_max_iter()` — pass as `max_iter=` on each `Agent` (default 5). CrewAI `Crew` has no `max_iter` field
+- `LLMConfig.get_max_iter()` — pass as `max_iter=` on each `Agent` (default 15; fin_daily's stock analyst uses 30). CrewAI `Crew` has no `max_iter` field
 - `LLMConfig.get_max_rpm()` — `max_rpm=` on the `Crew` (default 20)
 
-**Timeouts**: always `llm=LLMConfig.get_openrouter_llm(task_type=...)`. Never pass `llm_timeout=` to an `Agent`/`Crew`/`Task`: it is not a CrewAI field and is silently ignored (the call then uses LiteLLM's 600s default).
+**Timeouts**: always `llm=LLMConfig.get_openrouter_llm(task_type=...)`. Never pass `llm_timeout=` to an `Agent`/`Crew`/`Task`: it is not a CrewAI field and is silently ignored (the call then uses LiteLLM's 600s default). Don't wire tasks with `agent.copy()`: CrewAI's `LLM.__copy__` drops `timeout`.
+
+`tests/crews/test_constructor_kwargs.py` (AST scan) fails on any `Agent`/`Task`/`Crew` kwarg that is not a declared field, and `tests/crews/test_agent_settings_contract.py` checks every built agent has an LLM timeout and the configured `max_iter` (ADR-014).
 
 ### Environment Variables
 
-Key `.env` settings: `OPENROUTER_API_KEY`, `MODEL` (default: `openrouter/mistralai/mistral-small-2603`), `OPENROUTER_BASE_URL`, `LLM_TEMPERATURE` (0.7), `LLM_TIMEOUT_QUICK/DEFAULT/LONG`, `LLM_REASONING_EFFORT` (opt-in, for Magistral models), `CREW_MAX_ITER`, `CREW_MAX_RPM`. Change `MODEL` in `.env` to switch models globally.
+Key `.env` settings: `MODEL` (default: `gemini/gemini-3.8-flash`), `GEMINI_API_KEY` (native Gemini route; LiteLLM reads `GOOGLE_API_KEY` first if both are set), `OPENROUTER_API_KEY` / `OPENROUTER_BASE_URL` (for `openrouter/...` models), `LLM_TEMPERATURE` (0.7, not sent to Gemini), `LLM_TIMEOUT_QUICK/DEFAULT/LONG` (120/300/600), `LLM_REASONING_EFFORT` (unset → `medium` for Gemini 3, none otherwise), `CREW_MAX_ITER` (15), `CREW_MAX_RPM` (20). Change `MODEL` in `.env` to switch models globally.
 
 **NEVER** hardcode model names or timeout values — always use `LLMConfig` methods.
 
 ## MCP Servers
 
-Wikipedia MCP (`wikipedia-mcp-server`) configured in `src/epic_news/config/mcp_config.py` via `MCPConfig.get_wikipedia_mcp()`. Used by: `deep_research`, `pestel`. Wire MCP servers through CrewBase: set `mcp_server_params` on the crew class and call `self.get_mcp_tools()` in the `@agent` method; CrewBase closes the adapter after `kickoff()`. Do not hold a long-lived `MCPServerAdapter` yourself (it spawns a process that leaks if never stopped).
+Wikipedia MCP (`wikipedia-mcp-server`, locked in `uv.lock` and run from the venv's `wikipedia-mcp` script, never fetched at runtime) configured in `src/epic_news/config/mcp_config.py` via `MCPConfig.get_wikipedia_mcp()`. Used by: `deep_research`, `pestel`.
+
+Wire MCP servers through CrewBase:
+
+- set `mcp_server_params = MCPConfig.get_wikipedia_mcp()` on the crew class;
+- in `@agent` methods use `*get_mcp_tools_or_empty(self)` (wraps `get_mcp_tools()`; a server that cannot start logs a warning, the crew runs without its tools, and the failed start is not retried by the other agents);
+- CrewBase stops the adapter only after a *successful* kickoff, so the flow calls `close_mcp(crew)` in a `finally` around `kickoff_flow(...)`.
+
+Do not hand-build a `MCPServerAdapter` (it spawns a subprocess that leaks if never stopped).
 
 ## Composio Tools
 
@@ -152,7 +162,17 @@ Not to be confused with `epic_news.tools.web_tools.get_search_tools()` (`Perplex
 
 ## API
 
-`src/epic_news/api.py` (FastAPI, `make run-api`) exposes `GET /health` and `POST /kickoff`. Settings: `EPIC_API_TOKEN` (bearer token required on `/kickoff`), `EPIC_API_BIND` (listen address; keep loopback unless fronted by a proxy), `EPIC_API_MAX_CONCURRENT` (cap on concurrent runs). See `docs/how-to/expose-api-n8n.md`.
+`src/epic_news/api.py` (FastAPI, `make run-api`) exposes `GET /health` (open) and `POST /kickoff`. Settings:
+
+- `EPIC_API_TOKEN` — `/kickoff` requires `Authorization: Bearer <token>`; unset → 503 (fails closed), wrong token → 401
+- `EPIC_API_BIND` — host address Docker Compose publishes port 8000 on (default `127.0.0.1`)
+- `EPIC_API_MAX_CONCURRENT` — concurrent kickoffs (default 1); extra requests get 429
+
+`user_request` is capped at 2000 characters. See `docs/how-to/expose-api-n8n.md` and ADR-012.
+
+## File Access Boundary
+
+Agent-driven code reads and writes only under `output/` (ADR-015): `render_and_write_html()` refuses paths outside it, DOCX images are limited to it, and agents that need to read files get `OutputFileReadTool` (`src/epic_news/tools/output_file_read_tool.py`, `root="output"` by default; fin_daily reads portfolio CSVs with `root="data"`). Never give crewai's unscoped `FileReadTool` to an agent that also has web search/scrape tools.
 
 ## Code Style Specifics
 
