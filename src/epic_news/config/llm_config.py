@@ -14,7 +14,7 @@ from loguru import logger
 
 load_dotenv()
 
-_DEFAULT_MODEL = "openrouter/mistralai/mistral-small-2603"
+_DEFAULT_MODEL = "gemini/gemini-3.8-flash"
 _DEFAULT_OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 
 # LiteLLM-level retries for transient provider errors (429 / 5xx), per completion call.
@@ -389,7 +389,7 @@ class LLMConfig:
     ``vertex_ai/``, ``anthropic/``, ...) uses that provider natively.
 
     Environment Variables:
-        MODEL: Model identifier (default: "openrouter/mistralai/mistral-small-2603")
+        MODEL: Model identifier (default: "gemini/gemini-3.8-flash")
         OPENROUTER_API_KEY: OpenRouter API key (openrouter/ route only)
         OPENROUTER_BASE_URL: OpenRouter endpoint (default: https://openrouter.ai/api/v1)
         LLM_TEMPERATURE: Response randomness (0.0-2.0, default: 0.7; never applied
@@ -424,7 +424,7 @@ class LLMConfig:
         applied only to ``openrouter/`` models (see class docstring).
 
         Args:
-            model: Model name (e.g., "openrouter/mistralai/mistral-small-2603").
+            model: Model name (e.g., "gemini/gemini-3.8-flash" or "openrouter/mistralai/mistral-small-2603").
                    If None, uses MODEL from .env.
             temperature: LLM temperature (0.0-2.0). If None, uses LLM_TEMPERATURE
                         from .env (default: 0.7) — except for Gemini models on any
