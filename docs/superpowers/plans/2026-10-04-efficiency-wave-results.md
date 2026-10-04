@@ -49,3 +49,12 @@ E3 menu run: 28/28 recipes generated, wall 175.9 s vs 808.3 s baseline (sequenti
 Two-step routing (InformationExtractionCrew then ClassifyCrew) over the 30 requests in `scripts/routing_eval_requests.json`, one at a time: about 10.7 s and 7.3k tokens per request, 3 LLM calls per request. Only the extraction and classification crews ran; no email was sent. An earlier run printed `litellm calls=0` because CrewAI resets `litellm.callbacks` each time it builds an LLM; the counter is now registered in `success_callback` and `_async_success_callback`.
 
 E5 single-call routing: the extraction crew now also picks the crew (`ExtractedInfo.selected_crew`) and ClassifyCrew runs only when that field is empty or invalid. Accuracy is unchanged at 30/30. The ClassifyCrew fallback was used 0 times (0 `🔁` lines in `logs/epic_news.log` during the run), so each request made 2 LLM calls (enrichment and extraction) instead of 3. Wall clock fell 29% (321.5 s to 229.1 s) and total tokens 15% (220,225 to 186,691). The extraction prompt grew by the routing guide, which is why prompt tokens fall less than the call count.
+
+### OSINT cross-reference (E6)
+
+| Date | Change | Wall (s) | Cross-reference crew | Crew seconds | Crew tokens (CrewAI) | LiteLLM calls | Prompt | Completion | Total |
+|---|---|---|---|---|---|---|---|---|---|
+| 2026-10-04 | E6 research | 1294.0 | CrossReferenceReportCrew | 262.86 | 97462 (5 requests) | 89 | 1808399 | 604439 | 2412838 |
+| 2026-10-04 | E6 synthesis | 692.8 | CrossReferenceSynthesisCrew | 17.13 | 0 (not reported; output_pydantic call) | 79 | 1361182 | 421837 | 1783019 |
+
+Each run executes the six OSINT crews again (target: Logitech), and those vary a lot from run to run (CompanyProfilerCrew: 1,404k tokens in the research run, 440k in the synthesis run), so wall clock and LiteLLM totals mix that noise with the cross-reference step. The cross-reference crew seconds are the clean comparison: 262.9 s (5 requests, 97k tokens) for research versus 17.1 s for synthesis (CrewAI reports 0 tokens because the single call is structured output). Output files: `output/osint/compare/{research,synthesis}.{html,json}`.
