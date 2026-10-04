@@ -17,5 +17,8 @@ logged by `kickoff_flow`). Model: value of `MODEL` in `.env` at run time.
 | 2026-10-04 | baseline | holiday | 735.9 | InformationExtractionCrew | 7.7 | 942 | 1 |
 | 2026-10-04 | baseline | holiday | 735.9 | ClassifyCrew | 2.03 | 0 | 0 |
 | 2026-10-04 | baseline | holiday | 735.9 | HolidayPlannerCrew | 320.98 | 303820 | 10 |
+| 2026-10-04 | E2 pestel async | pestel | 672.4 | InformationExtractionCrew | 6.11 | 882 | 1 |
+| 2026-10-04 | E2 pestel async | pestel | 672.4 | ClassifyCrew | 1.58 | 0 | 0 |
+| 2026-10-04 | E2 pestel async | pestel | 672.4 | PestelCrew | 660.96 | 525668 | 13 |
 
 Notes: the menu request runs `MenuDesignerService`, which does not go through `kickoff_flow`, so only wall clock is available for it. An `OpenExchangeRates` HTTP 403 was logged during the holiday run (tool error, run completed).

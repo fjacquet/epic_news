@@ -28,6 +28,10 @@ import pytest
 
 from tests.crews._registry import ALL_CREW_CLASSES, build_crew
 
+# Crews cleared to run tasks async: each async task has its own agent
+# (see tests/crews/test_pestel_async_tasks.py) and the LLM cap bounds concurrency.
+ASYNC_ALLOWED = {"PestelCrew"}
+
 
 def _concurrent_async_batches(tasks):
     """Split tasks into the batches CrewAI runs concurrently.
@@ -56,6 +60,8 @@ def test_crew_declares_no_async_tasks(crew_cls):
     Asserted on the built ``Task`` objects rather than the source text, so a task that
     picks up ``async_execution`` from its YAML config is caught too.
     """
+    if crew_cls.__name__ in ASYNC_ALLOWED:
+        pytest.skip(f"{crew_cls.__name__} intentionally runs its dimension tasks async")
     crew = build_crew(crew_cls)
     async_tasks = [t.name or t.description[:60] for t in crew.tasks if getattr(t, "async_execution", False)]
     assert not async_tasks, (
