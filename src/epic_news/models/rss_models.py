@@ -1,12 +1,6 @@
 """Pydantic models for RSS tools."""
 
-from pydantic import BaseModel, Field
-
-
-class RssFeedParserToolInput(BaseModel):
-    """Input schema for the RssFeedParserTool."""
-
-    feed_url: str = Field(..., description="The URL of the RSS feed to parse.")
+from pydantic import BaseModel
 
 
 class Article(BaseModel):

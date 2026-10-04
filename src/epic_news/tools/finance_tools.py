@@ -65,19 +65,3 @@ def get_crypto_research_tools() -> list[BaseTool]:
         YahooFinanceTickerInfoTool(),
         KrakenTickerInfoTool(),
     ]
-
-
-def get_etf_research_tools() -> list[BaseTool]:
-    """
-    Get tools optimized for ETF research.
-
-    Returns:
-        list[BaseTool]: A list of tools focused on ETF analysis.
-
-    """
-    return [
-        YahooFinanceTickerInfoTool(),
-        YahooFinanceHistoryTool(),
-        YahooFinanceETFHoldingsTool(),
-        YahooFinanceNewsTool(),
-    ]

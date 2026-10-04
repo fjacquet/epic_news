@@ -2,62 +2,7 @@
 
 from enum import StrEnum
 
-from pydantic import BaseModel, Field, field_validator
-
-
-class RecipeFile(BaseModel):
-    """Model representing a recipe file on disk with its location and content type."""
-
-    path: str = Field(..., description="Full path to the recipe file")
-    recipe_code: str = Field(..., description="Unique recipe code (e.g., S001, M002)")
-    content_type: str = Field(..., description="Type of content (yaml or html)")
-    exists: bool = Field(False, description="Whether the file exists on disk")
-
-    @field_validator("content_type")
-    def content_type_must_be_valid(cls, v):  # noqa: N805
-        if v not in ["yaml", "html"]:
-            raise ValueError(f"Content type must be 'yaml' or 'html', got {v}")
-        return v
-
-
-class MenuReport(BaseModel):
-    """Model representing the final menu report structure."""
-
-    title: str = Field(..., description="Title of the menu report")
-    weekly_plan: dict[str, dict[str, list[str]]] = Field(
-        ..., description="Weekly meal plan structure: {day: {meal: [courses]}}"
-    )
-    html_content: str = Field(..., description="Full HTML content of the report")
-    recipe_links: list[str] = Field(..., description="Links to individual recipe HTML files")
-
-
-class ShoppingList(BaseModel):
-    """Model representing the aggregated shopping list."""
-
-    categories: dict[str, list[str]] = Field(
-        ..., description="Categorized ingredients: {category: [ingredients]}"
-    )
-    raw_text: str = Field(..., description="Raw text version of shopping list")
-
-
-class MenuOutputValidation(BaseModel):
-    """Complete validation model for menu designer output."""
-
-    recipe_files: list[RecipeFile] = Field(..., description="List of all expected recipe files")
-    menu_report: MenuReport | None = Field(None, description="Final menu report structure")
-    shopping_list: ShoppingList | None = Field(None, description="Aggregated shopping list")
-    validation_success: bool = Field(False, description="Whether validation was successful")
-    total_files: int = Field(0, description="Total number of files found")
-    expected_files: int = Field(62, description="Expected number of files")
-    missing_count: int = Field(0, description="Number of missing files")
-
-    @field_validator("validation_success")
-    def validate_file_counts(cls, v, values):  # noqa: N805
-        """Ensure the correct number of files are present."""
-        if "total_files" in values and "expected_files" in values:
-            return values["total_files"] == values["expected_files"]
-        return v
-
+from pydantic import BaseModel, Field
 
 # Modèles pour la planification structurée du menu hebdomadaire
 

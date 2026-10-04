@@ -1,5 +1,4 @@
 import json
-import os
 import re
 from pathlib import Path
 from typing import Any
@@ -14,7 +13,6 @@ from epic_news.models.crews.rss_weekly_report import (
     RssWeeklyReport,
 )
 from epic_news.models.rss_models import RssFeeds
-from epic_news.utils.directory_utils import ensure_output_directory
 from epic_news.utils.html.template_manager import TemplateManager
 
 
@@ -203,20 +201,3 @@ def prepare_email_params(state: Any) -> dict[str, Any]:
         "output_file": body_source,
         "topic": topic,
     }
-
-
-def setup_crew_output_directory(crew_name: str, base_dir: str = "output") -> str:
-    """
-    Sets up the output directory for a specific crew.
-
-    Args:
-        crew_name: Name of the crew (used for the subdirectory name).
-        base_dir: Base output directory, defaults to "output".
-
-    Returns:
-        Path to the created output directory.
-    """
-    output_dir = os.path.join(base_dir, crew_name.lower())
-    ensure_output_directory(output_dir)
-    logger.info(f"Created output directory: {output_dir}")
-    return output_dir

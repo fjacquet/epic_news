@@ -91,17 +91,6 @@ class RendererFactory:
         return list(cls._RENDERER_MAP.keys())
 
     @classmethod
-    def register_renderer(cls, crew_type: str, renderer_class: type[BaseRenderer]) -> None:
-        """
-        Register a new renderer for a crew type.
-
-        Args:
-            crew_type: Type of crew
-            renderer_class: Renderer class to register
-        """
-        cls._RENDERER_MAP[crew_type] = renderer_class
-
-    @classmethod
     def has_specialized_renderer(cls, crew_type: str) -> bool:
         """
         Check if a crew type has a specialized renderer.

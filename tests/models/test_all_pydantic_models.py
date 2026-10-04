@@ -21,7 +21,7 @@ from epic_news.models.extracted_info import ExtractedInfo
 
 # Tests for report, report_models, and rss_models
 from epic_news.models.report_models import RenderReportToolSchema, ReportImage, ReportSection
-from epic_news.models.rss_models import Article, FeedWithArticles, RssFeedParserToolInput, RssFeeds
+from epic_news.models.rss_models import Article, FeedWithArticles, RssFeeds
 
 
 def test_content_state_valid():
@@ -125,11 +125,6 @@ def test_render_report_tool_schema_valid():
     model = RenderReportToolSchema(title="Test Report", sections=[section])
     assert model.title == "Test Report"
     assert len(model.sections) == 1
-
-
-def test_rss_feed_parser_tool_input_valid():
-    model = RssFeedParserToolInput(feed_url="https://example.com/rss")
-    assert model.feed_url == "https://example.com/rss"
 
 
 def test_article_valid():

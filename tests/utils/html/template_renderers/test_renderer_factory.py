@@ -18,17 +18,6 @@ def test_get_supported_crew_types():
     assert "GENERIC" in supported_types
 
 
-def test_register_renderer():
-    # Test that a new renderer can be registered
-    class TestRenderer(GenericRenderer):
-        def __init__(self):
-            pass
-
-    RendererFactory.register_renderer("TEST", TestRenderer)
-    renderer = RendererFactory.create_renderer("TEST")
-    assert isinstance(renderer, TestRenderer)
-
-
 def test_has_specialized_renderer():
     # Test that has_specialized_renderer returns the correct value
     assert RendererFactory.has_specialized_renderer("BOOK_SUMMARY")

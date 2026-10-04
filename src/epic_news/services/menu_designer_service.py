@@ -135,29 +135,3 @@ class MenuDesignerService:
         except Exception as e:
             logger.error(f"❌ Error extracting menu plan from result: {e}")
             return None
-
-    def validate_existing_menu_plan(self, menu_data: dict[str, Any]) -> WeeklyMenuPlan | None:
-        """
-        Validate and fix an existing menu plan data structure.
-
-        Args:
-            menu_data: Dictionary containing menu plan data
-
-        Returns:
-            WeeklyMenuPlan: Validated menu plan or None
-        """
-        try:
-            fixed_data = self.validator.validate_and_fix_weekly_plan(menu_data)
-            return WeeklyMenuPlan.model_validate(fixed_data)
-        except Exception as e:
-            logger.error(f"❌ Failed to validate existing menu plan: {e}")
-            return None
-
-    def create_sample_menu_plan(self) -> WeeklyMenuPlan:
-        """
-        Create a sample menu plan for testing purposes.
-
-        Returns:
-            WeeklyMenuPlan: Valid sample menu plan
-        """
-        return self.validator.create_fallback_menu_plan()
