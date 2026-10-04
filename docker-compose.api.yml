@@ -7,7 +7,7 @@ services:
     container_name: epic-news-api
     restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "${EPIC_API_BIND:-127.0.0.1}:8000:8000"
     volumes:
       - ./.env:/app/.env
       - ./db:/app/db
@@ -16,6 +16,8 @@ services:
     environment:
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1
+      - EPIC_API_TOKEN=${EPIC_API_TOKEN:-}
+      - EPIC_API_MAX_CONCURRENT=${EPIC_API_MAX_CONCURRENT:-1}
     healthcheck:
       test: ["CMD", "python", "-c", "import sys, urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=5).status == 200 else 1)"]
       interval: 30s
