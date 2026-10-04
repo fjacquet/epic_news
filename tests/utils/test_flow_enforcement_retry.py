@@ -118,7 +118,7 @@ def test_failure_is_logged_as_error_not_success():
 
     levels = {level for level, _ in records}
     assert "ERROR" in levels
-    assert not any("finished in" in msg for _, msg in records), "failure logged as success"
+    assert not any(msg.startswith("📊 Crew") for _, msg in records), "failure logged as success"
 
 
 def test_success_still_logs_completion():
@@ -129,7 +129,7 @@ def test_success_still_logs_completion():
     finally:
         logger.remove(sink_id)
 
-    assert any("finished in" in msg for _, msg in records)
+    assert any(msg.startswith("📊 Crew") for _, msg in records)
 
 
 class FakeAsyncCrew:
@@ -191,4 +191,4 @@ async def test_async_failure_is_not_logged_as_success():
         logger.remove(sink_id)
 
     assert "ERROR" in {level for level, _ in records}
-    assert not any("finished in" in msg for _, msg in records), "failure logged as success"
+    assert not any(msg.startswith("📊 Crew") for _, msg in records), "failure logged as success"

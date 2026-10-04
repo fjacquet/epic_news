@@ -87,6 +87,24 @@ def _get_crew_instance(crew_or_factory: Any) -> Any:
     return crew_or_factory
 
 
+def _log_run_usage(crew_name: str, elapsed: float, result: Any) -> None:
+    """Log wall-clock time and CrewAI token usage for one successful crew run."""
+    usage = getattr(result, "token_usage", None)
+    if usage is None:
+        logger.info("📊 Crew {} took {:.2f}s (no token usage reported)", crew_name, elapsed)
+        return
+    logger.info(
+        "📊 Crew {} took {:.2f}s — tokens: total={} prompt={} completion={} cached={} requests={}",
+        crew_name,
+        elapsed,
+        getattr(usage, "total_tokens", 0),
+        getattr(usage, "prompt_tokens", 0),
+        getattr(usage, "completion_tokens", 0),
+        getattr(usage, "cached_prompt_tokens", 0),
+        getattr(usage, "successful_requests", 0),
+    )
+
+
 def kickoff_flow(crew_or_factory: Any, context: dict[str, Any]) -> Any:
     """Kick off a CrewAI run in a consistent, traceable way.
 
@@ -146,7 +164,7 @@ def kickoff_flow(crew_or_factory: Any, context: dict[str, Any]) -> Any:
                 raise
             else:
                 elapsed = time.perf_counter() - start
-                logger.info("✅ Crew {} finished in {:.2f}s", crew_name, elapsed)
+                _log_run_usage(crew_name, elapsed, result)
                 return result
 
         # Unreachable: every iteration either returns or raises.
@@ -219,7 +237,7 @@ async def akickoff_flow(crew_or_factory: Any, context: dict[str, Any]) -> Any:
                 raise
             else:
                 elapsed = time.perf_counter() - start
-                logger.info("✅ Crew {} finished in {:.2f}s", crew_name, elapsed)
+                _log_run_usage(crew_name, elapsed, result)
                 return result
 
         # Unreachable: every iteration either returns or raises.
