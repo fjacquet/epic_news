@@ -187,7 +187,7 @@ def reporting_task(self) -> Task:
     )
 ```
 
-**Examples using this pattern**: library, cooking, company_profiler, holiday_planner
+**Examples using this pattern**: library, company_profiler, holiday_planner
 
 ### Tool Assignment Rules
 
@@ -239,6 +239,14 @@ max_iter=LLMConfig.get_max_iter(),
 
 **NEVER** hardcode model names or timeouts, and never pass `llm_timeout=` (ignored by CrewAI).
 
+### Async Tasks (`async_execution=True`)
+
+Only crews listed in `ASYNC_ALLOWED` (`tests/crews/test_async_agent_isolation.py`: PESTEL, NewsDaily) may run tasks async; all others stay sequential.
+
+- Give each async task its own agent by calling the agent factory again (e.g. `agent=self._new_researcher()`), never `Agent.copy()`: CrewAI's `LLM.__copy__` drops the timeout (ADR-014).
+- Register task-only agents in `Crew(agents=...)` so the ADR-014 contract tests see them (see `news_daily.py`).
+- Concurrency is bounded by the process-wide LLM cap (`LLM_MAX_CONCURRENCY`, default 3).
+
 ## Crew Execution Flow
 
 1. **ReceptionFlow routes request** → `generate_<crew_name>()` method in `main.py`
@@ -262,11 +270,11 @@ render_and_write_html("POEM", poem_model, html_file)
 - **poem** (1 agent, 1 task, simplest example)
 - **classify** (classification only)
 - **saint_daily** (content retrieval)
+- **cooking** (1 agent, 1 task returning a `PaprikaRecipe`; YAML/JSON exports written in Python by `utils/recipe_export.py`)
 
 ### Two-Agent Research + Report
 
 - **library** (researcher + reporter)
-- **cooking** (chef + reporter)
 - **company_profiler** (profiler + reporter)
 - **holiday_planner** (researcher + reporter)
 

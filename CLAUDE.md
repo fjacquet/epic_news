@@ -133,7 +133,7 @@ All config via `LLMConfig` (`src/epic_news/config/llm_config.py`). Default model
 
 ### Environment Variables
 
-Key `.env` settings: `MODEL` (default: `gemini/gemini-3.8-flash`), `GEMINI_API_KEY` (native Gemini route; LiteLLM reads `GOOGLE_API_KEY` first if both are set), `OPENROUTER_API_KEY` / `OPENROUTER_BASE_URL` (for `openrouter/...` models), `LLM_TEMPERATURE` (0.7, not sent to Gemini), `LLM_TIMEOUT_QUICK/DEFAULT/LONG` (120/300/600), `LLM_REASONING_EFFORT` (unset → `medium` for Gemini 3, none otherwise), `CREW_MAX_ITER` (15), `CREW_MAX_RPM` (20). Change `MODEL` in `.env` to switch models globally.
+Key `.env` settings: `MODEL` (default: `gemini/gemini-3.8-flash`), `GEMINI_API_KEY` (native Gemini route; LiteLLM reads `GOOGLE_API_KEY` first if both are set), `OPENROUTER_API_KEY` / `OPENROUTER_BASE_URL` (for `openrouter/...` models), `LLM_TEMPERATURE` (0.7, not sent to Gemini), `LLM_TIMEOUT_QUICK/DEFAULT/LONG` (120/300/600), `LLM_REASONING_EFFORT` (unset → `medium` for Gemini 3, none otherwise), `CREW_MAX_ITER` (15), `CREW_MAX_RPM` (20), `LLM_MAX_CONCURRENCY` (3, process-wide cap on simultaneous LLM calls), `CREW_KICKOFF_ATTEMPTS` (1), `SCRAPE_MAX_CHARS` (12000), `DOCX_FRAGMENT_CONCURRENCY` (3), `MENU_RECIPE_CONCURRENCY` (3). Change `MODEL` in `.env` to switch models globally.
 
 **NEVER** hardcode model names or timeout values — always use `LLMConfig` methods.
 

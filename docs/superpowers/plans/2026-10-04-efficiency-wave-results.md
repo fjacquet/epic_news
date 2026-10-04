@@ -3,6 +3,20 @@
 Numbers from `scripts/bench_flow.py` (wall clock of the whole flow, plus per-crew lines
 logged by `kickoff_flow`). Model: value of `MODEL` in `.env` at run time.
 
+## Goals review
+
+- **Goal 1 (2–3× faster on the slowest crews): met for holiday and menu, not for NewsDaily, not demonstrated for PESTEL.**
+  - Holiday: the whole run went from 735.9 s to 286.6 s (2.6×). The gain is in DOCX assembly (wall clock minus the crew lines): about 405 s before, about 43 s after. The `HolidayPlannerCrew` change (321 s to 231 s, 304k to 169k tokens) is run-to-run noise: E4 does not touch the crew.
+  - Menu: 808.3 s to 175.9 s (4.6×), 28 recipes in both runs (`Recipe 1/28` to `Recipe 28/28` in `logs/epic_news.log` for the baseline).
+  - NewsDaily: 389.1 s to 252.3 s (1.5×), one run each. Below the target.
+  - PESTEL: not demonstrated. In the 167.6 s run the researchers made one tool call in total and answered from model memory; the run that searched took 672.4 s against 414.1 s for the baseline. The async wiring works (the trace shows the six tasks starting together), but the end-to-end gain is unproven.
+- **Goal 2 (fewer tokens):** routing went from 220,225 to 186,691 tokens and from 90 to 60 LLM calls on 30 requests. The menu and holiday token targets were not measured: CrewAI does not count `output_pydantic` calls, and the bench's LiteLLM totals were added after those runs.
+- **Goal 3 (same quality):** routing stayed at 30/30. Quality defects seen during the wave, not caused by it, that need follow-up:
+  - PESTEL researchers sometimes skip live search and cite 2024 sources from memory.
+  - The menu planner returns generic dish names ("Entrée du jour").
+  - In the E6 comparison, the OSINT research-mode cross-reference report named the wrong company (Target Global Holdings / Pontus Shipping) for a Logitech request. `detailed_findings` is empty in both modes.
+- **Goal 4 (measure every change):** every change has a measurement, but each is a single run, with the caveats above.
+
 | Date | Change | Request | Wall clock (s) | Crew | Crew seconds | Total tokens | Requests |
 |---|---|---|---|---|---|---|---|
 | 2026-10-04 | baseline | pestel | 414.1 | InformationExtractionCrew | 7.11 | 875 | 1 |

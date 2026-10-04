@@ -8,7 +8,9 @@ exists in the code; check the module before relying on a signature.
 
 ```
 utils/
-├── flow_enforcement.py       # kickoff_flow / akickoff_flow (retry + tracing + cancel checks)
+├── flow_enforcement.py       # kickoff_flow / akickoff_flow (opt-in retry + tracing + cancel checks)
+├── concurrency.py            # bounded_map (ordered thread pool, limit from an env var, default 3)
+├── recipe_export.py          # recipe_from_result, export_recipe (Paprika YAML/JSON under output/)
 ├── flow_helpers.py           # load_or_parse_model, render_and_write_html
 ├── directory_utils.py        # ensure_output_directories (startup), ensure_output_directory
 ├── diagnostics/              # parse_crewai_output, dump_crewai_state, analyze_crewai_output
@@ -47,8 +49,9 @@ render_and_write_html("POEM", model, "output/poem/poem.html")  # returns the Pat
 ```
 
 - `kickoff_flow(crew_or_factory, context)`: calls `.crew()` when given a `@CrewBase` class
-  instance, rebuilds the crew on every attempt, retries transient provider errors with
-  backoff, checks `raise_if_cancelled` before each attempt, wraps the run in `trace_span`.
+  instance, makes one attempt by default (`CREW_KICKOFF_ATTEMPTS` > 1 retries transient
+  provider errors with backoff, rebuilding the crew each time), checks `raise_if_cancelled`
+  before each attempt, wraps the run in `trace_span`.
   `akickoff_flow` is the async twin (uses `crew.akickoff`). `context` must be a dict.
 - `load_or_parse_model(json_path, model_cls, fallback_output, inputs=None, label="")`: loads
   and validates the JSON file the task wrote; on a missing/invalid file falls back to
@@ -119,8 +122,9 @@ class MyCrewRenderer(BaseRenderer):
 
 - `docx_report.Section` describes one section: a deterministic `body`, or an
   `instruction` + `context` that `generate_fragment` narrates with the LLM.
-- `assemble_fragments(sections, meta, output_path, llm, system)` builds the DOCX and refuses
-  to write when more than half the sections degraded to placeholders.
+- `assemble_fragments(sections, meta, output_path, llm, system)` narrates sections in
+  parallel (`DOCX_FRAGMENT_CONCURRENCY`, default 3; output keeps section order), builds the
+  DOCX and refuses to write when more than half the sections degraded to placeholders.
 - `build_docx(fragments, meta, output_path)` is the deterministic Pandoc step
   (`reference.docx` styles, TOC). It runs two passes (ADR-013): Markdown → JSON with the
   `safe_images.lua` (only images under `output/`) and `strip_rules.lua` (no horizontal rules)

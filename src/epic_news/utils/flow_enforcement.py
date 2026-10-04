@@ -113,8 +113,8 @@ def kickoff_flow(crew_or_factory: Any, context: dict[str, Any]) -> Any:
     - Accepts either a Crew factory (with .crew()) or a Crew instance.
     - Ensures context is a dict.
     - Adds basic timing + optional tracing via trace_span.
-    - Retries transient provider failures (see ``_TRANSIENT_ERROR_MARKERS``) so a single
-      empty completion cannot discard an entire multi-agent run.
+    - Makes one attempt by default; with CREW_KICKOFF_ATTEMPTS > 1 it retries transient
+      provider failures (see ``_TRANSIENT_ERROR_MARKERS``) with backoff.
     """
     if not isinstance(context, dict):
         raise ValueError("kickoff_flow context must be a dict")
@@ -184,8 +184,8 @@ async def akickoff_flow(crew_or_factory: Any, context: dict[str, Any]) -> Any:
     - Accepts either a Crew factory (with .crew()) or a Crew instance.
     - Ensures context is a dict.
     - Adds basic timing + optional tracing via trace_span.
-    - Retries transient provider failures, mirroring kickoff_flow. This path runs the
-      parallel OSINT crews, so a single empty completion must not drop the whole fan-out.
+    - Makes one attempt by default; with CREW_KICKOFF_ATTEMPTS > 1 it retries transient
+      provider failures, mirroring kickoff_flow.
     """
     if not isinstance(context, dict):
         raise ValueError("akickoff_flow context must be a dict")

@@ -83,6 +83,7 @@ result_json = scraper.run({"url": "https://example.com"})
 | **FirecrawlScrapeWebsiteTool**| CrewAI/Custom | Extracts full content from a specific URL. | `FIRECRAWL_API_KEY` |
 | **FirecrawlSearchTool** | Custom | Performs a targeted search within a specific website. | `FIRECRAWL_API_KEY` |
 | **ScrapeNinjaTool** | Custom | Advanced web scraping with proxy and JS extraction. | `RAPIDAPI_KEY` |
+| **CappedScrapeWebsiteTool** | CrewAI/Custom | Backup scraper (`crewai_tools` ScrapeWebsiteTool) returning JSON capped at `SCRAPE_MAX_CHARS` characters (default 12000). | No |
 | **EXASearchTool** | CrewAI | Specialized search with similarity functions. | `EXA_API_KEY` |
 | **BrowserbaseLoadTool** | CrewAI | Browser-based content loading for dynamic sites. | `BROWSERBASE_API_KEY` |
 | **YoutubeVideoSearchTool** | CrewAI | Finds relevant video content on YouTube. | YouTube API Key |
