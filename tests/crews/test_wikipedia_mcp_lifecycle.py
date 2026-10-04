@@ -55,6 +55,8 @@ def test_unavailable_mcp_server_degrades_to_no_wikipedia_tools(crew_cls):
     tool_names = {t.name for a in crew.agents for t in a.tools or []}
     assert not {"search", "fetch"} & tool_names
     assert crew.agents, "crew still builds without the MCP server"
+    # PESTEL's six researchers must not each try (and time out) spawning the server.
+    failing.assert_called_once()
 
 
 @pytest.mark.parametrize("crew_cls", MCP_CREWS, ids=lambda c: c.__name__)
