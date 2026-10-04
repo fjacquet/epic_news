@@ -1,6 +1,9 @@
 import asyncio
 import importlib.util
+import time
 from pathlib import Path
+
+import litellm
 
 _spec = importlib.util.spec_from_file_location("bench_flow", Path("scripts/bench_flow.py"))
 bench_flow = importlib.util.module_from_spec(_spec)
@@ -52,8 +55,6 @@ def test_usage_counter_sums_sync_and_async_events():
 
 
 def test_counter_counts_sync_and_async_calls():
-    import litellm
-
     messages = [{"role": "user", "content": "x"}]
     counter = bench_flow.UsageCounter()
     bench_flow.register_counter(counter)
@@ -69,6 +70,11 @@ def test_counter_counts_sync_and_async_calls():
         assert counter in litellm.success_callback
         assert counter in litellm._async_success_callback
         litellm.completion(model="gpt-4o-mini", messages=messages, mock_response="hi")
+        # The sync success handler runs on LiteLLM's thread pool (utils.py executor.submit).
+        for _ in range(40):
+            if counter.calls >= 1:
+                break
+            time.sleep(0.05)
         assert counter.calls == 1
         asyncio.run(_async_call())
         assert counter.calls == 2
