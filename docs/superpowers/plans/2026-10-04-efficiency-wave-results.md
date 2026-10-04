@@ -38,3 +38,11 @@ Notes: the menu request runs `MenuDesignerService`, which does not go through `k
 PESTEL runs vary far more from run to run than the async change moves them: token use goes from 81k to 526k depending on how many tool rounds the researchers take. In the baseline run the economic task returned 389 characters (degraded). Run 2 was traced through CrewAI events: the six dimension tasks all started at t=13 s and finished between 63 s and 118 s (the LLM cap of 3 made them wait 163 s for a slot in total), then the report task took 50 s. Compare PESTEL on several runs, not one.
 
 E3 menu run: 28/28 recipes generated, wall 175.9 s vs 808.3 s baseline (sequential). Recipes run 3 at a time, so the summed per-crew time (310.9 s) exceeds wall time. CookingCrew usage lines report tokens=0 and requests=0 (usage is not captured for these calls), so no token comparison is possible. The generated menu plan used generic dish names, so the 28 specs mapped to only 2 file names (`entree-du-jour`, `plat-principal-du-jour`) in this run; the file name now includes the menu code (e.g. `lun-l-s02-entree-du-jour`), so every recipe keeps its own files.
+
+### Routing
+
+| Date | Change | Accuracy | BAD lines | Wall (s) | LiteLLM calls | Prompt | Completion | Total |
+|---|---|---|---|---|---|---|---|---|
+| 2026-10-04 | E5 baseline routing | 25/25 | none | 265.2 | 75 | 145698 | 35543 | 181241 |
+
+Two-step routing (InformationExtractionCrew then ClassifyCrew) over the 25 requests in `scripts/routing_eval_requests.json`, one at a time: about 10.6 s and 7.2k tokens per request, 3 LLM calls per request. Only the extraction and classification crews ran (25 runs of each in the log); no email was sent. A first run printed `litellm calls=0` because CrewAI resets `litellm.callbacks` each time it builds an LLM; the counter is now registered in `litellm.success_callback`. That first run was also 25/25 (wall 254.6 s). `scripts/bench_flow.py` registers its counter in `litellm.callbacks`, so its LiteLLM totals are likely 0 too.
