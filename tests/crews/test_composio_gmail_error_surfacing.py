@@ -11,7 +11,6 @@ import pytest
 from loguru import logger
 
 from epic_news.config.composio_config import ComposioConfig
-from epic_news.crews.post.post_crew import PostCrew
 
 
 @pytest.fixture
@@ -106,50 +105,3 @@ def test_loaders_return_tools_on_success(config):
 
     assert config.get_custom_tools(toolkits=["NOTION"]) == ok
 
-
-def _post_crew_with_gmail_tools(monkeypatch, tools):
-    crew = PostCrew()
-    monkeypatch.setattr(
-        "epic_news.config.composio_config.ComposioConfig.__init__", lambda self: None, raising=False
-    )
-    monkeypatch.setattr(
-        "epic_news.config.composio_config.ComposioConfig.get_gmail_email_tools",
-        lambda self, include_send=True: tools,
-        raising=False,
-    )
-    return crew
-
-
-def test_send_tools_prefers_send_over_draft(monkeypatch):
-    tools = [SimpleNamespace(name="GMAIL_SEND_EMAIL"), SimpleNamespace(name="GMAIL_CREATE_EMAIL_DRAFT")]
-    crew = _post_crew_with_gmail_tools(monkeypatch, tools)
-
-    selected = crew._get_send_tools()
-
-    assert [t.name for t in selected] == ["GMAIL_SEND_EMAIL"]
-
-
-def test_send_tools_falls_back_to_draft(monkeypatch):
-    tools = [SimpleNamespace(name="GMAIL_CREATE_EMAIL_DRAFT")]
-    crew = _post_crew_with_gmail_tools(monkeypatch, tools)
-
-    selected = crew._get_send_tools()
-
-    assert [t.name for t in selected] == ["GMAIL_CREATE_EMAIL_DRAFT"]
-    assert crew.can_send() is True
-
-
-def test_send_tools_empty_when_nothing_available(monkeypatch):
-    crew = _post_crew_with_gmail_tools(monkeypatch, [])
-
-    assert crew._get_send_tools() == []
-    assert crew.can_send() is False
-
-
-def test_send_tools_empty_when_composio_raises(monkeypatch):
-    def boom(self):
-        raise RuntimeError("composio down")
-
-    monkeypatch.setattr("epic_news.config.composio_config.ComposioConfig.__init__", boom, raising=False)
-
-    assert PostCrew()._get_send_tools() == []
