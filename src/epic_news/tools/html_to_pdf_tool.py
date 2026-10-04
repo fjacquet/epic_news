@@ -1,17 +1,57 @@
 import os
+from pathlib import Path
+from urllib.parse import urlsplit
+from urllib.request import url2pathname
 
 from crewai.tools import BaseTool
 from pydantic import BaseModel, Field
 
+from epic_news.utils.path_utils import get_project_root
+
 # Try to import WeasyPrint, but make it optional
 try:
     from weasyprint import HTML
+    from weasyprint.urls import URLFetcher
 
     WEASYPRINT_AVAILABLE = True
 except (ImportError, OSError) as e:
     WEASYPRINT_AVAILABLE = False
     HTML = None
+    URLFetcher = object  # type: ignore[assignment,misc]
     _weasyprint_error = str(e)
+
+
+def _output_root() -> Path:
+    """The only directory the tool may read HTML/resources from or write PDFs to."""
+    return (get_project_root() / "output").resolve()
+
+
+def _is_inside(path: Path, root: Path) -> bool:
+    return path.resolve().is_relative_to(root)
+
+
+def is_allowed_resource_url(url: str, root: Path) -> bool:
+    """Allow only data: URLs and file: URLs that resolve inside ``root``."""
+    parts = urlsplit(url)
+    scheme = parts.scheme.lower()
+    if scheme == "data":
+        return True
+    if scheme == "file" and parts.netloc in ("", "localhost"):
+        return _is_inside(Path(url2pathname(parts.path)), root)
+    return False
+
+
+class OutputOnlyURLFetcher(URLFetcher):  # type: ignore[misc,valid-type]
+    """WeasyPrint fetcher that blocks network access and files outside output/."""
+
+    def __init__(self, root: Path, **kwargs):
+        super().__init__(allowed_protocols={"data", "file"}, allow_redirects=False, **kwargs)
+        self._root = root
+
+    def fetch(self, url, headers=None):
+        if not is_allowed_resource_url(url, self._root):
+            raise ValueError(f"Blocked resource URL: {url}")
+        return super().fetch(url, headers)
 
 
 class HtmlToPdfToolSchema(BaseModel):
@@ -57,6 +97,12 @@ class HtmlToPdfTool(BaseTool):
             if not os.path.isabs(output_pdf_path):
                 return f"Error: Output PDF path '{output_pdf_path}' must be an absolute path."
 
+            root = _output_root()
+            if not _is_inside(Path(html_file_path), root):
+                return f"Error: HTML file path '{html_file_path}' must be inside the project output directory."
+            if not _is_inside(Path(output_pdf_path), root):
+                return f"Error: Output PDF path '{output_pdf_path}' must be inside the project output directory."
+
             if not os.path.exists(html_file_path):
                 return f"Error: HTML input file not found at '{html_file_path}'."
 
@@ -65,7 +111,7 @@ class HtmlToPdfTool(BaseTool):
             if not os.path.exists(output_dir):
                 os.makedirs(output_dir, exist_ok=True)
 
-            HTML(filename=html_file_path).write_pdf(output_pdf_path)
+            HTML(filename=html_file_path, url_fetcher=OutputOnlyURLFetcher(root)).write_pdf(output_pdf_path)
 
             if os.path.exists(output_pdf_path):
                 return (
