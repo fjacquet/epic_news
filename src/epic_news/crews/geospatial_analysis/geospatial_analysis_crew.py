@@ -1,16 +1,13 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai_custom_tools import HybridSearchTool
-from crewai_tools import PDFSearchTool
 from dotenv import load_dotenv
 
 from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.geospatial_analysis_report import GeospatialAnalysisReport
-from epic_news.tools.html_to_pdf_tool import HtmlToPdfTool
 
 # Import tool factories
 from epic_news.tools.location_tools import get_location_tools
-from epic_news.tools.report_tools import get_report_tools
 from epic_news.tools.scraper_factory import get_scraper
 
 load_dotenv()
@@ -24,12 +21,8 @@ class GeospatialAnalysisCrew:
     @agent
     def geospatial_researcher(self) -> Agent:
         """Creates the geospatial researcher agent with tools for data gathering"""
-        # Get all tools
-        search_tools = [HybridSearchTool(), get_scraper(), PDFSearchTool()]
-        location_tools = get_location_tools()
-        html_to_pdf_tool = HtmlToPdfTool()
-
-        all_tools = search_tools + location_tools + [html_to_pdf_tool] + get_report_tools()
+        # Research tools only: rendering/PDF happen in the flow, never in this agent.
+        all_tools = [HybridSearchTool(), get_scraper()] + get_location_tools()
 
         return Agent(
             config=self.agents_config["geospatial_researcher"],  # type: ignore[index]

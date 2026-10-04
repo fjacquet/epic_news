@@ -5,7 +5,7 @@ from crewai.project import CrewBase, agent, crew, task
 
 from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.news_daily_report import NewsDailyReport
-from epic_news.tools.web_tools import get_news_tools, get_search_tools
+from epic_news.tools.web_tools import get_news_tools
 
 
 @CrewBase
@@ -19,7 +19,7 @@ class NewsDailyCrew:
     def news_researcher(self) -> Agent:
         return Agent(
             config=self.agents_config["news_researcher"],
-            tools=get_news_tools() + get_search_tools(),
+            tools=get_news_tools(),  # get_search_tools() is the same PerplexitySearchTool
             llm=LLMConfig.get_openrouter_llm(),
             max_iter=LLMConfig.get_max_iter(),
             verbose=True,

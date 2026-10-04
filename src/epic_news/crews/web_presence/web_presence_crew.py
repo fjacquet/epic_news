@@ -1,12 +1,10 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai_custom_tools import HybridSearchTool
-from crewai_tools import PDFSearchTool
 from dotenv import load_dotenv
 
 from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.web_presence_report import WebPresenceReport
-from epic_news.tools.report_tools import get_report_tools
 from epic_news.tools.scraper_factory import get_scraper
 
 load_dotenv()
@@ -20,10 +18,8 @@ class WebPresenceCrew:
     @agent
     def web_researcher(self) -> Agent:
         """Creates the web researcher agent with tools for data gathering"""
-        # get_report_tools() already includes HtmlToPdfTool; don't add it twice.
-        search_tools = [HybridSearchTool(), get_scraper(), PDFSearchTool()]
-
-        all_tools = search_tools + get_report_tools()
+        # Research tools only: rendering/PDF happen in the flow, never in this agent.
+        all_tools = [HybridSearchTool(), get_scraper()]
 
         return Agent(
             config=self.agents_config["web_researcher"],  # type: ignore[index]

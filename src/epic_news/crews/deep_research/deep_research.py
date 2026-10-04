@@ -2,7 +2,6 @@ from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai_custom_tools import HybridSearchTool
 from crewai_tools import (
-    FileReadTool,
     MCPServerAdapter,
     ScrapeWebsiteTool,
 )
@@ -59,7 +58,6 @@ class DeepResearchCrew:
                 # Hybrid search (Perplexity → Brave → Serper cascading fallback)
                 HybridSearchTool(),
                 ScrapeWebsiteTool(),
-                FileReadTool(),
                 # Wikipedia MCP tools (encyclopedic research)
                 *self.wikipedia_tools,  # Adds search and fetch tools from Wikipedia MCP
             ],

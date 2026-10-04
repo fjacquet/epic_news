@@ -2,7 +2,6 @@ from typing import Any
 
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
-from crewai_tools import DirectoryReadTool, FileReadTool
 
 from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.menu_designer_report import WeeklyMenuPlan
@@ -26,9 +25,8 @@ class MenuDesignerCrew:
         """Agent responsible for researching and planning the menu structure."""
         return Agent(
             config=self.agents_config["menu_researcher"],
-            # Scope the directory read to this crew's own output dir; a bare
-            # DirectoryReadTool() defaults to the CWD and exposes the whole repo.
-            tools=get_search_tools() + [FileReadTool(), DirectoryReadTool("output/menu_designer")],
+            # Its task reads no local files: no file reader next to a web search tool.
+            tools=get_search_tools(),
             llm=LLMConfig.get_openrouter_llm(),
             max_iter=LLMConfig.get_max_iter(),
             respect_context_window=True,

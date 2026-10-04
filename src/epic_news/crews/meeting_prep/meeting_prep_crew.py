@@ -6,7 +6,6 @@ from loguru import logger
 from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.meeting_prep_report import MeetingPrepReport
 from epic_news.tools.finance_tools import get_yahoo_finance_tools
-from epic_news.tools.report_tools import get_report_tools
 from epic_news.tools.web_tools import get_scrape_tools, get_search_tools
 
 load_dotenv()
@@ -70,7 +69,7 @@ class MeetingPrepCrew:
         """
         return Agent(
             config=self.agents_config["briefing_coordinator_agent"],  # type: ignore[index]
-            tools=get_report_tools(),
+            tools=[],  # Writes the final JSON briefing; tools would add action traces
             verbose=True,
             respect_context_window=True,
             llm=LLMConfig.get_openrouter_llm(),

@@ -1,15 +1,10 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai_custom_tools import HybridSearchTool
-from crewai_tools import PDFSearchTool
 from dotenv import load_dotenv
 
 from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.legal_analysis_report import LegalAnalysisReport
-from epic_news.tools.html_to_pdf_tool import HtmlToPdfTool
-
-# Import RAG tools
-from epic_news.tools.report_tools import get_report_tools
 from epic_news.tools.scraper_factory import get_scraper
 
 load_dotenv()
@@ -23,11 +18,8 @@ class LegalAnalysisCrew:
     @agent
     def legal_researcher(self) -> Agent:
         """Creates the legal researcher agent with tools for data gathering"""
-        # Get all tools
-        search_tools = [HybridSearchTool(), get_scraper(), PDFSearchTool()]
-        html_to_pdf_tool = HtmlToPdfTool()
-
-        all_tools = search_tools + [html_to_pdf_tool] + get_report_tools()
+        # Research tools only: rendering/PDF happen in the flow, never in this agent.
+        all_tools = [HybridSearchTool(), get_scraper()]
 
         return Agent(
             config=self.agents_config["legal_researcher"],  # type: ignore[index]

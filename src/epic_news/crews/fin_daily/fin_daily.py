@@ -1,11 +1,12 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
-from crewai_custom_tools import KrakenAssetListTool, KrakenTickerInfoTool
-from crewai_tools import DirectoryReadTool, FileReadTool
+from crewai_custom_tools import KrakenAssetListTool
+from crewai_tools import DirectoryReadTool
 
 from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.financial_report import FinancialReport
 from epic_news.tools.finance_tools import get_crypto_research_tools, get_stock_research_tools
+from epic_news.tools.output_file_read_tool import OutputFileReadTool
 from epic_news.tools.scraper_factory import get_scraper
 
 
@@ -29,7 +30,9 @@ class FinDailyCrew:
             config=self.agents_config["stock_analyst"],  # type: ignore[index]
             tools=get_stock_research_tools()
             + [
-                FileReadTool(),
+                # Reads the portfolio CSVs ({stock_csv_path}/{etf_csv_path} under data/);
+                # scoped so scraped content cannot steer it to other local files.
+                OutputFileReadTool(root="data"),
                 # Scope to this crew's own output dir; a bare DirectoryReadTool()
                 # defaults to the CWD and exposes the whole repo.
                 DirectoryReadTool("output/findaily"),
@@ -44,12 +47,8 @@ class FinDailyCrew:
     def crypto_analyst(self) -> Agent:
         return Agent(
             config=self.agents_config["crypto_analyst"],  # type: ignore[index]
-            tools=get_crypto_research_tools()
-            + [
-                KrakenAssetListTool(),
-                KrakenTickerInfoTool(),
-                get_scraper(),
-            ],
+            # get_crypto_research_tools() already includes KrakenTickerInfoTool.
+            tools=get_crypto_research_tools() + [KrakenAssetListTool(), get_scraper()],
             llm=LLMConfig.get_openrouter_llm(),
             max_iter=LLMConfig.get_max_iter(),
             verbose=True,

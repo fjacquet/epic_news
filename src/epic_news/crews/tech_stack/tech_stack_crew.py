@@ -1,14 +1,11 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
 from crewai_custom_tools import HybridSearchTool
-from crewai_tools import PDFSearchTool
 from dotenv import load_dotenv
 
 from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.tech_stack_report import TechStackReport
 from epic_news.tools.github_tools import get_github_tools
-from epic_news.tools.html_to_pdf_tool import HtmlToPdfTool
-from epic_news.tools.report_tools import get_report_tools
 from epic_news.tools.scraper_factory import get_scraper
 
 load_dotenv()
@@ -22,11 +19,8 @@ class TechStackCrew:
     @agent
     def tech_researcher(self) -> Agent:
         """Creates the tech researcher agent with tools for data gathering"""
-        # Get all tools
-        search_tools = [HybridSearchTool(), get_scraper(), PDFSearchTool()]
-        tech_tools = get_github_tools()
-        html_to_pdf_tool = HtmlToPdfTool()
-        all_tools = search_tools + tech_tools + [html_to_pdf_tool] + get_report_tools()
+        # Research tools only: rendering/PDF happen in the flow, never in this agent.
+        all_tools = [HybridSearchTool(), get_scraper()] + get_github_tools()
 
         return Agent(
             config=self.agents_config["tech_researcher"],  # type: ignore[index]
