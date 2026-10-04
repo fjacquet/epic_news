@@ -43,7 +43,8 @@ except Exception:  # pragma: no cover - fallback if tracing is unavailable
 # TypeError, which instructor classifies as non-retryable, so it aborts after 1 attempt.
 #
 # NOTE: raw request timeouts (litellm.Timeout, "timed out") are deliberately absent.
-# A timeout means the crew already burned the full per-call budget (e.g. 600s); replaying
+# A timeout means the crew already burned a full per-call LLM timeout (LLMConfig.get_timeout:
+# 300s by default, 600s for "long"); replaying
 # the whole multi-agent crew 2-3x turns one slow run into ~40 min of waste and rarely
 # succeeds, because the cause is structural (oversized context / overloaded provider),
 # not a transient blip. Timeouts fail fast so the caller sees the real error immediately.
