@@ -2,6 +2,8 @@
 
 Six-agent research pattern (one researcher per PESTEL dimension) plus a
 dedicated reporter with no tools, to avoid action traces in the final output.
+The six dimension tasks run in parallel (async); the report task waits for all of
+them through its context.
 The reporter consolidates all six dimensions into a single PestelReport.
 """
 
@@ -84,42 +86,42 @@ class PestelCrew:
     def political_research_task(self) -> Task:
         return Task(  # type: ignore[call-arg]
             config=self.tasks_config["political_research_task"],  # type: ignore[index, arg-type]
-            async_execution=False,
+            async_execution=True,
         )
 
     @task
     def economic_research_task(self) -> Task:
         return Task(  # type: ignore[call-arg]
             config=self.tasks_config["economic_research_task"],  # type: ignore[index, arg-type]
-            async_execution=False,
+            async_execution=True,
         )
 
     @task
     def social_research_task(self) -> Task:
         return Task(  # type: ignore[call-arg]
             config=self.tasks_config["social_research_task"],  # type: ignore[index, arg-type]
-            async_execution=False,
+            async_execution=True,
         )
 
     @task
     def technological_research_task(self) -> Task:
         return Task(  # type: ignore[call-arg]
             config=self.tasks_config["technological_research_task"],  # type: ignore[index, arg-type]
-            async_execution=False,
+            async_execution=True,
         )
 
     @task
     def environmental_research_task(self) -> Task:
         return Task(  # type: ignore[call-arg]
             config=self.tasks_config["environmental_research_task"],  # type: ignore[index, arg-type]
-            async_execution=False,
+            async_execution=True,
         )
 
     @task
     def legal_research_task(self) -> Task:
         return Task(  # type: ignore[call-arg]
             config=self.tasks_config["legal_research_task"],  # type: ignore[index, arg-type]
-            async_execution=False,
+            async_execution=True,
         )
 
     @task
