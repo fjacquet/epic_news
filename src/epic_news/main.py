@@ -64,6 +64,7 @@ from epic_news.models.content_state import ContentState
 from epic_news.models.crews.book_summary_report import BookSummaryReport
 from epic_news.models.crews.company_news_report import CompanyNewsReport
 from epic_news.models.crews.company_profiler_report import CompanyProfileReport
+from epic_news.models.crews.cooking_recipe import PaprikaRecipe
 from epic_news.models.crews.cross_reference_report import CrossReferenceReport
 from epic_news.models.crews.deep_research import DeepResearchReport
 from epic_news.models.crews.financial_report import FinancialReport
@@ -79,6 +80,7 @@ from epic_news.models.crews.sales_prospecting_report import SalesProspectingRepo
 from epic_news.models.crews.tech_stack_report import TechStackReport
 from epic_news.models.crews.web_presence_report import WebPresenceReport
 from epic_news.services.menu_designer_service import MenuDesignerService
+from epic_news.utils.concurrency import bounded_map
 
 # Import the normalization utility
 from epic_news.utils.diagnostics import dump_crewai_state, parse_crewai_output
@@ -107,7 +109,7 @@ from epic_news.utils.flow_helpers import load_or_parse_model, render_and_write_h
 from epic_news.utils.holiday_report import assemble_holiday_docx
 from epic_news.utils.html.template_manager import TemplateManager
 from epic_news.utils.html.template_renderers.pestel_markdown import pestel_to_markdown
-from epic_news.utils.interrupt import install_force_quit_handler
+from epic_news.utils.interrupt import RunCancelledError, install_force_quit_handler
 from epic_news.utils.logger import setup_logging
 from epic_news.utils.menu_generator import MenuGenerator
 from epic_news.utils.observability import get_observability_tools, trace_task
@@ -828,42 +830,40 @@ class ReceptionFlow(Flow[ContentState]):
 
         recipe_specs = menu_generator.parse_menu_structure(menu_structure_result)
 
-        # Process recipes using direct CrewAI calls
-
-        total_recipes = len(recipe_specs)
-
-        cooking_crew = CookingCrew().crew()
-        for i, recipe_spec in enumerate(recipe_specs):
-            recipe_name = recipe_spec["name"]
-            recipe_code = recipe_spec["code"]
-            # Generate slug directly from recipe name
-            recipe_slug = create_topic_slug(recipe_name)
-            self.logger.info(f"  - Recipe {i + 1}/{total_recipes}: {recipe_name} ({recipe_code})")
-
-            try:
-                # Direct CrewAI call with slug already included
-                recipe_request = {
-                    "topic": recipe_spec["name"],
-                    "topic_slug": recipe_slug,  # Include slug directly
-                    "preferences": f"Type: {recipe_spec['type']}, Day: {recipe_spec['day']}, Meal: {recipe_spec['meal']}",
-                    "patrika_file": f"output/cooking/{recipe_slug}.yaml",  # Add missing template variable
-                    "output_file": f"output/cooking/{recipe_slug}.json",  # Add missing output_file variable
-                }
-
-                recipe_result = cooking_crew.kickoff(inputs=recipe_request)
-                export_recipe(
-                    recipe_from_result(recipe_result, recipe_request),
-                    recipe_request["patrika_file"],
-                    recipe_request["output_file"],
-                )
-
-            except Exception as e:
-                self.logger.error(f"  ❌ Error with {recipe_code}: {e}")
+        recipes = self._generate_menu_recipes(recipe_specs)
+        generated = sum(recipe is not None for recipe in recipes)
+        self.logger.info(f"🍳 {generated}/{len(recipe_specs)} recipes generated")
 
         # Point output_file at the rendered report so send_email emails it (every
         # other generate_* sets this; without it send_email keeps the classify path).
         self.state.output_file = final_report
         self.state.menu_designer_report = final_report
+
+    def _generate_menu_recipe(self, recipe_spec: dict[str, Any]) -> PaprikaRecipe | None:
+        """Generate and export one menu recipe; log and skip it on a provider failure."""
+        recipe_slug = create_topic_slug(recipe_spec["name"])
+        request = {
+            "topic": recipe_spec["name"],
+            "topic_slug": recipe_slug,
+            "preferences": (
+                f"Type: {recipe_spec['type']}, Day: {recipe_spec['day']}, Meal: {recipe_spec['meal']}"
+            ),
+            "patrika_file": f"output/cooking/{recipe_slug}.yaml",
+            "output_file": f"output/cooking/{recipe_slug}.json",
+        }
+        try:
+            recipe = recipe_from_result(kickoff_flow(CookingCrew(), request), request)
+            export_recipe(recipe, request["patrika_file"], request["output_file"])
+            return recipe
+        except RunCancelledError:
+            raise
+        except Exception as e:
+            self.logger.error(f"  ❌ Error with {recipe_spec['code']}: {e}")
+            return None
+
+    def _generate_menu_recipes(self, recipe_specs: list[dict[str, Any]]) -> list[PaprikaRecipe | None]:
+        """Generate menu recipes in parallel (MENU_RECIPE_CONCURRENCY, default 3), in menu order."""
+        return bounded_map(self._generate_menu_recipe, recipe_specs, "MENU_RECIPE_CONCURRENCY")
 
     @listen("go_generate_book_summary")
     @trace_task(tracer)

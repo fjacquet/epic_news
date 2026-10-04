@@ -29,7 +29,12 @@ logged by `kickoff_flow`). Model: value of `MODEL` in `.env` at run time.
 | 2026-10-04 | E4 docx parallel + day slices | holiday | 286.6 | InformationExtractionCrew | 10.57 | 1359 | 1 |
 | 2026-10-04 | E4 docx parallel + day slices | holiday | 286.6 | ClassifyCrew | 1.83 | 0 | 0 |
 | 2026-10-04 | E4 docx parallel + day slices | holiday | 286.6 | HolidayPlannerCrew | 231.31 | 168928 | 10 |
+| 2026-10-04 | E3 single-pass recipes + parallel | menu | 175.9 | InformationExtractionCrew | 6.86 | 903 | 1 |
+| 2026-10-04 | E3 single-pass recipes + parallel | menu | 175.9 | ClassifyCrew | 2.03 | 0 | 0 |
+| 2026-10-04 | E3 single-pass recipes + parallel | menu | 175.9 | CookingCrew ×28 (sum) | 310.86 | 0 (not reported) | 0 (not reported) |
 
 Notes: the menu request runs `MenuDesignerService`, which does not go through `kickoff_flow`, so only wall clock is available for it. An `OpenExchangeRates` HTTP 403 was logged during the holiday run (tool error, run completed).
 
 PESTEL runs vary far more from run to run than the async change moves them: token use goes from 81k to 526k depending on how many tool rounds the researchers take. In the baseline run the economic task returned 389 characters (degraded). Run 2 was traced through CrewAI events: the six dimension tasks all started at t=13 s and finished between 63 s and 118 s (the LLM cap of 3 made them wait 163 s for a slot in total), then the report task took 50 s. Compare PESTEL on several runs, not one.
+
+E3 menu run: 28/28 recipes generated, wall 175.9 s vs 808.3 s baseline (sequential). Recipes run 3 at a time, so the summed per-crew time (310.9 s) exceeds wall time. CookingCrew usage lines report tokens=0 and requests=0 (usage is not captured for these calls), so no token comparison is possible. The generated menu plan used generic dish names, so the 28 specs map to only 2 slugs (`entree-du-jour`, `plat-principal-du-jour`); parallel runs overwrite the same files.
