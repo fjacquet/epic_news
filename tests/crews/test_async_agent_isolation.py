@@ -18,8 +18,11 @@ the same concurrency batch:
    HolidayPlannerCrew; the ``acall`` wrapper in ``epic_news.config.llm_config`` now
    absorbs it, but running sequentially removes the trigger entirely.
 
-So every crew declares ``async_execution=False``. These tests lock that in and keep the
-per-batch agent-isolation invariant enforced should async ever be re-introduced.
+So crews run their tasks sequentially, except those in ``ASYNC_ALLOWED``. Their async tasks
+each get their own agent, built by calling the agent factory again (never ``Agent.copy()``:
+CrewAI's ``LLM.__copy__`` drops the timeout, ADR-014), and concurrency is bounded by the
+process-wide LLM cap. These tests lock that in and enforce the per-batch agent-isolation
+invariant.
 """
 
 from __future__ import annotations
@@ -30,7 +33,7 @@ from tests.crews._registry import ALL_CREW_CLASSES, build_crew
 
 # Crews cleared to run tasks async: each async task has its own agent
 # (see tests/crews/test_pestel_async_tasks.py) and the LLM cap bounds concurrency.
-ASYNC_ALLOWED = {"PestelCrew"}
+ASYNC_ALLOWED = {"PestelCrew", "NewsDailyCrew"}
 
 
 def _concurrent_async_batches(tasks):
@@ -61,7 +64,7 @@ def test_crew_declares_no_async_tasks(crew_cls):
     picks up ``async_execution`` from its YAML config is caught too.
     """
     if crew_cls.__name__ in ASYNC_ALLOWED:
-        pytest.skip(f"{crew_cls.__name__} intentionally runs its dimension tasks async")
+        pytest.skip(f"{crew_cls.__name__} intentionally runs its tasks async")
     crew = build_crew(crew_cls)
     async_tasks = [t.name or t.description[:60] for t in crew.tasks if getattr(t, "async_execution", False)]
     assert not async_tasks, (
@@ -82,6 +85,6 @@ def test_async_crew_builds_with_distinct_agents(crew_cls):
         assert len(agent_ids) == len(set(agent_ids)), (
             f"{crew_cls.__name__}: {len(agent_ids) - len(set(agent_ids))} async task(s) in a "
             f"concurrent batch share an agent instance; each concurrent async task "
-            f"needs its own agent (use Agent.copy()) to avoid "
+            f"needs its own agent (build a fresh one per task, not Agent.copy()) to avoid "
             f"'Executor is already running' under CrewAI 1.15+."
         )

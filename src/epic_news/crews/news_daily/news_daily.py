@@ -15,8 +15,12 @@ class NewsDailyCrew:
     agents_config: dict[str, Any] = "config/agents.yaml"  # type: ignore[assignment]
     tasks_config: dict[str, Any] = "config/tasks.yaml"  # type: ignore[assignment]
 
-    @agent
-    def news_researcher(self) -> Agent:
+    def _new_researcher(self) -> Agent:
+        """A fresh researcher for one region task.
+
+        Region tasks run in parallel, so they must not share one Agent instance, and
+        Agent.copy() would drop the LLM timeout (ADR-014).
+        """
         return Agent(
             config=self.agents_config["news_researcher"],
             tools=get_news_tools(),  # get_search_tools() is the same PerplexitySearchTool
@@ -24,6 +28,12 @@ class NewsDailyCrew:
             max_iter=LLMConfig.get_max_iter(),
             verbose=True,
         )
+
+    @agent
+    def news_researcher(self) -> Agent:
+        # Kept as an @agent so tasks.yaml's `agent: news_researcher` still resolves;
+        # region tasks override it with their own instance (explicit agent= wins).
+        return self._new_researcher()
 
     @agent
     def content_curator(self) -> Agent:
@@ -39,56 +49,56 @@ class NewsDailyCrew:
     def suisse_romande_news_task(self) -> Task:
         return Task(
             config=self.tasks_config["suisse_romande_news_task"],
-            agent=self.news_researcher(),  # type: ignore[call-arg]
-            async_execution=False,
+            agent=self._new_researcher(),  # type: ignore[call-arg]
+            async_execution=True,
         )
 
     @task
     def suisse_news_task(self) -> Task:
         return Task(
             config=self.tasks_config["suisse_news_task"],
-            agent=self.news_researcher(),  # type: ignore[call-arg]
-            async_execution=False,
+            agent=self._new_researcher(),  # type: ignore[call-arg]
+            async_execution=True,
         )
 
     @task
     def france_news_task(self) -> Task:
         return Task(
             config=self.tasks_config["france_news_task"],
-            agent=self.news_researcher(),  # type: ignore[call-arg]
-            async_execution=False,
+            agent=self._new_researcher(),  # type: ignore[call-arg]
+            async_execution=True,
         )
 
     @task
     def europe_news_task(self) -> Task:
         return Task(
             config=self.tasks_config["europe_news_task"],
-            agent=self.news_researcher(),  # type: ignore[call-arg]
-            async_execution=False,
+            agent=self._new_researcher(),  # type: ignore[call-arg]
+            async_execution=True,
         )
 
     @task
     def world_news_task(self) -> Task:
         return Task(
             config=self.tasks_config["world_news_task"],
-            agent=self.news_researcher(),  # type: ignore[call-arg]
-            async_execution=False,
+            agent=self._new_researcher(),  # type: ignore[call-arg]
+            async_execution=True,
         )
 
     @task
     def wars_news_task(self) -> Task:
         return Task(
             config=self.tasks_config["wars_news_task"],
-            agent=self.news_researcher(),  # type: ignore[call-arg]
-            async_execution=False,
+            agent=self._new_researcher(),  # type: ignore[call-arg]
+            async_execution=True,
         )
 
     @task
     def economy_news_task(self) -> Task:
         return Task(
             config=self.tasks_config["economy_news_task"],
-            agent=self.news_researcher(),  # type: ignore[call-arg]
-            async_execution=False,
+            agent=self._new_researcher(),  # type: ignore[call-arg]
+            async_execution=True,
         )
 
     @task
@@ -117,8 +127,12 @@ class NewsDailyCrew:
     @crew
     def crew(self) -> Crew:
         """Creates the NewsDaily crew"""
+        agents = list(self.agents)  # type: ignore[attr-defined]
+        for task_ in self.tasks:  # type: ignore[attr-defined]
+            if task_.agent is not None and all(task_.agent is not known for known in agents):
+                agents.append(task_.agent)
         return Crew(
-            agents=self.agents,  # type: ignore[attr-defined]
+            agents=agents,
             tasks=self.tasks,  # type: ignore[attr-defined]
             process=Process.sequential,
             verbose=True,
