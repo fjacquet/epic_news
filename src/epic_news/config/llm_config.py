@@ -461,6 +461,11 @@ class LLMConfig:
 
         resolved_model = model_name or "openrouter/mistralai/mistral-small-2603"
 
+        # Gemini 3+ deprecates temperature/top_p/top_k (LiteLLM DeprecationWarning).
+        # Drop the env-derived default there; an explicit caller value is kept.
+        if resolved_model.startswith("gemini/") and temperature is None:
+            temp = None
+
         # Route-aware transport. Only "openrouter/"-prefixed models go through
         # OpenRouter's OpenAI-compatible endpoint (api_key + base_url below). Every
         # other provider prefix ("gemini/", "anthropic/", ...) is a native LiteLLM

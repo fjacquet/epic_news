@@ -19,3 +19,20 @@ def test_native_provider_model_leaves_transport_to_litellm():
     llm = LLMConfig.get_openrouter_llm(model="gemini/gemini-3.7-flash")
     assert llm.base_url is None
     assert llm.is_litellm is True
+
+
+def test_gemini_model_omits_default_temperature(monkeypatch):
+    monkeypatch.setenv("LLM_TEMPERATURE", "0.7")
+    llm = LLMConfig.get_openrouter_llm(model="gemini/gemini-3.7-flash")
+    assert llm.temperature is None
+
+
+def test_gemini_model_keeps_explicit_temperature():
+    llm = LLMConfig.get_openrouter_llm(model="gemini/gemini-3.7-flash", temperature=0.2)
+    assert llm.temperature == 0.2
+
+
+def test_openrouter_model_keeps_default_temperature(monkeypatch):
+    monkeypatch.setenv("LLM_TEMPERATURE", "0.7")
+    llm = LLMConfig.get_openrouter_llm(model="openrouter/mistralai/mistral-small-2603")
+    assert llm.temperature == 0.7
