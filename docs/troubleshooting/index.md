@@ -6,7 +6,7 @@ Solutions for common problems and error messages.
 
 | Problem | Solution |
 |---------|----------|
-| [Common Errors](common_errors.md) | Solutions for frequently encountered errors |
+| [Common Errors](COMMON_ERRORS.md) | Solutions for frequently encountered errors |
 
 ## Quick Fixes
 
@@ -34,7 +34,7 @@ LLM_TIMEOUT_DEFAULT=600
 
 If you can't find a solution:
 
-1. Check [Common Errors](common_errors.md) for detailed solutions
+1. Check [Common Errors](COMMON_ERRORS.md) for detailed solutions
 2. Search [GitHub Issues](https://github.com/fjacquet/epic_news/issues)
 3. Create a new issue with reproduction steps
 

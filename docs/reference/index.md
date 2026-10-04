@@ -14,7 +14,7 @@ Comprehensive reference information for Epic News components.
 
 | Reference | Description |
 |-----------|-------------|
-| [Rendering Architecture](rendering_architecture.md) | HTML report generation system |
+| [Rendering Architecture](RENDERING_ARCHITECTURE.md) | HTML report generation system |
 
 ## Configuration Files
 

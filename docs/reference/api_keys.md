@@ -223,4 +223,4 @@ ValueError: SERPER_API_KEY environment variable not set
 
 - [Development Setup](../how-to/development_setup.md) - Environment configuration
 - [Tools Reference](tools.md) - Complete tool documentation
-- [Troubleshooting](../troubleshooting/common_errors.md) - Common issues
+- [Troubleshooting](../troubleshooting/COMMON_ERRORS.md) - Common issues

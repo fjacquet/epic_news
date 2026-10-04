@@ -28,7 +28,7 @@ This documentation follows the [Diátaxis framework](https://diataxis.fr/) for t
 
 ### Architecture
 - [CrewAI Flow Patterns](explanations/architecture.md)
-- [HTML Rendering System](reference/rendering_architecture.md)
+- [HTML Rendering System](reference/RENDERING_ARCHITECTURE.md)
 - [Integration Patterns](reference/integration_patterns.md)
 
 ### Configuration
@@ -41,7 +41,7 @@ This documentation follows the [Diátaxis framework](https://diataxis.fr/) for t
 - [Observability Guide](how-to/observability.md)
 
 ### Troubleshooting
-- [Common Errors](troubleshooting/common_errors.md)
+- [Common Errors](troubleshooting/COMMON_ERRORS.md)
 
 ## Project Links
 
