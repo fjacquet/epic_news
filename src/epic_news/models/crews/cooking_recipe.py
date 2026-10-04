@@ -58,6 +58,11 @@ class PaprikaRecipe(BaseModel):
             "author": "Epic News AI",
         }
 
+    def to_paprika_yaml(self) -> str:
+        """Serialise for Paprika 3 import; non-ASCII text is kept as-is."""
+        dumped: str = yaml.safe_dump(self.model_dump(exclude_none=True), allow_unicode=True, sort_keys=False)
+        return dumped
+
     @classmethod
     def from_yaml_string(cls, yaml_string: str) -> "PaprikaRecipe":
         """Create PaprikaRecipe instance from YAML string."""

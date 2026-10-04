@@ -1,3 +1,4 @@
+import asyncio
 import importlib.util
 from pathlib import Path
 
@@ -28,3 +29,23 @@ def test_parse_usage_line_ignores_other_lines():
         "completion": None,
         "requests": None,
     }
+
+
+def test_usage_counter_sums_sync_and_async_events():
+    counter = bench_flow.UsageCounter()
+    sync_resp = {"usage": {"prompt_tokens": 10, "completion_tokens": 5, "total_tokens": 15}}
+
+    class Usage:
+        prompt_tokens = 7
+        completion_tokens = 3
+        total_tokens = 10
+
+    class Resp:
+        usage = Usage()
+
+        def get(self, key, default=None):
+            return getattr(self, key, default)
+
+    counter.log_success_event({}, sync_resp, None, None)
+    asyncio.run(counter.async_log_success_event({}, Resp(), None, None))
+    assert counter.as_dict() == {"calls": 2, "prompt": 17, "completion": 8, "total": 25}
