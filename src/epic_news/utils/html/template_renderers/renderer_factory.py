@@ -15,7 +15,6 @@ from .deep_research_renderer import DeepResearchRenderer
 from .financial_renderer import FinancialRenderer
 from .generic_renderer import GenericRenderer
 from .geospatial_analysis_renderer import GeospatialAnalysisRenderer
-from .holiday_renderer import HolidayRenderer
 from .hr_intelligence_renderer import HRIntelligenceRenderer
 from .legal_analysis_renderer import LegalAnalysisRenderer
 from .meeting_prep_renderer import MeetingPrepRenderer
@@ -50,7 +49,6 @@ class RendererFactory:
         "FINDAILY": FinancialRenderer,
         "GENERIC": GenericRenderer,
         "GEOSPATIAL_ANALYSIS": GeospatialAnalysisRenderer,
-        "HOLIDAY_PLANNER": HolidayRenderer,
         "HR_INTELLIGENCE": HRIntelligenceRenderer,
         "LEGAL_ANALYSIS": LegalAnalysisRenderer,
         "MEETING_PREP": MeetingPrepRenderer,

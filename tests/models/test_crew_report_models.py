@@ -11,7 +11,6 @@ from epic_news.models.crews.cooking_recipe import PaprikaRecipe
 from epic_news.models.crews.cross_reference_report import CrossReferenceReport
 from epic_news.models.crews.financial_report import FinancialReport
 from epic_news.models.crews.geospatial_analysis_report import GeospatialAnalysisReport
-from epic_news.models.crews.holiday_planner_report import HolidayPlannerReport
 from epic_news.models.crews.hr_intelligence_report import HRIntelligenceReport
 from epic_news.models.crews.legal_analysis_report import LegalAnalysisReport
 from epic_news.models.crews.meeting_prep_report import MeetingPrepReport
@@ -144,7 +143,6 @@ def test_all_models_are_importable():
     assert issubclass(BookSummaryReport, object)
     assert issubclass(CompanyNewsReport, object)
     assert issubclass(FinancialReport, object)
-    assert issubclass(HolidayPlannerReport, object)
     assert issubclass(MeetingPrepReport, object)
     assert issubclass(WeeklyMenuPlan, object)
     assert issubclass(NewsDailyReport, object)

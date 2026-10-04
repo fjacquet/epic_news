@@ -132,58 +132,6 @@ def _attempt_json_repair(json_str: str) -> str:
     return re.sub(r'\\"', '"', repaired)
 
 
-def _transform_holiday_planner_data(parsed_data: dict) -> dict:
-    """Helper function to transform HolidayPlannerReport data."""
-    # Convert URL strings to Source objects
-    if "sources" in parsed_data:
-        sources = parsed_data["sources"]
-        if sources and isinstance(sources, list):
-            converted_sources = []
-            for source in sources:
-                if isinstance(source, str):  # URL string
-                    converted_sources.append(
-                        {
-                            "title": source.split("/")[-1] or "Source",
-                            "url": source,
-                            "type": "reference",
-                        }
-                    )
-                elif isinstance(source, dict):
-                    converted_sources.append(source)
-            parsed_data["sources"] = converted_sources
-
-    # Handle French-to-English field mapping for itinerary
-    if "itinerary" in parsed_data and isinstance(parsed_data["itinerary"], list):
-        for day_item in parsed_data["itinerary"]:
-            if isinstance(day_item, dict):
-                if "jour" in day_item and "day" not in day_item:
-                    jour_text = day_item["jour"]
-                    if "Jour" in jour_text:
-                        day_num = jour_text.split()[1] if len(jour_text.split()) > 1 else "1"
-                        day_item["day"] = int(day_num.replace("-", "").strip())
-                    del day_item["jour"]
-                if "date" not in day_item and "jour" in day_item:
-                    jour_text = day_item["jour"]
-                    parts = jour_text.split("-")
-                    day_item["date"] = parts[1].strip() if len(parts) > 1 else "TBD"
-
-    # Handle French-to-English field mapping for accommodations
-    if "accommodations" in parsed_data and isinstance(parsed_data["accommodations"], list):
-        for accommodation in parsed_data["accommodations"]:
-            if isinstance(accommodation, dict):
-                if "nom" in accommodation and "name" not in accommodation:
-                    accommodation["name"] = accommodation["nom"]
-                    del accommodation["nom"]
-                if "adresse" in accommodation and "address" not in accommodation:
-                    accommodation["address"] = accommodation["adresse"]
-                    del accommodation["adresse"]
-                if "address" not in accommodation:
-                    accommodation["address"] = "Address not specified"
-                if "description" not in accommodation:
-                    accommodation["description"] = accommodation.get("name", "Accommodation option")
-    return parsed_data
-
-
 def parse_crewai_output[T: BaseModel](
     report_content: Any, model_class: type[T], inputs: dict | None = None
 ) -> T:
@@ -363,29 +311,6 @@ def parse_crewai_output[T: BaseModel](
                 cleaned_metrics.append(metric)
             parsed_data["sales_metrics"]["metrics"] = cleaned_metrics
 
-        # $Special handling for HolidayPlannerReport: robustly handle day/jour fields
-        if model_class.__name__ == "HolidayPlannerReport" and "itinerary" in parsed_data:
-            for day in parsed_data["itinerary"]:
-                # Handle 'day' or 'jour' fields that may be int or str
-                for key in ["day", "jour"]:
-                    if key in day and not isinstance(day[key], str):
-                        day[key] = str(day[key])
-                # If 'date' is present and not a string, coerce to string
-                if "date" in day and not isinstance(day["date"], str):
-                    day["date"] = str(day["date"])
-                # If 'activities' is present, ensure it's a list
-                if "activities" in day and not isinstance(day["activities"], list):
-                    day["activities"] = [day["activities"]]
-                # If any string operation is needed, always check type
-                if "jour" in day:
-                    jour_text = day["jour"]
-                    if isinstance(jour_text, str) and "Jour" in jour_text:
-                        pass  # safe to do string ops
-
-        # $Special handling for HolidayPlannerReport: comprehensive data transformation
-        if model_class.__name__ == "HolidayPlannerReport":
-            parsed_data = _transform_holiday_planner_data(parsed_data)
-
         # $Special handling for SalesProspectingReport: ensure proper metric types and trend directions
         if model_class.__name__ == "SalesProspectingReport" and "sales_metrics" in parsed_data:
             from epic_news.utils.data_normalization import normalize_structured_data_report
@@ -422,10 +347,6 @@ def parse_crewai_output[T: BaseModel](
                 for entry in parsed_data["table_of_contents"]:
                     if "id" in entry and not isinstance(entry["id"], str):
                         entry["id"] = str(entry["id"])
-
-            # Apply same HolidayPlannerReport handling as above
-            if model_class.__name__ == "HolidayPlannerReport":
-                parsed_data = _transform_holiday_planner_data(parsed_data)
 
             logger.info("Successfully repaired and parsed JSON")
             return model_class.model_validate(parsed_data)
