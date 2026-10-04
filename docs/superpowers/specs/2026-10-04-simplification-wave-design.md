@@ -1,7 +1,7 @@
 # Simplification Wave — Design
 
 **Date:** 2026-10-04
-**Status:** Draft — for review
+**Status:** Approved for planning (after the efficiency wave)
 **Source:** codebase audit 2026-10-04 (simplification section), re-measured on `main` at `649e877`
 
 ## Problem

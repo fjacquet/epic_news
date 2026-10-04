@@ -1,7 +1,7 @@
 # Efficiency Wave — Design
 
 **Date:** 2026-10-04
-**Status:** Draft — for review
+**Status:** Approved for planning
 **Source:** codebase audit 2026-10-04 (efficiency section), re-measured on `main` at `649e877`
 
 ## Problem
@@ -136,7 +136,5 @@ comparison of one live OSINT run, reviewed by the user, plus token numbers.
 2. Live-run budget of about a dozen crew runs for before/after measurements: approved.
 3. `ClassifyCrew` stays as a fallback for E5.
 4. This wave runs first; the simplification wave follows.
-
-## Open questions
-
-1. **E6 quality:** OK to judge the cross-reference change on one side-by-side run?
+5. E6 is judged by the user on one side-by-side live run (current vs synthesis) on the
+   same company; the synthesis version replaces the current one only if approved.
