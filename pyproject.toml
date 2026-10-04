@@ -37,7 +37,6 @@ dependencies = [
     "firecrawl-py>=4.34.0",
     "pyairtable>=3.4.2",
     # --- Rendering / output ---
-    "weasyprint>=69.0",
     # --- Numerical / data ---
     "markdown-it-py>=4.0.0",
     "pypandoc>=1.17",

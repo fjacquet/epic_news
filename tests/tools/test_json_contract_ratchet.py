@@ -16,9 +16,7 @@ JSON_MARKERS = ("json.dumps", "ensure_json_str", "model_dump_json", "to_json")
 # Seeded from the state of the codebase on 2026-07-04, rescoped 2026-07-09
 # after the tools-migration cleanup (Task 6) to surviving epic_news-owned
 # tools only. Shrink-only.
-KNOWN_LEGACY: set[str] = {
-    "html_to_pdf_tool.py",
-}
+KNOWN_LEGACY: set[str] = set()
 
 
 @lru_cache(maxsize=1)

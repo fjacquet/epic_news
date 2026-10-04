@@ -195,15 +195,11 @@ run-api: ## Start FastAPI server (port 8000)
 
 run-crew: ## Run CrewAI flow kickoff
 	@echo "$(GREEN)Running CrewAI flow...$(RESET)"
-	@export DYLD_LIBRARY_PATH="/opt/homebrew/lib:$$DYLD_LIBRARY_PATH" && \
-	export PKG_CONFIG_PATH="/opt/homebrew/lib/pkgconfig:$$PKG_CONFIG_PATH" && \
-	crewai flow kickoff
+	@crewai flow kickoff
 
 plot: ## Generate crew plot/diagram
 	@echo "$(GREEN)Generating crew diagram...$(RESET)"
-	@export DYLD_LIBRARY_PATH="/opt/homebrew/lib:$$DYLD_LIBRARY_PATH" && \
-	export PKG_CONFIG_PATH="/opt/homebrew/lib/pkgconfig:$$PKG_CONFIG_PATH" && \
-	crewai flow plot
+	@crewai flow plot
 
 ##@ Cleanup
 
