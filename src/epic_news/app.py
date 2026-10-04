@@ -36,11 +36,30 @@ class StreamlitLogSink:
         self.queue.put(message.strip())
 
 
-log_queue: Queue[str] = Queue()
-logger.add(StreamlitLogSink(log_queue), format="{time:YYYY-MM-DD HH:mm:ss} - {level} - {message}")
+def get_session_log_queue(session_state) -> Queue:
+    """Return this session's log queue, registering its loguru sink only once.
+
+    Streamlit reruns the whole script on every interaction; keeping the queue
+    and sink id in session_state avoids stacking a new sink on each rerun.
+    """
+    if "log_queue" not in session_state:
+        queue: Queue = Queue()
+        session_state["log_sink_id"] = logger.add(
+            StreamlitLogSink(queue), format="{time:YYYY-MM-DD HH:mm:ss} - {level} - {message}"
+        )
+        session_state["log_queue"] = queue
+    return session_state["log_queue"]
+
+
+log_queue = get_session_log_queue(st.session_state)
 
 
 # --- Helpers ---
+def render_html_report(html: str) -> None:
+    """Show report HTML via st.html (DOMPurify-sanitized, scripts ignored), never unsafe markdown."""
+    st.html(html)
+
+
 def html_to_markdown(html: str) -> str:
     """Best-effort HTML→plain-text conversion for displaying/downloading.
 
@@ -154,7 +173,7 @@ if st.session_state.crew_running:
     elif st.session_state.final_report:
         # Fallback: if markdown conversion failed, still show HTML
         st.subheader("Final Report (HTML)")
-        st.markdown(st.session_state.final_report, unsafe_allow_html=True)
+        render_html_report(st.session_state.final_report)
 
     # Clean up the thread
     if "thread" in st.session_state:
