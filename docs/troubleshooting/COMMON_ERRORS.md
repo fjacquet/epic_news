@@ -448,7 +448,7 @@ research_task:
 @agent
 def researcher(self) -> Agent:
     return Agent(
-        max_iter=5,  # Agent field; Crew(max_iter=...) is silently ignored
+        max_iter=LLMConfig.get_max_iter(),  # CREW_MAX_ITER (15); Crew(max_iter=...) is ignored
     )
 ```
 
@@ -693,7 +693,7 @@ grep "Action:" logs/epic_news.log | tail -20
 @agent
 def researcher(self) -> Agent:
     return Agent(
-        max_iter=3,  # Reduce from 5 if agent loops
+        max_iter=LLMConfig.get_max_iter(),  # lower CREW_MAX_ITER (default 15) if agents loop
     )
 ```
 
@@ -702,10 +702,10 @@ def researcher(self) -> Agent:
 **1. Use faster models for simple tasks:**
 ```python
 # Quick tasks (classification, simple extraction)
-llm=LLMConfig.get_openrouter_llm()  # Uses MODEL from .env
+llm=LLMConfig.get_openrouter_llm(task_type="quick")  # Uses MODEL from .env
 
-# Switch model via .env:
-# MODEL=openrouter/google/gemini-flash-1.5  # Fast, cheap
+# Default (ADR-016): MODEL=gemini/gemini-3.8-flash
+# OpenRouter alternative: MODEL=openrouter/mistralai/mistral-small-2603
 ```
 
 **2. Enable tool caching:**

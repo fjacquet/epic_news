@@ -93,7 +93,8 @@ result_json = scraper.run({"url": "https://example.com"})
 
 | Tool | Source | Description | API Key Required |
 |---|---|---|---|
-| **FileReadTool** | CrewAI | Reads the content of a specified file. | No |
+| **OutputFileReadTool** | In-repo | Reads a text file inside its `root` only (default `output/`); use it instead of `FileReadTool` on agents that browse the web. | No |
+| **FileReadTool** | CrewAI | Reads any local file (unscoped). Never on an agent that also searches or scrapes. | No |
 | **FileWriteTool** | CrewAI | Writes content to a specified file. | No |
 | **DirectorySearchTool** | CrewAI | Searches for files within a directory. | No |
 | **DirectoryReadTool** | CrewAI | Reads the contents of a directory. | No |

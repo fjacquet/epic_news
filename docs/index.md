@@ -32,7 +32,7 @@ This documentation follows the [Diátaxis framework](https://diataxis.fr/) for t
 - [Integration Patterns](reference/integration_patterns.md)
 
 ### Configuration
-- [OpenRouter LLM Setup](how-to/openrouter_setup.md)
+- [API Keys (LLM, search, scraping)](reference/api_keys.md)
 - [Composio Integration](how-to/composio_setup.md)
 - [MCP Server Configuration](how-to/mcp_setup.md)
 

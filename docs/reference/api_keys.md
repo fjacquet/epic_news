@@ -11,8 +11,10 @@ Copy this template to your `.env` file and fill in the required keys:
 # REQUIRED - Core functionality
 # =============================================================================
 
-# LLM Provider (Required)
-OPENROUTER_API_KEY=your_openrouter_api_key
+# LLM Provider (Required) - default MODEL=gemini/gemini-3.8-flash (ADR-016)
+GEMINI_API_KEY=your_gemini_api_key
+# Only for MODEL=openrouter/... models
+# OPENROUTER_API_KEY=your_openrouter_api_key
 
 # Search (At least one required)
 PERPLEXITY_API_KEY=pplx-xxxx                    # Primary search
@@ -55,6 +57,7 @@ COMPOSIO_API_KEY=xxxx                            # Composio tools
 
 # Fact Checking
 GOOGLE_API_KEY=xxxx                              # Google Fact Check API
+# CAUTION: LiteLLM reads GOOGLE_API_KEY before GEMINI_API_KEY for Gemini calls
 SERPAPI_API_KEY=xxxx                             # SerpAPI
 ```
 
@@ -64,7 +67,8 @@ SERPAPI_API_KEY=xxxx                             # SerpAPI
 
 | Key                  | Service              | Required  | Free Tier   | Get Key                                |
 | -------------------- | -------------------- | --------- | ----------- | -------------------------------------- |
-| `OPENROUTER_API_KEY` | OpenRouter LLM       | **Yes**   | \$5 credit  | [openrouter.ai](https://openrouter.ai) |
+| `GEMINI_API_KEY`     | Google Gemini (default model) | **Yes** | Limited | [aistudio.google.com](https://aistudio.google.com) |
+| `OPENROUTER_API_KEY` | OpenRouter LLM       | For `openrouter/...` models | \$5 credit  | [openrouter.ai](https://openrouter.ai) |
 | `PERPLEXITY_API_KEY` | Perplexity AI Search | **Yes\*** | Limited     | [perplexity.ai](https://perplexity.ai) |
 | `SERPER_API_KEY`     | Serper.dev           | **Yes\*** | 2,500/month | [serper.dev](https://serper.dev)       |
 
@@ -151,7 +155,7 @@ For basic functionality, you need only:
 
 ```bash
 # Minimum required
-OPENROUTER_API_KEY=your_key    # LLM provider
+GEMINI_API_KEY=your_key        # LLM provider (default model)
 PERPLEXITY_API_KEY=your_key    # Primary search
 RAPIDAPI_KEY=your_key          # Web scraping
 ```

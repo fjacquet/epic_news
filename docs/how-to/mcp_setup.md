@@ -159,23 +159,37 @@ YOUR_API_KEY=your_api_key_here
 ### Step 4: Integrate with Crews
 
 Declare the server on the crew class with `mcp_server_params` and load the
-tools with `get_mcp_tools()`. `@CrewBase` starts one shared adapter on first use
-and stops it after `kickoff()`:
+tools with `get_mcp_tools_or_empty(self)`, which wraps CrewBase's
+`get_mcp_tools()`. `@CrewBase` starts one shared adapter on first use and stops
+it after a successful `kickoff()`:
 
 ```python
-from epic_news.config.mcp_config import MCPConfig
+from epic_news.config.mcp_config import MCPConfig, get_mcp_tools_or_empty
 
 @CrewBase
 class YourCrew:
-    mcp_server_params = [MCPConfig.get_your_mcp_server()]
+    mcp_server_params = MCPConfig.get_your_mcp_server()
 
     @agent
     def researcher(self) -> Agent:
         return Agent(
             config=self.agents_config["researcher"],
-            tools=[*self.get_mcp_tools()],
+            tools=[*get_mcp_tools_or_empty(self)],
             llm=LLMConfig.get_openrouter_llm(task_type="default"),
+            max_iter=LLMConfig.get_max_iter(),
         )
+```
+
+In the flow, stop the server even when the kickoff fails:
+
+```python
+from epic_news.config.mcp_config import close_mcp
+
+crew = YourCrew()
+try:
+    output = kickoff_flow(crew, inputs)
+finally:
+    close_mcp(crew)
 ```
 
 ### Step 5: Document the Integration
@@ -277,22 +291,19 @@ Update:
 
 ### 2. Error Handling
 
-Always handle MCP server failures gracefully:
-
-```python
-try:
-    wikipedia_server = get_wikipedia_mcp()
-except Exception as e:
-    logger.warning(f"Wikipedia MCP not available: {e}")
-    # Fallback to alternative tool or skip
-```
+`get_mcp_tools_or_empty(crew)` already does this: if the server cannot start it
+logs a warning and returns `[]`, so the crew runs without the MCP tools. The
+failed start is remembered on the crew instance, so the other agents (PESTEL has
+six researchers) don't each retry and time out.
 
 ### 3. Server Lifecycle
 
 With CrewBase `mcp_server_params` + `get_mcp_tools()`, the adapter is:
 - Started lazily on the first `get_mcp_tools()` call
 - Shared across all agents in the crew
-- Stopped automatically after `kickoff()` completes
+- Stopped by CrewBase's after-kickoff hook, but only when the kickoff succeeds.
+  `close_mcp(crew)` in a `finally` covers the failure path; it is safe after the
+  hook and safe to call twice.
 
 A hand-built `MCPServerAdapter(...)` spawns a process that keeps running until
 `.stop()` is called; avoid it in new crews.

@@ -46,7 +46,7 @@ Delivery is deterministic: `ReceptionFlow.send_email` calls
 
 Ensure `.env` is set up against `.env.example`. Common required keys:
 
-- `OPENROUTER_API_KEY`, `MODEL`
+- `MODEL` (default `gemini/gemini-3.8-flash`) and `GEMINI_API_KEY`, or `OPENROUTER_API_KEY` for `openrouter/...` models
 - `COMPOSIO_API_KEY` (for Gmail, Notion, Slack, …)
 - `RAPIDAPI_KEY` (ScrapeNinja default scraper)
 - `FIRECRAWL_API_KEY` (alternative scraper)
