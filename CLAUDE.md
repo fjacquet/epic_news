@@ -123,7 +123,7 @@ All tool `_run()` methods must return **JSON strings** parseable by `json.loads(
 
 All config via `LLMConfig` (`src/epic_news/config/llm_config.py`):
 
-- `LLMConfig.get_openrouter_llm(task_type="quick"|"default"|"long")` — LLM instance with the matching timeout (120s / 300s / 600s, from `LLMConfig.get_timeout()`) set on the LLM itself; supports opt-in `reasoning_effort` (Magistral; Gemini 3 defaults to medium and gets no temperature)
+- `LLMConfig.get_openrouter_llm(task_type="quick"|"default"|"long")` — LLM instance with the matching timeout (120s / 300s / 600s, from `LLMConfig.get_timeout()`) set on the LLM itself; supports opt-in `reasoning_effort` (Magistral). Gemini models get no default temperature (LiteLLM keeps 1.0); Gemini 3 reasoning defaults to `medium`
 - `LLMConfig.get_max_iter()` — pass as `max_iter=` on each `Agent` (default 5). CrewAI `Crew` has no `max_iter` field
 - `LLMConfig.get_max_rpm()` — `max_rpm=` on the `Crew` (default 20)
 
