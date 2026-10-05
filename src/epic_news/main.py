@@ -149,6 +149,40 @@ hallucination_guard = observability_tools["hallucination_guard"]
 CLASSIFY_DECISION_FILE = "output/classify/decision.md"
 
 
+OSINT_REPORT_STEMS = (
+    "company_profile",
+    "tech_stack",
+    "web_presence",
+    "hr_intelligence",
+    "legal_analysis",
+    "geospatial_analysis",
+)
+# Per-report cap (characters of JSON) so the six reports stay a bounded prompt (~30k tokens).
+OSINT_REPORT_MAX_CHARS = 20_000
+
+
+def _load_osint_reports(osint_dir: Path) -> str:
+    """Compact JSON of the OSINT sub-reports written by the parallel run, one key per stem.
+
+    Missing or unreadable reports are skipped; each report is capped at OSINT_REPORT_MAX_CHARS.
+    """
+    reports: dict[str, Any] = {}
+    for stem in OSINT_REPORT_STEMS:
+        path = osint_dir / f"{stem}.json"
+        try:
+            text = json.dumps(json.loads(path.read_text(encoding="utf-8")), ensure_ascii=False)
+        except (OSError, ValueError) as exc:
+            logger.warning(f"OSINT sub-report {path} skipped: {exc}")
+            continue
+        if len(text) > OSINT_REPORT_MAX_CHARS:
+            logger.warning(
+                f"OSINT sub-report {stem} truncated from {len(text)} to {OSINT_REPORT_MAX_CHARS} chars"
+            )
+            text = text[:OSINT_REPORT_MAX_CHARS] + "...[truncated]"
+        reports[stem] = text
+    return "\n".join(f'"{stem}": {text}' for stem, text in reports.items())
+
+
 def _category_from_classification(result: Any, categories: dict[str, str]) -> str:
     """Category chosen by ClassifyCrew's typed output; UNKNOWN when missing or invalid."""
     model = getattr(result, "pydantic", None)
@@ -1383,6 +1417,7 @@ class ReceptionFlow(Flow[ContentState]):
 
         crew_inputs = inputs.copy()
         crew_inputs["output_file"] = json_file
+        crew_inputs["osint_reports"] = _load_osint_reports(Path("output/osint"))
         output = await akickoff_flow(CrossReferenceReportCrew(), crew_inputs)
         self.state.cross_reference_report = output
 

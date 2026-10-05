@@ -49,8 +49,6 @@ class CrossReferenceReportCrew:
         """Develop comprehensive intelligence requirements"""
         return Task(
             config=self.tasks_config["intelligence_requirements_planning"],  # type: ignore[index,arg-type]
-            description="Develop comprehensive intelligence requirements",
-            expected_output="A structured JSON object outlining intelligence requirements",
             agent=self.osint_researcher(),  # type: ignore[call-arg]
             async_execution=False,
         )
@@ -60,8 +58,6 @@ class CrossReferenceReportCrew:
         """Coordinate intelligence collection activities"""
         return Task(
             config=self.tasks_config["intelligence_collection_coordination"],  # type: ignore[index,arg-type]
-            description="Coordinate intelligence collection activities",
-            expected_output="A comprehensive JSON object detailing collection coordination",
             agent=self.osint_researcher(),  # type: ignore[call-arg]
             async_execution=False,
         )
@@ -71,8 +67,6 @@ class CrossReferenceReportCrew:
         """Integrate intelligence analysis from all specialized crews"""
         return Task(
             config=self.tasks_config["intelligence_analysis_integration"],  # type: ignore[index,arg-type]
-            description="Integrate intelligence analysis from all specialized crews",
-            expected_output="A comprehensive JSON object integrating intelligence analysis",
             agent=self.osint_researcher(),  # type: ignore[call-arg]
             async_execution=False,
         )
@@ -82,8 +76,6 @@ class CrossReferenceReportCrew:
         """Develop final intelligence products"""
         return Task(
             config=self.tasks_config["intelligence_product_development"],  # type: ignore[index,arg-type]
-            description="Develop final intelligence products",
-            expected_output="A comprehensive JSON object serving as final intelligence products",
             agent=self.osint_researcher(),  # type: ignore[call-arg]
             async_execution=False,
         )
@@ -93,8 +85,6 @@ class CrossReferenceReportCrew:
         """Create a global report from all generated intelligence."""
         return Task(
             config=self.tasks_config["global_reporting"],  # type: ignore[index,arg-type]
-            description="Create a comprehensive global report from all generated intelligence",
-            expected_output="A comprehensive global intelligence report in JSON format",
             context=[
                 self.intelligence_requirements_planning(),  # type: ignore[call-arg]
                 self.intelligence_collection_coordination(),  # type: ignore[call-arg]
@@ -102,18 +92,6 @@ class CrossReferenceReportCrew:
                 self.intelligence_product_development(),  # type: ignore[call-arg]
             ],
             output_pydantic=CrossReferenceReport,
-        )
-
-    @task
-    def html_report_generation(self) -> Task:
-        """Generate an HTML report from the cross-reference report."""
-        # Note: no "html_report_generation" entry exists in tasks.yaml; all required
-        # fields (description, expected_output, agent, context) are provided here.
-        return Task(
-            description="Generate an HTML report from the cross-reference report",
-            expected_output="A professional HTML report document",
-            agent=self.osint_reporter(),  # type: ignore[call-arg]
-            context=[self.global_reporting()],  # type: ignore[call-arg]
         )
 
     @crew
