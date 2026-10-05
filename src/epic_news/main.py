@@ -81,6 +81,7 @@ from epic_news.models.crews.sales_prospecting_report import SalesProspectingRepo
 from epic_news.models.crews.tech_stack_report import TechStackReport
 from epic_news.models.crews.web_presence_report import WebPresenceReport
 from epic_news.services.menu_designer_service import MenuDesignerService
+from epic_news.tools.recent_search_tool import RecentSearchTool
 from epic_news.utils.concurrency import bounded_map
 
 # Import the normalization utility
@@ -193,6 +194,39 @@ def _category_from_classification(result: Any, categories: dict[str, str]) -> st
 """                                                                                      """
 """                     All the magic is here                                            """
 """                                                                                      """
+
+
+_PESTEL_DIMENSIONS = ("political", "economic", "social", "technological", "environmental", "legal")
+_PESTEL_PRESEARCH_MAX_CHARS = 8000
+_PESTEL_NO_RECENT_RESULTS = "No recent search results available; use recent_search or hybrid_search."
+
+
+def _pestel_recent_research(topic: str, geography: str) -> dict[str, str]:
+    """Run one last-12-months search per PESTEL dimension; return one text block per dimension."""
+    tool = RecentSearchTool()
+
+    def _search(dimension: str) -> str:
+        query = f"{dimension} factors affecting {topic} in {geography}: latest developments"
+        try:
+            text = str(tool._run(query)).strip()
+            payload = json.loads(text) if text else None
+            if isinstance(payload, dict) and payload.get("error"):
+                logger.warning(f"PESTEL pre-search error for {dimension}: {payload['error']}")
+                return _PESTEL_NO_RECENT_RESULTS
+        except Exception as exc:  # noqa: BLE001 - a failed pre-search must not stop the analysis
+            logger.warning(f"PESTEL pre-search failed for {dimension}: {exc}")
+            return _PESTEL_NO_RECENT_RESULTS
+        if not text:
+            logger.warning(f"PESTEL pre-search returned nothing for {dimension}")
+            return _PESTEL_NO_RECENT_RESULTS
+        if len(text) > _PESTEL_PRESEARCH_MAX_CHARS:
+            logger.info(f"PESTEL pre-search for {dimension} truncated from {len(text)} chars")
+            text = text[:_PESTEL_PRESEARCH_MAX_CHARS] + " [truncated]"
+        logger.info(f"PESTEL pre-search for {dimension}: {len(text)} chars")
+        return text
+
+    results = bounded_map(_search, _PESTEL_DIMENSIONS, "PESTEL_PRESEARCH_CONCURRENCY", 3)
+    return dict(zip(_PESTEL_DIMENSIONS, results, strict=True))
 
 
 def _stub_pestel_report(topic: str, generated_at: str, error: str) -> PestelReport:
@@ -1198,6 +1232,9 @@ class ReceptionFlow(Flow[ContentState]):
             inputs.setdefault("geography", "global")
             inputs.setdefault("language", "English")
         inputs["current_date"] = datetime.datetime.now().strftime("%Y-%m-%d")
+        recent = _pestel_recent_research(str(inputs.get("topic", "")), inputs["geography"])
+        for dimension, text in recent.items():
+            inputs[f"recent_{dimension}"] = text
         self.logger.info(
             f"📊 Generating PESTEL analysis for: {inputs.get('topic', 'N/A')} "
             f"(geo={inputs['geography']}, lang={inputs['language']})"

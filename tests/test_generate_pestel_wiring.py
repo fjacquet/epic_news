@@ -18,6 +18,8 @@ from epic_news.main import ReceptionFlow
 from epic_news.models.crews.pestel_report import PestelReport
 from epic_news.models.extracted_info import ExtractedInfo
 
+_DIMS = ("political", "economic", "social", "technological", "environmental", "legal")
+
 
 def _valid_pestel_payload() -> dict:
     dim = {
@@ -69,6 +71,9 @@ def pestel_flow_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(main_module, "dump_crewai_state", _fake_dump)
     monkeypatch.setattr(main_module, "PestelCrew", _StubPestelCrew)
     monkeypatch.setattr(main_module, "close_mcp", calls["closed"].append)
+    monkeypatch.setattr(
+        main_module, "_pestel_recent_research", lambda _topic, _geo: {d: f"recent {d}" for d in _DIMS}
+    )
 
     return tmp_path, calls
 
@@ -273,3 +278,86 @@ def test_generate_pestel_closes_mcp_when_every_kickoff_fails(
         ReceptionFlow(user_request="PESTEL Reyl").generate_pestel()
 
     assert calls["closed"] == seen
+
+
+_NO_RESULTS = "No recent search results available; use recent_search or hybrid_search."
+
+
+def _patch_recent_tool(monkeypatch: pytest.MonkeyPatch, run) -> None:
+    class _FakeTool:
+        def _run(self, query: str) -> str:
+            return run(query)
+
+    monkeypatch.setattr(main_module, "RecentSearchTool", _FakeTool)
+
+
+def test_pestel_recent_research_returns_one_block_per_dimension(monkeypatch: pytest.MonkeyPatch) -> None:
+    queries: list[str] = []
+
+    def _run(query: str) -> str:
+        queries.append(query)
+        return json.dumps({"answer": query})
+
+    _patch_recent_tool(monkeypatch, _run)
+
+    result = main_module._pestel_recent_research("Reyl", "Switzerland")
+
+    assert tuple(result) == _DIMS
+    assert len(queries) == 6
+    assert all("Reyl" in q and "Switzerland" in q for q in queries)
+    assert any(q.startswith("legal factors") for q in queries)
+
+
+def test_pestel_recent_research_caps_long_results(monkeypatch: pytest.MonkeyPatch) -> None:
+    _patch_recent_tool(monkeypatch, lambda _q: json.dumps({"answer": "x" * 20000}))
+
+    result = main_module._pestel_recent_research("Reyl", "global")
+
+    assert all(len(v) == 8000 + len(" [truncated]") and v.endswith("[truncated]") for v in result.values())
+
+
+def test_pestel_recent_research_falls_back_on_error(monkeypatch: pytest.MonkeyPatch) -> None:
+    def _run(query: str) -> str:
+        if query.startswith("economic"):
+            raise RuntimeError("boom")
+        if query.startswith("social"):
+            return json.dumps({"error": "recent_search failed"})
+        if query.startswith("legal"):
+            return ""
+        return json.dumps({"answer": "ok"})
+
+    _patch_recent_tool(monkeypatch, _run)
+
+    result = main_module._pestel_recent_research("Reyl", "global")
+
+    for dim in ("economic", "social", "legal"):
+        assert result[dim] == _NO_RESULTS
+    assert "ok" in result["political"]
+
+
+def test_pestel_recent_research_uses_concurrency_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    seen = {}
+
+    def _fake_bounded_map(func, items, env_var, default=3):
+        seen["env"] = env_var
+        return [func(i) for i in items]
+
+    _patch_recent_tool(monkeypatch, lambda _q: "{}")
+    monkeypatch.setattr(main_module, "bounded_map", _fake_bounded_map)
+
+    main_module._pestel_recent_research("Reyl", "global")
+
+    assert seen["env"] == "PESTEL_PRESEARCH_CONCURRENCY"
+
+
+def test_generate_pestel_passes_recent_results_to_kickoff(
+    pestel_flow_env, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _tmp_path, calls = pestel_flow_env
+    _patch_recent_tool(monkeypatch, lambda q: json.dumps({"answer": q}))
+
+    ReceptionFlow(user_request="PESTEL Reyl").generate_pestel()
+
+    inputs = calls["last_inputs"]
+    for dim in _DIMS:
+        assert inputs[f"recent_{dim}"] == f"recent {dim}"
