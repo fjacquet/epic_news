@@ -5,7 +5,7 @@ from types import SimpleNamespace
 from typing import Any
 
 import pytest
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 
 from epic_news.utils.diagnostics.parsing import parse_crewai_output
 
@@ -185,3 +185,17 @@ def test_valid_json_followed_by_prose_with_brackets():
 def test_first_of_two_json_objects_wins():
     raw = '{"name": "first", "value": 1}\n{"name": "second", "value": 2}'
     assert parse_crewai_output(FakeCrewOutput(raw=raw), SimpleModel).name == "first"
+
+
+class ExpectsObject(BaseModel):
+    name: str
+
+    @model_validator(mode="before")
+    @classmethod
+    def _needs_dict(cls, data: Any) -> Any:
+        return {"name": data.get("name")}  # AttributeError on a list
+
+
+def test_validator_type_errors_are_reported_as_data_structure():
+    with pytest.raises(ValueError, match="data structure"):
+        parse_crewai_output(FakeCrewOutput(raw='["a", "b"]'), ExpectsObject)

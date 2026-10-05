@@ -36,8 +36,7 @@ CASES = {
 
 
 @pytest.mark.parametrize("label", sorted(CASES))
-def test_recorded_output_parses_to_golden_model(label, tmp_path, monkeypatch):
-    monkeypatch.chdir(tmp_path)  # the parser may write debug files relative to cwd
+def test_recorded_output_parses_to_golden_model(label):
     raw = (FIXTURES / f"{label}.txt").read_text(encoding="utf-8")
     model = parse_crewai_output(SimpleNamespace(raw=raw, output=None), CASES[label])
     dumped = json.loads(model.model_dump_json())

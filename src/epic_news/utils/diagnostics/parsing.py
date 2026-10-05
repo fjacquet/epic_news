@@ -71,5 +71,5 @@ def parse_crewai_output[T: BaseModel](
 
     try:
         return model_class.model_validate(data)
-    except ValidationError as exc:
+    except (ValidationError, TypeError, AttributeError) as exc:  # before-validators may raise these
         raise ValueError(f"Invalid {name} data structure: {exc}") from exc
