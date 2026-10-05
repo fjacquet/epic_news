@@ -775,26 +775,13 @@ class ReceptionFlow(Flow[ContentState]):
         to `output/library/book_summary.json`. The summary is stored in
         `self.state.book_summary`.
         """
-
         inputs = self.state.to_crew_inputs()
-        inputs["output_file"] = "output/library/book_summary.json"
         self.logger.info(f"Generating book summary for: {inputs.get('topic', 'N/A')}")
 
-        output = kickoff_flow(LibraryCrew(), inputs)
-        dump_crewai_state(output, "BOOK_SUMMARY")
-        self.state.book_summary = output
-
-        book_summary_model = load_or_parse_model(
-            inputs["output_file"], BookSummaryReport, output, inputs, "book summary"
-        )
-        # emit_report records the report path in state.output_file so the
+        # _run_standard records the report path in state.output_file so the
         # Streamlit UI / API (app.py reads flow.state.output_file) can locate it.
-        emit_report(
-            self.state,
-            lambda: assemble_book_summary_docx(
-                book_summary_model, self.state.to_crew_inputs(), "output/library/book_summary.docx"
-            ),
-        )
+        output, _ = self._run_standard(CREW_REGISTRY["BOOK_SUMMARY"], LibraryCrew(), inputs)
+        self.state.book_summary = output
 
     @listen("go_generate_shopping_advice")
     @trace_task(tracer)
