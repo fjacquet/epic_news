@@ -9,7 +9,7 @@ kickoff opens a Langfuse span when its keys are set (`trace_span`, see `utils/tr
 `src/epic_news/utils/observability.py` provides three things:
 
 - `TraceEvent`: one event (type, source, details, timestamp).
-- `Tracer`: appends events to `traces/<trace_id>.json`.
+- `Tracer`: appends events to `traces/<trace_id>.json`, one JSON object per line.
 - `trace_task(tracer)`: a decorator that records `task_start`, then `task_end` (and
   `task_error` when the step raises) around a function. It works for plain and
   `async def` steps; an async step is recorded when it finishes.
@@ -34,18 +34,11 @@ step failed); `task_error` carries `task_name` and `error`.
 
 ## Trace file format
 
+A trace file holds one JSON object per line, one line per event:
+
 ```json
-{
-  "trace_id": "reception_flow_1791203615",
-  "events": [
-    {
-      "event_type": "task_start",
-      "source": "task:generate_poem",
-      "details": {"task_name": "generate_poem", "args": "...", "kwargs": "{}"},
-      "timestamp": 1791203615.12
-    }
-  ]
-}
+{"event_id": "6596c8be…", "event_type": "task_start", "source": "task:generate_saint_daily", "details": {"task_name": "generate_saint_daily", "args": "…", "kwargs": "{}"}, "timestamp": 1791220005.1}
+{"event_id": "…", "event_type": "task_end", "source": "task:generate_saint_daily", "details": {"task_name": "generate_saint_daily", "duration": 142.3, "success": true, "result_type": "NoneType"}, "timestamp": 1791220147.4}
 ```
 
 Read a trace back with `Tracer.load_trace(trace_id)` and filter it with
