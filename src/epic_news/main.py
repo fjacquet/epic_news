@@ -443,24 +443,9 @@ class ReceptionFlow(Flow[ContentState]):
         Handles requests classified for the 'CompanyNewsCrew'.
         Invokes the `CompanyNewsCrew` to generate news content related to the given topic.
         """
-        # Import function explicitly to ensure availability during runtime
-
-        self.state.output_file = "output/company_news/report.json"
         crew_inputs = self.state.to_crew_inputs()
         self.logger.info(f"Generating news about: {crew_inputs.get('topic', 'N/A')}")
-
-        output = kickoff_flow(CompanyNewsCrew(), crew_inputs)
-        dump_crewai_state(output, "NEWS_COMPANY")
-
-        news_model = load_or_parse_model(
-            self.state.output_file, CompanyNewsReport, output, crew_inputs, "company news"
-        )
-        emit_report(
-            self.state,
-            lambda: assemble_company_news_docx(
-                news_model, self.state.to_crew_inputs(), "output/company_news/report.docx"
-            ),
-        )
+        output, _ = self._run_standard(CREW_REGISTRY["COMPANY_NEWS"], CompanyNewsCrew(), crew_inputs)
         self.state.company_news_report = output
 
     @listen("go_generate_rss_weekly")
