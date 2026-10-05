@@ -1,4 +1,6 @@
-from pydantic import BaseModel, Field
+from typing import Any
+
+from pydantic import BaseModel, Field, field_validator
 
 
 class BookSummarySection(BaseModel):
@@ -10,6 +12,12 @@ class BookSummarySection(BaseModel):
 class TableOfContentsEntry(BaseModel):
     id: str = Field(..., description="Anchor/section id")
     title: str = Field(..., description="Section title (with emoji if relevant)")
+
+    @field_validator("id", mode="before")
+    @classmethod
+    def _id_as_text(cls, value: Any) -> Any:
+        """LLMs often number chapters with ints; ids are text."""
+        return value if value is None or isinstance(value, str) else str(value)
 
 
 class ChapterSummary(BaseModel):
