@@ -1,4 +1,4 @@
-"""The OSINT parallel run saves each report as JSON (no HTML) and clears stale ones first."""
+"""The OSINT parallel run saves each report as JSON (no HTML), clears stale ones first, and stops on a failed crew."""
 
 import asyncio
 from pathlib import Path
@@ -67,26 +67,45 @@ def test_stale_json_is_removed_when_its_crew_fails(osint_run):
     stale = osint_dir / "tech_stack.json"
     stale.write_text('{"company": "previous target"}', encoding="utf-8")
 
-    run(failing_crew=main_mod.TechStackCrew)
+    with pytest.raises(RuntimeError, match="tech_stack"):
+        run(failing_crew=main_mod.TechStackCrew)
 
     assert not stale.exists()
     assert (osint_dir / "company_profile.json").exists()
 
 
-def test_state_osint_holds_the_models_of_the_crews_that_succeeded(osint_run, monkeypatch):
+def test_state_osint_holds_one_model_per_crew(osint_run, monkeypatch):
     _, run = osint_run
 
     class Fake(BaseModel):
         ok: bool = True
 
     monkeypatch.setattr(main_mod, "parse_crewai_output", lambda *a, **k: Fake())
-    flow = run(failing_crew=main_mod.TechStackCrew)
+    flow = run()
 
     assert set(flow.state.osint) == {
         "company_profile",
+        "tech_stack",
         "web_presence",
         "hr_intelligence",
         "legal_analysis",
         "geospatial_analysis",
     }
     assert all(isinstance(model, BaseModel) for model in flow.state.osint.values())
+
+
+def test_a_failed_crew_stops_the_run_before_the_cross_reference(osint_run, monkeypatch):
+    _, run = osint_run
+    cross_reference_ran = []
+
+    async def cross_reference(self, inputs):
+        cross_reference_ran.append(True)
+
+    monkeypatch.setattr(ReceptionFlow, "_run_cross_reference_report", cross_reference)
+
+    with pytest.raises(RuntimeError, match="OSINT crews failed: tech_stack") as excinfo:
+        run(failing_crew=main_mod.TechStackCrew)
+
+    assert isinstance(excinfo.value.__cause__, RuntimeError)
+    assert str(excinfo.value.__cause__) == "boom"
+    assert cross_reference_ran == []
