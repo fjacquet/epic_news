@@ -31,7 +31,7 @@ from typing import Any, cast
 from crewai.flow import Flow, listen, or_, router, start
 from dotenv import load_dotenv
 from loguru import logger
-from pydantic import PydanticDeprecatedSince20, PydanticDeprecatedSince211, ValidationError
+from pydantic import PydanticDeprecatedSince20, PydanticDeprecatedSince211
 
 from epic_news.config.mcp_config import close_mcp
 from epic_news.config.routing_guide import ROUTING_GUIDE, routing_categories
@@ -65,6 +65,7 @@ from epic_news.models.crews.book_summary_report import BookSummaryReport
 from epic_news.models.crews.company_news_report import CompanyNewsReport
 from epic_news.models.crews.company_profiler_report import CompanyProfileReport
 from epic_news.models.crews.cooking_recipe import PaprikaRecipe
+from epic_news.models.crews.cross_reference_report import CrossReferenceReport
 from epic_news.models.crews.deep_research import DeepResearchReport
 from epic_news.models.crews.financial_report import FinancialReport
 from epic_news.models.crews.geospatial_analysis_report import GeospatialAnalysisReport
@@ -72,7 +73,7 @@ from epic_news.models.crews.hr_intelligence_report import HRIntelligenceReport
 from epic_news.models.crews.legal_analysis_report import LegalAnalysisReport
 from epic_news.models.crews.meeting_prep_report import MeetingPrepReport
 from epic_news.models.crews.news_daily_report import NewsDailyReport
-from epic_news.models.crews.pestel_report import PestelDimension, PestelReport
+from epic_news.models.crews.pestel_report import PestelReport
 from epic_news.models.crews.poem_report import PoemJSONOutput
 from epic_news.models.crews.saint_daily_report import SaintData
 from epic_news.models.crews.sales_prospecting_report import SalesProspectingReport
@@ -221,30 +222,6 @@ def _pestel_recent_research(topic: str, geography: str) -> dict[str, str]:
 
     results = bounded_map(_search, _PESTEL_DIMENSIONS, "PESTEL_PRESEARCH_CONCURRENCY", 3)
     return dict(zip(_PESTEL_DIMENSIONS, results, strict=True))
-
-
-def _stub_pestel_report(topic: str, generated_at: str, error: str) -> PestelReport:
-    """Build a placeholder PestelReport when parsing crew output fails.
-
-    Ensures generate_pestel can always write report.docx so the email
-    step has a real attachment instead of a missing file path.
-    """
-    stub = PestelDimension(
-        summary=f"Report generation failed: {error}",
-        impact_analysis="Unavailable due to parsing error.",
-    )
-    return PestelReport(
-        topic=topic,
-        executive_summary=f"PESTEL analysis could not be generated: {error}",
-        political=stub,
-        economic=stub,
-        social=stub,
-        technological=stub,
-        environmental=stub,
-        legal=stub,
-        synthesis="Report generation failed; please retry.",
-        generated_at=generated_at,
-    )
 
 
 # Default user request for demonstration, testing, or standalone execution.
@@ -567,24 +544,18 @@ class ReceptionFlow(Flow[ContentState]):
             # If we can't save the file, there's no point in continuing.
             return
 
-        # Step 3: Generate the DOCX report
+        # Step 3: Generate the DOCX report (an error stops the run; nothing is emailed)
         self.logger.info("Step 3: Generating report...")
-        try:
-            emit_report(
-                self.state,
-                lambda: assemble_rss_docx(
-                    load_rss_weekly_report(str(translated_report_path)),
-                    self.state.to_crew_inputs(),
-                    "output/rss_weekly/report.docx",
-                ),
-            )
-        except Exception as e:
-            self.logger.error("❌ RSS report generation failed: {}", e)
-            # Do not pretend the pipeline succeeded — leave output_file unset so
-            # the email step either skips the attachment or skips altogether.
-            return
+        emit_report(
+            self.state,
+            lambda: assemble_rss_docx(
+                load_rss_weekly_report(str(translated_report_path)),
+                self.state.to_crew_inputs(),
+                "output/rss_weekly/report.docx",
+            ),
+        )
 
-        # Store the final report path in the state (only when write actually succeeded)
+        # Store the final report path in the state
         self.state.rss_weekly_report = f"Report generated at {self.state.output_file}"
         self.logger.info(f"✅ New RSS weekly pipeline complete. Report at: {self.state.output_file}")
 
@@ -1106,13 +1077,8 @@ class ReceptionFlow(Flow[ContentState]):
             close_mcp(pestel_crew)
         dump_crewai_state(output, "PESTEL")
 
-        try:
-            pestel_model = load_or_parse_model(self.state.output_file, PestelReport, output, inputs, "PESTEL")
-        except (ValueError, ValidationError) as exc:
-            self.logger.error(
-                f"⚠️ PESTEL parsing failed; emitting stub report so email step can attach a file. {exc}"
-            )
-            pestel_model = _stub_pestel_report(inputs.get("topic", "N/A"), inputs["current_date"], str(exc))
+        # No placeholder report: a parsing failure stops the run (nothing is emailed).
+        pestel_model = load_or_parse_model(self.state.output_file, PestelReport, output, inputs, "PESTEL")
 
         self.state.pestel_report = pestel_model
 
@@ -1288,10 +1254,17 @@ class ReceptionFlow(Flow[ContentState]):
         crew_inputs = inputs.copy()
         crew_inputs["output_file"] = json_file
         crew_inputs["osint_reports"] = _load_osint_reports(Path("output/osint"))
+        # A previous run's report (maybe another target) must not stand in for this one.
+        Path(json_file).unlink(missing_ok=True)
         output = await akickoff_flow(CrossReferenceReportCrew(), crew_inputs)
         self.state.cross_reference_report = output
 
         dump_crewai_state(output, "CROSS_REFERENCE_REPORT")
+        report_model = load_or_parse_model(
+            json_file, CrossReferenceReport, output, crew_inputs, "cross reference"
+        )
+        # The crew's own output_file is not always written; the OSINT DOCX reads this file.
+        Path(json_file).write_text(report_model.model_dump_json(), encoding="utf-8")
         self.logger.info(f"✅ Cross reference report generated: {json_file}")
 
     @listen("go_generate_holiday_plan")

@@ -25,7 +25,9 @@ def flow(tmp_path, monkeypatch):
     (tmp_path / "output" / "osint").mkdir(parents=True)  # ensure_output_directories() does this at startup
     monkeypatch.setattr(main_mod, "kickoff_flow", lambda *a, **k: _Output())
     monkeypatch.setattr(main_mod, "dump_crewai_state", lambda *a, **k: None)
-    monkeypatch.setattr(main_mod, "load_or_parse_model", lambda *a, **k: MagicMock())
+    model = MagicMock()
+    model.model_dump_json.return_value = '{"ok": true}'
+    monkeypatch.setattr(main_mod, "load_or_parse_model", lambda *a, **k: model)
     monkeypatch.setattr(main_mod, "close_mcp", lambda crew: None)
     # Every assembler but OSINT takes (model, inputs, output_path, ...); OSINT takes (inputs, output_path).
     for name in dir(main_mod):
@@ -34,6 +36,21 @@ def flow(tmp_path, monkeypatch):
     # Recipe step
     monkeypatch.setattr(main_mod, "recipe_from_result", lambda *a, **k: MagicMock())
     monkeypatch.setattr(main_mod, "export_recipe", lambda *a, **k: None)
+
+    # RSS weekly step
+    async def fake_fetch(**kwargs):
+        return None
+
+    monkeypatch.setattr(main_mod, "fetch_articles_from_opml", fake_fetch)
+    monkeypatch.setattr(main_mod, "load_rss_weekly_report", lambda path: MagicMock())
+    # Deep research step (no Wikipedia MCP)
+    monkeypatch.setattr(main_mod, "DeepResearchCrew", type("DeepResearchCrew", (), {}))
+    # Menu step: a validated plan, no recipe crews
+    service = MagicMock()
+    service.generate_menu_plan.return_value = MagicMock()
+    monkeypatch.setattr(main_mod, "MenuDesignerService", lambda: service)
+    monkeypatch.setattr(main_mod, "MenuGenerator", MagicMock)
+    monkeypatch.setattr(ReceptionFlow, "_generate_menu_recipes", lambda self, specs: [])
     # PESTEL step
     monkeypatch.setattr(main_mod, "_pestel_recent_research", lambda topic, geo: {})
     # OSINT step: crews are only handed to the faked async kickoff
@@ -51,8 +68,6 @@ def flow(tmp_path, monkeypatch):
     async def fake_akickoff(crew, inputs):
         return _Output()
 
-    model = MagicMock()
-    model.model_dump_json.return_value = '{"ok": true}'
     monkeypatch.setattr(main_mod, "akickoff_flow", fake_akickoff)
     monkeypatch.setattr(main_mod, "parse_crewai_output", lambda *a, **k: model)
 
@@ -78,6 +93,9 @@ CASES = [
     ("generate_news_company", "output/company_news/report.docx"),
     ("generate_meeting_prep", "output/meeting/meeting_preparation.docx"),
     ("generate_osint", "output/osint/report.docx"),
+    ("generate_rss_weekly", "output/rss_weekly/report.docx"),
+    ("generate_deep_research", "output/deep_research/report.docx"),
+    ("generate_menu_designer", "output/menu_designer/menu.docx"),
 ]
 
 
@@ -93,14 +111,29 @@ def test_step_emits_docx_and_no_html(flow, method, expected, tmp_path):
     assert not list((tmp_path / "output").rglob("*.md"))
 
 
-def test_assembler_error_stops_the_step(flow, monkeypatch):
+# step -> (assembler it calls, output_file the step sets before building the report)
+ERROR_CASES = [
+    ("generate_saint_daily", "assemble_saint_docx", "output/saint_daily/report.json"),
+    ("generate_pestel", "assemble_pestel_docx", "output/pestel/report.json"),
+    ("generate_rss_weekly", "assemble_rss_docx", ""),
+    ("generate_osint", "assemble_osint_docx", "output/osint/global_report.json"),
+]
+
+
+@pytest.mark.parametrize("method,assembler,before", ERROR_CASES, ids=[c[0] for c in ERROR_CASES])
+def test_assembler_error_stops_the_step(flow, monkeypatch, tmp_path, method, assembler, before):
+    """A report that cannot be built raises out of the step; output_file never names a DOCX."""
+
     def boom(*a, **k):
         raise RuntimeError("pandoc failed")
 
-    monkeypatch.setattr(main_mod, "assemble_saint_docx", boom)
+    monkeypatch.setattr(main_mod, assembler, boom)
     with pytest.raises(RuntimeError, match="pandoc failed"):
-        flow.generate_saint_daily()
-    assert not flow.state.output_file.endswith(".docx")
+        result = getattr(flow, method)()
+        if asyncio.iscoroutine(result):
+            asyncio.run(result)
+    assert flow.state.output_file == before
+    assert not list((tmp_path / "output").rglob("*.docx"))
 
 
 def test_osint_keeps_sub_report_json(flow, tmp_path):

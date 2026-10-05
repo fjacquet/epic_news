@@ -356,3 +356,22 @@ def test_generate_pestel_passes_recent_results_to_kickoff(
     inputs = calls["last_inputs"]
     for dim in _DIMS:
         assert inputs[f"recent_{dim}"] == f"recent {dim}"
+
+
+def test_generate_pestel_parse_failure_stops_the_run(
+    pestel_flow_env, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """No placeholder report: unparseable crew output raises and no DOCX is built."""
+    tmp_path, calls = pestel_flow_env
+    (tmp_path / "output" / "pestel" / "report.json").unlink()
+    monkeypatch.setattr(
+        main_module, "kickoff_flow", lambda _crew, _inputs: SimpleNamespace(raw="not json at all")
+    )
+
+    flow = ReceptionFlow(user_request="PESTEL Reyl")
+    with pytest.raises(ValueError):
+        flow.generate_pestel()
+
+    assert calls["assembled"] == []
+    assert flow.state.output_file == "output/pestel/report.json"
+    assert flow.state.pestel_report is None

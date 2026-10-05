@@ -1,6 +1,8 @@
 import json
 import zipfile
 
+import pytest
+
 from epic_news.utils.docx_report.crews.osint import _to_bullets, assemble_osint_docx
 
 
@@ -90,3 +92,16 @@ def test_to_bullets_nested_and_empty():
     # totality: empty containers never crash
     assert _to_bullets({}) == "_Aucune donnée._"
     assert _to_bullets([]) == "_Aucune donnée._"
+
+
+def test_osint_docx_requires_the_cross_reference_report(tmp_path):
+    """No global_report.json: refuse to build a report with an empty summary."""
+    _write(tmp_path / "company_profile.json", {"name": "ACME-SA"})
+    with pytest.raises(ValueError, match="global_report.json"):
+        assemble_osint_docx({}, str(tmp_path / "output" / "report.docx"), _StubLLM(), osint_dir=str(tmp_path))
+
+
+def test_osint_docx_rejects_a_non_object_cross_reference_report(tmp_path):
+    (tmp_path / "global_report.json").write_text("[1, 2]", encoding="utf-8")
+    with pytest.raises(ValueError, match="global_report.json"):
+        assemble_osint_docx({}, str(tmp_path / "output" / "report.docx"), _StubLLM(), osint_dir=str(tmp_path))
