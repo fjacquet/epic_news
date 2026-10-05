@@ -172,3 +172,18 @@ def test_unused_tools_are_gone():
         "get_observability_tools",
     ):
         assert not hasattr(observability, name), name
+
+
+def test_trace_task_records_task_end_on_keyboard_interrupt(tmp_path, monkeypatch):
+    """Ctrl+C inside a step still closes its trace (task_error + task_end), as before S8."""
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "traces").mkdir()
+    tracer = Tracer(trace_id="interrupt_test")
+
+    @trace_task(tracer)
+    def step():
+        raise KeyboardInterrupt
+
+    with pytest.raises(KeyboardInterrupt):
+        step()
+    assert tracer.get_events(event_type="task_end")[-1].details["success"] is False

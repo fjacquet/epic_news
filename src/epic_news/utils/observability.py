@@ -182,7 +182,7 @@ def trace_task(tracer: Tracer):
             tracer.add_event(TraceEvent("task_start", f"task:{task_name}", details))
             return time.time()
 
-        def _end(start: float, result: Any, error: Exception | None) -> None:
+        def _end(start: float, result: Any, error: BaseException | None) -> None:
             if error is not None:
                 details = {"task_name": task_name, "error": str(error)}
                 tracer.add_event(TraceEvent("task_error", f"task:{task_name}", details))
@@ -201,7 +201,7 @@ def trace_task(tracer: Tracer):
                 start = _start(args, kwargs)
                 try:
                     result = await func(*args, **kwargs)
-                except Exception as e:
+                except BaseException as e:  # Ctrl+C too: the step still gets its task_end
                     _end(start, None, e)
                     raise
                 _end(start, result, None)
@@ -214,7 +214,7 @@ def trace_task(tracer: Tracer):
             start = _start(args, kwargs)
             try:
                 result = func(*args, **kwargs)
-            except Exception as e:
+            except BaseException as e:  # Ctrl+C too: the step still gets its task_end
                 _end(start, None, e)
                 raise
             _end(start, result, None)
