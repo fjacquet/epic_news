@@ -22,7 +22,9 @@ def flow(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> ReceptionFlow:
     (tmp_path / "traces").mkdir()
     (tmp_path / "output" / "poem").mkdir(parents=True)
     monkeypatch.setattr(main_module, "dump_crewai_state", lambda *_a, **_k: None)
-    return ReceptionFlow(user_request="un poème sur la mer")
+    flow = ReceptionFlow(user_request="un poème sur la mer")
+    flow.state.user_request = "un poème sur la mer"  # feed_user_request sets it in a real run
+    return flow
 
 
 def _spec_with(assembler):
