@@ -1027,16 +1027,20 @@ class ReceptionFlow(Flow[ContentState]):
         in `self.state.contact_info_report`.
         """
         self.state.output_file = "output/sales_prospecting/report.json"
-        company = self.state.to_crew_inputs().get("target_company")  # Expects 'target_company' from inputs
-        our_product = self.state.to_crew_inputs().get(
-            "our_product", "our product/service"
-        )  # Default if not specified
+        inputs = self.state.to_crew_inputs()
+        company = inputs.get("company")
+        # The crew's YAML prompts use {company} and {our_product}; both must be present.
+        # ContentState.our_product defaults to "", so setdefault alone would keep it empty.
+        if not inputs.get("our_product"):
+            inputs["our_product"] = "our product/service"
+        our_product = inputs["our_product"]
+        if not company:
+            self.logger.warning("Sales prospecting: no target company found in the request")
         self.logger.info(
             f"Generating sales prospecting report for: {company or 'N/A'} regarding {our_product}"
         )
 
         # Kickoff-only orchestration with JSON-first parsing
-        inputs = self.state.to_crew_inputs()
         self.state.output_file = "output/sales_prospecting/report.json"
         inputs["output_file"] = self.state.output_file
         output = kickoff_flow(SalesProspectingCrew(), inputs)
