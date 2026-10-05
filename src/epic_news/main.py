@@ -595,32 +595,17 @@ class ReceptionFlow(Flow[ContentState]):
         World, Wars, and Economy. Sets `output_file` to `output/news_daily/report.docx`
         and stores the report in `self.state.news_daily_report`.
         """
-        # Persisted JSON for deterministic parsing
-        self.state.output_file = "output/news_daily/news_data.json"
         self.logger.info("📰 Generating daily news report in French...")
 
         # Prepare inputs for the crew
         inputs = self.state.to_crew_inputs()
         inputs["current_date"] = datetime.datetime.now().strftime("%Y-%m-%d")
         inputs["report_language"] = "French"
-        inputs["output_file"] = self.state.output_file
 
-        # Kickoff-only orchestration
-        output = kickoff_flow(NewsDailyCrew(), inputs)
-        self.state.news_daily_report = output
-        dump_crewai_state(output, "NEWSDAILY")
-
-        news_daily_model = load_or_parse_model(
-            self.state.output_file, NewsDailyReport, output, inputs, "news daily"
-        )
-        # emit_report points output_file at the rendered report (was the intermediate
+        # _run_standard points output_file at the rendered report (was the intermediate
         # JSON) so the email attaches — and the UI displays — the report, not raw JSON.
-        emit_report(
-            self.state,
-            lambda: assemble_news_daily_docx(
-                news_daily_model, self.state.to_crew_inputs(), "output/news_daily/report.docx"
-            ),
-        )
+        output, news_daily_model = self._run_standard(CREW_REGISTRY["NEWSDAILY"], NewsDailyCrew(), inputs)
+        self.state.news_daily_report = output
         self.state.news_daily_model = news_daily_model
         self.logger.info(f"✅ News content generated → {self.state.output_file}")
 
