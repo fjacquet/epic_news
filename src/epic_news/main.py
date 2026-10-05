@@ -33,6 +33,7 @@ from dotenv import load_dotenv
 from loguru import logger
 from pydantic import BaseModel, PydanticDeprecatedSince20, PydanticDeprecatedSince211
 
+from epic_news.config.crewai_patches import apply_crewai_patches
 from epic_news.config.mcp_config import close_mcp
 from epic_news.config.routing_guide import ROUTING_GUIDE, routing_categories
 from epic_news.crew_registry import CREW_REGISTRY, CrewKey, CrewSpec
@@ -110,6 +111,7 @@ warnings.filterwarnings("ignore", message=".*`min_items` is deprecated.*", categ
 warnings.filterwarnings("ignore", category=DeprecationWarning, module="pydantic")
 
 load_dotenv()
+apply_crewai_patches()  # CrewAI LLM patches (see config/crewai_patches.py); every runtime path imports this module
 
 # Initialize observability tools at the module level
 observability_tools = get_observability_tools(crew_name="reception_flow")

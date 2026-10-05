@@ -20,8 +20,8 @@ from types import SimpleNamespace
 from crewai import LLM
 from crewai.llms.base_llm import BaseLLM
 
-from epic_news.config import llm_config
-from epic_news.config.llm_config import _coerce_tool_calls_to_react_text
+from epic_news.config import crewai_patches
+from epic_news.config.crewai_patches import _coerce_tool_calls_to_react_text
 
 
 def _tool_call(name: str, arguments: str, call_id: str = "call_1"):
@@ -162,7 +162,7 @@ class TestAsyncCallWrapper:
         async def no_sleep(seconds: float) -> None:
             return None
 
-        monkeypatch.setattr(llm_config, "_async_sleep", no_sleep)
+        monkeypatch.setattr(crewai_patches, "_async_sleep", no_sleep)
         seen = {"n": 0}
 
         class _FlakyAsyncProvider(BaseLLM):

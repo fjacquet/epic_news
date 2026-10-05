@@ -14,8 +14,8 @@ import pytest
 from crewai import LLM
 from crewai.llms.base_llm import BaseLLM
 
-from epic_news.config import llm_config
-from epic_news.config.llm_config import (
+from epic_news.config import crewai_patches
+from epic_news.config.crewai_patches import (
     _acall_with_empty_retry,
     _call_with_empty_retry,
     _is_empty_llm_response,
@@ -30,8 +30,8 @@ def sleeps(monkeypatch):
     async def fake_async_sleep(seconds: float) -> None:
         delays.append(seconds)
 
-    monkeypatch.setattr(llm_config, "_sleep", delays.append)
-    monkeypatch.setattr(llm_config, "_async_sleep", fake_async_sleep)
+    monkeypatch.setattr(crewai_patches, "_sleep", delays.append)
+    monkeypatch.setattr(crewai_patches, "_async_sleep", fake_async_sleep)
     return delays
 
 
