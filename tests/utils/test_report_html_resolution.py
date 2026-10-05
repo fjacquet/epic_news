@@ -6,16 +6,7 @@ raw JSON as the body -- the agent duly reported `html_preserved: false` -- and a
 that same JSON file.
 """
 
-from epic_news.utils.report_utils import prepare_email_params, resolve_report_html
-
-
-class _State:
-    selected_crew = "DEEPRESEARCH"
-    user_request = "topic"
-    sendto = "someone@example.com"
-
-    def __init__(self, output_file: str):
-        self.output_file = output_file
+from epic_news.utils.report_utils import resolve_report_html
 
 
 def test_prefers_the_html_sibling_of_a_json_target(tmp_path):
@@ -52,15 +43,3 @@ def test_blank_and_non_string_inputs_return_none():
     assert resolve_report_html("") is None
     assert resolve_report_html("   ") is None
     assert resolve_report_html(None) is None
-
-
-def test_email_params_body_and_attachment_are_the_html_report(tmp_path):
-    (tmp_path / "report.json").write_text('{"a": 1}', encoding="utf-8")
-    html = tmp_path / "report.html"
-    html.write_text("<html></html>", encoding="utf-8")
-
-    params = prepare_email_params(_State(str(tmp_path / "report.json")))
-
-    assert params["output_file"] == str(html), "body must be the HTML report"
-    assert params["attachment_path"] == str(html), "attachment must be the HTML report"
-    assert not params["output_file"].endswith(".json")

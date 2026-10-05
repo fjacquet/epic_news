@@ -541,8 +541,8 @@ class ReceptionFlow(Flow[ContentState]):
             self.logger.info("✅ Successfully saved translated report.")
         except (json.JSONDecodeError, TypeError) as e:
             self.logger.error(f"❌ Failed to decode or save translated JSON from crew result: {e}")
-            # If we can't save the file, there's no point in continuing.
-            return
+            # Without the translated file there is no report to build: stop the run.
+            raise
 
         # Step 3: Generate the DOCX report (an error stops the run; nothing is emailed)
         self.logger.info("Step 3: Generating report...")
@@ -1343,7 +1343,7 @@ class ReceptionFlow(Flow[ContentState]):
         Sends an email with the generated report attached, if applicable.
 
         This is the final step of the flow. It composes an email with the selected
-        content and attaches the generated report HTML file (if available).
+        content and attaches the generated DOCX report.
         """
         if not self.state.email_sent:
             self.logger.info("📬 Preparing to send email...")
@@ -1375,59 +1375,33 @@ class ReceptionFlow(Flow[ContentState]):
             # Use utility function to prepare all email parameters
             email_inputs = prepare_email_params(self.state)
 
-            # Drop attachment if the file doesn't exist on disk — better to send
-            # an attachment-less email than to fail the whole delivery over it.
+            # A report email without its report is partial: do not send it.
             attachment_path = email_inputs.get("attachment_path")
-            if attachment_path and not Path(attachment_path).exists():
-                self.logger.warning(
-                    "📎 Attachment {} does not exist on disk; sending email without attachment",
+            if not attachment_path or not Path(attachment_path).is_file():
+                self.logger.error(
+                    "🚫 Report file {} does not exist on disk; not sending an email without its report.",
                     attachment_path,
                 )
-                email_inputs["attachment_path"] = None
+                self.state.email_sent = False
+                return "send_email"
 
             self.logger.info(
-                "✉️  Email payload: recipient={} subject={!r} attachment={} output_file={}",
+                "✉️  Email payload: recipient={} subject={!r} attachment={}",
                 email_inputs.get("recipient_email"),
                 email_inputs.get("subject"),
-                email_inputs.get("attachment_path") or "(none)",
-                email_inputs.get("output_file") or "(none)",
+                attachment_path,
             )
-            if not email_inputs.get("attachment_path"):
-                self.logger.warning(
-                    "📎 No valid attachment file found. Email will be sent without attachment."
-                )
 
             # Delivery is deterministic: the recipient, the report and the MIME type
             # are all known here. An LLM asked to "send this" substituted the
             # recipient with the placeholder "[EMAIL]" and still reported success,
             # so no agent sits between the validated inputs and the Gmail API.
-            body_file = email_inputs.get("output_file")
-            if body_file:
-                try:
-                    html_body = Path(body_file).read_text(encoding="utf-8")
-                except OSError as e:
-                    self.logger.error("❌ Cannot read report {} for email body: {}", body_file, e)
-                    self.state.email_sent = False
-                    return "send_email"
-                except UnicodeDecodeError:
-                    # A binary report (e.g. DOCX) reached the body path: deliver it as an
-                    # attachment with the short summary body instead of the file contents.
-                    self.logger.warning(
-                        "📎 Report {} is not text; using the summary body and attaching the file",
-                        body_file,
-                    )
-                    html_body = email_inputs.get("body", "")
-            else:
-                # No HTML body file (binary report): use the short summary body; the
-                # report is attached.
-                html_body = email_inputs.get("body", "")
-
             try:
                 send_report_email(
                     recipient=email_inputs["recipient_email"],
                     subject=email_inputs["subject"],
-                    html_body=html_body,
-                    attachment_path=email_inputs.get("attachment_path"),
+                    html_body=email_inputs["body"],
+                    attachment_path=attachment_path,
                 )
             except EmailDeliveryError as e:
                 self.logger.error("❌ Email NOT sent: {}", e)

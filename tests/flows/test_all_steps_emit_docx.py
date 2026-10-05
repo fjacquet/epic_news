@@ -142,3 +142,22 @@ def test_osint_keeps_sub_report_json(flow, tmp_path):
     osint = tmp_path / "output" / "osint"
     assert (osint / "company_profile.json").read_text(encoding="utf-8") == '{"ok": true}'
     assert not list(osint.glob("*.html"))
+
+
+def test_rss_undecodable_translation_stops_the_run(flow, monkeypatch):
+    """A translated JSON that cannot be decoded raises; no report step runs after it."""
+
+    class _BadOutput:
+        raw = "not json at all"
+
+    async def bad_akickoff(crew, inputs):
+        return _BadOutput()
+
+    monkeypatch.setattr(main_mod, "akickoff_flow", bad_akickoff)
+    emitted = []
+    monkeypatch.setattr(main_mod, "emit_report", lambda *a, **k: emitted.append(1))
+
+    with pytest.raises(ValueError):
+        asyncio.run(flow.generate_rss_weekly())
+
+    assert emitted == []

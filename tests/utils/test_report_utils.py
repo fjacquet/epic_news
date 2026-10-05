@@ -19,7 +19,7 @@ def mock_state():
     class MockState:
         selected_crew = fake.word().title() + "Crew"
         user_request = fake.sentence()
-        output_file = f"{fake.word()}.html"
+        output_file = f"output/{fake.word()}/report.docx"
 
     return MockState()
 
@@ -32,10 +32,8 @@ def test_prepare_email_params_defaults(mocker, mock_state):
     assert params["recipient_email"] == _FALLBACK_RECIPIENT
     assert params["subject"] == f"Epic News Report: {mock_state.selected_crew} - {mock_state.user_request}"
     assert params["body"] == f"Please find the report for '{mock_state.user_request}' attached."
-    # output_file names a file that was never rendered, so there is nothing to attach.
-    # Handing back a dangling path is what made Composio treat it as an uploaded S3 key.
-    assert params["attachment_path"] is None
-    assert params["output_file"] == mock_state.output_file
+    assert params["attachment_path"] == mock_state.output_file
+    assert "output_file" not in params
     assert params["topic"] == f"{mock_state.selected_crew} - {mock_state.user_request}"
 
     # Test with explicit recipient
@@ -45,16 +43,14 @@ def test_prepare_email_params_defaults(mocker, mock_state):
     assert params["recipient_email"] == test_email
 
 
-def test_prepare_email_params_attaches_a_report_that_exists(mock_state, tmp_path):
-    """When the crew actually rendered the report, it is both body and attachment."""
-    report = tmp_path / "report.html"
-    report.write_text("<html></html>", encoding="utf-8")
-    mock_state.output_file = str(report)
+def test_prepare_email_params_attaches_the_docx_with_the_short_body(mock_state):
+    """A DOCX report is attached as is; the body stays the short text."""
+    mock_state.output_file = "output/x/report.docx"
 
     params = prepare_email_params(mock_state)
 
-    assert params["attachment_path"] == str(report)
-    assert params["output_file"] == str(report)
+    assert params["attachment_path"] == "output/x/report.docx"
+    assert params["body"] == f"Please find the report for '{mock_state.user_request}' attached."
 
 
 @pytest.mark.parametrize(

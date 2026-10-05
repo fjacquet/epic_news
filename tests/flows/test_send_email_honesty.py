@@ -17,16 +17,17 @@ import epic_news.main as main_mod
 from epic_news.main import ReceptionFlow
 from epic_news.utils.email_sender import EmailDeliveryError
 
-BODY = "<html><body>report</body></html>"
+BODY = "Please find the report for 'test request' attached."
 
 
 @pytest.fixture
 def flow(monkeypatch, tmp_path) -> ReceptionFlow:
     monkeypatch.setenv("EPIC_ENABLE_EMAIL", "true")
-    report = tmp_path / "report.html"
-    report.write_text(BODY, encoding="utf-8")
+    report = tmp_path / "report.docx"
+    report.write_bytes(b"PK\x03\x04")
 
     f = ReceptionFlow("test request")
+    f.state.user_request = "test request"
     f.state.sendto = "someone@example.com"
     f.state.output_file = str(report)
     f.state.email_sent = False
@@ -65,11 +66,11 @@ def test_unexpected_exception_does_not_mark_sent(flow, monkeypatch):
     assert flow.state.email_sent is False
 
 
-def test_unreadable_report_does_not_mark_sent(flow, monkeypatch):
-    flow.state.output_file = "/nonexistent/report.html"
+def test_missing_report_does_not_mark_sent(flow, monkeypatch):
+    flow.state.output_file = "/nonexistent/report.docx"
 
     def fail(**_kw):  # pragma: no cover - must not be reached
-        raise AssertionError("must not send when the body cannot be read")
+        raise AssertionError("must not send when the report is missing")
 
     monkeypatch.setattr(main_mod, "send_report_email", fail)
 
@@ -102,8 +103,8 @@ def test_disabled_by_env_does_not_send(flow, monkeypatch):
     flow.send_email()
 
 
-def test_the_real_report_html_is_the_body_and_attachment(flow, monkeypatch):
-    """Regression: the flow used to mail raw JSON as the body and attach it too."""
+def test_the_short_body_is_sent_with_the_docx_attached(flow, monkeypatch):
+    """The body is the short text; the DOCX is the attachment."""
     captured = {}
 
     def capture(**kwargs):
@@ -116,7 +117,7 @@ def test_the_real_report_html_is_the_body_and_attachment(flow, monkeypatch):
 
     assert captured["html_body"] == BODY
     assert captured["recipient"] == "someone@example.com"
-    assert str(captured["attachment_path"]).endswith("report.html")
+    assert str(captured["attachment_path"]).endswith("report.docx")
 
 
 def test_recipient_is_never_a_placeholder(flow, monkeypatch):
