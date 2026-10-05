@@ -141,8 +141,9 @@ dump_crewai_state(output, "POEM")                      # writes a JSON dump unde
 model = parse_crewai_output(output, PoemJSONOutput, inputs)
 ```
 
-`parse_crewai_output` uses a pydantic output when present, else repairs the raw JSON with
-`json_repair` (fences, prose and trailing text are ignored) and validates. Model-specific
+`parse_crewai_output` uses a pydantic output when present, else reads the first JSON value
+of the raw output (text before it and after it — prose, fences, citations — is ignored),
+repairs it with `json_repair` only when it is not valid JSON, and validates. Model-specific
 fixes belong on the model as `mode="before"` validators. It raises `ValueError` on
 empty/invalid output. Also exported:
 `make_serializable`, `analyze_crewai_output`, `log_state_keys`.

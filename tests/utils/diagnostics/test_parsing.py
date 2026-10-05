@@ -174,3 +174,14 @@ def test_repair_strips_trailing_comma_after_final_closing_brace():
 
 def test_repair_python_booleans():
     assert _parse('{"a": True, "b": False}', Loose) == {"a": True, "b": False}
+
+
+def test_valid_json_followed_by_prose_with_brackets():
+    # Citations and markdown after the JSON must not be read as more JSON.
+    raw = '{"name": "Dana", "value": 5}\n\nSources: [1] https://example.com and {see appendix}'
+    assert parse_crewai_output(FakeCrewOutput(raw=raw), SimpleModel) == SimpleModel(name="Dana", value=5)
+
+
+def test_first_of_two_json_objects_wins():
+    raw = '{"name": "first", "value": 1}\n{"name": "second", "value": 2}'
+    assert parse_crewai_output(FakeCrewOutput(raw=raw), SimpleModel).name == "first"
