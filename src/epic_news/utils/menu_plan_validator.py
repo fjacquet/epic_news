@@ -249,3 +249,26 @@ class MenuPlanValidator:
         except Exception as e:
             logger.error(f"Unexpected error in parse_and_validate_ai_output: {e}")
             return None
+
+
+class MenuPlanError(RuntimeError):
+    """No real menu plan could be produced; the run must stop rather than ship placeholder dishes."""
+
+
+def menu_plan_from_output(output: Any, num_days: int) -> WeeklyMenuPlan:
+    """The menu crew's plan, at most ``num_days`` days long.
+
+    Uses the crew's typed ``WeeklyMenuPlan`` when present, else repairs the raw text
+    through ``MenuPlanValidator.parse_and_validate_ai_output``. Raises ``MenuPlanError``
+    when neither gives a plan.
+    """
+    plan = getattr(output, "pydantic", None)
+    if not isinstance(plan, WeeklyMenuPlan):
+        raw = getattr(output, "raw", "") or ""
+        plan = MenuPlanValidator.parse_and_validate_ai_output(raw, num_days) if raw else None
+    if plan is None:
+        raise MenuPlanError("no usable menu plan in the crew output")
+    if len(plan.daily_menus) > num_days:
+        logger.warning(f"LLM returned {len(plan.daily_menus)} days, keeping the first {num_days}")
+        plan = plan.model_copy(update={"daily_menus": plan.daily_menus[:num_days]})
+    return plan

@@ -53,9 +53,7 @@ def flow(tmp_path, monkeypatch):
     # Deep research step (no Wikipedia MCP)
     monkeypatch.setattr(main_mod, "DeepResearchCrew", type("DeepResearchCrew", (), {}))
     # Menu step: a validated plan, no recipe crews
-    service = MagicMock()
-    service.generate_menu_plan.return_value = MagicMock()
-    monkeypatch.setattr(main_mod, "MenuDesignerService", lambda: service)
+    monkeypatch.setattr(main_mod, "menu_plan_from_output", lambda output, num_days: MagicMock())
     monkeypatch.setattr(main_mod, "MenuGenerator", MagicMock)
     monkeypatch.setattr(ReceptionFlow, "_generate_menu_recipes", lambda self, specs: [])
     # PESTEL step
