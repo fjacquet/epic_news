@@ -91,7 +91,7 @@ Use Python 3.13 union syntax (`X | None`, `X | Y`) for all new code. Ruff auto-u
 Reports are DOCX only (ADR-017). Pipeline: Crew result → Pydantic model (`load_or_parse_model`) → the crew's assembler in `src/epic_news/utils/docx_report/crews/` (holiday: `utils/holiday_report/`) → `build_docx()` (pandoc) → `emit_report(state, assemble_docx)`, which stores the path in `state.output_file`. The email attaches that file and the Streamlit app offers it for download.
 
 - Assemblers split a report into sections: some are written by the LLM (one call each), the rest are filled in deterministically. The poem assembler uses no LLM.
-- A step that cannot build its report raises and stops the run. Never add a stub or placeholder report. `assemble_fragments` raises if any narrated section degrades to a placeholder, and drops a narrated section whose context is blank (raises if none is left). Known exception until S3: the deep-research extractor fallback can still produce a canned report.
+- A step that cannot build its report raises and stops the run. Never add a stub or placeholder report. `assemble_fragments` raises if any narrated section degrades to a placeholder, and drops a narrated section whose context is blank (raises if none is left).
 - `build_docx` raises `ValueError` for any path outside `output/`.
 - Look and feel come from `src/epic_news/utils/docx_report/reference.docx` (rebuild with `scripts/make_reference_docx.py`).
 - Two-agent pattern: research (has tools, no `output_file`) is separate from reporting (NO tools, has `output_file`). `output_pydantic` already keeps action traces out of the structured output; the split is kept so the reporting step runs tool-free. See `src/epic_news/crews/CLAUDE.md` for code examples.
