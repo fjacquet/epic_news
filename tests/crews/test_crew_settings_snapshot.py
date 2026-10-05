@@ -45,6 +45,8 @@ def _agent_settings(agent, index_of) -> dict:
 def crew_settings(crew_cls, monkeypatch) -> dict:
     # Pin the model: .env (local) and the test default (CI) differ.
     monkeypatch.setenv("MODEL", "openrouter/test/model")
+    # get_github_tools() returns [] without a token; CI has none, local .env may.
+    monkeypatch.setenv("GITHUB_TOKEN", "test-token")
     # MCP servers must not change the snapshot (their tools depend on the machine).
     for module in _MCP_MODULES:
         monkeypatch.setattr(f"{module}.get_mcp_tools_or_empty", lambda crew: [])
