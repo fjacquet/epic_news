@@ -31,7 +31,7 @@ from typing import Any
 from crewai.flow import Flow, listen, or_, router, start
 from dotenv import load_dotenv
 from loguru import logger
-from pydantic import PydanticDeprecatedSince20, PydanticDeprecatedSince211
+from pydantic import BaseModel, PydanticDeprecatedSince20, PydanticDeprecatedSince211
 
 from epic_news.config.mcp_config import close_mcp
 from epic_news.config.routing_guide import ROUTING_GUIDE, routing_categories
@@ -60,6 +60,7 @@ from epic_news.crews.sales_prospecting.sales_prospecting_crew import SalesProspe
 from epic_news.crews.shopping_advisor.shopping_advisor import ShoppingAdvisorCrew
 from epic_news.crews.tech_stack.tech_stack_crew import TechStackCrew
 from epic_news.crews.web_presence.web_presence_crew import WebPresenceCrew
+from epic_news.crew_registry import CREW_REGISTRY, CrewSpec
 from epic_news.models.content_state import ContentState, CrewCategories
 from epic_news.models.crews.book_summary_report import BookSummaryReport
 from epic_news.models.crews.company_news_report import CompanyNewsReport
@@ -332,6 +333,29 @@ class ReceptionFlow(Flow[ContentState]):
 
         self.state.selected_crew = parsed_category
         self.logger.info(f"✅ Classification complete. Selected crew: {self.state.selected_crew}")
+
+    def _run_standard(self, spec: CrewSpec, crew: Any, inputs: dict[str, Any]) -> tuple[Any, BaseModel]:
+        """Run a standard crew: kickoff, debug dump, model from its JSON, DOCX report.
+
+        A JSON left by an earlier run is deleted first so it is never read as this run's
+        output; an MCP server the crew started is stopped even if the kickoff fails.
+        Returns the raw crew output and the validated model.
+        """
+        if spec.model_cls is None or spec.json_path is None or spec.docx_path is None:
+            raise ValueError(f"{spec.key} is not a standard crew (missing model or paths)")
+        model_cls, json_path, docx_path = spec.model_cls, spec.json_path, spec.docx_path
+        Path(json_path).unlink(missing_ok=True)
+        self.state.output_file = json_path
+        inputs["output_file"] = json_path
+        try:
+            output = kickoff_flow(crew, inputs)
+        finally:
+            # CrewBase stops an MCP server only after a successful kickoff.
+            close_mcp(crew)
+        dump_crewai_state(output, spec.key)
+        model = load_or_parse_model(json_path, model_cls, output, inputs, spec.title)
+        emit_report(self.state, lambda: spec.docx_assembler(model, self.state.to_crew_inputs(), docx_path))
+        return output, model
 
     @router("classify")
     @trace_task(tracer)
