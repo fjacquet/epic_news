@@ -35,6 +35,7 @@ from pydantic import BaseModel, PydanticDeprecatedSince20, PydanticDeprecatedSin
 
 from epic_news.config.mcp_config import close_mcp
 from epic_news.config.routing_guide import ROUTING_GUIDE, routing_categories
+from epic_news.crew_registry import CREW_REGISTRY, CrewSpec
 
 # Patch CrewAI's Pydantic schema parser to support Python 3.10 ``X | Y`` unions
 from epic_news.crews.classify.classify_crew import ClassifyCrew
@@ -60,7 +61,6 @@ from epic_news.crews.sales_prospecting.sales_prospecting_crew import SalesProspe
 from epic_news.crews.shopping_advisor.shopping_advisor import ShoppingAdvisorCrew
 from epic_news.crews.tech_stack.tech_stack_crew import TechStackCrew
 from epic_news.crews.web_presence.web_presence_crew import WebPresenceCrew
-from epic_news.crew_registry import CREW_REGISTRY, CrewSpec
 from epic_news.models.content_state import ContentState, CrewCategories
 from epic_news.models.crews.company_profiler_report import CompanyProfileReport
 from epic_news.models.crews.cooking_recipe import PaprikaRecipe
