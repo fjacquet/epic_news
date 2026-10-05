@@ -152,6 +152,7 @@ def test_assembler_error_stops_the_step(flow, monkeypatch, tmp_path, method, ass
             asyncio.run(result)
     assert flow.state.output_file == before
     assert not list((tmp_path / "output").rglob("*.docx"))
+    assert flow.state.report is None  # a failed report step stores no result
 
 
 def test_osint_keeps_sub_report_json(flow, tmp_path):

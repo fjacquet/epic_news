@@ -835,8 +835,8 @@ class ReceptionFlow(Flow[ContentState]):
 
         Invokes the `SalesProspectingCrew` to generate a sales prospecting report,
         including contact information and an approach strategy. Sets `output_file`
-        to `output/sales_prospecting/report.docx` and stores the report
-        in `self.state.contact_info_report`.
+        to `output/sales_prospecting/report.docx` and stores the model in
+        `self.state.report`.
         """
         inputs = self.state.to_crew_inputs()
         company = inputs.get("company")
@@ -934,14 +934,16 @@ class ReceptionFlow(Flow[ContentState]):
         self.logger.info("⚡ Running 6 OSINT crews in PARALLEL for maximum speed...")
 
         # Run all OSINT crews in parallel (already in async context from CrewAI flow)
-        await self._run_osint_parallel()
+        cross_output, cross_model = await self._run_osint_parallel()
 
         # The DOCX consolidates the JSON files the pipeline just wrote.
         emit_report(
             self.state, lambda: assemble_osint_docx(self.state.to_crew_inputs(), "output/osint/report.docx")
         )
+        self.state.report = cross_model
+        self.state.raw_output = cross_output
 
-    async def _run_osint_parallel(self):
+    async def _run_osint_parallel(self) -> tuple[Any, CrossReferenceReport]:
         """
         Run 6 independent OSINT crews in parallel using asyncio.gather().
 
@@ -1057,13 +1059,14 @@ class ReceptionFlow(Flow[ContentState]):
 
         # Now run cross-reference report sequentially (depends on all parallel crews)
         self.logger.info("🔗 Running cross-reference report...")
-        await self._run_cross_reference_report(inputs)
+        cross_reference = await self._run_cross_reference_report(inputs)
 
         total_elapsed = time.perf_counter() - start_time
         self.logger.info(f"✅ Full OSINT pipeline completed in {total_elapsed:.2f}s")
+        return cross_reference
 
-    async def _run_cross_reference_report(self, inputs: dict[str, Any]) -> None:
-        """Run cross-reference report after all parallel crews complete."""
+    async def _run_cross_reference_report(self, inputs: dict[str, Any]) -> tuple[Any, CrossReferenceReport]:
+        """Run cross-reference report after all parallel crews complete; return its output and model."""
         json_file = "output/osint/global_report.json"
 
         self.state.output_file = json_file
@@ -1076,7 +1079,6 @@ class ReceptionFlow(Flow[ContentState]):
         # A previous run's report (maybe another target) must not stand in for this one.
         Path(json_file).unlink(missing_ok=True)
         output = await akickoff_flow(CrossReferenceReportCrew(), crew_inputs)
-        self.state.raw_output = output
 
         dump_crewai_state(output, "CROSS_REFERENCE_REPORT")
         report_model = load_or_parse_model(
@@ -1084,8 +1086,8 @@ class ReceptionFlow(Flow[ContentState]):
         )
         # The crew's own output_file is not always written; the OSINT DOCX reads this file.
         Path(json_file).write_text(report_model.model_dump_json(), encoding="utf-8")
-        self.state.report = report_model
         self.logger.info(f"✅ Cross reference report generated: {json_file}")
+        return output, report_model
 
     @listen("go_generate_holiday_plan")
     @trace_task(tracer)
