@@ -695,13 +695,10 @@ class ReceptionFlow(Flow[ContentState]):
         self.state.report = menu_plan
         final_report = self.state.output_file
 
-        # Convert WeeklyMenuPlan back to dict for recipe parsing (parse_menu_structure)
-        menu_structure_result = menu_plan.model_dump()
-
         # Parse menu structure and generate recipes (step 2)
         self.logger.info("👩‍🍳 Step 2/2: Generating individual recipes")
 
-        recipe_specs = menu_generator.parse_menu_structure(menu_structure_result)
+        recipe_specs = menu_generator.parse_menu_structure(menu_plan)
 
         recipes = self._generate_menu_recipes(recipe_specs)
         generated = sum(recipe is not None for recipe in recipes)
