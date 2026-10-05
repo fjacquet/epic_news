@@ -277,3 +277,18 @@ def test_non_transient_error_fails_on_the_first_attempt(monkeypatch, use_async, 
             kickoff_flow(crew, {"topic": "x"})
     assert calls == [1]
     assert any("failed after" in m and "attempt 1/3" in m for m in caplog_loguru)
+
+
+@pytest.mark.parametrize("use_async", [False, True], ids=["sync", "async"])
+def test_object_without_kickoff_is_rejected(use_async):
+    """A crew factory returning something that cannot kick off fails before any run."""
+    with pytest.raises(AttributeError, match="does not support"):
+        if use_async:
+            asyncio.run(akickoff_flow(object(), {"topic": "x"}))
+        else:
+            kickoff_flow(object(), {"topic": "x"})
+
+
+def test_async_context_must_be_a_dict():
+    with pytest.raises(ValueError, match="akickoff_flow context must be a dict"):
+        asyncio.run(akickoff_flow(object(), "topic"))  # type: ignore[arg-type]
