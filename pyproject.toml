@@ -2,7 +2,7 @@
 [project]
 name = "epic_news"
 version = "3.6.2"
-description = "CrewAI flow that routes natural-language requests to specialised crews and delivers HTML, PDF and DOCX reports"
+description = "CrewAI flow that routes natural-language requests to specialised crews and delivers DOCX reports"
 authors = [{ name = "Frederic Jacquet", email = "fred.jacquet@gmail.com" }]
 requires-python = ">=3.13,<3.14"
 dependencies = [
