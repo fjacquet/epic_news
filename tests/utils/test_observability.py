@@ -188,3 +188,21 @@ def test_trace_task_records_task_end_on_keyboard_interrupt(tmp_path, monkeypatch
         step()
     assert tracer.get_events(event_type="task_end")[-1].details["success"] is False
     assert tracer.get_events(event_type="task_error") == []
+
+
+def test_task_start_records_only_the_task_name(tmp_path, monkeypatch):
+    """A flow step's only argument is the Flow itself; its repr made every task_start line huge."""
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "traces").mkdir()
+    tracer = Tracer(trace_id="start_details_test")
+
+    class Big:
+        def __repr__(self):
+            return "x" * 10_000
+
+    @trace_task(tracer)
+    def step(flow):
+        return None
+
+    step(Big())
+    assert tracer.get_events(event_type="task_start")[-1].details == {"task_name": "step"}

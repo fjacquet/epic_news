@@ -177,9 +177,9 @@ def trace_task(tracer: Tracer):
     def decorator(func):
         task_name = func.__name__
 
-        def _start(args, kwargs) -> float:
-            details = {"task_name": task_name, "args": str(args), "kwargs": str(kwargs)}
-            tracer.add_event(TraceEvent("task_start", f"task:{task_name}", details))
+        def _start() -> float:
+            # No args: a flow step's only argument is the Flow, whose repr is the whole state.
+            tracer.add_event(TraceEvent("task_start", f"task:{task_name}", {"task_name": task_name}))
             return time.time()
 
         def _end(start: float, result: Any, error: BaseException | None) -> None:
@@ -198,7 +198,7 @@ def trace_task(tracer: Tracer):
 
             @wraps(func)
             async def async_wrapper(*args, **kwargs):
-                start = _start(args, kwargs)
+                start = _start()
                 try:
                     result = await func(*args, **kwargs)
                 except BaseException as e:  # Ctrl+C too: the step still gets its task_end
@@ -211,7 +211,7 @@ def trace_task(tracer: Tracer):
 
         @wraps(func)
         def wrapper(*args, **kwargs):
-            start = _start(args, kwargs)
+            start = _start()
             try:
                 result = func(*args, **kwargs)
             except BaseException as e:  # Ctrl+C too: the step still gets its task_end
