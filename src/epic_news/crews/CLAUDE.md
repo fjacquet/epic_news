@@ -447,7 +447,7 @@ Set on the LLM via `LLMConfig.get_openrouter_llm(task_type=...)`:
 ### menu_designer
 
 - Complex weekly planning with shopping list
-- Validated by `MenuPlanValidator` (via `services/menu_designer_service.py`)
+- Runs through `kickoff_flow`; `menu_plan_from_output` (`utils/menu_plan_validator.py`) takes the typed plan or repairs the raw output with `MenuPlanValidator`, and raises `MenuPlanError` when there is no plan
 - Generates structured weekly menus and a shopping list
 
 ### fin_daily

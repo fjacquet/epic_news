@@ -52,6 +52,7 @@ from epic_news.crews.information_extraction.information_extraction_crew import I
 from epic_news.crews.legal_analysis.legal_analysis_crew import LegalAnalysisCrew
 from epic_news.crews.library.library_crew import LibraryCrew
 from epic_news.crews.meeting_prep.meeting_prep_crew import MeetingPrepCrew
+from epic_news.crews.menu_designer.menu_designer import MenuDesignerCrew
 from epic_news.crews.news_daily.news_daily import NewsDailyCrew
 from epic_news.crews.pestel.pestel_crew import PestelCrew
 from epic_news.crews.poem.poem_crew import PoemCrew
@@ -70,7 +71,6 @@ from epic_news.models.crews.hr_intelligence_report import HRIntelligenceReport
 from epic_news.models.crews.legal_analysis_report import LegalAnalysisReport
 from epic_news.models.crews.tech_stack_report import TechStackReport
 from epic_news.models.crews.web_presence_report import WebPresenceReport
-from epic_news.services.menu_designer_service import MenuDesignerService, MenuPlanError
 from epic_news.tools.recent_search_tool import RecentSearchTool
 from epic_news.utils.concurrency import bounded_map
 
@@ -91,6 +91,7 @@ from epic_news.utils.interrupt import RunCancelledError, install_force_quit_hand
 from epic_news.utils.logger import setup_logging
 from epic_news.utils.menu_days import DEFAULT_MENU_DAYS
 from epic_news.utils.menu_generator import MenuGenerator
+from epic_news.utils.menu_plan_validator import MenuPlanError, menu_plan_from_output
 from epic_news.utils.observability import get_observability_tools, trace_task
 from epic_news.utils.recipe_export import export_recipe, recipe_from_result
 from epic_news.utils.report_utils import load_rss_weekly_report, prepare_email_params
@@ -657,7 +658,9 @@ class ReceptionFlow(Flow[ContentState]):
     @trace_task(tracer)
     def generate_menu_designer(self):
         """
-        Orchestrates the end-to-end weekly menu generation process with validation and error recovery.
+        Plan the menu (MenuDesignerCrew), build its DOCX, then generate one recipe per dish.
+
+        No usable plan raises MenuPlanError and stops the run (no placeholder menu).
         """
         self.logger.info("🍽️ Starting Menu Designer Workflow with Validation")
 
@@ -668,19 +671,21 @@ class ReceptionFlow(Flow[ContentState]):
         crew_inputs = self.state.to_crew_inputs()
         output_dir = "output/menu_designer"
 
-        # Use MenuDesignerService with validation
+        # Plan the menu through the crew, with validation
         self.logger.info("🗓️ Step 1/2: Planning the weekly menu structure with validation")
 
+        menu_inputs = {
+            "constraints": crew_inputs.get("constraints", ""),
+            "preferences": crew_inputs.get("preferences", ""),
+            "user_context": crew_inputs.get("user_context", ""),
+            "season": crew_inputs.get("season", "hiver"),
+            "current_date": crew_inputs.get("current_date", "2025-01-27"),
+            "menu_slug": crew_inputs.get("menu_slug", "menu_hebdomadaire"),
+            "num_days": crew_inputs.get("num_days", DEFAULT_MENU_DAYS),
+        }
+        output = kickoff_flow(MenuDesignerCrew(), menu_inputs)
         try:
-            menu_plan = MenuDesignerService().generate_menu_plan(
-                constraints=crew_inputs.get("constraints", ""),
-                preferences=crew_inputs.get("preferences", ""),
-                user_context=crew_inputs.get("user_context", ""),
-                season=crew_inputs.get("season", "hiver"),
-                current_date=crew_inputs.get("current_date", "2025-01-27"),
-                menu_slug=crew_inputs.get("menu_slug", "menu_hebdomadaire"),
-                num_days=crew_inputs.get("num_days", DEFAULT_MENU_DAYS),
-            )
+            menu_plan = menu_plan_from_output(output, menu_inputs["num_days"])
         except MenuPlanError as e:
             # No placeholder menu: stop the run so no report, recipes or email go out.
             self.logger.error(f"❌ Menu plan could not be produced, stopping the run: {e}")
@@ -695,13 +700,10 @@ class ReceptionFlow(Flow[ContentState]):
         self.state.report = menu_plan
         final_report = self.state.output_file
 
-        # Convert WeeklyMenuPlan back to dict for recipe parsing (parse_menu_structure)
-        menu_structure_result = menu_plan.model_dump()
-
         # Parse menu structure and generate recipes (step 2)
         self.logger.info("👩‍🍳 Step 2/2: Generating individual recipes")
 
-        recipe_specs = menu_generator.parse_menu_structure(menu_structure_result)
+        recipe_specs = menu_generator.parse_menu_structure(menu_plan)
 
         recipes = self._generate_menu_recipes(recipe_specs)
         generated = sum(recipe is not None for recipe in recipes)

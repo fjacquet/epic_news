@@ -2,6 +2,8 @@
 
 import json
 
+from loguru import logger
+
 from epic_news.models.crews.menu_designer_report import WeeklyMenuPlan
 from epic_news.utils.menu_plan_validator import MenuPlanValidator
 
@@ -287,3 +289,13 @@ class TestNumDays:
         }
         result = MenuPlanValidator.validate_and_fix_weekly_plan(_plan(meal, meal), 3)
         assert len(result["daily_menus"]) == 1
+
+
+def test_validator_warns_on_injected_placeholder():
+    messages: list[str] = []
+    handler = logger.add(lambda m: messages.append(str(m)), level="WARNING")
+    try:
+        MenuPlanValidator.validate_and_fix_daily_meal({}, "déjeuner", "Lundi")
+    finally:
+        logger.remove(handler)
+    assert sum("Lundi déjeuner" in m for m in messages) == 2
