@@ -6,11 +6,13 @@ Heavy internals (crew kickoff, model parsing, DOCX assembly) are stubbed — thi
 asserts only the output_file wiring, with no LLM calls or file writes.
 """
 
+import dataclasses
 from collections import defaultdict
 
 import pytest
 
 import epic_news.main as main_mod
+from epic_news import crew_registry
 from epic_news.main import ReceptionFlow
 
 # method name -> expected report path
@@ -39,6 +41,13 @@ def test_generate_sets_output_file_to_the_docx(method, expected, monkeypatch):
     for name in dir(main_mod):
         if name.startswith("assemble_") and name.endswith("_docx"):
             monkeypatch.setattr(main_mod, name, lambda model, inputs, path, *a, **k: path)
+    # Standard steps take their assembler from the registry.
+    for key, spec in crew_registry.CREW_REGISTRY.items():
+        monkeypatch.setitem(
+            crew_registry.CREW_REGISTRY,
+            key,
+            dataclasses.replace(spec, docx_assembler=lambda model, inputs, path, *a, **k: path),
+        )
     # Satisfy per-method preconditions (e.g. holiday needs a destination,
     # meeting_prep needs a company) without touching real crew inputs. The state
     # is a frozen Pydantic model, so patch the class method; defaultdict(str)

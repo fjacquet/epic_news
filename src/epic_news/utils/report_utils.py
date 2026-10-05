@@ -6,6 +6,7 @@ from typing import Any
 from loguru import logger
 from pydantic import ValidationError
 
+from epic_news.crew_registry import CREW_REGISTRY
 from epic_news.models.content_state import FALLBACK_EMAIL
 from epic_news.models.crews.rss_weekly_report import (
     ArticleSummary,
@@ -123,7 +124,9 @@ def prepare_email_params(state: Any) -> dict[str, Any]:
             reason,
         )
         recipient = _FALLBACK_RECIPIENT
-    subject = f"Epic News Report: {state.selected_crew} - {state.user_request}"
+    crew = state.selected_crew
+    title = CREW_REGISTRY[crew].title if crew in CREW_REGISTRY else (crew or "Rapport")
+    subject = f"Epic News — {title} : {state.user_request}"
     # The sender posts the body as HTML, so the user request must be escaped.
     body = f"Please find the report for '{html.escape(str(state.user_request))}' attached."
     attachment_path = getattr(state, "output_file", None)

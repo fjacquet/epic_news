@@ -12,7 +12,7 @@ from epic_news.models.extracted_info import ExtractedInfo
 
 
 def test_pestel_category_registered() -> None:
-    assert CrewCategories.PESTEL == "PESTEL"
+    assert CrewCategories.to_dict()["PESTEL"] == "PESTEL"
     assert CrewCategories.to_dict()["PESTEL"] == "PESTEL"
 
 

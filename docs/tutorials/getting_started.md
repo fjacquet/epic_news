@@ -361,14 +361,31 @@ def assemble_book_recommender_docx(
 
 ## Step 7: Integrate with ReceptionFlow
 
-Edit `src/epic_news/main.py`: route the classified crew in `determine_crew`
-and add a `generate_*` method that follows the existing ones:
+Register the crew in `src/epic_news/crew_registry.py`. The registry key is also the
+classifier category, so a crew missing from it is never offered to the classifier:
+
+```python
+from epic_news.models.crews.book_recommendation_report import BookRecommendationReport
+from epic_news.utils.docx_report.crews.book_recommender import assemble_book_recommender_docx
+
+# in _SPECS:
+    CrewSpec(
+        "BOOK_RECOMMENDER",
+        "Recommandations de lecture",
+        BookRecommendationReport,
+        "output/book_recommender/report.json",
+        "output/book_recommender/report.docx",
+        assemble_book_recommender_docx,
+    ),
+
+# and add "BOOK_RECOMMENDER" to STANDARD_CREWS
+```
+
+Then edit `src/epic_news/main.py`: route the key in `determine_crew`, add a
+`generate_*` step, and add the step name to `send_email`'s `or_(...)`:
 
 ```python
 from epic_news.crews.book_recommender.book_recommender_crew import BookRecommenderCrew
-from epic_news.models.crews.book_recommendation_report import BookRecommendationReport
-from epic_news.utils.docx_report.crews.book_recommender import assemble_book_recommender_docx
-from epic_news.utils.docx_report.dispatch import emit_report
 
 
 class ReceptionFlow(Flow[ContentState]):
@@ -382,24 +399,15 @@ class ReceptionFlow(Flow[ContentState]):
     @trace_task(tracer)
     def generate_book_recommendations(self):
         """Generate book recommendations for a genre."""
-        self.state.output_file = "output/book_recommender/report.json"
         inputs = self.state.to_crew_inputs()
-
-        output = kickoff_flow(BookRecommenderCrew(), inputs)  # retries + tracing
-        dump_crewai_state(output, "BOOK_RECOMMENDER")
-
-        report = load_or_parse_model(
-            self.state.output_file, BookRecommendationReport, output, inputs, "book recommendations"
-        )
-        emit_report(
-            self.state,
-            lambda: assemble_book_recommender_docx(report, inputs, "output/book_recommender/report.docx"),
-        )
+        self._run_standard(CREW_REGISTRY["BOOK_RECOMMENDER"], BookRecommenderCrew(), inputs)
 ```
 
-Set `output_file="output/book_recommender/report.json"` on the reporting task
-so `load_or_parse_model` finds the JSON; it falls back to parsing the raw crew
-output otherwise. The classifier also needs to know the new crew key.
+`_run_standard` deletes a JSON left by an earlier run, runs the crew, loads the model
+from `json_path` (falling back to the raw crew output) and builds the DOCX with the
+spec's assembler. Set `output_file: '{output_file}'` on the reporting task: the helper
+passes `json_path` as that input. `tests/test_crew_registry.py` fails until the registry,
+`determine_crew` and the `@listen` step agree.
 
 ## Step 8: Test Your Crew
 

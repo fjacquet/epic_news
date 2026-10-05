@@ -7,12 +7,14 @@ without actually invoking any agent.
 
 from __future__ import annotations
 
+import dataclasses
 import json
 from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
 
+from epic_news import crew_registry
 from epic_news import main as main_module
 from epic_news.main import ReceptionFlow
 from epic_news.models.crews.pestel_report import PestelReport
@@ -82,7 +84,13 @@ def pestel_flow_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(main_module, "dump_crewai_state", _fake_dump)
     monkeypatch.setattr(main_module, "PestelCrew", _StubPestelCrew)
     monkeypatch.setattr(main_module, "close_mcp", calls["closed"].append)
-    monkeypatch.setattr(main_module, "assemble_pestel_docx", _fake_assembler(calls["assembled"]))
+    monkeypatch.setitem(
+        crew_registry.CREW_REGISTRY,
+        "PESTEL",
+        dataclasses.replace(
+            crew_registry.CREW_REGISTRY["PESTEL"], docx_assembler=_fake_assembler(calls["assembled"])
+        ),
+    )
     monkeypatch.setattr(
         main_module, "_pestel_recent_research", lambda _topic, _geo: {d: f"recent {d}" for d in _DIMS}
     )
@@ -157,7 +165,11 @@ def test_generate_pestel_falls_back_to_raw_when_json_missing(
     monkeypatch.setattr(main_module, "dump_crewai_state", lambda *_a, **_kw: None)
     monkeypatch.setattr(main_module, "PestelCrew", SimpleNamespace)
     assembled: list = []
-    monkeypatch.setattr(main_module, "assemble_pestel_docx", _fake_assembler(assembled))
+    monkeypatch.setitem(
+        crew_registry.CREW_REGISTRY,
+        "PESTEL",
+        dataclasses.replace(crew_registry.CREW_REGISTRY["PESTEL"], docx_assembler=_fake_assembler(assembled)),
+    )
 
     flow = ReceptionFlow(user_request="PESTEL fallback")
     flow.generate_pestel()

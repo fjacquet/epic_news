@@ -62,7 +62,7 @@ def test_pestel_dimension_defaults_empty_lists() -> None:
 
 
 def test_pestel_category_registered() -> None:
-    assert CrewCategories.PESTEL == "PESTEL"
+    assert CrewCategories.to_dict()["PESTEL"] == "PESTEL"
     assert CrewCategories.to_dict().get("PESTEL") == "PESTEL"
 
 

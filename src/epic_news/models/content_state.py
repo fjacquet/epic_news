@@ -11,6 +11,7 @@ from typing import Any, Optional
 from loguru import logger
 from pydantic import BaseModel, Field
 
+from epic_news.crew_registry import CREW_REGISTRY
 from epic_news.models.crews.book_summary_report import BookSummaryReport
 from epic_news.models.crews.company_news_report import CompanyNewsReport
 from epic_news.models.crews.company_profiler_report import CompanyProfileReport
@@ -46,32 +47,14 @@ MAX_FREETEXT_CHARS = 1500
 
 # Constants for crew categories
 class CrewCategories:
-    """Constants for available crew categories."""
+    """Crew categories: the registry keys plus UNKNOWN (simplification S4)."""
 
-    SALES_PROSPECTING = "SALES_PROSPECTING"
-    COOKING = "COOKING"
-    DEEPRESEARCH = "DEEPRESEARCH"
-    HOLIDAY_PLANNER = "HOLIDAY_PLANNER"
-    BOOK_SUMMARY = "BOOK_SUMMARY"
-    MEETING_PREP = "MEETING_PREP"
-    MENU = "MENU"
-    COMPANY_NEWS = "COMPANY_NEWS"
-    OPEN_SOURCE_INTELLIGENCE = "OPEN_SOURCE_INTELLIGENCE"
-    PESTEL = "PESTEL"
-    POEM = "POEM"
-    RSS = "RSS"
-    FINDAILY = "FINDAILY"
-    NEWSDAILY = "NEWSDAILY"
-    SAINT = "SAINT"
-    SHOPPING = "SHOPPING"
     UNKNOWN = "UNKNOWN"
 
     @classmethod
     def to_dict(cls) -> dict[str, str]:
-        """Convert crew categories to dictionary format."""
-        return {
-            name: getattr(cls, name) for name in dir(cls) if not name.startswith("_") and name != "to_dict"
-        }
+        """Category name -> value, as the classifier and routing guide expect."""
+        return {key: key for key in sorted(CREW_REGISTRY)} | {cls.UNKNOWN: cls.UNKNOWN}
 
 
 # Default values

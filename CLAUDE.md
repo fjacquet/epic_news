@@ -76,6 +76,10 @@ The application uses a **single flow orchestration** pattern (`src/epic_news/mai
 
 **Key insight**: All crew execution happens through ReceptionFlow methods, never directly.
 
+`src/epic_news/crew_registry.py` holds metadata only: one `CrewSpec(key, title, model_cls, json_path, docx_path, docx_assembler)` per crew in `CREW_REGISTRY`, and the keys of the standard crews in `STANDARD_CREWS`. The routing categories (`CrewCategories`) and the email subject (`Epic News — <title> : <request>`) read from it. Standard steps call `self._run_standard(CREW_REGISTRY[key], crew, inputs)`; RSS, menu, recipe, shopping, OSINT and holiday stay written out.
+
+**Adding a crew**: add a `CrewSpec` to `crew_registry.py` (and its key to `STANDARD_CREWS` if the step is standard), a branch in `determine_crew`, a `@listen` step, and the step name in `send_email`'s `or_(...)`. `tests/test_crew_registry.py` checks the first three agree.
+
 ### Crew Implementation Pattern
 
 Each crew follows: `crew_name/{config/agents.yaml, config/tasks.yaml, crew_name_crew.py}` with `@CrewBase`, `@agent`, `@task`, `@crew` decorators. See `src/epic_news/crews/CLAUDE.md` for full code examples.

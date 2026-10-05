@@ -145,7 +145,7 @@ class MyCrew:
 ```
 
 - `get_mcp_tools_or_empty(self)` wraps CrewBase's `get_mcp_tools()`: if the server cannot start it logs a warning and returns `[]`, and remembers the failure so the other agents don't retry.
-- CrewBase stops the adapter only after a **successful** kickoff. The flow must call `close_mcp(crew)` in a `finally` (see `generate_deep_research` / `generate_pestel` in `main.py`):
+- CrewBase stops the adapter only after a **successful** kickoff. The flow must call `close_mcp(crew)` in a `finally` (`_run_standard` in `main.py` does this for standard crews; custom steps write it out):
 
 ```python
 crew = MyCrew()
@@ -261,13 +261,13 @@ Only crews listed in `ASYNC_ALLOWED` (`tests/crews/test_async_agent_isolation.py
 3. **Result parsing** → `load_or_parse_model(json_path, MyModel, output, inputs, label)`
 4. **Report** → `emit_report(self.state, lambda: assemble_my_crew_docx(model, inputs, "output/my_crew/report.docx"))` (DOCX only, ADR-017)
 
-**Example from main.py** (simplified):
+Standard crews run these four steps (plus the stale-JSON delete and `close_mcp`) through `ReceptionFlow._run_standard(spec, crew, inputs)`, with the `CrewSpec` from `src/epic_news/crew_registry.py`.
+
+**Example from main.py**:
 
 ```python
-output = kickoff_flow(PoemCrew(), inputs)
-dump_crewai_state(output, "POEM")
-poem_model = load_or_parse_model(self.state.output_file, PoemJSONOutput, output, inputs, "poem")
-emit_report(self.state, lambda: assemble_poem_docx(poem_model, inputs, "output/poem/poem.docx"))
+inputs = self.state.to_crew_inputs()
+self._run_standard(CREW_REGISTRY["POEM"], PoemCrew(), inputs)
 ```
 
 ## Common Crew Patterns by Type
@@ -323,7 +323,7 @@ Each crew that produces a report must:
 
 1. **Define a Pydantic model** for structured output
 2. **Write an assembler** `assemble_<crew>_docx(model, inputs, output_path, llm=None)` in `src/epic_news/utils/docx_report/crews/` (sections narrated by the LLM or filled deterministically)
-3. **Call it from the flow** through `emit_report(self.state, lambda: assemble_<crew>_docx(...))`; the output path must be under `output/`
+3. **Call it from the flow**: standard crews pass it as `docx_assembler` in their `CrewSpec` and run through `_run_standard`; custom steps call `emit_report(self.state, lambda: assemble_<crew>_docx(...))`. The output path must be under `output/`
 
 See `src/epic_news/utils/CLAUDE.md` (DOCX reports) and `docs/adr/ADR-017-docx-only-reports.md`.
 
@@ -338,7 +338,7 @@ Follow the step-by-step tutorial: `docs/tutorials/getting_started.md`
 3. Create `<crew_name>_crew.py` with @CrewBase
 4. Define Pydantic model in `src/epic_news/models/crews/<crew_name>.py`
 5. Write the DOCX assembler in `utils/docx_report/crews/`
-6. Add `generate_<crew_name>()` method to ReceptionFlow in `main.py`
+6. Add a `CrewSpec` to `crew_registry.py` (key in `STANDARD_CREWS` if standard), a branch in `determine_crew`, a `generate_<crew_name>()` `@listen` step in `main.py`, and the step name in `send_email`'s `or_(...)`
 7. Write structure tests in `tests/crews/test_<crew_name>_structure.py`
 
 ## Common Issues

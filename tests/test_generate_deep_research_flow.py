@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import dataclasses
 from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
 
+from epic_news import crew_registry
 from epic_news import main as main_module
 from epic_news.main import ReceptionFlow
 
@@ -37,7 +39,11 @@ def _setup(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, raw: str, write_file
     monkeypatch.setattr(main_module, "kickoff_flow", _kickoff)
     monkeypatch.setattr(main_module, "close_mcp", lambda _crew: None)
     monkeypatch.setattr(main_module, "dump_crewai_state", lambda *_a, **_k: None)
-    monkeypatch.setattr(main_module, "assemble_deep_research_docx", _assemble)
+    monkeypatch.setitem(
+        crew_registry.CREW_REGISTRY,
+        "DEEPRESEARCH",
+        dataclasses.replace(crew_registry.CREW_REGISTRY["DEEPRESEARCH"], docx_assembler=_assemble),
+    )
     return built
 
 
