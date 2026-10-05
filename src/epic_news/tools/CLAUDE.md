@@ -21,7 +21,7 @@ below are what remains in `src/epic_news/tools/`.
 **File access**:
 - output_file_read_tool.py (`OutputFileReadTool`) — reads a text file only inside its `root` (default `output/`; fin_daily uses `root="data"` for portfolio CSVs). Resolves symlinks, refuses paths outside the root, caps reads at 200k chars, returns JSON (`content` / `truncated` / `error`).
 
-Reports are rendered by the flow (`render_and_write_html`, DOCX assemblers), not by agent tools.
+Reports are rendered by the flow (DOCX assemblers), not by agent tools.
 
 **Shared**:
 - _json_utils.py (JSON-output helpers: `ensure_json_str`, etc.)

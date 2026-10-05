@@ -2,8 +2,7 @@
 
 Starts from Pandoc's own default reference document (so every style Pandoc relies on
 exists), then replaces ``styles.xml`` wholesale, switches the theme fonts, and sets an
-A4 page with a "Page X / Y" footer. Palette comes from ``epic_news.config.ui_theme``'s
-light theme so Word reports match the HTML ones.
+A4 page with a "Page X / Y" footer. The palette is defined below.
 
 Usage: ``uv run python scripts/make_reference_docx.py``  (needs ``pandoc`` on PATH)
 """
@@ -19,7 +18,7 @@ OUTPUT = Path(__file__).parent.parent / "src/epic_news/utils/docx_report/referen
 BODY_FONT = "Segoe UI Light"
 CODE_FONT = "Consolas"
 
-# Palette (mirrors ui_theme.py light theme), hex without '#'
+# Palette, hex without '#'
 TEXT = "343A40"
 H1 = "0056B3"
 H2 = "2980B9"

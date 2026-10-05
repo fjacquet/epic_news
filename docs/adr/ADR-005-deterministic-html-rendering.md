@@ -2,7 +2,9 @@
 
 ## Status
 
-Accepted. **Amended (2026-10-04)**: the principle stands; implementation details changed.
+Superseded by [ADR-017](ADR-017-docx-only-reports.md) (2026-10-05). It was accepted and amended on 2026-10-04; reports are now DOCX only and the HTML renderers described below are gone.
+
+Historical note, kept as written at the time of the amendment:
 
 - There are no per-crew `*_to_html()` factories. Flow methods call `render_and_write_html(selected_crew, model, html_path)` (`utils/flow_helpers.py`), which calls `TemplateManager().render_report(selected_crew=..., content_data=...)` and refuses paths outside `output/` ([ADR-015](ADR-015-output-trust-boundary.md)).
 - The holiday planner produces DOCX only; its HTML renderer was removed.

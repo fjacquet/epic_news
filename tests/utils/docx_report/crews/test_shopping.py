@@ -70,7 +70,9 @@ def test_shopping_docx(tmp_path):
         user_preferences_context="ctx",
     )
     llm = _StubLLM()
-    out = assemble_shopping_docx(model, {"current_date": "2026-07-13"}, str(tmp_path / "shopping.docx"), llm)
+    out = assemble_shopping_docx(
+        model, {"current_date": "2026-07-13"}, str(tmp_path / "output" / "shopping.docx"), llm
+    )
     txt = _text(out)
 
     for figure in [

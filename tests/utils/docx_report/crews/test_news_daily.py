@@ -58,7 +58,10 @@ def test_news_daily_docx(tmp_path):
     model.methodology = {"sources": "42 flux"}
     llm = _StubLLM()
     out = assemble_news_daily_docx(
-        model, {"current_date": "2026-07-13", "topic": "Actualités"}, str(tmp_path / "news.docx"), llm
+        model,
+        {"current_date": "2026-07-13", "topic": "Actualités"},
+        str(tmp_path / "output" / "news.docx"),
+        llm,
     )
     txt = _text(out)
 
@@ -106,7 +109,10 @@ def test_news_daily_docx_no_summary_no_methodology(tmp_path):
     )
     llm = _StubLLM()
     out = assemble_news_daily_docx(
-        model, {"current_date": "2026-07-13", "topic": "Actualités"}, str(tmp_path / "news2.docx"), llm
+        model,
+        {"current_date": "2026-07-13", "topic": "Actualités"},
+        str(tmp_path / "output" / "news2.docx"),
+        llm,
     )
     txt = _text(out)
 

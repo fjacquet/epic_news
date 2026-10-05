@@ -12,7 +12,6 @@ from datetime import datetime
 
 # Direct import of only the DeepResearchExtractor to avoid other module imports
 from epic_news.utils.extractors.deep_research import DeepResearchExtractor
-from epic_news.utils.html.template_manager import TemplateManager
 
 # Ensure output directory exists
 os.makedirs("output/deep_research", exist_ok=True)
@@ -71,13 +70,6 @@ result = extractor.extract(state_data)
 
 # Get the model from the extraction result
 report_model = result["deep_research_model"]
-
-# Generate HTML via TemplateManager
-tm = TemplateManager()
-html = tm.render_report("DEEPRESEARCH", report_model)
-with open("output/deep_research/regenerated_report.html", "w", encoding="utf-8") as f:
-    f.write(html)
-print("✅ Deep research report HTML regenerated successfully")
 
 # Save the model as JSON for reference
 with open("output/deep_research/validated_report.json", "w", encoding="utf-8") as f:

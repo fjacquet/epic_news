@@ -23,7 +23,7 @@ def _all_text(path: str) -> str:
 
 
 def test_build_docx_writes_headings_and_body(tmp_path: Path):
-    out = tmp_path / "guide.docx"
+    out = tmp_path / "output" / "guide.docx"
     fragments = [
         ("Introduction", "Bienvenue à **Montreux**."),
         ("Jour 1", "- Départ\n- Route"),
@@ -45,7 +45,7 @@ def test_build_docx_applies_reference_doc(tmp_path: Path, monkeypatch):
     ref_doc.save(str(reference))
     monkeypatch.setattr(docx_builder, "_REFERENCE_DOC", reference)
 
-    out = tmp_path / "styled.docx"
+    out = tmp_path / "output" / "styled.docx"
     build_docx([("Intro", "Texte.")], {"title": "Carnet"}, str(out))
 
     assert Document(str(out)).styles["Normal"].font.name == "Reference Test Font"
@@ -55,7 +55,7 @@ def test_build_docx_does_not_embed_local_files(tmp_path: Path, monkeypatch):
     """Untrusted markdown must not pull arbitrary local files into the DOCX."""
     secret = tmp_path / "secret.png"
     secret.write_bytes(_TINY_PNG)
-    out = tmp_path / "guide.docx"
+    out = tmp_path / "output" / "guide.docx"
 
     build_docx(
         [("Intro", f"![leak]({secret.as_uri()})\n\n![hosts](file:///etc/hosts)\n\n![abs]({secret})")],
@@ -153,7 +153,7 @@ def test_build_docx_survives_thematic_break_fences(tmp_path: Path):
     markdown reader parse the span as a YAML metadata block and die with exit 64
     (`while scanning an alias`). Body prose must never be treated as metadata.
     """
-    out = tmp_path / "guide.docx"
+    out = tmp_path / "output" / "guide.docx"
     fragments = [
         (
             "Introduction",

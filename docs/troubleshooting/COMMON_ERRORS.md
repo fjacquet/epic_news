@@ -8,7 +8,7 @@
 - [JSON Escaping Errors](#json-escaping-errors) ← **START HERE** if you see "invalid escape" or "invalid character"
 - [Pydantic Validation Errors](#pydantic-validation-errors)
 - [Crew Execution Errors](#crew-execution-errors)
-- [HTML Rendering Issues](#html-rendering-issues)
+- [DOCX Report Issues](#docx-report-issues)
 - [Tool/API Errors](#toolapi-errors)
 - [Import/Module Errors](#importmodule-errors)
 - [Performance Issues](#performance-issues)
@@ -295,18 +295,16 @@ research_task:
 
 ## Crew Execution Errors
 
-### Error: HTML output contains action traces, not final report
+### Error: Report contains action traces, not final report
 
 #### Symptom
 
-HTML file contains:
-```html
-<html>
+The task output file (or a text field in the report) contains:
+```
 Action: Search the web
 Action Input: {"query": "..."}
 Observation: ...
 Final Answer: <actual content>
-</html>
 ```
 
 #### Root Cause
@@ -327,7 +325,7 @@ Follow the **two-agent pattern**:
 def reporter(self) -> Agent:
     return Agent(
         tools=[SearchTool()],  # Tools cause action traces in output
-        output_file="report.html",
+        output_file="report.json",
     )
 
 # ✅ CORRECT
@@ -355,7 +353,7 @@ def reporting_task(self) -> Task:
 
 #### Reference
 
-See **CLAUDE.md** section: "HTML Report Generation: Two-Agent Pattern"
+See **CLAUDE.md** section: "Reports (DOCX)"
 
 ---
 
@@ -403,7 +401,7 @@ See **CLAUDE.md** section: "CRITICAL: Tools must be assigned programmatically in
 
 #### Symptoms
 
-- HTML file exists but has minimal/no content
+- The DOCX or JSON file exists but has minimal/no content
 - Report is generated but missing sections
 - Execution completes without errors but output is incomplete
 
@@ -454,72 +452,25 @@ def researcher(self) -> Agent:
 
 ---
 
-## HTML Rendering Issues
+## DOCX Report Issues
 
-### Error: CSS classes not applied (shows `class_="..."` in HTML)
+Reports are DOCX only ([ADR-017](../adr/ADR-017-docx-only-reports.md)). A report step that cannot build its file raises and stops the run; nothing is emailed.
 
-#### Symptom
+### Error: `Refusing to write a report outside output/`
 
-Generated HTML contains:
-```html
-<div class_="container">  <!-- Invalid attribute -->
-```
+`build_docx` raises `ValueError` when the output path does not resolve inside `output/` (ADR-015). Build the path from a fixed directory and `create_topic_slug()`, never from raw request text.
 
-#### Root Cause
+### Error: pandoc is missing or fails
 
-BeautifulSoup's `class_` parameter has escaping issues. Must use `attrs` dictionary instead.
+Every report needs the system `pandoc` binary (not just `pypandoc`). Check `pandoc --version`; the Docker image and CI install it. See ADR-013.
 
-#### Solution
+### Error: `RuntimeError` from the assembler about failed sections
 
-```python
-# ❌ WRONG
-tag = soup.new_tag("div", class_="container")
+An assembler narrates its sections with the LLM and aborts when more than half of them fail, rather than writing a document full of placeholders. Look earlier in `logs/epic_news.log` for the LLM errors (timeouts, rate limits, empty responses) and see "Crew runs but produces empty/incomplete output" above.
 
-# ✅ CORRECT
-tag = soup.new_tag("div")
-tag.attrs["class"] = ["container", "my-class"]  # Multiple classes as list
-```
+### Error: OSINT `global_report.json` is missing or invalid
 
-#### Reference
-
-See `src/epic_news/utils/CLAUDE.md` section "BaseRenderer rules"
-
----
-
-### Issue: Report rendered with the generic layout
-
-#### Symptom
-
-The HTML report shows a generic key/value dump instead of the crew-specific
-layout. `RendererFactory.create_renderer()` never raises: an unknown crew key
-silently falls back to `GenericRenderer`.
-
-#### Solution Checklist
-
-**1. Create renderer class:**
-```python
-# src/epic_news/utils/html/template_renderers/my_crew_renderer.py
-from epic_news.utils.html.template_renderers.base_renderer import BaseRenderer
-
-class MyCrewRenderer(BaseRenderer):
-    def __init__(self):  # REQUIRED: __init__ is abstract on BaseRenderer
-        pass
-
-    def render(self, data: dict) -> str:
-        soup = self.create_soup("div")
-        # ... build HTML
-        return str(soup)
-```
-
-**2. Register it** in `RendererFactory._RENDERER_MAP`
-(`src/epic_news/utils/html/template_renderers/renderer_factory.py`) under the
-key the flow passes to `render_and_write_html("MY_CREW", ...)`.
-
-**3. Check registration:**
-```bash
-uv run python -c "from epic_news.utils.html.template_renderers.renderer_factory import RendererFactory; print(RendererFactory.get_supported_crew_types())"
-# Should include 'MY_CREW'
-```
+The OSINT assembler raises when the cross-reference step did not write `output/osint/global_report.json`. The file is always rewritten from the parsed model, so the cause is an earlier failure in the cross-reference step.
 
 ---
 
@@ -772,7 +723,7 @@ When you encounter any error:
 Study working crews for patterns:
 - **poem** - Simple single-agent crew
 - **cooking** - Medium complexity
-- **library** - Two-agent pattern with HTML output
+- **library** - Two-agent pattern with a DOCX report
 - **fin_daily** - Complex with async execution
 
 ### 3. Enable debug logging
@@ -817,7 +768,7 @@ Include:
 
 1. **JSON escaping** - Use `system_template` with explicit escaping rules
 2. **Pydantic Union syntax** - Upgrade CrewAI to 1.8.0+; use `X | None`
-3. **Action traces in HTML** - Two-agent pattern (researcher + reporter)
+3. **Action traces in reports** - Two-agent pattern (researcher + reporter)
 4. **Tools in YAML** - Assign tools in Python code, not YAML
 5. **ModuleNotFoundError** - Run `uv pip install -e .`
 

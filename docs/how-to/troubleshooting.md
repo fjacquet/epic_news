@@ -9,13 +9,14 @@ domain keywords; an ambiguous prompt like *"tell me about Apple"* may
 trigger `news_daily` rather than `company_profiler`. Try
 *"Generate a company profile for Apple Inc."* instead.
 
-## I see no HTML/JSON output for a crew
+## I see no DOCX/JSON output for a crew
 
 1. Check `output/<crew>/` — file may exist but with a slightly different
    name than expected.
 2. Check `logs/epic_news.log` for an `❌` line near the end of the run.
-3. Some crews (RSS weekly, holiday planner) write the JSON before the HTML
-   step — if HTML failed, JSON will still be there.
+3. Some crews (RSS weekly, holiday planner) write the JSON before the
+   DOCX step — if building the DOCX failed, the run stops and the JSON will
+   still be there. Check that `pandoc` is installed (`pandoc --version`).
 
 ## I didn't receive the email
 
@@ -32,9 +33,10 @@ Delivery is deterministic: `ReceptionFlow.send_email` calls
     authorize Gmail in Composio under entity `default`. Go to
     [app.composio.dev](https://app.composio.dev), Connections → Add
     connection → Gmail → use `default` as user/entity ID.
-  - *"… is not a valid email address"*, *"empty report body"* or
-    *"Attachment does not exist"* → the inputs were rejected before any API
-    call.
+  - *"… is not a valid email address"* or *"Attachment does not exist"* →
+    the inputs were rejected before any API call.
+- **The report DOCX is missing** → nothing is sent and `email_sent` stays
+  `False`; the email carries only a short body and the DOCX attachment.
   - A `ToolVersionRequiredError` / version error → set
     `COMPOSIO_GMAIL_VERSION` to a toolkit version your account exposes.
 - **`🚫 No report was generated`** → the crew failed before writing a

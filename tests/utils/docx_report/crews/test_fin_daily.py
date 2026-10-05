@@ -39,7 +39,9 @@ def test_fin_daily_docx(tmp_path):
         report_date="2026-07-13",
     )
     llm = _StubLLM()
-    out = assemble_fin_daily_docx(model, {"current_date": "2026-07-13"}, str(tmp_path / "fin.docx"), llm)
+    out = assemble_fin_daily_docx(
+        model, {"current_date": "2026-07-13"}, str(tmp_path / "output" / "fin.docx"), llm
+    )
     txt = _text(out)
 
     for figure in ["12.5", "18.3", "4200", "Réduire"]:

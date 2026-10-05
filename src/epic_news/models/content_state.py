@@ -88,9 +88,6 @@ DEFAULT_PARTICIPANTS = [
     "Bob Johnson <bob.johnson@pictet.com> - Sales Director",
 ]
 
-# Template paths
-MENU_REPORT_TEMPLATE = "templates/menu_report_template.html"
-
 
 class ContentState(BaseModel):
     """
@@ -120,7 +117,6 @@ class ContentState(BaseModel):
     selected_crew: str = ""
     categories: dict = Field(default_factory=CrewCategories.to_dict)
     output_file: str = ""
-    output_format: str | None = None  # None → HTML; "docx" set by parse/flag
     output_dir: str = ""
     sentence_count: int = 5
 
@@ -326,18 +322,14 @@ class ContentState(BaseModel):
             }
         )
 
-        # menu_slug and the menu HTML template only make sense for the menu/cooking crews.
-        # Setting them unconditionally leaked a menu template_path into every other crew's
-        # inputs (e.g. HOLIDAY_PLANNER); nothing outside menu reads them, so scope them here.
-        if inputs.get("selected_crew") in {"MENU", "COOKING"}:
-            if "menu_slug" not in inputs:
-                if "start_date" in inputs:
-                    menu_mappings["menu_slug"] = f"menu_{inputs['start_date']}"
-                else:
-                    menu_mappings["menu_slug"] = f"menu_{create_topic_slug('weekly_menu')}"
-
-            # Add template path for HTML generation
-            menu_mappings["template_path"] = MENU_REPORT_TEMPLATE
+        # menu_slug only makes sense for the menu/cooking crews.
+        # Setting it unconditionally leaked it into every other crew's
+        # inputs (e.g. HOLIDAY_PLANNER); nothing outside menu reads it, so scope it here.
+        if inputs.get("selected_crew") in {"MENU", "COOKING"} and "menu_slug" not in inputs:
+            if "start_date" in inputs:
+                menu_mappings["menu_slug"] = f"menu_{inputs['start_date']}"
+            else:
+                menu_mappings["menu_slug"] = f"menu_{create_topic_slug('weekly_menu')}"
 
         # Add topic_slug for recipes if needed
         if "topic_slug" not in inputs and "topic" in inputs:

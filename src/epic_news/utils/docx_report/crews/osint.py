@@ -98,7 +98,10 @@ def assemble_osint_docx(
     """
     llm = llm or LLMConfig.get_openrouter_llm()
     base = Path(osint_dir)
-    cross = _load_json(base / "global_report.json") or {}
+    cross = _load_json(base / "global_report.json")
+    if cross is None:
+        # No placeholder report: the cross-reference report carries the summary and findings.
+        raise ValueError(f"OSINT cross-reference report {base / 'global_report.json'} is missing or invalid")
 
     sections: list[Section] = [
         Section(

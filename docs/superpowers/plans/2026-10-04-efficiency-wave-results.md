@@ -76,3 +76,12 @@ E5 single-call routing: the extraction crew now also picks the crew (`ExtractedI
 Each run executes the six OSINT crews again (target: Logitech), and those vary a lot from run to run (CompanyProfilerCrew: 1,404k tokens in the research run, 440k in the synthesis run), so wall clock and LiteLLM totals mix that noise with the cross-reference step. The cross-reference crew seconds are the clean comparison: 262.9 s (5 requests, 97k tokens) for research versus 17.1 s for synthesis (CrewAI reports 0 tokens because the single call is structured output). Output files: `output/osint/compare/{research,synthesis}.{html,json}`.
 
 Decision (2026-10-04): the user kept the research mode; the synthesis mode was removed.
+
+### DOCX-only reports (S5)
+
+| Date | Change | Request | Wall (s) | Crew | Crew seconds | Crew tokens (CrewAI) | LiteLLM calls | LiteLLM total tokens |
+|---|---|---|---|---|---|---|---|---|
+| 2026-10-05 | S5 DOCX only | news_daily | 310.6 | NewsDailyCrew | 295.74 | 299864 (19 requests) | 23 | 339755 |
+| 2026-10-05 | S5 DOCX only | saint | 276.3 | SaintDailyCrew | 246.88 | 19800 (3 requests) | 11 | 46408 |
+
+Both runs used `EPIC_ENABLE_EMAIL=false`. The report step adds little time: wall clock minus the crew and extraction seconds is about 8 s for news_daily and 22 s for saint. LiteLLM calls not made by the crews or the extraction (3 for news_daily, 7 for saint) are the narrated DOCX sections. The news_daily wall clock (310.6 s, against 252.3 s for E2 with HTML) moves with NewsDailyCrew itself (295.7 s against 241.4 s; 19 against 16 requests); the report step is not the cause. No HTML baseline exists for saint. Both DOCX files hold real content: news_daily has 9 sections and 70 source links, and saint gives the biography, meaning and miracles of the day's saint (Faustina Kowalska, 5 October). Neither contains placeholder text. Narrated sections repeat their section title as a sub-heading (`# Biographie` followed by `## Biographie`); this is a fragment-prompt issue and predates S5.

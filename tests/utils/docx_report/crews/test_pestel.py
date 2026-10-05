@@ -36,7 +36,9 @@ def test_pestel_docx(tmp_path):
         generated_at="2026-07-13",
     )
     llm = _StubLLM()
-    out = assemble_pestel_docx(model, {"current_date": "2026-07-13"}, str(tmp_path / "r.docx"), llm)
+    out = assemble_pestel_docx(
+        model, {"current_date": "2026-07-13"}, str(tmp_path / "output" / "r.docx"), llm
+    )
     txt = _text(out)
     # all sections are narrated: Résumé exécutif + 6 dimensions + Synthèse = 8 llm calls
     assert llm.calls == 8
@@ -75,7 +77,9 @@ def test_pestel_docx_with_sources(tmp_path):
         generated_at="2026-07-13",
     )
     llm = _StubLLM()
-    out = assemble_pestel_docx(model, {"current_date": "2026-07-13"}, str(tmp_path / "r.docx"), llm)
+    out = assemble_pestel_docx(
+        model, {"current_date": "2026-07-13"}, str(tmp_path / "output" / "r.docx"), llm
+    )
     txt = _text(out)
     assert llm.calls == 8
     # Sources render verbatim (reference-title citations; the assembler is string-agnostic,

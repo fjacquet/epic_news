@@ -9,23 +9,25 @@ Each crew writes to its own subdirectory under `output/`:
 ```
 output/
 ├── pestel/
-│   ├── report.html      # HTML rendition (sent as email body / attachment)
-│   ├── report.json      # Structured data (Pydantic model dump)
-│   └── report.md        # Markdown rendition (some crews)
+│   ├── report.docx      # The report (attached to the email, offered for download in the app)
+│   └── report.json      # Structured data (Pydantic model dump)
 ├── rss_weekly/
-│   ├── report.html
+│   ├── report.docx
 │   ├── final-report.json
 │   └── report.json      # raw scraped articles before translation
-├── poem/report.html
+├── poem/
+│   ├── poem.docx
+│   └── poem.json
 ├── cooking/
-│   ├── report.html
+│   ├── <recipe-slug>.docx
 │   └── recipe.yaml      # Paprika-3-compatible YAML
 └── …
 ```
 
-The HTML inlines a single consolidated stylesheet (`templates/css/report.css`)
-and a dynamic theme block (Arial Nova Light @ 9pt for print). Reports are
-self-contained for email distribution.
+Reports are DOCX only ([ADR-017](../adr/ADR-017-docx-only-reports.md)). Each file is built
+by the crew's assembler and pandoc, with styles from `reference.docx`. Every report path
+must be inside `output/`; `build_docx` raises `ValueError` otherwise. If a report cannot be
+built, the run stops and no email is sent.
 
 ## Logs
 
@@ -72,7 +74,7 @@ object dumped by `dump_crewai_state` for post-mortem analysis.
 
 1. User input → `extract_info` → extracts the inputs and picks the crew (trace event)
 2. `classify` → keeps that crew, or falls back to `ClassifyCrew` when none is usable (trace event)
-3. `generate_<crew>` → kickoff + render → writes to `output/<crew>/`
-4. `send_email` → reads the report from `output/<crew>/` and sends it with `send_report_email()`
+3. `generate_<crew>` → kickoff + assemble the DOCX → writes to `output/<crew>/`
+4. `send_email` → attaches the DOCX from `output/<crew>/` with a short body and sends it with `send_report_email()`; if the file is missing nothing is sent and `email_sent` stays `False`
 
 Run `tail -f logs/epic_news.log` during a flow to watch this live.

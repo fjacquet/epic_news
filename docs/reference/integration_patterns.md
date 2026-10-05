@@ -214,96 +214,6 @@ def _clean_json_string(self, raw_data: str) -> str:
 - Detailed logging for debugging and monitoring
 - Fallback options prevent complete workflow failure
 
-## 🎨 HTML Rendering Patterns
-
-### Pattern: Flexible Data Extraction for HTML
-
-**Use Case:** Render HTML from evolving data structures with proper fallbacks.
-
-**Implementation:**
-
-```python
-def render_meal_section(self, soup: BeautifulSoup, meal_name: str, meal_content: Any) -> BeautifulSoup:
-    """Render meal section with flexible data extraction."""
-    
-    meal_div = soup.new_tag("div", class_="meal-section")
-    meal_title = soup.new_tag("h3", class_="meal-title")
-    meal_title.string = meal_name.replace("_", " ").title()
-    meal_div.append(meal_title)
-    
-    # Handle different data structures
-    if isinstance(meal_content, dict):
-        
-        # NEW FORMAT: dishes array
-        if "dishes" in meal_content:
-            dishes_list = soup.new_tag("ul", class_="dishes-list")
-            dishes = meal_content.get("dishes", [])
-            
-            dish_type_emojis = {
-                "entrée": "🥗", "starter": "🥗",
-                "plat principal": "🍽️", "main_course": "🍽️", "main course": "🍽️",
-                "dessert": "🍮", "sweet": "🍮"
-            }
-            
-            for dish in dishes:
-                if isinstance(dish, dict):
-                    dish_name = dish.get("name", "").strip()
-                    dish_type = dish.get("dish_type", "").lower().strip()
-                    
-                    if dish_name:
-                        dish_li = soup.new_tag("li", class_="dish-item")
-                        emoji = dish_type_emojis.get(dish_type, "🍽️")
-                        display_type = dish_type.capitalize() if dish_type else "Plat"
-                        dish_li.string = f"{emoji} {display_type}: {dish_name}"
-                        dishes_list.append(dish_li)
-            
-            if dishes_list.contents:
-                meal_div.append(dishes_list)
-        
-        # OLD FORMAT: direct dish keys (backward compatibility)
-        else:
-            legacy_mapping = {
-                "starter": ("🥗", "Entrée"),
-                "main_course": ("🍽️", "Plat principal"),
-                "dessert": ("🍮", "Dessert"),
-                "entrée": ("🥗", "Entrée"),
-                "plat_principal": ("🍽️", "Plat principal")
-            }
-            
-            dishes_list = soup.new_tag("ul", class_="dishes-list")
-            for key, (emoji, label) in legacy_mapping.items():
-                if key in meal_content:
-                    dish_name = meal_content[key]
-                    if isinstance(dish_name, str) and dish_name.strip():
-                        dish_li = soup.new_tag("li", class_="dish-item")
-                        dish_li.string = f"{emoji} {label}: {dish_name.strip()}"
-                        dishes_list.append(dish_li)
-            
-            if dishes_list.contents:
-                meal_div.append(dishes_list)
-    
-    # FALLBACK: string content
-    elif isinstance(meal_content, str) and meal_content.strip():
-        content_p = soup.new_tag("p", class_="meal-content")
-        content_p.string = meal_content.strip()
-        meal_div.append(content_p)
-    
-    # FALLBACK: no valid content
-    else:
-        placeholder_p = soup.new_tag("p", class_="meal-placeholder")
-        placeholder_p.string = "Contenu non disponible"
-        meal_div.append(placeholder_p)
-    
-    return meal_div
-```
-
-**HTML Rendering Benefits:**
-
-- Handles multiple data structure formats
-- Provides meaningful fallbacks for missing data
-- Maintains visual consistency across different data sources
-- Easy to extend for new data formats
-
 ## 🧪 Integration Testing Patterns
 
 ### Pattern: End-to-End Workflow Validation
@@ -360,15 +270,15 @@ def test_complete_menu_to_recipe_workflow(self):
         assert file_path.exists(), f"Expected output file not found: {file_path}"
         assert file_path.stat().st_size > 0, f"Output file is empty: {file_path}"
     
-    # Step 5: HTML rendering verification
-    renderer = MenuRenderer()
-    html_output = renderer.render_weekly_menu(validated_menu)
-    
-    # Verify actual dish names appear in HTML (not placeholders)
-    assert "Salade César" in html_output
-    assert "Saumon grillé" in html_output
-    assert "Tarte aux pommes" in html_output
-    assert "Entrée du jour" not in html_output  # No placeholders
+    # Step 5: report verification (assemble the DOCX and read it back)
+    docx_path = assemble_menu_docx(validated_menu, inputs, "output/menu_designer/test.docx")
+    report_text = extract_docx_text(docx_path)  # test helper
+
+    # Verify actual dish names appear in the report (not placeholders)
+    assert "Salade César" in report_text
+    assert "Saumon grillé" in report_text
+    assert "Tarte aux pommes" in report_text
+    assert "Entrée du jour" not in report_text  # No placeholders
     
     # Step 6: Content quality verification
     for recipe_output in recipe_outputs:
@@ -506,7 +416,7 @@ def _test_complete_workflow(self) -> bool:
         result = self.run_menu_designer_workflow(test_data=True)
         return (
             result["recipes_generated"] > 0 and
-            result["html_generated"] and
+            result["docx_generated"] and
             result["files_created"] > 0
         )
     except Exception:
@@ -520,7 +430,7 @@ def _test_complete_workflow(self) -> bool:
 For a complete reference implementation, see:
 
 - **Menu Generator:** `src/epic_news/utils/menu_generator.py`
-- **HTML Renderer:** `src/epic_news/utils/html/template_renderers/menu_renderer.py`
+- **DOCX Assembler:** `src/epic_news/utils/docx_report/crews/menu.py`
 - **Main Integration:** `src/epic_news/main.py` (lines 720-730)
 - **Test Examples:** `tests/utils/test_menu_generator.py`
 
@@ -528,7 +438,7 @@ For a complete reference implementation, see:
 
 - `MenuGenerator.parse_menu_structure()` - Data structure compatibility
 - `main.py` - Template variable provisioning
-- `MenuRenderer._create_day_plan()` - HTML rendering flexibility
+- `assemble_menu_docx()` - handles both menu data formats
 
 ## 🎯 Success Metrics
 
@@ -536,7 +446,7 @@ For a complete reference implementation, see:
 
 - ✅ Zero data loss during format transitions
 - ✅ All template variables resolved successfully
-- ✅ HTML output shows actual data, not placeholders
+- ✅ DOCX output shows actual data, not placeholders
 - ✅ Complete workflow executes without errors
 - ✅ All tests pass with realistic data
 - ✅ Production deployment succeeds

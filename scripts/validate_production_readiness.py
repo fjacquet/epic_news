@@ -3,11 +3,10 @@
 Production Readiness Validation Script
 
 This script validates that the cooking crew is production-ready by checking:
-1. No HTML files in project root
-2. All recipe files are in correct output directory
-3. Task configuration enforces correct file paths
-4. Tool muting is properly configured
-5. File organization compliance
+1. All recipe files are in correct output directory
+2. Task configuration enforces correct file paths
+3. Tool muting is properly configured
+4. File organization compliance
 """
 
 import sys
@@ -28,30 +27,15 @@ class ProductionReadinessValidator:
         self.successes = []
 
     def validate_file_organization(self) -> bool:
-        """Check that no HTML files are in the project root."""
+        """Check that the cooking output directory exists and holds recipe files."""
         print("🔍 Validating file organization...")
-
-        # Check for HTML files in project root
-        root_html_files = list(self.project_root.glob("*.html"))
-        if root_html_files:
-            self.issues.append(
-                f"❌ Found {len(root_html_files)} HTML files in project root: {[f.name for f in root_html_files]}"
-            )
-            return False
-        self.successes.append("✅ Project root is clean - no HTML files found")
 
         # Check output directory exists and has files
         if not self.output_dir.exists():
             self.issues.append("❌ Output directory 'output/cooking/' does not exist")
             return False
 
-        output_html_files = list(self.output_dir.glob("*.html"))
         output_yaml_files = list(self.output_dir.glob("*.yaml"))
-
-        if output_html_files:
-            self.successes.append(f"✅ Found {len(output_html_files)} HTML files in correct output directory")
-        else:
-            self.warnings.append("⚠️ No HTML files found in output directory")
 
         if output_yaml_files:
             self.successes.append(f"✅ Found {len(output_yaml_files)} YAML files in correct output directory")
@@ -75,21 +59,6 @@ class ProductionReadinessValidator:
         try:
             with open(tasks_config_path, encoding="utf-8") as f:
                 tasks_config = yaml.safe_load(f)
-
-            # Check HTML task configuration
-            html_task = tasks_config.get("html_recipe_task", {})
-            html_description = html_task.get("description", "")
-
-            if "output/cooking/{topic_slug}.html" in html_description:
-                self.successes.append("✅ HTML task enforces correct output directory path")
-            else:
-                self.issues.append("❌ HTML task does not enforce correct output directory path")
-                return False
-
-            if "do NOT create custom filenames" in html_description.lower():
-                self.successes.append("✅ HTML task prevents custom filename creation")
-            else:
-                self.warnings.append("⚠️ HTML task should explicitly prevent custom filename creation")
 
             # Check YAML task configuration
             yaml_task = tasks_config.get("paprika_yaml_task", {})

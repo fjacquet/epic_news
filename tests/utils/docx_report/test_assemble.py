@@ -22,7 +22,7 @@ def test_deterministic_section_makes_no_llm_call(tmp_path):
     out = assemble_fragments(
         [Section("Prix", body="| Item | CHF |\n|---|---|\n| A | 9.90 |")],
         {"title": "T", "author": "Epic News", "date": "2026-07-13"},
-        str(tmp_path / "r.docx"),
+        str(tmp_path / "output" / "r.docx"),
         llm,
         system="sys",
     )
@@ -36,7 +36,7 @@ def test_narrated_section_calls_llm(tmp_path):
     assemble_fragments(
         [Section("Intro", instruction="Présente.", context="ctx")],
         {"title": "T", "author": "Epic News", "date": ""},
-        str(tmp_path / "n.docx"),
+        str(tmp_path / "output" / "n.docx"),
         llm,
         system="sys",
     )

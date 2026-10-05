@@ -48,7 +48,7 @@ def _inputs():
 
 
 def test_assemble_builds_docx_with_sections_and_days(tmp_path: Path):
-    out = tmp_path / "guide.docx"
+    out = tmp_path / "output" / "guide.docx"
     path = assemble_holiday_docx(_crew_result(), _inputs(), str(out), llm=StubLLM())
     assert path == str(out)
     text = "\n".join(p.text for p in Document(str(out)).paragraphs)
@@ -59,7 +59,7 @@ def test_assemble_builds_docx_with_sections_and_days(tmp_path: Path):
 
 def test_assemble_caps_itinerary_days(tmp_path: Path):
     """A hallucinated 100-day skeleton must not fan out past MAX_ITINERARY_DAYS fragments."""
-    out = tmp_path / "guide.docx"
+    out = tmp_path / "output" / "guide.docx"
     path = assemble_holiday_docx(_crew_result(), _inputs(), str(out), llm=ManyDaysStubLLM(100))
     assert path == str(out)
     day_headings = [

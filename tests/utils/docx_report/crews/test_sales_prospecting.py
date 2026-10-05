@@ -32,7 +32,7 @@ def test_sales_prospecting_docx(tmp_path):
     )
     llm = _StubLLM()
     out = assemble_sales_prospecting_docx(
-        model, {"company": "ACME", "current_date": "2026-07-13"}, str(tmp_path / "sales.docx"), llm
+        model, {"company": "ACME", "current_date": "2026-07-13"}, str(tmp_path / "output" / "sales.docx"), llm
     )
     txt = _text(out)
 

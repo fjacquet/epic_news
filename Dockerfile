@@ -34,7 +34,6 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # Source layer. The manifests are bind-mounted again because the previous
 # mount did not persist them into /app, and building the project needs them.
 COPY src/ ./src
-COPY templates/ ./templates
 RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=uv.lock,target=uv.lock \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
@@ -104,7 +103,7 @@ WORKDIR /app
 # after /kickoff has already returned 202, on a container that stays healthy.
 # Add new directories here rather than widening ownership of /app.
 #
-# This is ONE COPY, and splitting it into `.venv` / `src` / `templates` was
+# This is ONE COPY, and splitting it into separate `.venv` and source layers was
 # tried and measured and does NOT work. The theory was that a source edit would
 # leave a lockfile-keyed venv layer CACHED instead of re-pushing 1.52 GB. It
 # does not, because the venv is not source-independent. The project is an

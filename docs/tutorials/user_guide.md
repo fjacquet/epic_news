@@ -7,7 +7,7 @@ This is the entry point for **using** Epic News. If you want to build a new crew
 1. **Start the application:** `crewai flow kickoff`
 2. **Type a request** in plain English or French — no special syntax.
 3. **Wait for the report.** Epic News classifies your request, picks the right crew, and writes the result to `output/<crew>/`.
-4. **Check your inbox.** If Gmail is connected via Composio, you also receive the HTML report by email.
+4. **Check your inbox.** If Gmail is connected via Composio, you also receive the DOCX report as an email attachment.
 
 ## Use Cases by Category
 

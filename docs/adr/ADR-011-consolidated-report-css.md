@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted (2026-04-26)
+Superseded by [ADR-017](ADR-017-docx-only-reports.md) (2026-10-05). The report CSS, the theme and the templates it describes were removed with the HTML stack. Originally accepted 2026-04-26.
 
 ## Context
 

@@ -323,7 +323,7 @@ This approach is highly encouraged for complex test setups.
 #### Development Workflow
 
 1. Environment Setup:
-   - Run `uv sync` to install dependencies
+   - Run `uv sync --all-extras` to install dependencies (pytest is in the `test` extra; `make dev` does the same)
    - Install the package in editable mode: `uv pip install -e .`
    - This creates a special link to your source code and prevents import errors like `ModuleNotFoundError: No module named 'epic_news'`
 
@@ -455,7 +455,7 @@ This section establishes the core principles, ethical standards, and research me
 #### Agent Responsibilities
 
 - **Research Agents**: Provide exhaustive, factual information (20+ data points). Use tools freely, as they do not write to the final output file.
-- **Reporting Agents**: Transform research into well-structured, professional reports. **DO NOT USE TOOLS** to prevent action traces from contaminating the final HTML output.
+- **Reporting Agents**: Transform research into well-structured, professional reports. **DO NOT USE TOOLS** to prevent action traces from contaminating the final report.
 
 ### 3.2. Shared Research Guidelines
 
@@ -467,27 +467,26 @@ This section establishes the core principles, ethical standards, and research me
 
 ## 4. Output Standards
 
-The primary output of each crew is a comprehensive HTML report.
+The primary output of each crew is a structured Pydantic model, which an assembler turns into a DOCX report ([ADR-017](../adr/ADR-017-docx-only-reports.md)).
 
 ### 4.1. Critical Reminders
 
 - **DO NOT** return raw API responses.
 - **DO NOT** include placeholder text like 'TODO'.
-- **ALWAYS** ensure your final output is a single, complete, and well-formed HTML document.
+- **ALWAYS** ensure your final output is a single, complete JSON object that validates against the crew's Pydantic model.
 
-### 4.2. HTML Report Standards
+### 4.2. Report Content Standards
 
-- **Structure**: Use proper HTML5 (`<!DOCTYPE html>`) with UTF-8 encoding (`<meta charset="UTF-8">`).
 - **Content**: Present information in logical sections with clear headings, data sources, and actionable conclusions.
-- **Prohibited**: No raw JSON, API responses, or malformed HTML.
-- **Emoji Usage**: Use emojis strategically to highlight key points (e.g., 📈 for growth, ⚠️ for risks).
+- **Prohibited**: No raw JSON, API responses, or malformed Markdown in text fields.
+- **Format**: The assembler (`utils/docx_report/crews/`) builds the DOCX; agents never write HTML or DOCX themselves.
 
-### 4.3. HTML Output Architecture (CRITICAL)
+### 4.3. Report Output Architecture (CRITICAL)
 
 CrewAI has a known issue where agents with tools write action traces to output files instead of the final result. To prevent this, use a **Two-Agent Pattern**.
 
 1. **Research Agent(s)**: Equipped with tools to gather information. They do not have an `output_file` and pass data to the next agent via context.
-2. **Reporting Agent**: Has **NO TOOLS**. This agent's sole purpose is to take the data from the context and generate a clean HTML report.
+2. **Reporting Agent**: Has **NO TOOLS**. This agent's sole purpose is to take the data from the context and produce the clean structured report.
 
 ```python
 # ✅ CORRECT - Separate research and reporting agents
@@ -501,7 +500,7 @@ def researcher(self) -> Agent:
 def reporter(self) -> Agent:
     return Agent(
         tools=[],  # NO TOOLS = No action traces
-        # Generates clean HTML output
+        # Produces the clean structured report
     )
 ```
 
@@ -555,24 +554,14 @@ epic_news/
 └── tests/               # Unit tests
 ```
 
-### 4.4. Menu Designer & HTML Renderer Learnings
+### 4.4. Menu Designer Learnings
 
-The following best-practices were distilled while integrating the **MenuDesignerCrew** and its HTML pipeline:
+The following best-practices were distilled while integrating the **MenuDesignerCrew**:
 
 1. **Pydantic `Union` Syntax** – CrewAI’s internal schema parser still requires legacy `typing.Union` / `Optional[...]` annotations. Ensure every field in `menu_designer_report.py` (and any new model) avoids the `X | Y` pipe syntax to prevent runtime parsing errors.
-2. **Factory Pattern Consistency** – Each crew must expose a small, deterministic factory (e.g. `menu_to_html`) that:
-   - Normalises `CrewOutput`, Pydantic model or `dict` into a serialisable `dict`.
-   - Delegates body creation to `TemplateManager.render_report()` using the correct crew identifier.
-   - Optionally persists the resulting HTML.
-3. **Renderer Construction** – All concrete subclasses of `BaseRenderer` **must implement `__init__`** (even if empty) to avoid Python treating them as abstract, otherwise TemplateManager fails to instantiate them.
-4. **Nested Meal Rendering** – For structured meals (`starter` / `main_course` / `dessert`), `MenuRenderer` now:
-   - Detects nested dicts within `lunch` / `dinner` entries.
-   - Renders readable bullet-lists with appropriate emojis.
-   - Falls back gracefully to plain strings when structure is missing.
-5. **DailyMenu Iteration** – `MenuRenderer` supports both legacy `{day: meals}` mappings and the new list-of-objects (`DailyMenu`) produced by the Pydantic model.
-6. **Debugging Pattern** – Use `dump_crewai_state()` to capture problematic crew outputs. Enable by setting `DEBUG_STATE=true` in the environment.
-
-Adhering to these guidelines keeps new menu-style crews consistent with the broader HTML rendering architecture.
+2. **Assembler Input** – `assemble_menu_docx` (`utils/docx_report/crews/menu.py`) takes the validated model. Normalise `CrewOutput`, Pydantic model or `dict` into the model first (`load_or_parse_model`).
+3. **DailyMenu Iteration** – The assembler handles both legacy `{day: meals}` mappings and the list-of-objects (`DailyMenu`) produced by the Pydantic model.
+4. **Debugging Pattern** – Use `dump_crewai_state()` to capture problematic crew outputs. Enable by setting `DEBUG_STATE=true` in the environment.
 
 ## 6. Development Workflow
 

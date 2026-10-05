@@ -1,7 +1,7 @@
 """End-to-end wiring test for ReceptionFlow.generate_pestel — no LLM calls.
 
 Validates the plumbing between the PESTEL crew's JSON output, the
-``PestelReport`` model, the markdown renderer, and ``ContentState`` —
+``PestelReport`` model, the DOCX assembler (stubbed), and ``ContentState`` —
 without actually invoking any agent.
 """
 
@@ -43,6 +43,16 @@ def _valid_pestel_payload() -> dict:
     }
 
 
+def _fake_assembler(assembled: list):
+    """Stand-in for assemble_pestel_docx: record (model, path), return the path."""
+
+    def _assemble(model, _inputs, output_path):
+        assembled.append((model, output_path))
+        return output_path
+
+    return _assemble
+
+
 @pytest.fixture
 def pestel_flow_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     """Run generate_pestel inside an isolated tmp cwd with stubbed crew/IO."""
@@ -53,7 +63,7 @@ def pestel_flow_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     output_dir.mkdir(parents=True, exist_ok=True)
     (output_dir / "report.json").write_text(json.dumps(_valid_pestel_payload()), encoding="utf-8")
 
-    calls = {"kickoff": 0, "dump": 0, "pestel_init": 0, "closed": []}
+    calls = {"kickoff": 0, "dump": 0, "pestel_init": 0, "closed": [], "assembled": []}
 
     def _fake_kickoff_flow(crew, inputs):
         calls["kickoff"] += 1
@@ -72,6 +82,7 @@ def pestel_flow_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(main_module, "dump_crewai_state", _fake_dump)
     monkeypatch.setattr(main_module, "PestelCrew", _StubPestelCrew)
     monkeypatch.setattr(main_module, "close_mcp", calls["closed"].append)
+    monkeypatch.setattr(main_module, "assemble_pestel_docx", _fake_assembler(calls["assembled"]))
     monkeypatch.setattr(
         main_module, "_pestel_recent_research", lambda _topic, _geo: {d: f"recent {d}" for d in _DIMS}
     )
@@ -79,7 +90,7 @@ def pestel_flow_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     return tmp_path, calls
 
 
-def test_generate_pestel_populates_state_and_markdown(pestel_flow_env) -> None:
+def test_generate_pestel_populates_state_and_docx(pestel_flow_env) -> None:
     tmp_path, calls = pestel_flow_env
 
     flow = ReceptionFlow(user_request="rapport PESTEL Reyl")
@@ -93,53 +104,25 @@ def test_generate_pestel_populates_state_and_markdown(pestel_flow_env) -> None:
     assert isinstance(flow.state.pestel_report, PestelReport)
     assert flow.state.pestel_report.topic == "Test Topic"
 
-    # output_file ends pointing at the html (attachment for email), and the
-    # markdown is also written alongside.
-    assert flow.state.output_file.endswith("report.html")
-    md_path = tmp_path / "output" / "pestel" / "report.md"
-    html_path = tmp_path / "output" / "pestel" / "report.html"
-    assert md_path.exists()
-    assert html_path.exists()
+    # output_file points at the DOCX (attachment for email); no HTML or Markdown side files.
+    assert flow.state.output_file == "output/pestel/report.docx"
+    pestel_dir = tmp_path / "output" / "pestel"
+    assert not (pestel_dir / "report.md").exists()
+    assert not (pestel_dir / "report.html").exists()
 
 
-def test_generate_pestel_writes_html_for_email_attachment(pestel_flow_env) -> None:
-    """HTML is the canonical attachment path; must be non-empty and contain the topic."""
-    tmp_path, _calls = pestel_flow_env
+def test_generate_pestel_hands_the_full_model_to_the_docx(pestel_flow_env) -> None:
+    """The DOCX assembler gets the validated report (every dimension) and the output/ path."""
+    _tmp_path, calls = pestel_flow_env
 
     flow = ReceptionFlow(user_request="PESTEL email path")
     flow.generate_pestel()
 
-    html_path = tmp_path / "output" / "pestel" / "report.html"
-    assert html_path.exists()
-    html = html_path.read_text(encoding="utf-8")
-    assert html.strip(), "HTML report must not be empty"
-    assert "Test Topic" in html
-    # output_file is project-relative (what prepare_email_params reads),
-    # not the absolute tmp_path resolution.
-    assert flow.state.output_file.endswith("output/pestel/report.html")
-
-
-def test_generate_pestel_markdown_contains_all_sections(pestel_flow_env) -> None:
-    tmp_path, _calls = pestel_flow_env
-
-    flow = ReceptionFlow(user_request="PESTEL test")
-    flow.generate_pestel()
-
-    md = (tmp_path / "output" / "pestel" / "report.md").read_text(encoding="utf-8")
-
-    assert "# PESTEL Analysis — Test Topic" in md
-    for heading in (
-        "🏛️ Political",
-        "💰 Economic",
-        "👥 Social",
-        "💻 Technological",
-        "🌍 Environmental",
-        "⚖️ Legal",
-        "🎯 Synthesis",
-    ):
-        assert heading in md
-    assert "Cross-dim synthesis" in md
-    assert "https://example.com/src" in md
+    [(model, path)] = calls["assembled"]
+    assert path == "output/pestel/report.docx"
+    assert model.topic == "Test Topic"
+    assert model.synthesis == "Cross-dim synthesis"
+    assert all(getattr(model, d).sources == ["https://example.com/src"] for d in _DIMS)
 
 
 def test_generate_pestel_injects_current_date(pestel_flow_env) -> None:
@@ -173,13 +156,14 @@ def test_generate_pestel_falls_back_to_raw_when_json_missing(
     monkeypatch.setattr(main_module, "kickoff_flow", _fake_kickoff_flow)
     monkeypatch.setattr(main_module, "dump_crewai_state", lambda *_a, **_kw: None)
     monkeypatch.setattr(main_module, "PestelCrew", SimpleNamespace)
+    assembled: list = []
+    monkeypatch.setattr(main_module, "assemble_pestel_docx", _fake_assembler(assembled))
 
     flow = ReceptionFlow(user_request="PESTEL fallback")
     flow.generate_pestel()
 
     assert isinstance(flow.state.pestel_report, PestelReport)
-    md = (tmp_path / "output" / "pestel" / "report.md").read_text(encoding="utf-8")
-    assert "Test Topic" in md
+    assert assembled[0][0].topic == "Test Topic"
 
 
 def test_generate_pestel_uses_target_company_as_topic(pestel_flow_env) -> None:
@@ -372,3 +356,22 @@ def test_generate_pestel_passes_recent_results_to_kickoff(
     inputs = calls["last_inputs"]
     for dim in _DIMS:
         assert inputs[f"recent_{dim}"] == f"recent {dim}"
+
+
+def test_generate_pestel_parse_failure_stops_the_run(
+    pestel_flow_env, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """No placeholder report: unparseable crew output raises and no DOCX is built."""
+    tmp_path, calls = pestel_flow_env
+    (tmp_path / "output" / "pestel" / "report.json").unlink()
+    monkeypatch.setattr(
+        main_module, "kickoff_flow", lambda _crew, _inputs: SimpleNamespace(raw="not json at all")
+    )
+
+    flow = ReceptionFlow(user_request="PESTEL Reyl")
+    with pytest.raises(ValueError):
+        flow.generate_pestel()
+
+    assert calls["assembled"] == []
+    assert flow.state.output_file == "output/pestel/report.json"
+    assert flow.state.pestel_report is None

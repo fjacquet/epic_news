@@ -14,7 +14,12 @@ def build_docx(fragments: list[tuple[str, str]], meta: dict[str, str], output_pa
     """Assemble ordered (heading, markdown_body) fragments into a DOCX with a TOC.
 
     Each fragment becomes a top-level (H1) section. Deterministic: no LLM, no network.
+
+    Raises:
+        ValueError: if output_path does not resolve inside the ``output/`` directory (ADR-015).
     """
+    if not Path(output_path).resolve().is_relative_to(Path("output").resolve()):
+        raise ValueError(f"Refusing to write a report outside output/: {output_path}")
     title = meta.get("title", "Rapport")
     date = meta.get("date", "")
     parts: list[str] = [f"% {title}", f"% {meta.get('author', 'Epic News')}", f"% {date}", ""]

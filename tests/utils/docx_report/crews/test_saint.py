@@ -30,7 +30,7 @@ def test_saint_docx(tmp_path):
         sources=["Source-Un", "Source-Deux"],
     )
     llm = _StubLLM()
-    out = assemble_saint_docx(model, {"current_date": "2026-07-13"}, str(tmp_path / "r.docx"), llm)
+    out = assemble_saint_docx(model, {"current_date": "2026-07-13"}, str(tmp_path / "output" / "r.docx"), llm)
     txt = _text(out)
     assert "Source-Un" in txt and "Source-Deux" in txt  # deterministic sources verbatim
     # narrated: Biographie + Signification + Miracles + Lien avec la Suisse + Prière & Réflexion = 5 llm calls

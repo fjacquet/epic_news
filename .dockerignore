@@ -10,7 +10,6 @@
 !pyproject.toml
 !uv.lock
 !src/
-!templates/
 !supervisord.conf
 
 # Junk nested inside the allowed trees. Later patterns win, so these re-exclude
@@ -20,7 +19,6 @@ src/**/.mypy_cache/
 src/**/.pytest_cache/
 src/**/.ruff_cache/
 src/**/*.egg-info/
-templates/**/__pycache__/
 
 # Finder droppings. The old denylist excluded these; the allowlist rewrite lost
 # the rule. A .DS_Store created by opening src/ in Finder is enough to change

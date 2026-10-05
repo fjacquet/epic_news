@@ -49,7 +49,7 @@ def test_meeting_prep_docx(tmp_path):
     )
     llm = _StubLLM()
     out = assemble_meeting_prep_docx(
-        model, {"current_date": "2026-07-13"}, str(tmp_path / "meeting.docx"), llm
+        model, {"current_date": "2026-07-13"}, str(tmp_path / "output" / "meeting.docx"), llm
     )
     txt = _text(out)
 

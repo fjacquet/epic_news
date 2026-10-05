@@ -31,7 +31,7 @@ class OutputFileReadTool(BaseTool):
         "file is larger than the read limit) or 'error'."
     )
     args_schema: type[BaseModel] = OutputFileReadToolSchema
-    # Relative to the working directory, like render_and_write_html.
+    # Relative to the working directory, like build_docx.
     root: str = "output"
 
     def _run(self, file_path: str) -> str:

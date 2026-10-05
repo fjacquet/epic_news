@@ -2,7 +2,7 @@
 [project]
 name = "epic_news"
 version = "3.6.2"
-description = "CrewAI flow that routes natural-language requests to specialised crews and delivers HTML, PDF and DOCX reports"
+description = "CrewAI flow that routes natural-language requests to specialised crews and delivers DOCX reports"
 authors = [{ name = "Frederic Jacquet", email = "fred.jacquet@gmail.com" }]
 requires-python = ">=3.13,<3.14"
 dependencies = [
@@ -27,7 +27,6 @@ dependencies = [
     "uvicorn>=0.52.0",
     "streamlit>=1.60.0",
     # --- Data sources / scraping ---
-    "beautifulsoup4>=4.13.4,<4.16",  # capped by crewai-tools>=1.14.3
     "lxml>=6.1.0",
     "lxml-html-clean>=0.4.2",
     "newspaper3k>=0.2.8",
@@ -37,10 +36,7 @@ dependencies = [
     "firecrawl-py>=4.34.0",
     "pyairtable>=3.4.2",
     # --- Rendering / output ---
-    # --- Numerical / data ---
-    "markdown-it-py>=4.0.0",
     "pypandoc>=1.17",
-    "nh3>=0.3.7",
     "json-repair>=0.60",
 ]
 

@@ -1,12 +1,12 @@
 import os
+from pathlib import Path
 from queue import Empty, Queue
 from threading import Thread
 
 import streamlit as st
-from bs4 import BeautifulSoup
 from loguru import logger
 
-from epic_news.main import kickoff
+from epic_news.main import ReceptionFlow
 
 # --- Streamlit UI Configuration ---
 st.set_page_config(page_title="Epic News CrewAI Orchestrator", layout="wide")
@@ -21,8 +21,6 @@ if "log_messages" not in st.session_state:
     st.session_state.log_messages = []
 if "final_report" not in st.session_state:
     st.session_state.final_report = None
-if "final_report_md" not in st.session_state:
-    st.session_state.final_report_md = None
 
 
 # --- Real-time Logging Setup ---
@@ -56,39 +54,35 @@ log_queue = get_session_log_queue(st.session_state)
 
 
 # --- Helpers ---
-def render_html_report(html: str) -> None:
-    """Show report HTML via st.html (DOMPurify-sanitized, scripts ignored), never unsafe markdown."""
-    st.html(html)
+DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 
 
-def html_to_markdown(html: str) -> str:
-    """Best-effort HTML→plain-text conversion for displaying/downloading.
-
-    Uses BeautifulSoup text extraction; returns original HTML on failure.
-    """
-    try:
-        soup = BeautifulSoup(html, "html.parser")
-        # Keep basic structure using newlines
-        text = soup.get_text("\n")
-        return text.strip()
-    except Exception:
-        return html
+def render_report_download(file_name: str, data: bytes) -> None:
+    """Offer the DOCX report as a download; the bytes are never shown as text or HTML."""
+    st.download_button(
+        label="Télécharger le rapport (DOCX)",
+        data=data,
+        file_name=file_name,
+        mime=DOCX_MIME,
+    )
 
 
 # --- Crew Execution Logic ---
 def run_crew_thread(user_request: str, log_queue: Queue):
     """Runs the ReceptionFlow in a separate thread to avoid blocking the UI."""
     try:
-        # The kickoff function will run the flow. The flow's state will hold the output path.
-        flow = kickoff(user_input=user_request)
+        # Run the flow here, not through main.kickoff(): that console entry returns None
+        # (for sys.exit) and resets loguru, which would drop this session's log sink.
+        # The flow's state holds the report path once it finishes.
+        flow = ReceptionFlow(user_request=user_request)
+        flow.kickoff()
 
         # After running, put the result into the queue
-        if flow and flow.state.output_file and os.path.exists(flow.state.output_file):
-            with open(flow.state.output_file, encoding="utf-8") as f:
-                report_content = f.read()
-            log_queue.put(("REPORT", report_content))
+        if flow.state.output_file and os.path.exists(flow.state.output_file):
+            report_path = Path(flow.state.output_file)
+            log_queue.put(("REPORT", (report_path.name, report_path.read_bytes())))
         else:
-            error_message = f"Flow finished, but no output file was found at '{flow.state.output_file if flow else 'N/A'}'"
+            error_message = f"Flow finished, but no output file was found at '{flow.state.output_file}'"
             log_queue.put(("ERROR", error_message))
 
     except Exception as e:
@@ -110,7 +104,6 @@ if st.button("🔎 Start Research", disabled=st.session_state.crew_running):
     st.session_state.crew_running = True
     st.session_state.log_messages = []
     st.session_state.final_report = None
-    st.session_state.final_report_md = None
 
     # Start the crew thread
     st.session_state.thread = Thread(target=run_crew_thread, args=(user_request, log_queue))
@@ -146,35 +139,13 @@ if st.session_state.crew_running:
         # Final state update after loop
         st.session_state.crew_running = False
         if st.session_state.final_report:
-            st.session_state.final_report_md = html_to_markdown(st.session_state.final_report)
             status.update(label="✅ Crew finished! Final report is ready.", state="complete")
         else:
             status.update(label="❌ Crew finished, but no report was generated.", state="error")
 
-    # After status closes, show the final report section and download
-    if st.session_state.final_report_md:
-        st.subheader("Final Report (Markdown)")
-        st.markdown(st.session_state.final_report_md)
-
-        # Suggest a filename based on output_file if available
-        default_name = "final_report.md"
-        try:
-            if "thread" in st.session_state and hasattr(st.session_state, "thread"):
-                pass  # no-op; kept for symmetry
-            # We cannot access flow object here; rely on a default name
-        except Exception:
-            pass
-
-        st.download_button(
-            label="⬇️ Download report (.md)",
-            data=st.session_state.final_report_md,
-            file_name=default_name,
-            mime="text/markdown",
-        )
-    elif st.session_state.final_report:
-        # Fallback: if markdown conversion failed, still show HTML
-        st.subheader("Final Report (HTML)")
-        render_html_report(st.session_state.final_report)
+    # After status closes, offer the report for download
+    if st.session_state.final_report:
+        render_report_download(*st.session_state.final_report)
 
     # Clean up the thread
     if "thread" in st.session_state:

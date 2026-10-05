@@ -11,14 +11,14 @@ In this tutorial, you'll create a complete **Book Recommendation Crew** from scr
 
 - Take a genre as input (e.g., "science fiction", "mystery")
 - Research top 5 books in that genre
-- Generate a structured HTML report with book summaries, ratings, and purchase links
+- Generate a structured DOCX report with book summaries, ratings, and purchase links
 - Follow all epic_news architectural patterns
 
 By the end, you'll understand:
 - The two-agent pattern (researcher + reporter)
 - How to define agents and tasks in YAML
 - How to create Pydantic models (Python 3.13 syntax)
-- How to build HTML renderers using BeautifulSoup
+- How to build a DOCX assembler
 - How to integrate with ReceptionFlow
 
 ## Project Structure Overview
@@ -37,7 +37,7 @@ src/epic_news/crews/
 
 Additional files you'll create:
 - `src/epic_news/models/crews/book_recommendation_report.py` - Pydantic model
-- `src/epic_news/utils/html/template_renderers/book_recommender_renderer.py` - HTML renderer
+- `src/epic_news/utils/docx_report/crews/book_recommender.py` - DOCX assembler
 
 ## Step 1: Create Directory Structure
 
@@ -310,311 +310,56 @@ class BookRecommenderCrew:
 
 4. **system_template**: Explicit JSON formatting instructions prevent escaping errors
 
-## Step 6: Create HTML Renderer
+## Step 6: Create the DOCX Assembler
 
-Create `src/epic_news/utils/html/template_renderers/book_recommender_renderer.py`:
+Create `src/epic_news/utils/docx_report/crews/book_recommender.py`. An assembler turns the
+validated model into Markdown fragments and calls `build_docx`, which runs pandoc and
+refuses any path outside `output/`. This one is deterministic (no LLM call); see
+`saint.py` in the same folder for an assembler that narrates sections with the LLM.
 
 ```python
-"""
-Book Recommender Renderer
-
-Renders book recommendation data to structured HTML using BeautifulSoup.
-"""
+"""Book recommendations -> DOCX: deterministic, no LLM."""
 
 from typing import Any
 
-from bs4 import BeautifulSoup
+from epic_news.models.crews.book_recommendation_report import BookDetail, BookRecommendationReport
+from epic_news.utils.docx_report import build_docx
 
-from .base_renderer import BaseRenderer
+
+def _book_markdown(book: BookDetail) -> str:
+    lines = [
+        f"**{book.author}** ({book.publication_year}), rating {book.rating}/5",
+        "",
+        book.summary,
+    ]
+    if book.themes:
+        lines += ["", "Themes: " + ", ".join(book.themes)]
+    lines += [f"- [{link.retailer}]({link.url})" for link in book.purchase_links]
+    return "\n".join(lines)
 
 
-class BookRecommenderRenderer(BaseRenderer):
-    """Renders book recommendation reports with structured formatting."""
-
-    def __init__(self):
-        """Initialize the book recommender renderer."""
-        super().__init__()
-
-    def render(self, data: dict[str, Any]) -> str:
-        """
-        Render book recommendation data to HTML.
-
-        Args:
-            data: Dictionary containing book recommendation data
-
-        Returns:
-            HTML string for book recommendation content
-        """
-        # Create main container
-        soup = self.create_soup("div")
-        container = soup.find("div")
-        # Use attrs["class"] pattern, NOT class_="..."
-        container.attrs["class"] = ["book-recommender-report"]
-
-        # Add header
-        self._add_header(soup, container, data)
-
-        # Add books section
-        self._add_books(soup, container, data)
-
-        # Add styles
-        self._add_styles(soup)
-
-        return str(soup)
-
-    def _add_header(self, soup: BeautifulSoup, container, data: dict[str, Any]) -> None:
-        """Add report header with genre and summary."""
-        header_div = soup.new_tag("div")
-        header_div.attrs["class"] = ["report-header"]
-
-        # Title
-        genre = data.get("genre", "Books")
-        title_tag = soup.new_tag("h2")
-        title_tag.string = f"📚 Top {genre.title()} Books"
-        header_div.append(title_tag)
-
-        # Summary if available
-        summary = data.get("summary")
-        if summary:
-            summary_p = soup.new_tag("p")
-            summary_p.attrs["class"] = ["genre-summary"]
-            summary_p.string = summary
-            header_div.append(summary_p)
-
-        container.append(header_div)
-
-    def _add_books(self, soup: BeautifulSoup, container, data: dict[str, Any]) -> None:
-        """Add books section with individual book cards."""
-        books = data.get("books", [])
-        if not books:
-            no_books_p = soup.new_tag("p")
-            no_books_p.string = "No books found."
-            container.append(no_books_p)
-            return
-
-        books_div = soup.new_tag("div")
-        books_div.attrs["class"] = ["books-container"]
-
-        for i, book in enumerate(books, 1):
-            book_card = self._create_book_card(soup, book, i)
-            books_div.append(book_card)
-
-        container.append(books_div)
-
-    def _create_book_card(self, soup: BeautifulSoup, book: dict[str, Any], rank: int) -> Any:
-        """Create individual book card."""
-        card = soup.new_tag("div")
-        card.attrs["class"] = ["book-card"]
-
-        # Rank and title
-        title_div = soup.new_tag("div")
-        title_div.attrs["class"] = ["book-header"]
-
-        rank_span = soup.new_tag("span")
-        rank_span.attrs["class"] = ["book-rank"]
-        rank_span.string = f"#{rank}"
-        title_div.append(rank_span)
-
-        title_h3 = soup.new_tag("h3")
-        title_h3.string = book.get("title", "Unknown Title")
-        title_div.append(title_h3)
-
-        card.append(title_div)
-
-        # Author and year
-        author_p = soup.new_tag("p")
-        author_p.attrs["class"] = ["book-author"]
-        author_p.string = f"by {book.get('author', 'Unknown')} ({book.get('publication_year', 'N/A')})"
-        card.append(author_p)
-
-        # Rating
-        rating = book.get("rating", 0)
-        rating_div = soup.new_tag("div")
-        rating_div.attrs["class"] = ["book-rating"]
-        rating_div.string = f"⭐ {rating:.1f}/5.0"
-        card.append(rating_div)
-
-        # Summary
-        summary = book.get("summary", "No summary available.")
-        summary_p = soup.new_tag("p")
-        summary_p.attrs["class"] = ["book-summary"]
-        summary_p.string = summary
-        card.append(summary_p)
-
-        # Themes
-        themes = book.get("themes", [])
-        if themes:
-            themes_div = soup.new_tag("div")
-            themes_div.attrs["class"] = ["book-themes"]
-
-            themes_label = soup.new_tag("strong")
-            themes_label.string = "Themes: "
-            themes_div.append(themes_label)
-
-            themes_span = soup.new_tag("span")
-            themes_span.string = ", ".join(themes)
-            themes_div.append(themes_span)
-
-            card.append(themes_div)
-
-        # Purchase links
-        purchase_links = book.get("purchase_links", [])
-        if purchase_links:
-            links_div = soup.new_tag("div")
-            links_div.attrs["class"] = ["purchase-links"]
-
-            links_label = soup.new_tag("strong")
-            links_label.string = "Buy: "
-            links_div.append(links_label)
-
-            for link_data in purchase_links:
-                link = soup.new_tag("a", href=link_data.get("url", "#"))
-                link.attrs["target"] = "_blank"
-                link.string = link_data.get("retailer", "Store")
-                links_div.append(link)
-                links_div.append(soup.new_string(" | "))
-
-            card.append(links_div)
-
-        return card
-
-    def _add_styles(self, soup: BeautifulSoup) -> None:
-        """Add CSS styles using CSS variables with fallbacks."""
-        style_tag = soup.new_tag("style")
-        style_tag.string = """
-        .book-recommender-report {
-            max-width: 900px;
-            margin: 0 auto;
-        }
-        .report-header {
-            text-align: center;
-            margin-bottom: 2rem;
-            padding: 2rem;
-            background: var(--container-bg, #ffffff);
-            border-radius: 12px;
-            border: 1px solid var(--border-color, #dee2e6);
-        }
-        .report-header h2 {
-            color: var(--heading-color, #212529);
-            margin-bottom: 1rem;
-        }
-        .genre-summary {
-            color: var(--text-color, #495057);
-            line-height: 1.6;
-        }
-        .books-container {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-        .book-card {
-            background: var(--container-bg, #ffffff);
-            border: 1px solid var(--border-color, #dee2e6);
-            border-radius: 8px;
-            padding: 1.5rem;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .book-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-        .book-header {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 0.5rem;
-        }
-        .book-rank {
-            background: var(--primary-color, #007bff);
-            color: white;
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: 0.9rem;
-        }
-        .book-card h3 {
-            color: var(--heading-color, #212529);
-            margin: 0;
-            flex: 1;
-        }
-        .book-author {
-            color: var(--text-color, #6c757d);
-            font-style: italic;
-            margin: 0.5rem 0;
-        }
-        .book-rating {
-            color: var(--accent-color, #ffc107);
-            font-size: 1.1rem;
-            margin: 0.5rem 0;
-        }
-        .book-summary {
-            color: var(--text-color, #495057);
-            line-height: 1.6;
-            margin: 1rem 0;
-        }
-        .book-themes {
-            margin: 1rem 0;
-            padding: 0.75rem;
-            background: rgba(108, 117, 125, 0.1);
-            border-radius: 6px;
-        }
-        .purchase-links {
-            margin-top: 1rem;
-            padding-top: 1rem;
-            border-top: 1px solid var(--border-color, #dee2e6);
-        }
-        .purchase-links a {
-            color: var(--link-color, #007bff);
-            text-decoration: none;
-            margin-right: 0.5rem;
-        }
-        .purchase-links a:hover {
-            text-decoration: underline;
-        }
-        """
-        soup.append(style_tag)
-```
-
-**Critical renderer patterns:**
-
-1. **Use `attrs["class"]` NOT `class_`**:
-   ```python
-   container.attrs["class"] = ["book-recommender-report"]  # ✅ CORRECT
-   # NOT: container["class_"] = "..."  # ❌ WRONG - BeautifulSoup bug
-   ```
-
-2. **CSS variables with fallbacks**:
-   ```css
-   color: var(--text-color, #495057);  /* Falls back to #495057 if variable undefined */
-   ```
-
-3. **Always implement `__init__`**:
-   ```python
-   def __init__(self):
-       super().__init__()  # Required: __init__ is abstract on BaseRenderer
-   ```
-
-4. **Handle empty states**:
-   ```python
-   if not books:
-       # Show "No books found" message
-   ```
-
-## Step 7: Register Renderer in Factory
-
-Edit `src/epic_news/utils/html/template_renderers/renderer_factory.py` to register your renderer:
-
-```python
-from .book_recommender_renderer import BookRecommenderRenderer
-
-class RendererFactory:
-    _RENDERER_MAP: dict[str, type[BaseRenderer]] = {
-        # ... existing renderers ...
-        "BOOK_RECOMMENDER": BookRecommenderRenderer,
+def assemble_book_recommender_docx(
+    model: BookRecommendationReport, inputs: dict, output_path: str, llm: Any = None
+) -> str:
+    """Build the report as a DOCX. `llm` is unused (kept for the common assembler signature)."""
+    fragments = [(book.title, _book_markdown(book)) for book in model.books]
+    if model.summary:
+        fragments.insert(0, ("Overview", model.summary))
+    meta = {
+        "title": f"Book recommendations: {model.genre}",
+        "date": inputs.get("current_date", ""),
+        "author": "Epic News",
     }
+    return build_docx(fragments, meta, output_path)
 ```
 
-## Step 8: Integrate with ReceptionFlow
+**Key points:**
+
+1. **Handle empty states**: skip optional parts (`if model.summary:`) instead of writing empty headings.
+2. **Keep paths under `output/`**: `build_docx` raises `ValueError` otherwise.
+3. **Let errors propagate**: a report that cannot be built stops the run, and no email is sent.
+
+## Step 7: Integrate with ReceptionFlow
 
 Edit `src/epic_news/main.py`: route the classified crew in `determine_crew`
 and add a `generate_*` method that follows the existing ones:
@@ -622,6 +367,9 @@ and add a `generate_*` method that follows the existing ones:
 ```python
 from epic_news.crews.book_recommender.book_recommender_crew import BookRecommenderCrew
 from epic_news.models.crews.book_recommendation_report import BookRecommendationReport
+from epic_news.utils.docx_report.crews.book_recommender import assemble_book_recommender_docx
+from epic_news.utils.docx_report.dispatch import emit_report
+
 
 class ReceptionFlow(Flow[ContentState]):
     # ... existing code ...
@@ -643,16 +391,17 @@ class ReceptionFlow(Flow[ContentState]):
         report = load_or_parse_model(
             self.state.output_file, BookRecommendationReport, output, inputs, "book recommendations"
         )
-        html_file = "output/book_recommender/report.html"
-        render_and_write_html("BOOK_RECOMMENDER", report, html_file)  # creates the directory
-        self.state.output_file = html_file
+        emit_report(
+            self.state,
+            lambda: assemble_book_recommender_docx(report, inputs, "output/book_recommender/report.docx"),
+        )
 ```
 
 Set `output_file="output/book_recommender/report.json"` on the reporting task
 so `load_or_parse_model` finds the JSON; it falls back to parsing the raw crew
 output otherwise. The classifier also needs to know the new crew key.
 
-## Step 9: Test Your Crew
+## Step 8: Test Your Crew
 
 Run your crew using the CrewAI command:
 
@@ -670,10 +419,10 @@ crewai flow kickoff
 **Expected output:**
 1. Researcher agent searches for top sci-fi books
 2. Reporter agent formats results as JSON
-3. HTML report generated at `output/book_recommender/report.html`
-4. Open the HTML file in a browser to see your formatted report
+3. DOCX report generated at `output/book_recommender/report.docx`
+4. Open the DOCX file in Word (or LibreOffice) to see your formatted report
 
-## Step 10: Write Structure Tests
+## Step 9: Write Structure Tests
 
 Create `tests/crews/book_recommender/test_book_recommender_structure.py`:
 
@@ -710,14 +459,13 @@ def test_pydantic_model_exists():
     assert PurchaseLink is not None
 
 
-def test_renderer_exists():
-    """Test that renderer exists and is importable."""
-    from epic_news.utils.html.template_renderers.book_recommender_renderer import (
-        BookRecommenderRenderer,
+def test_assembler_exists():
+    """Test that the assembler exists and is importable."""
+    from epic_news.utils.docx_report.crews.book_recommender import (
+        assemble_book_recommender_docx,
     )
 
-    renderer = BookRecommenderRenderer()
-    assert renderer is not None
+    assert callable(assemble_book_recommender_docx)
 
 
 def test_crew_instantiation():
@@ -731,16 +479,18 @@ def test_crew_instantiation():
     assert crew_instance.crew() is not None
 
 
-def test_renderer_output():
-    """Test that renderer produces valid HTML."""
-    from epic_news.utils.html.template_renderers.book_recommender_renderer import (
-        BookRecommenderRenderer,
+def test_assembler_output(tmp_path, monkeypatch):
+    """Test that the assembler writes a DOCX under output/ (needs pandoc)."""
+    from epic_news.models.crews.book_recommendation_report import BookRecommendationReport
+    from epic_news.utils.docx_report.crews.book_recommender import (
+        assemble_book_recommender_docx,
     )
 
-    test_data = {
-        "genre": "science fiction",
-        "generation_date": "2024-01-15",
-        "books": [
+    monkeypatch.chdir(tmp_path)  # build_docx only writes inside ./output
+    report = BookRecommendationReport(
+        genre="science fiction",
+        generation_date="2024-01-15",
+        books=[
             {
                 "title": "Test Book",
                 "author": "Test Author",
@@ -748,19 +498,24 @@ def test_renderer_output():
                 "rating": 4.5,
                 "summary": "A test book summary.",
                 "themes": ["space", "adventure"],
-                "purchase_links": [
-                    {"retailer": "Amazon", "url": "https://amazon.com"}
-                ],
+                "purchase_links": [{"retailer": "Amazon", "url": "https://amazon.com"}],
             }
         ],
-    }
+    )
 
-    renderer = BookRecommenderRenderer()
-    html = renderer.render(test_data)
+    path = assemble_book_recommender_docx(report, {}, "output/book_recommender/report.docx")
 
-    assert "<div" in html, "Should contain HTML div tags"
-    assert "Test Book" in html, "Should contain book title"
-    assert "4.5" in html, "Should contain rating"
+    assert path.endswith(".docx")
+    assert (tmp_path / path).stat().st_size > 0
+
+
+def test_assembler_refuses_paths_outside_output(tmp_path, monkeypatch):
+    """Test that build_docx refuses a path outside output/."""
+    from epic_news.utils.docx_report import build_docx
+
+    monkeypatch.chdir(tmp_path)
+    with pytest.raises(ValueError):
+        build_docx([("Title", "text")], {"title": "T"}, str(tmp_path / "elsewhere.docx"))
 ```
 
 Run tests:
@@ -779,11 +534,11 @@ pydantic_core.ValidationError: Invalid JSON: invalid escape at line 3
 
 **Solution:** Add `system_template` to reporter agent with explicit escaping rules. See [JSON Escaping Errors](../troubleshooting/COMMON_ERRORS.md#json-escaping-errors) for full details.
 
-### Issue 2: Action Traces in HTML Output
+### Issue 2: Action Traces in the Report
 
-**Error:** HTML file contains agent thinking/tool calls instead of clean report.
+**Error:** The report or JSON file contains agent thinking/tool calls instead of clean content.
 
-**Solution:** Use `output_pydantic` on the final task and the **two-agent pattern** - the reporter agent has no tools and owns the `output_file`. See [HTML Rendering Issues](../troubleshooting/COMMON_ERRORS.md#html-rendering-issues).
+**Solution:** Use `output_pydantic` on the final task and the **two-agent pattern** - the reporter agent has no tools and owns the `output_file`. See [Crew Execution Errors](../troubleshooting/COMMON_ERRORS.md#crew-execution-errors).
 
 ### Issue 3: AttributeError with Union Types
 
@@ -812,30 +567,27 @@ ModuleNotFoundError: No module named 'epic_news'
 
 **Solution:** Run `uv pip install -e .` for editable install. See [Import/Module Errors](../troubleshooting/COMMON_ERRORS.md#importmodule-errors).
 
-### Issue 6: Generic Layout Instead of Your Renderer
+### Issue 6: `Refusing to write a report outside output/`
 
-**Symptom:** The report uses the generic key/value layout. Unknown crew keys fall back to `GenericRenderer` silently.
+**Symptom:** `build_docx` raises `ValueError`.
 
-**Solution:** Register the renderer in `RendererFactory._RENDERER_MAP` under the key passed to `render_and_write_html`.
+**Solution:** Build the output path under `output/` (for example `output/book_recommender/report.docx`). See [DOCX Report Issues](../troubleshooting/COMMON_ERRORS.md#docx-report-issues).
 
 ## Key Takeaways
 
-✅ **Always use the two-agent pattern** for HTML reports (researcher + reporter)
+✅ **Always use the two-agent pattern** for reports (researcher + reporter)
 ✅ **Assign tools in Python code**, never in YAML
 ✅ **Use Python 3.13 union syntax** (`X | None`)
 ✅ **Add system_template** to reporter agents for JSON formatting
-✅ **Use CSS variables with fallbacks** in renderers
-✅ **Use `attrs["class"]`** not `class_` in BeautifulSoup
-✅ **Always implement `__init__`** in renderer classes
-✅ **Handle empty states** gracefully in renderers
+✅ **Keep report paths under `output/`**; a build error stops the run
+✅ **Handle empty states** gracefully in assemblers
 ✅ **Use `LLMConfig`** methods (`get_openrouter_llm(task_type=...)`, `max_iter` on Agent), never hardcode LLM settings
 ✅ **Write structure tests** to ensure crew integrity
 
 ## Next Steps
 
 - **Tutorial 2:** Adding Custom Tools (Coming soon)
-- **Tutorial 3:** Advanced HTML Rendering (Coming soon)
-- **Reference:** [Rendering Architecture](../reference/RENDERING_ARCHITECTURE.md)
+- **Reference:** [DOCX-only reports (ADR-017)](../adr/ADR-017-docx-only-reports.md)
 - **Reference:** [Tools Reference](../reference/tools.md)
 - **How-to:** [Troubleshooting](../how-to/troubleshooting.md)
 
@@ -848,4 +600,4 @@ ModuleNotFoundError: No module named 'epic_news'
 
 ---
 
-**Congratulations!** You've successfully created your first epic_news crew. You now understand the complete workflow from YAML configuration to HTML rendering.
+**Congratulations!** You've successfully created your first epic_news crew. You now understand the complete workflow from YAML configuration to the DOCX report.
