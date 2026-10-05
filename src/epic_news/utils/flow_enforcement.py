@@ -107,6 +107,44 @@ def _log_run_usage(crew_name: str, elapsed: float, result: Any) -> None:
     )
 
 
+def _prepare_attempt(crew_or_factory: Any, crew_name: str, attempt: int, attempts: int, method: str) -> Any:
+    """Stop if the run was cancelled, then build a fresh crew that supports ``method``.
+
+    A Ctrl+C cannot interrupt a crew already in flight, but it must stop the next
+    attempt from starting. The crew is rebuilt each attempt: a Crew carries per-run
+    task state that is not safe to replay after a mid-run failure.
+    """
+    raise_if_cancelled(f"crew {crew_name} (attempt {attempt}/{attempts})")
+    crew = _get_crew_instance(crew_or_factory)
+    if not hasattr(crew, method):
+        raise AttributeError(f"Object {crew!r} does not support {method}()")
+    return crew
+
+
+def _retry_delay(
+    exc: Exception, crew_name: str, attempt: int, attempts: int, backoff: float, start: float
+) -> float | None:
+    """Seconds to wait before retrying ``exc``, or None when the caller must re-raise it."""
+    elapsed = time.perf_counter() - start
+    if attempt < attempts and _is_transient_error(exc):
+        delay: float = backoff * (2 ** (attempt - 1))
+        logger.warning(
+            "⚠️ Crew {} hit a transient provider error on attempt {}/{} after {:.2f}s; "
+            "retrying in {:.1f}s. Error: {}",
+            crew_name,
+            attempt,
+            attempts,
+            elapsed,
+            delay,
+            exc,
+        )
+        return delay
+    logger.error(
+        "❌ Crew {} failed after {:.2f}s on attempt {}/{}: {}", crew_name, elapsed, attempt, attempts, exc
+    )
+    return None
+
+
 def kickoff_flow(crew_or_factory: Any, context: dict[str, Any]) -> Any:
     """Kick off a CrewAI run in a consistent, traceable way.
 
@@ -128,46 +166,17 @@ def kickoff_flow(crew_or_factory: Any, context: dict[str, Any]) -> Any:
             "🚀 Kicking off crew {} with context keys: {}", crew_name, ", ".join(sorted(context.keys()))
         )
         for attempt in range(1, attempts + 1):
-            # A Ctrl+C cannot interrupt a crew already in flight, but it must stop the
-            # next one — and every retry — from starting.
-            raise_if_cancelled(f"crew {crew_name} (attempt {attempt}/{attempts})")
-            # Rebuild the crew each attempt: a Crew carries per-run task state that is
-            # not safe to replay after a mid-run failure.
-            crew = _get_crew_instance(crew_or_factory)
-            if not hasattr(crew, "kickoff"):
-                raise AttributeError(f"Object {crew!r} does not support kickoff()")
-
+            crew = _prepare_attempt(crew_or_factory, crew_name, attempt, attempts, "kickoff")
             try:
                 result = crew.kickoff(inputs=context)
             except Exception as exc:
-                elapsed = time.perf_counter() - start
-                if attempt < attempts and _is_transient_error(exc):
-                    delay = backoff * (2 ** (attempt - 1))
-                    logger.warning(
-                        "⚠️ Crew {} hit a transient provider error on attempt {}/{} after {:.2f}s; "
-                        "retrying in {:.1f}s. Error: {}",
-                        crew_name,
-                        attempt,
-                        attempts,
-                        elapsed,
-                        delay,
-                        exc,
-                    )
-                    time.sleep(delay)
-                    continue
-                logger.error(
-                    "❌ Crew {} failed after {:.2f}s on attempt {}/{}: {}",
-                    crew_name,
-                    elapsed,
-                    attempt,
-                    attempts,
-                    exc,
-                )
-                raise
-            else:
-                elapsed = time.perf_counter() - start
-                _log_run_usage(crew_name, elapsed, result)
-                return result
+                delay = _retry_delay(exc, crew_name, attempt, attempts, backoff, start)
+                if delay is None:
+                    raise
+                time.sleep(delay)
+                continue
+            _log_run_usage(crew_name, time.perf_counter() - start, result)
+            return result
 
         # Unreachable: every iteration either returns or raises.
         raise RuntimeError(  # pragma: no cover
@@ -201,46 +210,17 @@ async def akickoff_flow(crew_or_factory: Any, context: dict[str, Any]) -> Any:
             ", ".join(sorted(context.keys())),
         )
         for attempt in range(1, attempts + 1):
-            # A Ctrl+C cannot interrupt a crew already in flight, but it must stop the
-            # next one — and every retry — from starting.
-            raise_if_cancelled(f"crew {crew_name} (attempt {attempt}/{attempts})")
-            # Rebuild the crew each attempt: a Crew carries per-run task state that is
-            # not safe to replay after a mid-run failure.
-            crew = _get_crew_instance(crew_or_factory)
-            if not hasattr(crew, "akickoff"):
-                raise AttributeError(f"Object {crew!r} does not support akickoff()")
-
+            crew = _prepare_attempt(crew_or_factory, crew_name, attempt, attempts, "akickoff")
             try:
                 result = await crew.akickoff(inputs=context)
             except Exception as exc:
-                elapsed = time.perf_counter() - start
-                if attempt < attempts and _is_transient_error(exc):
-                    delay = backoff * (2 ** (attempt - 1))
-                    logger.warning(
-                        "⚠️ Crew {} hit a transient provider error on attempt {}/{} after {:.2f}s; "
-                        "retrying in {:.1f}s. Error: {}",
-                        crew_name,
-                        attempt,
-                        attempts,
-                        elapsed,
-                        delay,
-                        exc,
-                    )
-                    await asyncio.sleep(delay)
-                    continue
-                logger.error(
-                    "❌ Crew {} failed after {:.2f}s on attempt {}/{}: {}",
-                    crew_name,
-                    elapsed,
-                    attempt,
-                    attempts,
-                    exc,
-                )
-                raise
-            else:
-                elapsed = time.perf_counter() - start
-                _log_run_usage(crew_name, elapsed, result)
-                return result
+                delay = _retry_delay(exc, crew_name, attempt, attempts, backoff, start)
+                if delay is None:
+                    raise
+                await asyncio.sleep(delay)
+                continue
+            _log_run_usage(crew_name, time.perf_counter() - start, result)
+            return result
 
         # Unreachable: every iteration either returns or raises.
         raise RuntimeError(  # pragma: no cover
