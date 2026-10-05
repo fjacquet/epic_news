@@ -432,18 +432,9 @@ class ReceptionFlow(Flow[ContentState]):
         Invokes the `PoemCrew` to generate a poem based on the provided topic.
         Sets `output_file` to `output/poem/poem.docx`.
         """
-        self.state.output_file = "output/poem/poem.json"
         inputs = self.state.to_crew_inputs()
         self.logger.info(f"Generating poem about: {inputs.get('topic', 'N/A')}")
-
-        output = kickoff_flow(PoemCrew(), inputs)
-        dump_crewai_state(output, "POEM")
-
-        poem_model = load_or_parse_model(self.state.output_file, PoemJSONOutput, output, inputs, "poem")
-        emit_report(
-            self.state,
-            lambda: assemble_poem_docx(poem_model, self.state.to_crew_inputs(), "output/poem/poem.docx"),
-        )
+        self._run_standard(CREW_REGISTRY["POEM"], PoemCrew(), inputs)
 
     @listen("go_generate_news_company")
     @trace_task(tracer)
