@@ -1,5 +1,6 @@
 """Bounded per-section Markdown fragment generation via an LLM."""
 
+import re
 from typing import Any
 
 from loguru import logger
@@ -19,6 +20,26 @@ _FATAL_MARKERS: tuple[str, ...] = (
 def placeholder_for(heading: str) -> str:
     """Return the marker body used when a section could not be narrated."""
     return f"> ⚠️ Section « {heading} » indisponible."
+
+
+_HEADING_LINE = re.compile(r"^#{1,6}\s+(.*?)\s*#*$")
+
+
+def _normalize_heading(text: str) -> str:
+    return re.sub(r"[*_`:\s]+", " ", text).strip().casefold()
+
+
+def _drop_repeated_heading(md: str, heading: str) -> str:
+    """Drop a first line that is a Markdown heading with the section's own title.
+
+    build_docx already writes ``# <heading>``; models often open the fragment with the
+    same title again (``## <heading>``), which doubled every narrated heading.
+    """
+    first, _, rest = md.partition("\n")
+    match = _HEADING_LINE.match(first.strip())
+    if match and _normalize_heading(match.group(1)) == _normalize_heading(heading):
+        return rest.strip()
+    return md
 
 
 def _is_fatal(exc: Exception) -> bool:
@@ -42,7 +63,7 @@ def generate_fragment(heading: str, instruction: str, context: str, llm: Any, sy
         {"role": "user", "content": f"Section: {heading}\n\nConsigne: {instruction}\n\nContexte:\n{context}"},
     ]
     try:
-        md = (llm.call(messages) or "").strip()
+        md = _drop_repeated_heading((llm.call(messages) or "").strip(), heading)
         if md:
             return md
         logger.warning("⚠️ Fragment '{}' returned empty; using placeholder", heading)
