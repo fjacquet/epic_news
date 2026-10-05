@@ -6,7 +6,10 @@ including product research, price comparison between Switzerland and France,
 competitor analysis, and generates professional HTML reports with actionable recommendations.
 """
 
+from typing import Any
+
 from crewai import Agent, Crew, Process, Task
+from crewai.agents.agent_builder.base_agent import BaseAgent
 from crewai.project import CrewBase, agent, crew, task
 
 from epic_news.config.llm_config import LLMConfig
@@ -18,13 +21,15 @@ from epic_news.tools.web_tools import get_scrape_tools, get_search_tools
 class ShoppingAdvisorCrew:
     """ShoppingAdvisorCrew that creates comprehensive shopping advice reports."""
 
-    agents_config = "config/agents.yaml"
-    tasks_config = "config/tasks.yaml"
+    agents_config: dict[str, Any] = "config/agents.yaml"  # type: ignore[assignment]  # CrewBase loads the YAML
+    tasks_config: dict[str, Any] = "config/tasks.yaml"  # type: ignore[assignment]
+    agents: list[BaseAgent]  # set by CrewBase from the @agent methods
+    tasks: list[Task]  # set by CrewBase from the @task methods
 
     @agent
     def product_researcher(self) -> Agent:
         return Agent(
-            config=self.agents_config["product_researcher"],  # type: ignore[index]
+            config=self.agents_config["product_researcher"],
             tools=get_search_tools() + get_scrape_tools(),
             verbose=True,
             llm=LLMConfig.get_openrouter_llm(),
@@ -34,7 +39,7 @@ class ShoppingAdvisorCrew:
     @agent
     def price_analyst(self) -> Agent:
         return Agent(
-            config=self.agents_config["price_analyst"],  # type: ignore[index]
+            config=self.agents_config["price_analyst"],
             tools=get_search_tools() + get_scrape_tools(),
             verbose=True,
             llm=LLMConfig.get_openrouter_llm(),
@@ -44,7 +49,7 @@ class ShoppingAdvisorCrew:
     @agent
     def competitor_analyst(self) -> Agent:
         return Agent(
-            config=self.agents_config["competitor_analyst"],  # type: ignore[index]
+            config=self.agents_config["competitor_analyst"],
             tools=get_search_tools() + get_scrape_tools(),
             verbose=True,
             llm=LLMConfig.get_openrouter_llm(),
@@ -54,7 +59,7 @@ class ShoppingAdvisorCrew:
     @agent
     def shopping_advisor(self) -> Agent:
         return Agent(
-            config=self.agents_config["shopping_advisor"],  # type: ignore[index]
+            config=self.agents_config["shopping_advisor"],
             tools=[],
             verbose=True,
             llm=LLMConfig.get_openrouter_llm(),
@@ -64,30 +69,30 @@ class ShoppingAdvisorCrew:
     @task
     def product_research_task(self) -> Task:
         return Task(
-            config=self.tasks_config["product_research_task"],  # type: ignore[arg-type, index]
-        )  # type: ignore[call-arg]
+            config=self.tasks_config["product_research_task"],
+        )
 
     @task
     def price_analysis_task(self) -> Task:
         return Task(
-            config=self.tasks_config["price_analysis_task"],  # type: ignore[arg-type, index]
-        )  # type: ignore[call-arg]
+            config=self.tasks_config["price_analysis_task"],
+        )
 
     @task
     def competitor_analysis_task(self) -> Task:
         return Task(
-            config=self.tasks_config["competitor_analysis_task"],  # type: ignore[arg-type, index]
-        )  # type: ignore[call-arg]
+            config=self.tasks_config["competitor_analysis_task"],
+        )
 
     @task
     def shopping_data_task(self) -> Task:
         return Task(
-            config=self.tasks_config["shopping_data_task"],  # type: ignore[arg-type, index]
-            agent=self.shopping_advisor(),  # type: ignore[call-arg]
+            config=self.tasks_config["shopping_data_task"],
+            agent=self.shopping_advisor(),
             context=[
-                self.product_research_task(),  # type: ignore[call-arg]
-                self.price_analysis_task(),  # type: ignore[call-arg]
-                self.competitor_analysis_task(),  # type: ignore[call-arg]
+                self.product_research_task(),
+                self.price_analysis_task(),
+                self.competitor_analysis_task(),
             ],
             output_pydantic=ShoppingAdviceOutput,
         )
@@ -95,8 +100,8 @@ class ShoppingAdvisorCrew:
     @crew
     def crew(self) -> Crew:
         return Crew(
-            agents=self.agents,  # type: ignore[attr-defined]
-            tasks=self.tasks,  # type: ignore[attr-defined]
+            agents=self.agents,
+            tasks=self.tasks,
             process=Process.sequential,
             verbose=True,
         )

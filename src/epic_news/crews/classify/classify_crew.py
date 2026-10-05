@@ -1,6 +1,7 @@
 from typing import Any, cast
 
 from crewai import Agent, Crew, Process, Task
+from crewai.agents.agent_builder.base_agent import BaseAgent
 from crewai.project import CrewBase, agent, crew, task
 from dotenv import load_dotenv
 
@@ -17,13 +18,15 @@ class ClassifyCrew:
     into the appropriate category from a predefined list.
     """
 
-    agents_config = "config/agents.yaml"
-    tasks_config = "config/tasks.yaml"
+    agents_config: dict[str, Any] = "config/agents.yaml"  # type: ignore[assignment]  # CrewBase loads the YAML
+    tasks_config: dict[str, Any] = "config/tasks.yaml"  # type: ignore[assignment]
+    agents: list[BaseAgent]  # set by CrewBase from the @agent methods
+    tasks: list[Task]  # set by CrewBase from the @task methods
 
     @agent
     def classifier(self) -> Agent:
         return Agent(
-            config=cast(dict[str, Any], self.agents_config)["classifier"],
+            config=self.agents_config["classifier"],
             llm=LLMConfig.get_openrouter_llm(),
             max_iter=LLMConfig.get_max_iter(),
             verbose=True,
@@ -31,9 +34,9 @@ class ClassifyCrew:
 
     @task
     def classification_task(self) -> Task:
-        return Task(  # type: ignore[call-arg]
-            config=cast(dict[str, Any], self.tasks_config)["classification_task"],
-            agent=self.classifier(),  # type: ignore[call-arg]
+        return Task(
+            config=self.tasks_config["classification_task"],
+            agent=self.classifier(),
             output_pydantic=ClassificationResult,
         )
 
@@ -41,8 +44,8 @@ class ClassifyCrew:
     def crew(self) -> Crew:
         """Creates a simple classification crew"""
         return Crew(
-            agents=cast(list[Agent], self.agents),  # type: ignore[arg-type, attr-defined]
-            tasks=cast(list[Task], self.tasks),  # type: ignore[attr-defined]
+            agents=cast(list[Agent], self.agents),  # type: ignore[arg-type]
+            tasks=self.tasks,
             process=Process.sequential,
             verbose=True,
         )

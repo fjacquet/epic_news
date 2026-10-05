@@ -1,4 +1,7 @@
+from typing import Any
+
 from crewai import Agent, Crew, Process, Task
+from crewai.agents.agent_builder.base_agent import BaseAgent
 from crewai.project import CrewBase, agent, crew, task
 
 from epic_news.config.llm_config import LLMConfig
@@ -10,14 +13,16 @@ from epic_news.tools.web_tools import get_scrape_tools, get_search_tools
 class LibraryCrew:
     """Library expertise crew for finding books and generating book summaries."""
 
-    agents_config = "config/agents.yaml"
-    tasks_config = "config/tasks.yaml"
+    agents_config: dict[str, Any] = "config/agents.yaml"  # type: ignore[assignment]  # CrewBase loads the YAML
+    tasks_config: dict[str, Any] = "config/tasks.yaml"  # type: ignore[assignment]
+    agents: list[BaseAgent]  # set by CrewBase from the @agent methods
+    tasks: list[Task]  # set by CrewBase from the @task methods
 
     @agent
     def researcher(self) -> Agent:
         """Create a researcher agent responsible for gathering information."""
         return Agent(
-            config=self.agents_config["researcher"],  # type: ignore[index]
+            config=self.agents_config["researcher"],
             verbose=True,
             respect_context_window=True,
             tools=get_search_tools() + get_scrape_tools(),
@@ -29,7 +34,7 @@ class LibraryCrew:
     def reporting_analyst(self) -> Agent:
         """Create a reporting analyst agent responsible for creating JSON reports."""
         return Agent(
-            config=self.agents_config["reporting_analyst"],  # type: ignore[index]
+            config=self.agents_config["reporting_analyst"],
             verbose=True,
             respect_context_window=True,
             tools=[],
@@ -41,15 +46,15 @@ class LibraryCrew:
     def research_task(self) -> Task:
         """Define the research task for gathering information about the topic."""
         return Task(
-            config=self.tasks_config["research_task"],  # type: ignore[arg-type, index, call-arg]
+            config=self.tasks_config["research_task"],
         )
 
     @task
     def reporting_task(self) -> Task:
         """Define the reporting task for creating HTML reports based on research."""
         return Task(
-            config=self.tasks_config["reporting_task"],  # type: ignore[arg-type, index]
-            context=[self.research_task()],  # type: ignore[call-arg]
+            config=self.tasks_config["reporting_task"],
+            context=[self.research_task()],
             output_pydantic=BookSummaryReport,
         )
 
@@ -57,8 +62,8 @@ class LibraryCrew:
     def crew(self) -> Crew:
         """Creates the Library crew with sequential workflow."""
         return Crew(
-            agents=self.agents,  # type: ignore[attr-defined]
-            tasks=self.tasks,  # type: ignore[attr-defined]
+            agents=self.agents,
+            tasks=self.tasks,
             process=Process.sequential,
             max_rpm=LLMConfig.get_max_rpm(),
             verbose=True,

@@ -1,4 +1,7 @@
+from typing import Any
+
 from crewai import Agent, Crew, Process, Task
+from crewai.agents.agent_builder.base_agent import BaseAgent
 from crewai.project import CrewBase, agent, crew, task
 from crewai_custom_tools import HybridSearchTool
 from dotenv import load_dotenv
@@ -13,8 +16,10 @@ load_dotenv()
 
 @CrewBase
 class TechStackCrew:
-    agents_config = "config/agents.yaml"
-    tasks_config = "config/tasks.yaml"
+    agents_config: dict[str, Any] = "config/agents.yaml"  # type: ignore[assignment]  # CrewBase loads the YAML
+    tasks_config: dict[str, Any] = "config/tasks.yaml"  # type: ignore[assignment]
+    agents: list[BaseAgent]  # set by CrewBase from the @agent methods
+    tasks: list[Task]  # set by CrewBase from the @task methods
 
     @agent
     def tech_researcher(self) -> Agent:
@@ -23,7 +28,7 @@ class TechStackCrew:
         all_tools = [HybridSearchTool(), get_scraper()] + get_github_tools()
 
         return Agent(
-            config=self.agents_config["tech_researcher"],  # type: ignore[index]
+            config=self.agents_config["tech_researcher"],
             tools=all_tools,
             llm=LLMConfig.get_openrouter_llm(),
             max_iter=LLMConfig.get_max_iter(),
@@ -36,7 +41,7 @@ class TechStackCrew:
     def tech_reporter(self) -> Agent:
         """Creates the tech reporter agent without tools for clean output generation"""
         return Agent(
-            config=self.agents_config["tech_reporter"],  # type: ignore[index]
+            config=self.agents_config["tech_reporter"],
             tools=[],  # No tools for reporter to ensure clean output
             llm=LLMConfig.get_openrouter_llm(),
             max_iter=LLMConfig.get_max_iter(),
@@ -49,8 +54,8 @@ class TechStackCrew:
     def tech_stack_identification(self) -> Task:
         """Identify the company's tech stack"""
         return Task(
-            config=self.tasks_config["tech_stack_identification"],  # type: ignore[arg-type, index]
-            agent=self.tech_researcher(),  # type: ignore[call-arg]
+            config=self.tasks_config["tech_stack_identification"],
+            agent=self.tech_researcher(),
             async_execution=False,
         )
 
@@ -58,8 +63,8 @@ class TechStackCrew:
     def tech_stack_analysis(self) -> Task:
         """Analyze the company's tech stack"""
         return Task(
-            config=self.tasks_config["tech_stack_analysis"],  # type: ignore[arg-type, index]
-            agent=self.tech_researcher(),  # type: ignore[call-arg]
+            config=self.tasks_config["tech_stack_analysis"],
+            agent=self.tech_researcher(),
             async_execution=False,
         )
 
@@ -67,8 +72,8 @@ class TechStackCrew:
     def open_source_contributions(self) -> Task:
         """Analyze the company's open source contributions"""
         return Task(
-            config=self.tasks_config["open_source_contributions"],  # type: ignore[arg-type, index]
-            agent=self.tech_researcher(),  # type: ignore[call-arg]
+            config=self.tasks_config["open_source_contributions"],
+            agent=self.tech_researcher(),
             async_execution=False,
         )
 
@@ -76,8 +81,8 @@ class TechStackCrew:
     def tech_talent_assessment(self) -> Task:
         """Assess the company's tech talent"""
         return Task(
-            config=self.tasks_config["tech_talent_assessment"],  # type: ignore[arg-type, index]
-            agent=self.tech_researcher(),  # type: ignore[call-arg]
+            config=self.tasks_config["tech_talent_assessment"],
+            agent=self.tech_researcher(),
             async_execution=False,
         )
 
@@ -85,13 +90,13 @@ class TechStackCrew:
     def consolidate_tech_stack_report(self) -> Task:
         """Consolidate all findings into a comprehensive tech stack report"""
         return Task(
-            config=self.tasks_config["consolidate_tech_stack_report"],  # type: ignore[arg-type, index]
+            config=self.tasks_config["consolidate_tech_stack_report"],
             async_execution=False,
             context=[
-                self.tech_stack_identification(),  # type: ignore[call-arg]
-                self.tech_stack_analysis(),  # type: ignore[call-arg]
-                self.open_source_contributions(),  # type: ignore[call-arg]
-                self.tech_talent_assessment(),  # type: ignore[call-arg]
+                self.tech_stack_identification(),
+                self.tech_stack_analysis(),
+                self.open_source_contributions(),
+                self.tech_talent_assessment(),
             ],
             output_pydantic=TechStackReport,
         )
@@ -100,8 +105,8 @@ class TechStackCrew:
     def crew(self) -> Crew:
         """Creates the Tech Stack Analysis crew"""
         return Crew(
-            agents=self.agents,  # type: ignore[attr-defined]
-            tasks=self.tasks,  # type: ignore[attr-defined]
+            agents=self.agents,
+            tasks=self.tasks,
             process=Process.sequential,
             max_rpm=LLMConfig.get_max_rpm(),
             verbose=True,

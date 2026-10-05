@@ -1,4 +1,7 @@
+from typing import Any
+
 from crewai import Agent, Crew, Process, Task
+from crewai.agents.agent_builder.base_agent import BaseAgent
 from crewai.project import CrewBase, agent, crew, task
 from crewai_custom_tools import HybridSearchTool
 from dotenv import load_dotenv
@@ -14,13 +17,15 @@ load_dotenv()
 class SalesProspectingCrew:
     """Sales Prospecting crew for finding sales contacts at target companies"""
 
-    agents_config = "config/agents.yaml"
-    tasks_config = "config/tasks.yaml"
+    agents_config: dict[str, Any] = "config/agents.yaml"  # type: ignore[assignment]  # CrewBase loads the YAML
+    tasks_config: dict[str, Any] = "config/tasks.yaml"  # type: ignore[assignment]
+    agents: list[BaseAgent]  # set by CrewBase from the @agent methods
+    tasks: list[Task]  # set by CrewBase from the @task methods
 
     @agent
     def company_researcher(self) -> Agent:
         return Agent(
-            config=self.agents_config["company_researcher"],  # type: ignore[index]
+            config=self.agents_config["company_researcher"],
             tools=[HybridSearchTool(), CappedScrapeWebsiteTool()],
             llm=LLMConfig.get_openrouter_llm(),
             max_iter=LLMConfig.get_max_iter(),
@@ -31,7 +36,7 @@ class SalesProspectingCrew:
     @agent
     def org_structure_analyst(self) -> Agent:
         return Agent(
-            config=self.agents_config["org_structure_analyst"],  # type: ignore[index]
+            config=self.agents_config["org_structure_analyst"],
             tools=[HybridSearchTool(), CappedScrapeWebsiteTool()],
             llm=LLMConfig.get_openrouter_llm(),
             max_iter=LLMConfig.get_max_iter(),
@@ -42,7 +47,7 @@ class SalesProspectingCrew:
     @agent
     def contact_finder(self) -> Agent:
         return Agent(
-            config=self.agents_config["contact_finder"],  # type: ignore[index]
+            config=self.agents_config["contact_finder"],
             tools=[HybridSearchTool(), CappedScrapeWebsiteTool()],
             llm=LLMConfig.get_openrouter_llm(),
             max_iter=LLMConfig.get_max_iter(),
@@ -53,7 +58,7 @@ class SalesProspectingCrew:
     @agent
     def sales_strategist(self) -> Agent:
         return Agent(
-            config=self.agents_config["sales_strategist"],  # type: ignore[index]
+            config=self.agents_config["sales_strategist"],
             tools=[],
             llm=LLMConfig.get_openrouter_llm(),
             max_iter=LLMConfig.get_max_iter(),
@@ -64,7 +69,7 @@ class SalesProspectingCrew:
     @task
     def research_company_task(self) -> Task:
         return Task(
-            config=self.tasks_config["research_company_task"],  # type: ignore[index,arg-type]
+            config=self.tasks_config["research_company_task"],
             description="Research the target company",
             expected_output="Comprehensive company research findings",
             async_execution=False,
@@ -73,7 +78,7 @@ class SalesProspectingCrew:
     @task
     def analyze_org_structure_task(self) -> Task:
         return Task(
-            config=self.tasks_config["analyze_org_structure_task"],  # type: ignore[index,arg-type]
+            config=self.tasks_config["analyze_org_structure_task"],
             description="Analyze the organizational structure",
             expected_output="Detailed organizational structure analysis",
             async_execution=False,
@@ -82,7 +87,7 @@ class SalesProspectingCrew:
     @task
     def find_key_contacts_task(self) -> Task:
         return Task(
-            config=self.tasks_config["find_key_contacts_task"],  # type: ignore[index,arg-type]
+            config=self.tasks_config["find_key_contacts_task"],
             description="Find key contacts at the target company",
             expected_output="List of key contacts with details",
             async_execution=False,
@@ -91,13 +96,13 @@ class SalesProspectingCrew:
     @task
     def generate_sales_metrics_task(self) -> Task:
         return Task(
-            config=self.tasks_config["develop_approach_strategy_task"],  # type: ignore[index,arg-type]
+            config=self.tasks_config["develop_approach_strategy_task"],
             description="Generate sales strategy and metrics",
             expected_output="Comprehensive sales prospecting report",
             context=[
-                self.research_company_task(),  # type: ignore[call-arg]
-                self.analyze_org_structure_task(),  # type: ignore[call-arg]
-                self.find_key_contacts_task(),  # type: ignore[call-arg]
+                self.research_company_task(),
+                self.analyze_org_structure_task(),
+                self.find_key_contacts_task(),
             ],
             output_pydantic=SalesProspectingReport,
         )
@@ -106,8 +111,8 @@ class SalesProspectingCrew:
     def crew(self) -> Crew:
         """Creates the Sales Prospecting crew"""
         return Crew(
-            agents=self.agents,  # type: ignore[attr-defined]
-            tasks=self.tasks,  # type: ignore[attr-defined]
+            agents=self.agents,
+            tasks=self.tasks,
             process=Process.sequential,
             verbose=True,
             max_rpm=10,  # Keeping existing custom value (lower than default 20)

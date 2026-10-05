@@ -1,4 +1,7 @@
+from typing import Any
+
 from crewai import Agent, Crew, Process, Task
+from crewai.agents.agent_builder.base_agent import BaseAgent
 from crewai.project import CrewBase, agent, crew, task
 from crewai_custom_tools import ExchangeRateTool
 from dotenv import load_dotenv
@@ -13,13 +16,15 @@ load_dotenv()
 class HolidayPlannerCrew:
     """HolidayPlanner crew"""
 
-    agents_config = "config/agents.yaml"
-    tasks_config = "config/tasks.yaml"
+    agents_config: dict[str, Any] = "config/agents.yaml"  # type: ignore[assignment]  # CrewBase loads the YAML
+    tasks_config: dict[str, Any] = "config/tasks.yaml"  # type: ignore[assignment]
+    agents: list[BaseAgent]  # set by CrewBase from the @agent methods
+    tasks: list[Task]  # set by CrewBase from the @task methods
 
     @agent
     def travel_researcher(self) -> Agent:
         return Agent(
-            config=self.agents_config["travel_researcher"],  # type: ignore[index]
+            config=self.agents_config["travel_researcher"],
             tools=get_search_tools() + get_youtube_tools() + get_scrape_tools() + [ExchangeRateTool()],
             llm=LLMConfig.get_openrouter_llm(),
             verbose=False,
@@ -31,7 +36,7 @@ class HolidayPlannerCrew:
     @agent
     def accommodation_specialist(self) -> Agent:
         return Agent(
-            config=self.agents_config["accommodation_specialist"],  # type: ignore[index]
+            config=self.agents_config["accommodation_specialist"],
             tools=get_search_tools() + get_scrape_tools() + [ExchangeRateTool()],
             llm=LLMConfig.get_openrouter_llm(),
             verbose=False,
@@ -43,7 +48,7 @@ class HolidayPlannerCrew:
     @agent
     def itinerary_architect(self) -> Agent:
         return Agent(
-            config=self.agents_config["itinerary_architect"],  # type: ignore[index]
+            config=self.agents_config["itinerary_architect"],
             tools=get_search_tools() + get_scrape_tools() + get_youtube_tools() + [ExchangeRateTool()],
             llm=LLMConfig.get_openrouter_llm(),
             verbose=False,
@@ -55,7 +60,7 @@ class HolidayPlannerCrew:
     @agent
     def budget_manager(self) -> Agent:
         return Agent(
-            config=self.agents_config["budget_manager"],  # type: ignore[index]
+            config=self.agents_config["budget_manager"],
             tools=get_search_tools() + get_scrape_tools() + [ExchangeRateTool()],
             llm=LLMConfig.get_openrouter_llm(),
             verbose=False,
@@ -71,23 +76,23 @@ class HolidayPlannerCrew:
         # crashing the crew ("Input should be a valid string ... ChatCompletion
         # MessageToolCall"). Running these sequentially avoids the concurrency and
         # actually improves data flow (accommodation now sees the research output).
-        return Task(config=self.tasks_config["research_destination"], async_execution=False)  # type: ignore[call-arg, arg-type, index]
+        return Task(config=self.tasks_config["research_destination"], async_execution=False)
 
     @task
     def recommend_accommodation_and_dining(self) -> Task:
-        return Task(config=self.tasks_config["recommend_accommodation_and_dining"], async_execution=False)  # type: ignore[call-arg, arg-type, index]
+        return Task(config=self.tasks_config["recommend_accommodation_and_dining"], async_execution=False)
 
     @task
     def plan_itinerary(self) -> Task:
         return Task(
-            config=self.tasks_config["plan_itinerary"],  # type: ignore[call-arg, arg-type, index]
+            config=self.tasks_config["plan_itinerary"],
             async_execution=False,
         )
 
     @task
     def analyze_and_optimize_budget(self) -> Task:
         return Task(
-            config=self.tasks_config["analyze_and_optimize_budget"],  # type: ignore[call-arg, arg-type, index]
+            config=self.tasks_config["analyze_and_optimize_budget"],
             async_execution=False,
         )
 
@@ -95,8 +100,8 @@ class HolidayPlannerCrew:
     def crew(self) -> Crew:
         """Creates the HolidayPlanner crew"""
         return Crew(
-            agents=self.agents,  # type: ignore[attr-defined]
-            tasks=self.tasks,  # type: ignore[attr-defined]
+            agents=self.agents,
+            tasks=self.tasks,
             process=Process.sequential,
             max_rpm=30,  # Keeping existing custom value
             verbose=False,

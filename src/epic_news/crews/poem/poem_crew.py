@@ -1,6 +1,7 @@
 from typing import Any, cast
 
 from crewai import Agent, Crew, Process, Task
+from crewai.agents.agent_builder.base_agent import BaseAgent
 from crewai.project import CrewBase, agent, crew, task
 
 from epic_news.config.llm_config import LLMConfig
@@ -9,13 +10,15 @@ from epic_news.models.crews.poem_report import PoemJSONOutput
 
 @CrewBase
 class PoemCrew:
-    agents_config = "config/agents.yaml"
-    tasks_config = "config/tasks.yaml"
+    agents_config: dict[str, Any] = "config/agents.yaml"  # type: ignore[assignment]  # CrewBase loads the YAML
+    tasks_config: dict[str, Any] = "config/tasks.yaml"  # type: ignore[assignment]
+    agents: list[BaseAgent]  # set by CrewBase from the @agent methods
+    tasks: list[Task]  # set by CrewBase from the @task methods
 
     @agent
     def poem_writer(self) -> Agent:
         return Agent(
-            config=cast(dict[str, Any], self.agents_config)["poem_writer"],
+            config=self.agents_config["poem_writer"],
             llm=LLMConfig.get_openrouter_llm(),
             max_iter=LLMConfig.get_max_iter(),
             respect_context_window=True,
@@ -38,17 +41,17 @@ class PoemCrew:
 
     @task
     def write_poem(self) -> Task:
-        return Task(  # type: ignore[call-arg]
-            config=cast(dict[str, Any], self.tasks_config)["write_poem"],
-            agent=self.poem_writer(),  # type: ignore[call-arg]
+        return Task(
+            config=self.tasks_config["write_poem"],
+            agent=self.poem_writer(),
             output_pydantic=PoemJSONOutput,
         )
 
     @crew
     def crew(self) -> Crew:
         return Crew(
-            agents=cast(list[Agent], self.agents),  # type: ignore[arg-type, attr-defined]
-            tasks=cast(list[Task], self.tasks),  # type: ignore[attr-defined]
+            agents=cast(list[Agent], self.agents),  # type: ignore[arg-type]
+            tasks=self.tasks,
             process=Process.sequential,
             verbose=True,
         )

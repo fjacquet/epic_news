@@ -1,6 +1,7 @@
 from typing import Any
 
 from crewai import Agent, Crew, Process, Task
+from crewai.agents.agent_builder.base_agent import BaseAgent
 from crewai.project import CrewBase, agent, crew, task
 
 from epic_news.config.llm_config import LLMConfig
@@ -17,8 +18,10 @@ class MenuDesignerCrew:
     generation and file output is handled by a different process.
     """
 
-    agents_config: dict[str, Any] = "config/agents.yaml"  # type: ignore[assignment]
+    agents_config: dict[str, Any] = "config/agents.yaml"  # type: ignore[assignment]  # CrewBase loads the YAML
     tasks_config: dict[str, Any] = "config/tasks.yaml"  # type: ignore[assignment]
+    agents: list[BaseAgent]  # set by CrewBase from the @agent methods
+    tasks: list[Task]  # set by CrewBase from the @task methods
 
     @agent
     def menu_researcher(self) -> Agent:
@@ -48,7 +51,7 @@ class MenuDesignerCrew:
     @task
     def menu_planning_task(self) -> Task:
         """Task to plan the menu structure, assigned to the menu_researcher agent."""
-        return Task(  # type: ignore[call-arg]
+        return Task(
             config=self.tasks_config["menu_planning_task"],
             output_pydantic=WeeklyMenuPlan,
             output_file="output/menu_designer/menu_research_{menu_slug}.json",
@@ -57,9 +60,9 @@ class MenuDesignerCrew:
     @task
     def menu_json_task(self) -> Task:
         """Task to create a clean JSON version of the menu, assigned to the menu_reporter agent."""
-        return Task(  # type: ignore[call-arg]
+        return Task(
             config=self.tasks_config["menu_json_task"],
-            context=[self.menu_planning_task()],  # type: ignore
+            context=[self.menu_planning_task()],
             output_pydantic=WeeklyMenuPlan,
             output_file="output/menu_designer/{menu_slug}.json",
         )
@@ -68,8 +71,8 @@ class MenuDesignerCrew:
     def crew(self) -> Crew:
         """Create a menu designer crew with hierarchical process."""
         return Crew(
-            agents=self.agents,  # type: ignore[attr-defined]
-            tasks=self.tasks,  # type: ignore[attr-defined]
+            agents=self.agents,
+            tasks=self.tasks,
             process=Process.sequential,
             verbose=True,
             max_rpm=LLMConfig.get_max_rpm(),

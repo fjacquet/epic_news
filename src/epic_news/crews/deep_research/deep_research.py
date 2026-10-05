@@ -1,4 +1,7 @@
+from typing import Any
+
 from crewai import Agent, Crew, Process, Task
+from crewai.agents.agent_builder.base_agent import BaseAgent
 from crewai.project import CrewBase, agent, crew, task
 from crewai_custom_tools import HybridSearchTool
 
@@ -19,8 +22,10 @@ class DeepResearchCrew:
     4. report_writer: Technical report creation
     """
 
-    agents_config = "config/agents.yaml"
-    tasks_config = "config/tasks.yaml"
+    agents_config: dict[str, Any] = "config/agents.yaml"  # type: ignore[assignment]  # CrewBase loads the YAML
+    tasks_config: dict[str, Any] = "config/tasks.yaml"  # type: ignore[assignment]
+    agents: list[BaseAgent]  # set by CrewBase from the @agent methods
+    tasks: list[Task]  # set by CrewBase from the @task methods
 
     # Wikipedia MCP server: @CrewBase starts it lazily on the first get_mcp_tools()
     # call and stops it in an after-kickoff hook.
@@ -31,7 +36,7 @@ class DeepResearchCrew:
     def research_strategist(self) -> Agent:
         """Research strategist agent for planning and methodology."""
         return Agent(
-            config=self.agents_config["research_strategist"],  # type: ignore[index]
+            config=self.agents_config["research_strategist"],
             tools=[],  # Strategic planning, no external tools needed
             llm=LLMConfig.get_openrouter_llm(),
             max_iter=LLMConfig.get_max_iter(),
@@ -43,7 +48,7 @@ class DeepResearchCrew:
     def information_collector(self) -> Agent:
         """Information collector agent with web search, scraping AND Wikipedia MCP tools."""
         return Agent(
-            config=self.agents_config["information_collector"],  # type: ignore[index]
+            config=self.agents_config["information_collector"],
             tools=[
                 # Hybrid search (Perplexity → Brave → Serper cascading fallback)
                 HybridSearchTool(),
@@ -65,7 +70,7 @@ class DeepResearchCrew:
         it invents plausible filenames and tries to read a corpus nobody ever wrote.
         """
         return Agent(
-            config=self.agents_config["data_analyst"],  # type: ignore[index]
+            config=self.agents_config["data_analyst"],
             tools=[],
             llm=LLMConfig.get_openrouter_llm(task_type="long"),
             max_iter=LLMConfig.get_max_iter(),
@@ -77,7 +82,7 @@ class DeepResearchCrew:
     def report_writer(self) -> Agent:
         """Report writer agent for technical report creation."""
         return Agent(
-            config=self.agents_config["report_writer"],  # type: ignore[index]
+            config=self.agents_config["report_writer"],
             tools=[],  # Report writing, no external tools needed
             llm=LLMConfig.get_openrouter_llm(),
             max_iter=LLMConfig.get_max_iter(),
@@ -88,15 +93,15 @@ class DeepResearchCrew:
     @task
     def reformulate_task(self) -> Task:
         """Reformulate task."""
-        return Task(  # type: ignore[call-arg]
-            config=self.tasks_config["reformulate_task"],  # type: ignore[arg-type, index]
+        return Task(
+            config=self.tasks_config["reformulate_task"],
         )
 
     @task
     def research_planning_task(self) -> Task:
         """Research planning and methodology task."""
-        return Task(  # type: ignore[call-arg]
-            config=self.tasks_config["research_planning_task"],  # type: ignore[arg-type, index]
+        return Task(
+            config=self.tasks_config["research_planning_task"],
         )
 
     # Task 2: Information Collection
@@ -104,9 +109,9 @@ class DeepResearchCrew:
     def information_collection_task(self) -> Task:
         """Information collection task."""
         return Task(
-            config=self.tasks_config["information_collection_task"],  # type: ignore[arg-type, index]
+            config=self.tasks_config["information_collection_task"],
             context=[
-                self.research_planning_task(),  # type: ignore[call-arg]
+                self.research_planning_task(),
             ],
         )
 
@@ -115,10 +120,10 @@ class DeepResearchCrew:
     def data_analysis_task(self) -> Task:
         """Data analysis and synthesis task."""
         return Task(
-            config=self.tasks_config["data_analysis_task"],  # type: ignore[arg-type, index]
+            config=self.tasks_config["data_analysis_task"],
             context=[
-                self.research_planning_task(),  # type: ignore[call-arg]
-                self.information_collection_task(),  # type: ignore[call-arg]
+                self.research_planning_task(),
+                self.information_collection_task(),
             ],
         )
 
@@ -127,11 +132,11 @@ class DeepResearchCrew:
     def report_writing_task(self) -> Task:
         """Report writing task."""
         return Task(
-            config=self.tasks_config["report_writing_task"],  # type: ignore[arg-type, index]
+            config=self.tasks_config["report_writing_task"],
             context=[
-                self.research_planning_task(),  # type: ignore[call-arg]
-                self.information_collection_task(),  # type: ignore[call-arg]
-                self.data_analysis_task(),  # type: ignore[call-arg]
+                self.research_planning_task(),
+                self.information_collection_task(),
+                self.data_analysis_task(),
             ],
             output_pydantic=DeepResearchReport,
         )
@@ -140,8 +145,8 @@ class DeepResearchCrew:
     def crew(self) -> Crew:
         """Creates the DeepResearch crew with 6-agent sequential process."""
         return Crew(
-            agents=self.agents,  # type: ignore[attr-defined]
-            tasks=self.tasks,  # type: ignore[attr-defined] # Automatically created from the tasks above
+            agents=self.agents,
+            tasks=self.tasks,  # Automatically created from the tasks above
             process=Process.sequential,
             max_rpm=LLMConfig.get_max_rpm(),
             verbose=True,

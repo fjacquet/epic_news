@@ -1,4 +1,7 @@
+from typing import Any
+
 from crewai import Agent, Crew, Process, Task
+from crewai.agents.agent_builder.base_agent import BaseAgent
 from crewai.project import CrewBase, agent, crew, task
 from crewai_custom_tools import HybridSearchTool
 from dotenv import load_dotenv
@@ -15,8 +18,10 @@ load_dotenv()
 
 @CrewBase
 class GeospatialAnalysisCrew:
-    agents_config = "config/agents.yaml"
-    tasks_config = "config/tasks.yaml"
+    agents_config: dict[str, Any] = "config/agents.yaml"  # type: ignore[assignment]  # CrewBase loads the YAML
+    tasks_config: dict[str, Any] = "config/tasks.yaml"  # type: ignore[assignment]
+    agents: list[BaseAgent]  # set by CrewBase from the @agent methods
+    tasks: list[Task]  # set by CrewBase from the @task methods
 
     @agent
     def geospatial_researcher(self) -> Agent:
@@ -25,7 +30,7 @@ class GeospatialAnalysisCrew:
         all_tools = [HybridSearchTool(), get_scraper()] + get_location_tools()
 
         return Agent(
-            config=self.agents_config["geospatial_researcher"],  # type: ignore[index]
+            config=self.agents_config["geospatial_researcher"],
             verbose=True,
             tools=all_tools,
             llm=LLMConfig.get_openrouter_llm(),
@@ -39,7 +44,7 @@ class GeospatialAnalysisCrew:
     def geospatial_reporter(self) -> Agent:
         """Creates the geospatial reporter agent without tools for clean output generation"""
         return Agent(
-            config=self.agents_config["geospatial_reporter"],  # type: ignore[index]
+            config=self.agents_config["geospatial_reporter"],
             verbose=True,
             tools=[],  # No tools for reporter to ensure clean output
             llm=LLMConfig.get_openrouter_llm(),
@@ -52,8 +57,8 @@ class GeospatialAnalysisCrew:
     def physical_location_mapping(self) -> Task:
         """Map the company's physical locations"""
         return Task(
-            config=self.tasks_config["physical_location_mapping"],  # type: ignore[arg-type, index]
-            agent=self.geospatial_researcher(),  # type: ignore[call-arg]
+            config=self.tasks_config["physical_location_mapping"],
+            agent=self.geospatial_researcher(),
             async_execution=False,
         )
 
@@ -61,8 +66,8 @@ class GeospatialAnalysisCrew:
     def geospatial_risk_assessment(self) -> Task:
         """Assess geospatial risks for the company's locations"""
         return Task(
-            config=self.tasks_config["geospatial_risk_assessment"],  # type: ignore[arg-type, index]
-            agent=self.geospatial_researcher(),  # type: ignore[call-arg]
+            config=self.tasks_config["geospatial_risk_assessment"],
+            agent=self.geospatial_researcher(),
             async_execution=False,
         )
 
@@ -70,8 +75,8 @@ class GeospatialAnalysisCrew:
     def supply_chain_mapping(self) -> Task:
         """Map the company's supply chain geospatially"""
         return Task(
-            config=self.tasks_config["supply_chain_mapping"],  # type: ignore[arg-type, index]
-            agent=self.geospatial_researcher(),  # type: ignore[call-arg]
+            config=self.tasks_config["supply_chain_mapping"],
+            agent=self.geospatial_researcher(),
             async_execution=False,
         )
 
@@ -79,12 +84,12 @@ class GeospatialAnalysisCrew:
     def geospatial_intelligence_for_mergers_acquisitions(self) -> Task:
         """Provide geospatial intelligence for mergers and acquisitions"""
         return Task(
-            config=self.tasks_config["geospatial_intelligence_for_mergers_acquisitions"],  # type: ignore[arg-type, index]
+            config=self.tasks_config["geospatial_intelligence_for_mergers_acquisitions"],
             async_execution=False,
             context=[
-                self.physical_location_mapping(),  # type: ignore[call-arg]
-                self.geospatial_risk_assessment(),  # type: ignore[call-arg]
-                self.supply_chain_mapping(),  # type: ignore[call-arg]
+                self.physical_location_mapping(),
+                self.geospatial_risk_assessment(),
+                self.supply_chain_mapping(),
             ],
             output_pydantic=GeospatialAnalysisReport,
         )
@@ -93,8 +98,8 @@ class GeospatialAnalysisCrew:
     def crew(self) -> Crew:
         """Creates the Geospatial Analysis crew"""
         return Crew(
-            agents=self.agents,  # type: ignore[attr-defined]
-            tasks=self.tasks,  # type: ignore[attr-defined]
+            agents=self.agents,
+            tasks=self.tasks,
             process=Process.sequential,
             verbose=True,
             max_rpm=LLMConfig.get_max_rpm(),

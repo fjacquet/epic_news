@@ -1,4 +1,7 @@
+from typing import Any
+
 from crewai import Agent, Crew, Process, Task
+from crewai.agents.agent_builder.base_agent import BaseAgent
 from crewai.project import CrewBase, agent, crew, task
 
 from epic_news.config.llm_config import LLMConfig
@@ -10,8 +13,10 @@ from epic_news.tools.web_tools import get_scrape_tools, get_search_tools
 class CrossReferenceReportCrew:
     """CrossReferenceReportCrew crew"""
 
-    agents_config = "config/agents.yaml"
-    tasks_config = "config/tasks.yaml"
+    agents_config: dict[str, Any] = "config/agents.yaml"  # type: ignore[assignment]  # CrewBase loads the YAML
+    tasks_config: dict[str, Any] = "config/tasks.yaml"  # type: ignore[assignment]
+    agents: list[BaseAgent]  # set by CrewBase from the @agent methods
+    tasks: list[Task]  # set by CrewBase from the @task methods
 
     @agent
     def osint_researcher(self) -> Agent:
@@ -22,7 +27,7 @@ class CrossReferenceReportCrew:
         all_tools = get_search_tools() + get_scrape_tools()
 
         return Agent(
-            config=self.agents_config["osint_researcher"],  # type: ignore[index]
+            config=self.agents_config["osint_researcher"],
             verbose=True,
             tools=all_tools,
             llm=LLMConfig.get_openrouter_llm(),
@@ -35,7 +40,7 @@ class CrossReferenceReportCrew:
     def osint_reporter(self) -> Agent:
         """Creates the OSINT reporter agent without tools for clean output generation"""
         return Agent(
-            config=self.agents_config["osint_reporter"],  # type: ignore[index]
+            config=self.agents_config["osint_reporter"],
             tools=[],  # No tools for reporter to ensure clean output
             llm=LLMConfig.get_openrouter_llm(),
             max_iter=LLMConfig.get_max_iter(),
@@ -48,8 +53,8 @@ class CrossReferenceReportCrew:
     def intelligence_requirements_planning(self) -> Task:
         """Develop comprehensive intelligence requirements"""
         return Task(
-            config=self.tasks_config["intelligence_requirements_planning"],  # type: ignore[index,arg-type]
-            agent=self.osint_researcher(),  # type: ignore[call-arg]
+            config=self.tasks_config["intelligence_requirements_planning"],
+            agent=self.osint_researcher(),
             async_execution=False,
         )
 
@@ -57,8 +62,8 @@ class CrossReferenceReportCrew:
     def intelligence_collection_coordination(self) -> Task:
         """Coordinate intelligence collection activities"""
         return Task(
-            config=self.tasks_config["intelligence_collection_coordination"],  # type: ignore[index,arg-type]
-            agent=self.osint_researcher(),  # type: ignore[call-arg]
+            config=self.tasks_config["intelligence_collection_coordination"],
+            agent=self.osint_researcher(),
             async_execution=False,
         )
 
@@ -66,8 +71,8 @@ class CrossReferenceReportCrew:
     def intelligence_analysis_integration(self) -> Task:
         """Integrate intelligence analysis from all specialized crews"""
         return Task(
-            config=self.tasks_config["intelligence_analysis_integration"],  # type: ignore[index,arg-type]
-            agent=self.osint_researcher(),  # type: ignore[call-arg]
+            config=self.tasks_config["intelligence_analysis_integration"],
+            agent=self.osint_researcher(),
             async_execution=False,
         )
 
@@ -75,8 +80,8 @@ class CrossReferenceReportCrew:
     def intelligence_product_development(self) -> Task:
         """Develop final intelligence products"""
         return Task(
-            config=self.tasks_config["intelligence_product_development"],  # type: ignore[index,arg-type]
-            agent=self.osint_researcher(),  # type: ignore[call-arg]
+            config=self.tasks_config["intelligence_product_development"],
+            agent=self.osint_researcher(),
             async_execution=False,
         )
 
@@ -84,12 +89,12 @@ class CrossReferenceReportCrew:
     def global_reporting(self) -> Task:
         """Create a global report from all generated intelligence."""
         return Task(
-            config=self.tasks_config["global_reporting"],  # type: ignore[index,arg-type]
+            config=self.tasks_config["global_reporting"],
             context=[
-                self.intelligence_requirements_planning(),  # type: ignore[call-arg]
-                self.intelligence_collection_coordination(),  # type: ignore[call-arg]
-                self.intelligence_analysis_integration(),  # type: ignore[call-arg]
-                self.intelligence_product_development(),  # type: ignore[call-arg]
+                self.intelligence_requirements_planning(),
+                self.intelligence_collection_coordination(),
+                self.intelligence_analysis_integration(),
+                self.intelligence_product_development(),
             ],
             output_pydantic=CrossReferenceReport,
         )
@@ -98,8 +103,8 @@ class CrossReferenceReportCrew:
     def crew(self) -> Crew:
         """Creates the CrossReferenceReportCrew crew"""
         return Crew(
-            agents=self.agents,  # type: ignore[attr-defined]
-            tasks=self.tasks,  # type: ignore[attr-defined]
+            agents=self.agents,
+            tasks=self.tasks,
             process=Process.sequential,
             verbose=True,
         )
