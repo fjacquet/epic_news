@@ -7,11 +7,6 @@ from loguru import logger
 from pydantic import ValidationError
 
 from epic_news.models.crews.menu_designer_report import (
-    DailyMeal,
-    DailyMenu,
-    DishInfo,
-    DishType,
-    MealType,
     WeeklyMenuPlan,
 )
 from epic_news.utils.menu_days import DEFAULT_MENU_DAYS
@@ -254,69 +249,3 @@ class MenuPlanValidator:
         except Exception as e:
             logger.error(f"Unexpected error in parse_and_validate_ai_output: {e}")
             return None
-
-    @staticmethod
-    def create_fallback_menu_plan(num_days: int = DEFAULT_MENU_DAYS) -> WeeklyMenuPlan:
-        """Create a valid fallback menu plan when AI output is completely unusable."""
-        days = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"]
-        dates = [
-            "2025-01-27",
-            "2025-01-28",
-            "2025-01-29",
-            "2025-01-30",
-            "2025-01-31",
-            "2025-02-01",
-            "2025-02-02",
-        ]
-
-        daily_menus = []
-        for i, day in enumerate(days[: max(1, num_days)]):
-            daily_menu = DailyMenu(
-                day=day,
-                date=dates[i],
-                lunch=DailyMeal(  # type: ignore[call-arg]
-                    meal_type=MealType.DEJEUNER,
-                    starter=DishInfo(
-                        name=f"Entrée du {day}",
-                        dish_type=DishType.ENTREE,
-                        description="Entrée fraîche et savoureuse",
-                        seasonal_ingredients=["légumes de saison"],
-                        nutritional_highlights="Riche en vitamines",
-                    ),
-                    main_course=DishInfo(
-                        name=f"Plat principal du {day}",
-                        dish_type=DishType.PLAT_PRINCIPAL,
-                        description="Plat principal équilibré",
-                        seasonal_ingredients=["protéines", "légumes"],
-                        nutritional_highlights="Source de protéines",
-                    ),
-                ),
-                dinner=DailyMeal(  # type: ignore[call-arg]
-                    meal_type=MealType.DINER,
-                    starter=DishInfo(
-                        name=f"Entrée du soir - {day}",
-                        dish_type=DishType.ENTREE,
-                        description="Entrée légère pour le dîner",
-                        seasonal_ingredients=["légumes frais"],
-                        nutritional_highlights="Léger et digestible",
-                    ),
-                    main_course=DishInfo(
-                        name=f"Plat du soir - {day}",
-                        dish_type=DishType.PLAT_PRINCIPAL,
-                        description="Plat principal pour le dîner",
-                        seasonal_ingredients=["protéines légères"],
-                        nutritional_highlights="Équilibré pour le soir",
-                    ),
-                ),
-            )
-            daily_menus.append(daily_menu)
-
-        return WeeklyMenuPlan(
-            week_start_date="2025-01-27",
-            season="hiver",
-            daily_menus=daily_menus,
-            nutritional_balance="Menu équilibré avec alternance des groupes alimentaires",
-            gustative_coherence="Harmonie des saveurs et progression culinaire",
-            constraints_adaptation="Menu adapté aux contraintes spécifiées",
-            preferences_integration="Intégration des préférences culinaires",
-        )

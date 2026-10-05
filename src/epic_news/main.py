@@ -51,7 +51,6 @@ from epic_news.crews.information_extraction.information_extraction_crew import I
 from epic_news.crews.legal_analysis.legal_analysis_crew import LegalAnalysisCrew
 from epic_news.crews.library.library_crew import LibraryCrew
 from epic_news.crews.meeting_prep.meeting_prep_crew import MeetingPrepCrew
-from epic_news.crews.menu_designer.menu_designer import MenuDesignerCrew
 from epic_news.crews.news_daily.news_daily import NewsDailyCrew
 from epic_news.crews.pestel.pestel_crew import PestelCrew
 from epic_news.crews.poem.poem_crew import PoemCrew
@@ -80,7 +79,7 @@ from epic_news.models.crews.saint_daily_report import SaintData
 from epic_news.models.crews.sales_prospecting_report import SalesProspectingReport
 from epic_news.models.crews.tech_stack_report import TechStackReport
 from epic_news.models.crews.web_presence_report import WebPresenceReport
-from epic_news.services.menu_designer_service import MenuDesignerService
+from epic_news.services.menu_designer_service import MenuDesignerService, MenuPlanError
 from epic_news.tools.recent_search_tool import RecentSearchTool
 from epic_news.utils.concurrency import bounded_map
 
@@ -811,13 +810,8 @@ class ReceptionFlow(Flow[ContentState]):
         # Use MenuDesignerService with validation
         self.logger.info("🗓️ Step 1/2: Planning the weekly menu structure with validation")
 
-        menu_structure_result = None  # Initialize for recipe generation
-
         try:
-            menu_service = MenuDesignerService()
-
-            # Generate menu plan with validation and error recovery
-            menu_plan = menu_service.generate_menu_plan(
+            menu_plan = MenuDesignerService().generate_menu_plan(
                 constraints=crew_inputs.get("constraints", ""),
                 preferences=crew_inputs.get("preferences", ""),
                 user_context=crew_inputs.get("user_context", ""),
@@ -826,88 +820,33 @@ class ReceptionFlow(Flow[ContentState]):
                 menu_slug=crew_inputs.get("menu_slug", "menu_hebdomadaire"),
                 num_days=crew_inputs.get("num_days", DEFAULT_MENU_DAYS),
             )
+        except MenuPlanError as e:
+            # No placeholder menu: stop the run so no report, recipes or email go out.
+            self.logger.error(f"❌ Menu plan could not be produced, stopping the run: {e}")
+            raise
 
-            if menu_plan:
-                if menu_service.used_fallback:
-                    self.logger.error("❌ Menu plan is the placeholder fallback, not a planned menu")
-                else:
-                    self.logger.info("✅ Menu plan validated successfully")
+        self.logger.info("✅ Menu plan validated successfully")
 
-                html_file = f"{output_dir}/{crew_inputs['menu_slug']}.html"
-                emit_report(
-                    self.state,
-                    "MENU",
-                    lambda: str(render_and_write_html("MENU", menu_plan, html_file)),
-                    assemble_docx=lambda: assemble_menu_docx(
-                        menu_plan, crew_inputs, str(Path(html_file).with_suffix(".docx"))
-                    ),
-                )
-                self.logger.info(f"✅ Menu plan report written to {self.state.output_file}")
+        html_file = f"{output_dir}/{crew_inputs['menu_slug']}.html"
+        emit_report(
+            self.state,
+            "MENU",
+            lambda: str(render_and_write_html("MENU", menu_plan, html_file)),
+            assemble_docx=lambda: assemble_menu_docx(
+                menu_plan, crew_inputs, str(Path(html_file).with_suffix(".docx"))
+            ),
+        )
+        self.logger.info(f"✅ Menu plan report written to {self.state.output_file}")
 
-                # Store the validated menu plan in state
-                self.state.menu_plan = menu_plan
+        # Store the validated menu plan in state
+        self.state.menu_plan = menu_plan
+        final_report = self.state.output_file
 
-                # Convert WeeklyMenuPlan back to dict for recipe parsing
-                # This ensures compatibility with parse_menu_structure
-                menu_structure_result = menu_plan.model_dump()
-                self.logger.info("🔄 Converted validated menu plan to dict for recipe generation")
-
-                final_report = self.state.output_file
-            else:
-                self.logger.error("❌ Failed to generate valid menu plan")
-                final_report = f"{output_dir}/error.html"
-
-        except Exception as e:
-            self.logger.error(f"❌ Error in menu designer workflow: {e}")
-            # Fallback to original method if service fails
-            self.logger.info("🔄 Falling back to original menu generation method")
-
-            menu_structure_result = kickoff_flow(MenuDesignerCrew(), crew_inputs)
-            dump_crewai_state(menu_structure_result, "MENU_DESIGNER")
-            html_file = f"{output_dir}/{crew_inputs['menu_slug']}.html"
-
-            # Use MenuPlanValidator for error recovery instead of direct Pydantic validation
-            from epic_news.utils.menu_plan_validator import MenuPlanValidator
-
-            validator = MenuPlanValidator()
-
-            # Extract raw output for validation
-            raw_output = None
-            if hasattr(menu_structure_result, "raw"):
-                raw_output = menu_structure_result.raw
-            elif hasattr(menu_structure_result, "json"):
-                raw_output = menu_structure_result.json
-            else:
-                raw_output = str(menu_structure_result)
-
-            # Parse and validate with error recovery
-            report_model = validator.parse_and_validate_ai_output(raw_output)
-            if not report_model:
-                self.logger.warning("⚠️ Fallback validation failed, creating emergency fallback")
-                report_model = validator.create_fallback_menu_plan(
-                    crew_inputs.get("num_days", DEFAULT_MENU_DAYS)
-                )
-
-            emit_report(
-                self.state,
-                "MENU",
-                lambda: str(render_and_write_html("MENU", report_model, html_file)),
-                assemble_docx=lambda: assemble_menu_docx(
-                    report_model, crew_inputs, str(Path(html_file).with_suffix(".docx"))
-                ),
-            )
-            self.logger.info(f"✅ Fallback menu plan generated → {self.state.output_file}")
-
-            final_report = self.state.output_file
+        # Convert WeeklyMenuPlan back to dict for recipe parsing (parse_menu_structure)
+        menu_structure_result = menu_plan.model_dump()
 
         # Parse menu structure and generate recipes (step 2)
         self.logger.info("👩‍🍳 Step 2/2: Generating individual recipes")
-
-        if menu_structure_result is None:
-            self.logger.error("❌ No menu structure available for recipe generation")
-            self.state.output_file = final_report
-            self.state.menu_designer_report = final_report
-            return
 
         recipe_specs = menu_generator.parse_menu_structure(menu_structure_result)
 
