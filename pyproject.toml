@@ -36,7 +36,6 @@ dependencies = [
     "firecrawl-py>=4.34.0",
     "pyairtable>=3.4.2",
     # --- Rendering / output ---
-    # --- Numerical / data ---
     "pypandoc>=1.17",
     "json-repair>=0.60",
 ]
