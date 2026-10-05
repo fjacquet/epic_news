@@ -104,3 +104,10 @@ def test_routing_categories_text_is_unchanged():
         "MEETING_PREP, MENU, NEWSDAILY, OPEN_SOURCE_INTELLIGENCE, PESTEL, POEM, RSS, SAINT, "
         "SALES_PROSPECTING, SHOPPING"
     )
+
+
+def test_standard_crews_are_exactly_the_steps_using_run_standard():
+    """STANDARD_CREWS must list the keys main.py passes to _run_standard, no more, no less."""
+    source = inspect.getsource(inspect.getmodule(ReceptionFlow))
+    used = set(re.findall(r'_run_standard\(\s*CREW_REGISTRY\["(\w+)"\]', source))
+    assert used == set(STANDARD_CREWS)
