@@ -87,3 +87,34 @@ def test_a_crew_without_fixed_paths_is_refused(flow, monkeypatch):
     with pytest.raises(ValueError, match="COOKING is not a standard crew"):
         flow._run_standard(CREW_REGISTRY["COOKING"], object(), flow.state.to_crew_inputs())
     assert called == []
+
+
+def test_report_and_raw_output_are_set_after_the_docx(flow, monkeypatch):
+    def _kickoff(_crew, inputs):
+        Path(inputs["output_file"]).write_text(json.dumps(POEM), encoding="utf-8")
+        return SimpleNamespace(raw=json.dumps(POEM), output=None)
+
+    def _assemble(model, inputs, output_path, llm=None):
+        assert flow.state.report is None  # not set before the report is built
+        Path(output_path).write_bytes(b"docx")
+        return output_path
+
+    monkeypatch.setattr(main_module, "kickoff_flow", _kickoff)
+    output, model = flow._run_standard(_spec_with(_assemble), object(), flow.state.to_crew_inputs())
+    assert flow.state.report is model
+    assert flow.state.raw_output is output
+
+
+def test_failed_report_leaves_no_result(flow, monkeypatch):
+    def _kickoff(_crew, inputs):
+        Path(inputs["output_file"]).write_text(json.dumps(POEM), encoding="utf-8")
+        return SimpleNamespace(raw=json.dumps(POEM), output=None)
+
+    def _assemble(*_a, **_k):
+        raise RuntimeError("pandoc missing")
+
+    monkeypatch.setattr(main_module, "kickoff_flow", _kickoff)
+    with pytest.raises(RuntimeError, match="pandoc missing"):
+        flow._run_standard(_spec_with(_assemble), object(), flow.state.to_crew_inputs())
+    assert flow.state.report is None
+    assert flow.state.raw_output is None

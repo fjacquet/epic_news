@@ -16,12 +16,12 @@ def test_pestel_category_registered() -> None:
     assert CrewCategories.to_dict()["PESTEL"] == "PESTEL"
 
 
-def test_pestel_report_field_accepts_none_and_instance() -> None:
+def test_report_field_accepts_none_and_a_pestel_report() -> None:
     state = ContentState()
-    assert state.pestel_report is None
+    assert state.report is None
 
     dim = PestelDimension(summary="s", impact_analysis="i")
-    state.pestel_report = PestelReport(
+    state.report = PestelReport(
         topic="x",
         executive_summary="e",
         political=dim,
@@ -33,7 +33,8 @@ def test_pestel_report_field_accepts_none_and_instance() -> None:
         synthesis="s",
         generated_at="2026-04-25",
     )
-    assert state.pestel_report.topic == "x"
+    assert isinstance(state.report, PestelReport)
+    assert state.report.topic == "x"
 
 
 def test_to_crew_inputs_without_extracted_info_has_required_placeholders() -> None:

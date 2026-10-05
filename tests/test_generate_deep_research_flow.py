@@ -11,6 +11,7 @@ import pytest
 from epic_news import crew_registry
 from epic_news import main as main_module
 from epic_news.main import ReceptionFlow
+from epic_news.models.crews.deep_research import DeepResearchReport
 
 FIXTURE = Path(__file__).resolve().parent / "fixtures" / "raw_outputs" / "deep_research.txt"
 
@@ -53,9 +54,9 @@ def test_report_json_from_the_crew_builds_the_docx(tmp_path, monkeypatch):
     flow = ReceptionFlow(user_request="deep research on BeeGFS")
     flow.generate_deep_research()
     assert flow.state.output_file == "output/deep_research/report.docx"
-    assert flow.state.deep_research_report is not None
-    assert len(flow.state.deep_research_report.research_sections) == 5
-    assert built == [flow.state.deep_research_report.title]
+    assert isinstance(flow.state.report, DeepResearchReport)
+    assert len(flow.state.report.research_sections) == 5
+    assert built == [flow.state.report.title]
 
 
 def test_stale_report_json_is_not_reused(tmp_path, monkeypatch):
