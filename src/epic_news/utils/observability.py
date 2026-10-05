@@ -183,7 +183,7 @@ def trace_task(tracer: Tracer):
             return time.time()
 
         def _end(start: float, result: Any, error: BaseException | None) -> None:
-            if error is not None:
+            if isinstance(error, Exception):  # Ctrl+C / SystemExit only close the trace, as before S8
                 details = {"task_name": task_name, "error": str(error)}
                 tracer.add_event(TraceEvent("task_error", f"task:{task_name}", details))
             end_details = {

@@ -1,18 +1,25 @@
 """CrewAI patches live in crewai_patches, are applied by the flow entry point, and apply once."""
 
-import importlib
+import subprocess
+import sys
 
 from crewai import LLM
-from crewai.llms.base_llm import BaseLLM
 
 from epic_news.config import crewai_patches
 
 
 def test_importing_the_flow_applies_the_patches():
-    importlib.import_module("epic_news.main")
-    assert getattr(LLM, "_openrouter_anthropic_patched", False)
-    assert getattr(BaseLLM, "_react_tool_calling_forced", False)
-    assert getattr(BaseLLM, "_retry_on_empty_patched", False)
+    """In a fresh interpreter (conftest applies the patches for this process), main must apply them."""
+    probe = (
+        "import epic_news.main\n"
+        "from crewai import LLM\n"
+        "from crewai.llms.base_llm import BaseLLM\n"
+        "assert getattr(LLM, '_openrouter_anthropic_patched', False)\n"
+        "assert getattr(BaseLLM, '_react_tool_calling_forced', False)\n"
+        "assert getattr(BaseLLM, '_retry_on_empty_patched', False)\n"
+    )
+    result = subprocess.run([sys.executable, "-c", probe], capture_output=True, text=True, timeout=120)
+    assert result.returncode == 0, result.stderr[-2000:]
 
 
 def test_apply_is_idempotent():
