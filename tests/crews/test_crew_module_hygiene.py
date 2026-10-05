@@ -6,7 +6,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-CREWS = Path("src/epic_news/crews")
+CREWS = Path(__file__).resolve().parents[2] / "src" / "epic_news" / "crews"
 CREW_MODULES = sorted(p for p in CREWS.rglob("*.py") if p.name != "__init__.py")
 
 
