@@ -1,0 +1,2560 @@
+{
+  "ClassifyCrew": {
+    "agents": [
+      {
+        "allow_delegation": false,
+        "backstory": "7cae306b2e2b3155",
+        "goal": "1bcde593f5c7a287",
+        "id": 0,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Content Classification Specialist\n",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [],
+        "verbose": true
+      }
+    ],
+    "max_rpm": null,
+    "process": "Process.sequential",
+    "tasks": [
+      {
+        "agent": 0,
+        "async_execution": false,
+        "context": null,
+        "description": "dcda51c90473538b",
+        "expected_output": "cbaf0c6567fe9e0c",
+        "name": "classification_task",
+        "output_file": "output/classify/decision.md",
+        "output_pydantic": "ClassificationResult"
+      }
+    ],
+    "verbose": true
+  },
+  "CompanyNewsCrew": {
+    "agents": [
+      {
+        "allow_delegation": false,
+        "backstory": "a490c83ac106ac54",
+        "goal": "5527db6be3455127",
+        "id": 0,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Lead News Researcher\n",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [],
+        "verbose": true
+      },
+      {
+        "allow_delegation": false,
+        "backstory": "a21f646d06765f1d",
+        "goal": "2d54852bb80912a1",
+        "id": 1,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Data Analyst\n",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [],
+        "verbose": true
+      },
+      {
+        "allow_delegation": false,
+        "backstory": "073e946f92fd9b66",
+        "goal": "96e7a05b9cc50c08",
+        "id": 2,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Senior News Editor\n",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [],
+        "verbose": true
+      }
+    ],
+    "max_rpm": 20,
+    "process": "Process.sequential",
+    "tasks": [
+      {
+        "agent": 0,
+        "async_execution": false,
+        "context": null,
+        "description": "c37e0c7169b240e9",
+        "expected_output": "5367e4f7a03199d3",
+        "name": "research_task",
+        "output_file": "output/company_news/research.json",
+        "output_pydantic": null
+      },
+      {
+        "agent": 1,
+        "async_execution": false,
+        "context": [
+          "research_task"
+        ],
+        "description": "27558ae85d550f00",
+        "expected_output": "805e55aa19877f9f",
+        "name": "analysis_task",
+        "output_file": "output/company_news/analysis.json",
+        "output_pydantic": null
+      },
+      {
+        "agent": 2,
+        "async_execution": false,
+        "context": [
+          "research_task",
+          "analysis_task"
+        ],
+        "description": "c998d77c6a35e9cc",
+        "expected_output": "bdd73f05354a6be8",
+        "name": "editing_task",
+        "output_file": "{output_file}",
+        "output_pydantic": "CompanyNewsReport"
+      }
+    ],
+    "verbose": true
+  },
+  "CompanyProfilerCrew": {
+    "agents": [
+      {
+        "allow_delegation": false,
+        "backstory": "b4074eae28b8129d",
+        "goal": "5f97052ef2ee02a1",
+        "id": 0,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "OSINT Company Research Specialist\n",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [
+          "Yahoo Finance Company Info Tool",
+          "Yahoo Finance ETF Holdings Tool",
+          "Yahoo Finance History Tool",
+          "Yahoo Finance News Tool",
+          "Yahoo Finance Ticker Info Tool",
+          "hybrid_search",
+          "scrape_ninja"
+        ],
+        "verbose": true
+      },
+      {
+        "allow_delegation": false,
+        "backstory": "3dc08026eba716ae",
+        "goal": "c5778c2cb325ecf3",
+        "id": 1,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Company Profile Reporter\n",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [],
+        "verbose": true
+      }
+    ],
+    "max_rpm": 20,
+    "process": "Process.sequential",
+    "tasks": [
+      {
+        "agent": 0,
+        "async_execution": false,
+        "context": null,
+        "description": "53b51c12143e82ad",
+        "expected_output": "7895dd053010b99d",
+        "name": "company_core_info",
+        "output_file": "output/osint/{company}_core_info.json",
+        "output_pydantic": null
+      },
+      {
+        "agent": 0,
+        "async_execution": false,
+        "context": null,
+        "description": "8a883c72e65b8ce0",
+        "expected_output": "ebd98b5ef5a9dcc6",
+        "name": "company_history",
+        "output_file": "output/osint/{company}_history.json",
+        "output_pydantic": null
+      },
+      {
+        "agent": 0,
+        "async_execution": false,
+        "context": null,
+        "description": "404c754b59037218",
+        "expected_output": "3a185085f6b97528",
+        "name": "company_financials",
+        "output_file": "output/osint/{company}_financials.json",
+        "output_pydantic": null
+      },
+      {
+        "agent": 0,
+        "async_execution": false,
+        "context": null,
+        "description": "8ce1656d2922acb3",
+        "expected_output": "9409dbee0ae2d14c",
+        "name": "company_market_position",
+        "output_file": "output/osint/{company}_market_position.json",
+        "output_pydantic": null
+      },
+      {
+        "agent": 0,
+        "async_execution": false,
+        "context": null,
+        "description": "76d533871330ab91",
+        "expected_output": "84a18a5bad63c5e2",
+        "name": "company_products_services",
+        "output_file": "output/osint/{company}_products_services.json",
+        "output_pydantic": null
+      },
+      {
+        "agent": 0,
+        "async_execution": false,
+        "context": null,
+        "description": "3d1ec4e8499958be",
+        "expected_output": "9c1ff14bf1893b68",
+        "name": "company_management",
+        "output_file": "output/osint/{company}_management.json",
+        "output_pydantic": null
+      },
+      {
+        "agent": 0,
+        "async_execution": false,
+        "context": null,
+        "description": "50723d4f8063c0b3",
+        "expected_output": "2bb6f31061630625",
+        "name": "company_legal_compliance",
+        "output_file": "output/osint/{company}_legal_compliance.json",
+        "output_pydantic": null
+      },
+      {
+        "agent": 1,
+        "async_execution": false,
+        "context": [
+          "company_core_info",
+          "company_history",
+          "company_financials",
+          "company_market_position",
+          "company_products_services",
+          "company_management",
+          "company_legal_compliance"
+        ],
+        "description": "983106dd4e4582c0",
+        "expected_output": "afb291e4f2182574",
+        "name": "format_report_task",
+        "output_file": "output/osint/{company}_profile.json",
+        "output_pydantic": "CompanyProfileReport"
+      }
+    ],
+    "verbose": true
+  },
+  "CookingCrew": {
+    "agents": [
+      {
+        "allow_delegation": false,
+        "backstory": "397bc02e5b8e2645",
+        "goal": "778a2b92441842ce",
+        "id": 0,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Expérimenté Cuisinier Maison - Spécialiste Adhérence Sujet\n",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 120,
+        "tools": [],
+        "verbose": true
+      }
+    ],
+    "max_rpm": 20,
+    "process": "Process.sequential",
+    "tasks": [
+      {
+        "agent": 0,
+        "async_execution": false,
+        "context": null,
+        "description": "23cd6d6b11b615e8",
+        "expected_output": "fd1f0b2a9dbf92cd",
+        "name": "cook_task",
+        "output_file": null,
+        "output_pydantic": "PaprikaRecipe"
+      }
+    ],
+    "verbose": true
+  },
+  "CrossReferenceReportCrew": {
+    "agents": [
+      {
+        "allow_delegation": true,
+        "backstory": "a20f2585bd8240c0",
+        "goal": "e690c43ce180998b",
+        "id": 0,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "OSINT Research Coordinator\n",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [
+          "Read website content",
+          "perplexity_search",
+          "scrape_ninja"
+        ],
+        "verbose": true
+      },
+      {
+        "allow_delegation": false,
+        "backstory": "518e01a1193ba630",
+        "goal": "c5778c2cb325ecf3",
+        "id": 1,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Intelligence Report Specialist\n",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [],
+        "verbose": true
+      }
+    ],
+    "max_rpm": null,
+    "process": "Process.sequential",
+    "tasks": [
+      {
+        "agent": 0,
+        "async_execution": false,
+        "context": null,
+        "description": "4dcb2091625da7f3",
+        "expected_output": "9085fcc3a76ef8ae",
+        "name": "intelligence_requirements_planning",
+        "output_file": "output/osint/{company}_intelligence_requirements_planning.json",
+        "output_pydantic": null
+      },
+      {
+        "agent": 0,
+        "async_execution": false,
+        "context": null,
+        "description": "009733458dd1b096",
+        "expected_output": "f2f6de0219735e01",
+        "name": "intelligence_collection_coordination",
+        "output_file": "output/osint/{company}_intelligence_collection_coordination.json",
+        "output_pydantic": null
+      },
+      {
+        "agent": 0,
+        "async_execution": false,
+        "context": null,
+        "description": "54b6383a06ff99f4",
+        "expected_output": "ccc5497592f24679",
+        "name": "intelligence_analysis_integration",
+        "output_file": "output/osint/{company}_intelligence_analysis_integration.json",
+        "output_pydantic": null
+      },
+      {
+        "agent": 0,
+        "async_execution": false,
+        "context": null,
+        "description": "2c63c195788d35ca",
+        "expected_output": "e12c0bf299c79ee3",
+        "name": "intelligence_product_development",
+        "output_file": "output/osint/{company}_intelligence_product_development.json",
+        "output_pydantic": null
+      },
+      {
+        "agent": 1,
+        "async_execution": false,
+        "context": [
+          "intelligence_requirements_planning",
+          "intelligence_collection_coordination",
+          "intelligence_analysis_integration",
+          "intelligence_product_development"
+        ],
+        "description": "4eac418fc883c0c9",
+        "expected_output": "d343eb7c4dfc9fec",
+        "name": "global_reporting",
+        "output_file": "{output_file}",
+        "output_pydantic": "CrossReferenceReport"
+      }
+    ],
+    "verbose": true
+  },
+  "DeepResearchCrew": {
+    "agents": [
+      {
+        "allow_delegation": false,
+        "backstory": "f3a3ae2e030ffd48",
+        "goal": "869f77a63d77d921",
+        "id": 0,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Stratège de Recherche et Planificateur de Méthodologie en {topic}\n",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [],
+        "verbose": true
+      },
+      {
+        "allow_delegation": false,
+        "backstory": "bc42f29169ea0fcf",
+        "goal": "b0ed2a2844d07fd8",
+        "id": 1,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Collecteur d'Informations Web et Encyclopédiques sur {topic}\n",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 600,
+        "tools": [
+          "Read website content",
+          "hybrid_search"
+        ],
+        "verbose": true
+      },
+      {
+        "allow_delegation": false,
+        "backstory": "11cbe5343634bcf0",
+        "goal": "a1897b337d18bec6",
+        "id": 2,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Analyste de Données et Synthétiseur Quantitatif pour {topic}\n",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 600,
+        "tools": [],
+        "verbose": true
+      },
+      {
+        "allow_delegation": false,
+        "backstory": "e4fff0e6d6dee68d",
+        "goal": "12c6afd018af0fbb",
+        "id": 3,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Rédacteur de Rapports Techniques sur {topic}\n",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [],
+        "verbose": true
+      }
+    ],
+    "max_rpm": 20,
+    "process": "Process.sequential",
+    "tasks": [
+      {
+        "agent": 0,
+        "async_execution": false,
+        "context": null,
+        "description": "f94d100c23ca3d89",
+        "expected_output": "883a529fcdacc129",
+        "name": "reformulate_task",
+        "output_file": "output/deep_research/reformulated_topic.md",
+        "output_pydantic": null
+      },
+      {
+        "agent": 0,
+        "async_execution": false,
+        "context": [
+          "reformulate_task"
+        ],
+        "description": "3ac9693b87f4c9fa",
+        "expected_output": "1cdfc2b5fb871eb4",
+        "name": "research_planning_task",
+        "output_file": null,
+        "output_pydantic": null
+      },
+      {
+        "agent": 1,
+        "async_execution": false,
+        "context": [
+          "research_planning_task"
+        ],
+        "description": "aa05deaeb788ea60",
+        "expected_output": "65da763a63900134",
+        "name": "information_collection_task",
+        "output_file": null,
+        "output_pydantic": null
+      },
+      {
+        "agent": 2,
+        "async_execution": false,
+        "context": [
+          "research_planning_task",
+          "information_collection_task"
+        ],
+        "description": "f087e00e55e2f7cc",
+        "expected_output": "21383b1cca874138",
+        "name": "data_analysis_task",
+        "output_file": null,
+        "output_pydantic": null
+      },
+      {
+        "agent": 3,
+        "async_execution": false,
+        "context": [
+          "research_planning_task",
+          "information_collection_task",
+          "data_analysis_task"
+        ],
+        "description": "71db812080d2bc1b",
+        "expected_output": "afaa31b673235762",
+        "name": "report_writing_task",
+        "output_file": "{output_file}",
+        "output_pydantic": "DeepResearchReport"
+      }
+    ],
+    "verbose": true
+  },
+  "FinDailyCrew": {
+    "agents": [
+      {
+        "allow_delegation": false,
+        "backstory": "bf6efe222a2a843b",
+        "goal": "3ea10c8063efa757",
+        "id": 0,
+        "max_iter": 30,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Senior Stock Analyst",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [
+          "Alpha Vantage Overview Tool",
+          "List files in directory",
+          "Read an output file",
+          "Yahoo Finance Company Info Tool",
+          "Yahoo Finance History Tool",
+          "Yahoo Finance News Tool",
+          "Yahoo Finance Ticker Info Tool",
+          "scrape_ninja"
+        ],
+        "verbose": true
+      },
+      {
+        "allow_delegation": false,
+        "backstory": "e8fa4ada729754c6",
+        "goal": "9945a110fdb312f1",
+        "id": 1,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Cryptocurrency Analyst",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [
+          "Kraken Asset List",
+          "Kraken Ticker Information",
+          "Yahoo Finance History Tool",
+          "Yahoo Finance News Tool",
+          "Yahoo Finance Ticker Info Tool",
+          "scrape_ninja"
+        ],
+        "verbose": true
+      },
+      {
+        "allow_delegation": false,
+        "backstory": "7a2dd8ed32b64031",
+        "goal": "e4108d6dfe5a7cbb",
+        "id": 2,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Chief Investment Strategist",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [],
+        "verbose": true
+      }
+    ],
+    "max_rpm": null,
+    "process": "Process.sequential",
+    "tasks": [
+      {
+        "agent": 0,
+        "async_execution": false,
+        "context": null,
+        "description": "a25acc8882ca0d2b",
+        "expected_output": "83532ab832ed91a5",
+        "name": "stock_portfolio_analysis_task",
+        "output_file": null,
+        "output_pydantic": null
+      },
+      {
+        "agent": 1,
+        "async_execution": false,
+        "context": null,
+        "description": "9e94a690db81ed0a",
+        "expected_output": "df7dab7d0259ae53",
+        "name": "crypto_portfolio_analysis_task",
+        "output_file": null,
+        "output_pydantic": null
+      },
+      {
+        "agent": 0,
+        "async_execution": false,
+        "context": null,
+        "description": "653e68c7ffed69aa",
+        "expected_output": "7865c4f473a93c2e",
+        "name": "etf_portfolio_analysis_task",
+        "output_file": "output/findaily/etf_portfolio_analysis.md",
+        "output_pydantic": null
+      },
+      {
+        "agent": 2,
+        "async_execution": false,
+        "context": [
+          "stock_portfolio_analysis_task"
+        ],
+        "description": "7e4c656fa31f7f69",
+        "expected_output": "0afbdea495b20858",
+        "name": "stock_suggestion_task",
+        "output_file": "output/findaily/stock_suggestion.md",
+        "output_pydantic": null
+      },
+      {
+        "agent": 2,
+        "async_execution": false,
+        "context": [
+          "etf_portfolio_analysis_task"
+        ],
+        "description": "bc509ff8a1a0c76a",
+        "expected_output": "817c9229955e327a",
+        "name": "etf_suggestion_task",
+        "output_file": "output/findaily/etf_suggestion.md",
+        "output_pydantic": null
+      },
+      {
+        "agent": 2,
+        "async_execution": false,
+        "context": [
+          "crypto_portfolio_analysis_task"
+        ],
+        "description": "c173ca27294b114f",
+        "expected_output": "2701e503439c728b",
+        "name": "crypto_suggestion_task",
+        "output_file": "output/findaily/crypto_suggestion.md",
+        "output_pydantic": null
+      },
+      {
+        "agent": 2,
+        "async_execution": false,
+        "context": [
+          "stock_portfolio_analysis_task",
+          "crypto_portfolio_analysis_task",
+          "etf_portfolio_analysis_task",
+          "stock_suggestion_task",
+          "etf_suggestion_task",
+          "crypto_suggestion_task"
+        ],
+        "description": "9fa8edb3eb954ef3",
+        "expected_output": "111dbdc72d11f26c",
+        "name": "final_report_generation_task",
+        "output_file": "{output_file}",
+        "output_pydantic": "FinancialReport"
+      }
+    ],
+    "verbose": true
+  },
+  "GeospatialAnalysisCrew": {
+    "agents": [
+      {
+        "allow_delegation": false,
+        "backstory": "f99c6a959cd27efa",
+        "goal": "4bc16d700e082ccf",
+        "id": 0,
+        "max_iter": 15,
+        "max_retry_limit": 3,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "OSINT Geospatial Research Specialist\n",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [
+          "geoapify_places_search",
+          "hybrid_search",
+          "scrape_ninja"
+        ],
+        "verbose": true
+      },
+      {
+        "allow_delegation": false,
+        "backstory": "27706f58d5fb7e3f",
+        "goal": "5674bdc917162e40",
+        "id": 1,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Geospatial Intelligence Reporter\n",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [],
+        "verbose": true
+      }
+    ],
+    "max_rpm": 20,
+    "process": "Process.sequential",
+    "tasks": [
+      {
+        "agent": 0,
+        "async_execution": false,
+        "context": null,
+        "description": "3ced505906976dc4",
+        "expected_output": "4092dbb4a431321b",
+        "name": "physical_location_mapping",
+        "output_file": "output/osint/{company}_physical_location_mapping.json",
+        "output_pydantic": null
+      },
+      {
+        "agent": 0,
+        "async_execution": false,
+        "context": null,
+        "description": "c506c89f1c7e5197",
+        "expected_output": "402a672c4a775c06",
+        "name": "geospatial_risk_assessment",
+        "output_file": "output/osint/{company}_geospatial_risk_assessment.json",
+        "output_pydantic": null
+      },
+      {
+        "agent": 0,
+        "async_execution": false,
+        "context": null,
+        "description": "78a3f7606751c5b0",
+        "expected_output": "92a18cb51342e6d8",
+        "name": "supply_chain_mapping",
+        "output_file": "output/osint/{company}_supply_chain_mapping.json",
+        "output_pydantic": null
+      },
+      {
+        "agent": 1,
+        "async_execution": false,
+        "context": [
+          "physical_location_mapping",
+          "geospatial_risk_assessment",
+          "supply_chain_mapping"
+        ],
+        "description": "21595bf6c7fe224c",
+        "expected_output": "b94eeecbcf06718a",
+        "name": "geospatial_intelligence_for_mergers_acquisitions",
+        "output_file": "output/osint/{company}_geospatial_intelligence_for_mergers_acquisitions.json",
+        "output_pydantic": "GeospatialAnalysisReport"
+      }
+    ],
+    "verbose": true
+  },
+  "HRIntelligenceCrew": {
+    "agents": [
+      {
+        "allow_delegation": false,
+        "backstory": "51c16f66352a5da8",
+        "goal": "676b540191fa9731",
+        "id": 0,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "OSINT HR Research Specialist\n",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [
+          "hybrid_search",
+          "scrape_ninja"
+        ],
+        "verbose": true
+      },
+      {
+        "allow_delegation": false,
+        "backstory": "1213d18e6162cca5",
+        "goal": "4f7ec55ea5716dae",
+        "id": 1,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "HR Intelligence Reporter\n",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [],
+        "verbose": true
+      }
+    ],
+    "max_rpm": 20,
+    "process": "Process.sequential",
+    "tasks": [
+      {
+        "agent": 0,
+        "async_execution": false,
+        "context": null,
+        "description": "9261cc58d17b32e5",
+        "expected_output": "1800337a676f4dee",
+        "name": "leadership_team_assessment",
+        "output_file": "output/osint/{company}_leadership_team_assessment.json",
+        "output_pydantic": null
+      },
+      {
+        "agent": 0,
+        "async_execution": false,
+        "context": null,
+        "description": "cad12274682e390f",
+        "expected_output": "23bfd1b7de9d52cb",
+        "name": "employee_sentiment_analysis",
+        "output_file": "output/osint/{company}_employee_sentiment_analysis.json",
+        "output_pydantic": null
+      },
+      {
+        "agent": 0,
+        "async_execution": false,
+        "context": null,
+        "description": "cfa5ec05fe2b5d65",
+        "expected_output": "785382cf895539ff",
+        "name": "organizational_culture_assessment",
+        "output_file": "output/osint/{company}_organizational_culture_assessment.json",
+        "output_pydantic": null
+      },
+      {
+        "agent": 0,
+        "async_execution": false,
+        "context": null,
+        "description": "e6470955d95b4145",
+        "expected_output": "0713c209bf8258ac",
+        "name": "talent_acquisition_strategy",
+        "output_file": "output/osint/{company}_talent_acquisition_strategy.json",
+        "output_pydantic": null
+      },
+      {
+        "agent": 1,
+        "async_execution": false,
+        "context": [
+          "leadership_team_assessment",
+          "employee_sentiment_analysis",
+          "organizational_culture_assessment",
+          "talent_acquisition_strategy"
+        ],
+        "description": "8b5528a5fcc19ae2",
+        "expected_output": "f987b12eb695d119",
+        "name": "format_hr_intelligence_report",
+        "output_file": "output/osint/{company}_hr_intelligence_report.json",
+        "output_pydantic": "HRIntelligenceReport"
+      }
+    ],
+    "verbose": true
+  },
+  "HolidayPlannerCrew": {
+    "agents": [
+      {
+        "allow_delegation": true,
+        "backstory": "c239fe2f90a77135",
+        "goal": "e5ba93609569b0d1",
+        "id": 0,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Travel Research Specialist\n",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [
+          "Read website content",
+          "Search a Youtube Video content",
+          "exchange_rates",
+          "perplexity_search",
+          "scrape_ninja"
+        ],
+        "verbose": false
+      },
+      {
+        "allow_delegation": true,
+        "backstory": "bf879ff78f0d7140",
+        "goal": "b603181299cac275",
+        "id": 1,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Accommodation & Dining Specialist\n",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [
+          "Read website content",
+          "exchange_rates",
+          "perplexity_search",
+          "scrape_ninja"
+        ],
+        "verbose": false
+      },
+      {
+        "allow_delegation": true,
+        "backstory": "63c38418664fee71",
+        "goal": "192feb173db252d0",
+        "id": 2,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Itinerary Architect\n",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [
+          "Read website content",
+          "Search a Youtube Video content",
+          "exchange_rates",
+          "perplexity_search",
+          "scrape_ninja"
+        ],
+        "verbose": false
+      },
+      {
+        "allow_delegation": false,
+        "backstory": "cde9c10dbbb2578c",
+        "goal": "213580d7b3054021",
+        "id": 3,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Budget & Logistics Manager\n",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [
+          "Read website content",
+          "exchange_rates",
+          "perplexity_search",
+          "scrape_ninja"
+        ],
+        "verbose": false
+      }
+    ],
+    "max_rpm": 30,
+    "process": "Process.sequential",
+    "tasks": [
+      {
+        "agent": 0,
+        "async_execution": false,
+        "context": null,
+        "description": "ff25cd2168a44713",
+        "expected_output": "06873711fa78cb19",
+        "name": "research_destination",
+        "output_file": "output/holiday/research_destination.json",
+        "output_pydantic": null
+      },
+      {
+        "agent": 1,
+        "async_execution": false,
+        "context": null,
+        "description": "b030b23cef29170b",
+        "expected_output": "d274827b243f9f9a",
+        "name": "recommend_accommodation_and_dining",
+        "output_file": "output/holiday/recommend_accommodation_and_dining.json",
+        "output_pydantic": null
+      },
+      {
+        "agent": 2,
+        "async_execution": false,
+        "context": null,
+        "description": "43a0f7d0ca6c4390",
+        "expected_output": "c8dbf9661b0a2031",
+        "name": "plan_itinerary",
+        "output_file": "output/holiday/plan_itinerary.json",
+        "output_pydantic": null
+      },
+      {
+        "agent": 3,
+        "async_execution": false,
+        "context": null,
+        "description": "8669d8aec4549122",
+        "expected_output": "89c5cb401a4709ef",
+        "name": "analyze_and_optimize_budget",
+        "output_file": "output/holiday/analyze_and_optimize_budget.json",
+        "output_pydantic": null
+      }
+    ],
+    "verbose": false
+  },
+  "InformationExtractionCrew": {
+    "agents": [
+      {
+        "allow_delegation": false,
+        "backstory": "5f0073c7752345aa",
+        "goal": "a32e68b9791ba536",
+        "id": 0,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Request Clarity Editor\n",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 120,
+        "tools": [],
+        "verbose": true
+      },
+      {
+        "allow_delegation": false,
+        "backstory": "00d218d38ab22c6f",
+        "goal": "4892e3353aad005e",
+        "id": 1,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Expert Linguistic Analyst and Data Extractor\n",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [],
+        "verbose": true
+      }
+    ],
+    "max_rpm": null,
+    "process": "Process.sequential",
+    "tasks": [
+      {
+        "agent": 0,
+        "async_execution": false,
+        "context": null,
+        "description": "2515ac5da3320a77",
+        "expected_output": "f170d2a3ee850102",
+        "name": "enrich_request_task",
+        "output_file": null,
+        "output_pydantic": null
+      },
+      {
+        "agent": 1,
+        "async_execution": false,
+        "context": [
+          "enrich_request_task"
+        ],
+        "description": "bec63804ca9ded25",
+        "expected_output": "85dd4eb24ffc3e40",
+        "name": "comprehensive_information_extraction_task",
+        "output_file": null,
+        "output_pydantic": "ExtractedInfo"
+      }
+    ],
+    "verbose": true
+  },
+  "LegalAnalysisCrew": {
+    "agents": [
+      {
+        "allow_delegation": false,
+        "backstory": "625cea29976b38a9",
+        "goal": "6233a78487e7b387",
+        "id": 0,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "OSINT Legal Research Specialist\n",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [
+          "hybrid_search",
+          "scrape_ninja"
+        ],
+        "verbose": true
+      },
+      {
+        "allow_delegation": false,
+        "backstory": "dc939f839cc659a4",
+        "goal": "deaf4cda5b8d1353",
+        "id": 1,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Legal Intelligence Reporter\n",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [],
+        "verbose": true
+      }
+    ],
+    "max_rpm": 20,
+    "process": "Process.sequential",
+    "tasks": [
+      {
+        "agent": 0,
+        "async_execution": false,
+        "context": null,
+        "description": "578395a616391f74",
+        "expected_output": "232c2e8cb81653eb",
+        "name": "legal_compliance_assessment",
+        "output_file": "output/osint/{company}_legal_compliance_assessment.json",
+        "output_pydantic": null
+      },
+      {
+        "agent": 0,
+        "async_execution": false,
+        "context": null,
+        "description": "df4093e2cc615748",
+        "expected_output": "513698489d71974c",
+        "name": "intellectual_property_analysis",
+        "output_file": "output/osint/{company}_intellectual_property_analysis.json",
+        "output_pydantic": null
+      },
+      {
+        "agent": 0,
+        "async_execution": false,
+        "context": null,
+        "description": "0c364130efab36a1",
+        "expected_output": "adf60b1b2c920346",
+        "name": "regulatory_risk_assessment",
+        "output_file": "output/osint/{company}_regulatory_risk_assessment.json",
+        "output_pydantic": null
+      },
+      {
+        "agent": 0,
+        "async_execution": false,
+        "context": null,
+        "description": "60dc029e6b346741",
+        "expected_output": "3497e070a09ddd76",
+        "name": "litigation_history_analysis",
+        "output_file": "output/osint/{company}_litigation_history_analysis.json",
+        "output_pydantic": null
+      },
+      {
+        "agent": 1,
+        "async_execution": false,
+        "context": [
+          "legal_compliance_assessment",
+          "intellectual_property_analysis",
+          "regulatory_risk_assessment",
+          "litigation_history_analysis"
+        ],
+        "description": "98e2eda53f8c9ad0",
+        "expected_output": "4d595dc4709fa699",
+        "name": "mergers_and_acquisitions_due_diligence",
+        "output_file": "output/osint/{company}_legal_analysis_report.json",
+        "output_pydantic": "LegalAnalysisReport"
+      }
+    ],
+    "verbose": true
+  },
+  "LibraryCrew": {
+    "agents": [
+      {
+        "allow_delegation": false,
+        "backstory": "9151740b68d81fd3",
+        "goal": "6278a3c66fcef7b3",
+        "id": 0,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Senior Research Librarian",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [
+          "Read website content",
+          "perplexity_search",
+          "scrape_ninja"
+        ],
+        "verbose": true
+      },
+      {
+        "allow_delegation": false,
+        "backstory": "b4c272ba24b2e076",
+        "goal": "fbdadb0bc12fdd37",
+        "id": 1,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Lead Reporting Analyst",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [],
+        "verbose": true
+      }
+    ],
+    "max_rpm": 20,
+    "process": "Process.sequential",
+    "tasks": [
+      {
+        "agent": 0,
+        "async_execution": false,
+        "context": null,
+        "description": "5c6070950473dd98",
+        "expected_output": "de79a37d82ee0ed9",
+        "name": "research_task",
+        "output_file": null,
+        "output_pydantic": null
+      },
+      {
+        "agent": 1,
+        "async_execution": false,
+        "context": [
+          "research_task"
+        ],
+        "description": "a42a0eefa763ebf2",
+        "expected_output": "b17e77aaeeb71df4",
+        "name": "reporting_task",
+        "output_file": "{output_file}",
+        "output_pydantic": "BookSummaryReport"
+      }
+    ],
+    "verbose": true
+  },
+  "MeetingPrepCrew": {
+    "agents": [
+      {
+        "allow_delegation": false,
+        "backstory": "2c1097a12bc1059a",
+        "goal": "0f8f646fde2f4afc",
+        "id": 0,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Research Specialist",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [
+          "Read website content",
+          "Yahoo Finance Company Info Tool",
+          "Yahoo Finance ETF Holdings Tool",
+          "Yahoo Finance History Tool",
+          "Yahoo Finance News Tool",
+          "Yahoo Finance Ticker Info Tool",
+          "perplexity_search",
+          "scrape_ninja"
+        ],
+        "verbose": true
+      },
+      {
+        "allow_delegation": false,
+        "backstory": "4cf180b45e99c6cd",
+        "goal": "478c751bbfc62424",
+        "id": 1,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Product Specialist",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [
+          "Read website content",
+          "Yahoo Finance Company Info Tool",
+          "Yahoo Finance ETF Holdings Tool",
+          "Yahoo Finance History Tool",
+          "Yahoo Finance News Tool",
+          "Yahoo Finance Ticker Info Tool",
+          "perplexity_search",
+          "scrape_ninja"
+        ],
+        "verbose": true
+      },
+      {
+        "allow_delegation": false,
+        "backstory": "7b2dbc883ba488f5",
+        "goal": "f6d0fe4cf0dc9e87",
+        "id": 2,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Sales Strategist",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [
+          "Read website content",
+          "Yahoo Finance Company Info Tool",
+          "Yahoo Finance ETF Holdings Tool",
+          "Yahoo Finance History Tool",
+          "Yahoo Finance News Tool",
+          "Yahoo Finance Ticker Info Tool",
+          "perplexity_search",
+          "scrape_ninja"
+        ],
+        "verbose": true
+      },
+      {
+        "allow_delegation": false,
+        "backstory": "a3284777a740c98d",
+        "goal": "2ccac3aa4b1c054d",
+        "id": 3,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Briefing Coordinator",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [],
+        "verbose": true
+      }
+    ],
+    "max_rpm": 10,
+    "process": "Process.sequential",
+    "tasks": [
+      {
+        "agent": 0,
+        "async_execution": false,
+        "context": null,
+        "description": "eda02ff26a91aeb2",
+        "expected_output": "5fa07ded644cb3a4",
+        "name": "research_task",
+        "output_file": "output/meeting/{company}_research_report.md",
+        "output_pydantic": null
+      },
+      {
+        "agent": 1,
+        "async_execution": false,
+        "context": null,
+        "description": "b80ca03f476a7d95",
+        "expected_output": "54916f05312cb33c",
+        "name": "product_alignment_task",
+        "output_file": "output/meeting/{company}_product_alignment_report.md",
+        "output_pydantic": null
+      },
+      {
+        "agent": 2,
+        "async_execution": false,
+        "context": null,
+        "description": "00fd3f57bfb624fd",
+        "expected_output": "e57e063379c4be00",
+        "name": "sales_strategy_task",
+        "output_file": "output/meeting/{company}_sales_strategy.md",
+        "output_pydantic": null
+      },
+      {
+        "agent": 3,
+        "async_execution": false,
+        "context": [
+          "research_task",
+          "product_alignment_task",
+          "sales_strategy_task"
+        ],
+        "description": "0e421392965f7235",
+        "expected_output": "f12cf6d0866a6fc9",
+        "name": "meeting_preparation_task",
+        "output_file": "{output_file}",
+        "output_pydantic": "MeetingPrepReport"
+      }
+    ],
+    "verbose": true
+  },
+  "MenuDesignerCrew": {
+    "agents": [
+      {
+        "allow_delegation": false,
+        "backstory": "8237d39db7e08bc6",
+        "goal": "701ad0be5cf95af7",
+        "id": 0,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Planificateur de Menu Hebdomadaire Complet Adapté aux Contraintes et à la Saison\n",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [
+          "perplexity_search"
+        ],
+        "verbose": true
+      },
+      {
+        "allow_delegation": false,
+        "backstory": "2daccf6518b59e6c",
+        "goal": "7596d3c5ec93cd73",
+        "id": 1,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Spécialiste en Formatage de Données Culinaires\n",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [],
+        "verbose": true
+      }
+    ],
+    "max_rpm": 20,
+    "process": "Process.sequential",
+    "tasks": [
+      {
+        "agent": 0,
+        "async_execution": false,
+        "context": null,
+        "description": "dcdd9a095086dea8",
+        "expected_output": "8d11ad0c979ccf39",
+        "name": "menu_planning_task",
+        "output_file": "output/menu_designer/menu_research_{menu_slug}.json",
+        "output_pydantic": "WeeklyMenuPlan"
+      },
+      {
+        "agent": 1,
+        "async_execution": false,
+        "context": [
+          "menu_planning_task"
+        ],
+        "description": "f923fbad862109b1",
+        "expected_output": "5d5dc293cd1c7378",
+        "name": "menu_json_task",
+        "output_file": "output/menu_designer/{menu_slug}.json",
+        "output_pydantic": "WeeklyMenuPlan"
+      }
+    ],
+    "verbose": true
+  },
+  "NewsDailyCrew": {
+    "agents": [
+      {
+        "allow_delegation": false,
+        "backstory": "b053d6630609e3dd",
+        "goal": "34bfb6c2123cb236",
+        "id": 0,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Chercheur d'Actualités Senior\n",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [
+          "perplexity_search"
+        ],
+        "verbose": true
+      },
+      {
+        "allow_delegation": false,
+        "backstory": "778d5110044af4c7",
+        "goal": "62f981becad34657",
+        "id": 1,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Curateur de Contenu et Analyste de Déduplication\n",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [],
+        "verbose": true
+      },
+      {
+        "allow_delegation": false,
+        "backstory": "b053d6630609e3dd",
+        "goal": "34bfb6c2123cb236",
+        "id": 2,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Chercheur d'Actualités Senior\n",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [
+          "perplexity_search"
+        ],
+        "verbose": true
+      },
+      {
+        "allow_delegation": false,
+        "backstory": "b053d6630609e3dd",
+        "goal": "34bfb6c2123cb236",
+        "id": 3,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Chercheur d'Actualités Senior\n",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [
+          "perplexity_search"
+        ],
+        "verbose": true
+      },
+      {
+        "allow_delegation": false,
+        "backstory": "b053d6630609e3dd",
+        "goal": "34bfb6c2123cb236",
+        "id": 4,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Chercheur d'Actualités Senior\n",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [
+          "perplexity_search"
+        ],
+        "verbose": true
+      },
+      {
+        "allow_delegation": false,
+        "backstory": "b053d6630609e3dd",
+        "goal": "34bfb6c2123cb236",
+        "id": 5,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Chercheur d'Actualités Senior\n",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [
+          "perplexity_search"
+        ],
+        "verbose": true
+      },
+      {
+        "allow_delegation": false,
+        "backstory": "b053d6630609e3dd",
+        "goal": "34bfb6c2123cb236",
+        "id": 6,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Chercheur d'Actualités Senior\n",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [
+          "perplexity_search"
+        ],
+        "verbose": true
+      },
+      {
+        "allow_delegation": false,
+        "backstory": "b053d6630609e3dd",
+        "goal": "34bfb6c2123cb236",
+        "id": 7,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Chercheur d'Actualités Senior\n",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [
+          "perplexity_search"
+        ],
+        "verbose": true
+      }
+    ],
+    "max_rpm": null,
+    "process": "Process.sequential",
+    "tasks": [
+      {
+        "agent": 0,
+        "async_execution": true,
+        "context": null,
+        "description": "4ccb7f26cf46106d",
+        "expected_output": "437bf3e066aaf62f",
+        "name": "suisse_romande_news_task",
+        "output_file": null,
+        "output_pydantic": null
+      },
+      {
+        "agent": 2,
+        "async_execution": true,
+        "context": null,
+        "description": "61af1183e2eeadd3",
+        "expected_output": "965753dc3db88860",
+        "name": "suisse_news_task",
+        "output_file": null,
+        "output_pydantic": null
+      },
+      {
+        "agent": 3,
+        "async_execution": true,
+        "context": null,
+        "description": "bad4710d9dd4dd7b",
+        "expected_output": "1a3f34401fb7be4b",
+        "name": "france_news_task",
+        "output_file": null,
+        "output_pydantic": null
+      },
+      {
+        "agent": 4,
+        "async_execution": true,
+        "context": null,
+        "description": "b1fa2ef6269d8162",
+        "expected_output": "f3e368b6480edf57",
+        "name": "europe_news_task",
+        "output_file": null,
+        "output_pydantic": null
+      },
+      {
+        "agent": 5,
+        "async_execution": true,
+        "context": null,
+        "description": "4ba2df687c6f2899",
+        "expected_output": "80eafdfeab9c2b7f",
+        "name": "world_news_task",
+        "output_file": null,
+        "output_pydantic": null
+      },
+      {
+        "agent": 6,
+        "async_execution": true,
+        "context": null,
+        "description": "b93ac0f659893ac5",
+        "expected_output": "a69bd65d31b5fd85",
+        "name": "wars_news_task",
+        "output_file": null,
+        "output_pydantic": null
+      },
+      {
+        "agent": 7,
+        "async_execution": true,
+        "context": null,
+        "description": "f7abbad1e973316a",
+        "expected_output": "9eab5c1ef9570397",
+        "name": "economy_news_task",
+        "output_file": null,
+        "output_pydantic": null
+      },
+      {
+        "agent": 1,
+        "async_execution": false,
+        "context": [
+          "suisse_romande_news_task",
+          "suisse_news_task",
+          "france_news_task",
+          "europe_news_task",
+          "world_news_task",
+          "wars_news_task",
+          "economy_news_task"
+        ],
+        "description": "68c80028e9d821cb",
+        "expected_output": "2e4d2a1e3297a12d",
+        "name": "content_curation_task",
+        "output_file": null,
+        "output_pydantic": null
+      },
+      {
+        "agent": 1,
+        "async_execution": false,
+        "context": [
+          "content_curation_task"
+        ],
+        "description": "4fd0d2ac043c36b5",
+        "expected_output": "c41b8a64e802c83d",
+        "name": "final_report_generation_task",
+        "output_file": "{output_file}",
+        "output_pydantic": "NewsDailyReport"
+      }
+    ],
+    "verbose": true
+  },
+  "PestelCrew": {
+    "agents": [
+      {
+        "allow_delegation": false,
+        "backstory": "2f7d66d36a4379b2",
+        "goal": "399aee072f3c6353",
+        "id": 0,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Political Dimension Analyst\n",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 600,
+        "tools": [
+          "Read website content",
+          "hybrid_search",
+          "recent_search"
+        ],
+        "verbose": true
+      },
+      {
+        "allow_delegation": false,
+        "backstory": "3963c8da9b4b953e",
+        "goal": "e06d10eb82acb4b4",
+        "id": 1,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Economic Dimension Analyst\n",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 600,
+        "tools": [
+          "Read website content",
+          "hybrid_search",
+          "recent_search"
+        ],
+        "verbose": true
+      },
+      {
+        "allow_delegation": false,
+        "backstory": "4474833e93fde431",
+        "goal": "f1178ee778a500cf",
+        "id": 2,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Social Dimension Analyst\n",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 600,
+        "tools": [
+          "Read website content",
+          "hybrid_search",
+          "recent_search"
+        ],
+        "verbose": true
+      },
+      {
+        "allow_delegation": false,
+        "backstory": "7d78fdafad05ffeb",
+        "goal": "02914a5aecd4f609",
+        "id": 3,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Technological Dimension Analyst\n",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 600,
+        "tools": [
+          "Read website content",
+          "hybrid_search",
+          "recent_search"
+        ],
+        "verbose": true
+      },
+      {
+        "allow_delegation": false,
+        "backstory": "f8765fd76f1141f0",
+        "goal": "5e9b30dd3803fb3a",
+        "id": 4,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Environmental Dimension Analyst\n",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 600,
+        "tools": [
+          "Read website content",
+          "hybrid_search",
+          "recent_search"
+        ],
+        "verbose": true
+      },
+      {
+        "allow_delegation": false,
+        "backstory": "a06900d122bc778f",
+        "goal": "815ec54f05e36abb",
+        "id": 5,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Legal Dimension Analyst\n",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 600,
+        "tools": [
+          "Read website content",
+          "hybrid_search",
+          "recent_search"
+        ],
+        "verbose": true
+      },
+      {
+        "allow_delegation": false,
+        "backstory": "01e511f8de5670ad",
+        "goal": "a31feb71a8b42e96",
+        "id": 6,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "PESTEL Analysis Reporter\n",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 600,
+        "tools": [],
+        "verbose": true
+      }
+    ],
+    "max_rpm": 20,
+    "process": "Process.sequential",
+    "tasks": [
+      {
+        "agent": 0,
+        "async_execution": true,
+        "context": null,
+        "description": "606ecc117069aa65",
+        "expected_output": "717f96b17f6374be",
+        "name": "political_research_task",
+        "output_file": null,
+        "output_pydantic": null
+      },
+      {
+        "agent": 1,
+        "async_execution": true,
+        "context": null,
+        "description": "9eb6028f1fa7025a",
+        "expected_output": "baaf6e37dd07b9a4",
+        "name": "economic_research_task",
+        "output_file": null,
+        "output_pydantic": null
+      },
+      {
+        "agent": 2,
+        "async_execution": true,
+        "context": null,
+        "description": "879521390d2c84f6",
+        "expected_output": "403b5183c128f0f7",
+        "name": "social_research_task",
+        "output_file": null,
+        "output_pydantic": null
+      },
+      {
+        "agent": 3,
+        "async_execution": true,
+        "context": null,
+        "description": "cff34b2a33bf556d",
+        "expected_output": "403b5183c128f0f7",
+        "name": "technological_research_task",
+        "output_file": null,
+        "output_pydantic": null
+      },
+      {
+        "agent": 4,
+        "async_execution": true,
+        "context": null,
+        "description": "6c8eb29e58ab1c93",
+        "expected_output": "403b5183c128f0f7",
+        "name": "environmental_research_task",
+        "output_file": null,
+        "output_pydantic": null
+      },
+      {
+        "agent": 5,
+        "async_execution": true,
+        "context": null,
+        "description": "faef5b09a773edab",
+        "expected_output": "403b5183c128f0f7",
+        "name": "legal_research_task",
+        "output_file": null,
+        "output_pydantic": null
+      },
+      {
+        "agent": 6,
+        "async_execution": false,
+        "context": [
+          "political_research_task",
+          "economic_research_task",
+          "social_research_task",
+          "technological_research_task",
+          "environmental_research_task",
+          "legal_research_task"
+        ],
+        "description": "f8819b848218e326",
+        "expected_output": "aed617cbe453c6e9",
+        "name": "format_pestel_report_task",
+        "output_file": "output/pestel/report.json",
+        "output_pydantic": "PestelReport"
+      }
+    ],
+    "verbose": true
+  },
+  "PoemCrew": {
+    "agents": [
+      {
+        "allow_delegation": false,
+        "backstory": "f37a151222b8b110",
+        "goal": "6955f754a1cfadf5",
+        "id": 0,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Poetry Specialist and Creative Writer\n",
+        "system_template": "30048fa57bf36413",
+        "timeout": 300,
+        "tools": [],
+        "verbose": true
+      }
+    ],
+    "max_rpm": null,
+    "process": "Process.sequential",
+    "tasks": [
+      {
+        "agent": 0,
+        "async_execution": false,
+        "context": null,
+        "description": "19d5883e1e1a338f",
+        "expected_output": "298731683788c544",
+        "name": "write_poem",
+        "output_file": "{output_file}",
+        "output_pydantic": "PoemJSONOutput"
+      }
+    ],
+    "verbose": true
+  },
+  "RssWeeklyCrew": {
+    "agents": [
+      {
+        "allow_delegation": false,
+        "backstory": "647c28c5138b2a5b",
+        "goal": "bcbc806698a5ba20",
+        "id": 0,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Content Reader and Extractor",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [
+          "Read a file's content"
+        ],
+        "verbose": true
+      },
+      {
+        "allow_delegation": false,
+        "backstory": "89209d9d7cf11686",
+        "goal": "8e2615f4f620d2f9",
+        "id": 1,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Multilingual Content Translator",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [],
+        "verbose": true
+      }
+    ],
+    "max_rpm": 20,
+    "process": "Process.sequential",
+    "tasks": [
+      {
+        "agent": 0,
+        "async_execution": false,
+        "context": null,
+        "description": "6654b7eb4d1bb311",
+        "expected_output": "ff330fc14445ff92",
+        "name": "content_reading_task",
+        "output_file": null,
+        "output_pydantic": null
+      },
+      {
+        "agent": 1,
+        "async_execution": false,
+        "context": [
+          "content_reading_task"
+        ],
+        "description": "300c853a0d1be046",
+        "expected_output": "aa63e8756a5a364b",
+        "name": "translation_task",
+        "output_file": "{output_file}",
+        "output_pydantic": "RssWeeklyReport"
+      }
+    ],
+    "verbose": true
+  },
+  "SaintDailyCrew": {
+    "agents": [
+      {
+        "allow_delegation": false,
+        "backstory": "771a50d3d7a607ac",
+        "goal": "4127cf563cf5d8f3",
+        "id": 0,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Saint of the Day Research Specialist",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [
+          "Wikipedia Article Fetcher",
+          "Wikipedia Search",
+          "wikipedia_article_processor"
+        ],
+        "verbose": true
+      },
+      {
+        "allow_delegation": false,
+        "backstory": "bba9ff023ee41cf2",
+        "goal": "19b4566e1d8c2bc3",
+        "id": 1,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Saint of the Day JSON Report Specialist",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [],
+        "verbose": true
+      }
+    ],
+    "max_rpm": null,
+    "process": "Process.sequential",
+    "tasks": [
+      {
+        "agent": 0,
+        "async_execution": false,
+        "context": null,
+        "description": "f200f4a205bef8eb",
+        "expected_output": "ac11f2a99b6dd427",
+        "name": "saint_research_task",
+        "output_file": null,
+        "output_pydantic": null
+      },
+      {
+        "agent": 1,
+        "async_execution": false,
+        "context": [
+          "saint_research_task"
+        ],
+        "description": "49932258bafb9589",
+        "expected_output": "7f458cf5b2a50e69",
+        "name": "saint_data_task",
+        "output_file": "{output_file}",
+        "output_pydantic": "SaintData"
+      }
+    ],
+    "verbose": true
+  },
+  "SalesProspectingCrew": {
+    "agents": [
+      {
+        "allow_delegation": false,
+        "backstory": "fc9e65d2eef520ef",
+        "goal": "7c1bcac51f409a8f",
+        "id": 0,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Company Research Specialist",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [
+          "Read website content",
+          "hybrid_search"
+        ],
+        "verbose": true
+      },
+      {
+        "allow_delegation": false,
+        "backstory": "e8f0cb2a0eb690a9",
+        "goal": "f110bb608e1d5037",
+        "id": 1,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Organizational Structure Analyst",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [
+          "Read website content",
+          "hybrid_search"
+        ],
+        "verbose": true
+      },
+      {
+        "allow_delegation": false,
+        "backstory": "c40c280b05e4611d",
+        "goal": "8b7f864f11b83d37",
+        "id": 2,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Key Contact Identifier",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [
+          "Read website content",
+          "hybrid_search"
+        ],
+        "verbose": true
+      },
+      {
+        "allow_delegation": false,
+        "backstory": "da00d7e6e62a30f4",
+        "goal": "320e0a1fcc9299d0",
+        "id": 3,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Sales Approach Strategist",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [],
+        "verbose": true
+      }
+    ],
+    "max_rpm": 10,
+    "process": "Process.sequential",
+    "tasks": [
+      {
+        "agent": 0,
+        "async_execution": false,
+        "context": null,
+        "description": "bf623a75574f0f0c",
+        "expected_output": "6af766b0790de8b7",
+        "name": "research_company_task",
+        "output_file": null,
+        "output_pydantic": null
+      },
+      {
+        "agent": 1,
+        "async_execution": false,
+        "context": null,
+        "description": "a270c672745b0bcb",
+        "expected_output": "00b08a03aea01206",
+        "name": "analyze_org_structure_task",
+        "output_file": null,
+        "output_pydantic": null
+      },
+      {
+        "agent": 2,
+        "async_execution": false,
+        "context": null,
+        "description": "dd9473105d700182",
+        "expected_output": "e95b2411b7b469b2",
+        "name": "find_key_contacts_task",
+        "output_file": null,
+        "output_pydantic": null
+      },
+      {
+        "agent": 3,
+        "async_execution": false,
+        "context": [
+          "research_company_task",
+          "analyze_org_structure_task",
+          "find_key_contacts_task"
+        ],
+        "description": "a1190262471e3b88",
+        "expected_output": "0a8080dbe3bf0691",
+        "name": "generate_sales_metrics_task",
+        "output_file": "{output_file}",
+        "output_pydantic": "SalesProspectingReport"
+      }
+    ],
+    "verbose": true
+  },
+  "ShoppingAdvisorCrew": {
+    "agents": [
+      {
+        "allow_delegation": false,
+        "backstory": "7d3c15fd1dbe975c",
+        "goal": "70c2e695824e6aca",
+        "id": 0,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "{topic} Product Research Specialist\n",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [
+          "Read website content",
+          "perplexity_search",
+          "scrape_ninja"
+        ],
+        "verbose": true
+      },
+      {
+        "allow_delegation": false,
+        "backstory": "1c9a7a3436dbe86d",
+        "goal": "2a94da684d5ddb1e",
+        "id": 1,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "{topic} Price Analysis Specialist for Switzerland and France\n",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [
+          "Read website content",
+          "perplexity_search",
+          "scrape_ninja"
+        ],
+        "verbose": true
+      },
+      {
+        "allow_delegation": false,
+        "backstory": "05b4d5e51a2ba103",
+        "goal": "c5fafbcf3ab40488",
+        "id": 2,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "{topic} Competitor Analysis Specialist\n",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [
+          "Read website content",
+          "perplexity_search",
+          "scrape_ninja"
+        ],
+        "verbose": true
+      },
+      {
+        "allow_delegation": false,
+        "backstory": "adf6046197e63bf3",
+        "goal": "93d7e1f586792129",
+        "id": 3,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "{topic} Shopping Advisor and Report Generator\n",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [],
+        "verbose": true
+      }
+    ],
+    "max_rpm": null,
+    "process": "Process.sequential",
+    "tasks": [
+      {
+        "agent": 0,
+        "async_execution": false,
+        "context": null,
+        "description": "2dccc66dab2c3ff2",
+        "expected_output": "4d13499542861d60",
+        "name": "product_research_task",
+        "output_file": "output/shopping_advisor/product_research.md",
+        "output_pydantic": null
+      },
+      {
+        "agent": 1,
+        "async_execution": false,
+        "context": null,
+        "description": "226e38226ea7fc64",
+        "expected_output": "b0f2ca26bb293c00",
+        "name": "price_analysis_task",
+        "output_file": "output/shopping_advisor/price_analysis.md",
+        "output_pydantic": null
+      },
+      {
+        "agent": 2,
+        "async_execution": false,
+        "context": null,
+        "description": "79c2aff3596858db",
+        "expected_output": "8ec4853915ea55e8",
+        "name": "competitor_analysis_task",
+        "output_file": "output/shopping_advisor/product_research.md",
+        "output_pydantic": null
+      },
+      {
+        "agent": 3,
+        "async_execution": false,
+        "context": [
+          "product_research_task",
+          "price_analysis_task",
+          "competitor_analysis_task"
+        ],
+        "description": "5811ab0efb10f91c",
+        "expected_output": "c45c04d8ad027fed",
+        "name": "shopping_data_task",
+        "output_file": "{output_file}",
+        "output_pydantic": "ShoppingAdviceOutput"
+      }
+    ],
+    "verbose": true
+  },
+  "TechStackCrew": {
+    "agents": [
+      {
+        "allow_delegation": false,
+        "backstory": "478467f62b8328b9",
+        "goal": "fd3b75dd7487ab1a",
+        "id": 0,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "OSINT Technology Stack Researcher\n",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [
+          "github_search",
+          "hybrid_search",
+          "scrape_ninja"
+        ],
+        "verbose": true
+      },
+      {
+        "allow_delegation": false,
+        "backstory": "3f7447fd9aca7397",
+        "goal": "da31644558a9db3e",
+        "id": 1,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Technology Stack Reporter\n",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [],
+        "verbose": true
+      }
+    ],
+    "max_rpm": 20,
+    "process": "Process.sequential",
+    "tasks": [
+      {
+        "agent": 0,
+        "async_execution": false,
+        "context": null,
+        "description": "b6ffdd782475a765",
+        "expected_output": "b2af67b2954e61bb",
+        "name": "tech_stack_identification",
+        "output_file": "output/osint/{company}_tech_stack_identification.json",
+        "output_pydantic": null
+      },
+      {
+        "agent": 0,
+        "async_execution": false,
+        "context": null,
+        "description": "44e9d05a425a958d",
+        "expected_output": "967b54030efe35d3",
+        "name": "tech_stack_analysis",
+        "output_file": "output/osint/{company}_tech_stack_analysis.json",
+        "output_pydantic": null
+      },
+      {
+        "agent": 0,
+        "async_execution": false,
+        "context": null,
+        "description": "fae93ca4b7163c25",
+        "expected_output": "b89eb8f5b9d94862",
+        "name": "open_source_contributions",
+        "output_file": "output/osint/{company}_open_source_contributions.json",
+        "output_pydantic": null
+      },
+      {
+        "agent": 0,
+        "async_execution": false,
+        "context": null,
+        "description": "42b9f2f0d6f13d82",
+        "expected_output": "c32b8370244f41eb",
+        "name": "tech_talent_assessment",
+        "output_file": "output/osint/{company}_tech_talent_assessment.json",
+        "output_pydantic": null
+      },
+      {
+        "agent": 1,
+        "async_execution": false,
+        "context": [
+          "tech_stack_identification",
+          "tech_stack_analysis",
+          "open_source_contributions",
+          "tech_talent_assessment"
+        ],
+        "description": "05cd6ed4e8e066be",
+        "expected_output": "79f4d877e19821ea",
+        "name": "consolidate_tech_stack_report",
+        "output_file": "output/osint/{company}_tech_stack_report.json",
+        "output_pydantic": "TechStackReport"
+      }
+    ],
+    "verbose": true
+  },
+  "WebPresenceCrew": {
+    "agents": [
+      {
+        "allow_delegation": false,
+        "backstory": "491cc855d0983371",
+        "goal": "b009fbc4976b0465",
+        "id": 0,
+        "max_iter": 15,
+        "max_retry_limit": 3,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "OSINT Web Presence Researcher\n",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [
+          "hybrid_search",
+          "scrape_ninja"
+        ],
+        "verbose": true
+      },
+      {
+        "allow_delegation": false,
+        "backstory": "5c7dde405a4866b2",
+        "goal": "9a25163a629d5abf",
+        "id": 1,
+        "max_iter": 15,
+        "max_retry_limit": 2,
+        "max_rpm": null,
+        "model": "openrouter/test/model",
+        "respect_context_window": true,
+        "role": "Web Presence Reporter\n",
+        "system_template": "e3b0c44298fc1c14",
+        "timeout": 300,
+        "tools": [],
+        "verbose": true
+      }
+    ],
+    "max_rpm": 20,
+    "process": "Process.sequential",
+    "tasks": [
+      {
+        "agent": 0,
+        "async_execution": false,
+        "context": null,
+        "description": "bae1ee34263ee3db",
+        "expected_output": "ff0055727a9ad85b",
+        "name": "web_presence_audit",
+        "output_file": "output/osint/{company}_web_presence_audit.json",
+        "output_pydantic": null
+      },
+      {
+        "agent": 0,
+        "async_execution": false,
+        "context": null,
+        "description": "141f89a2da9392fe",
+        "expected_output": "8f34fa23630ab87c",
+        "name": "social_media_footprint",
+        "output_file": "output/osint/{company}_social_media_footprint.json",
+        "output_pydantic": null
+      },
+      {
+        "agent": 0,
+        "async_execution": false,
+        "context": null,
+        "description": "ba8faa7cd5c287aa",
+        "expected_output": "547a5c6ebc7bd849",
+        "name": "domain_infrastructure_analysis",
+        "output_file": "output/osint/{company}_domain_infrastructure_analysis.json",
+        "output_pydantic": null
+      },
+      {
+        "agent": 0,
+        "async_execution": false,
+        "context": null,
+        "description": "67433d4821bd1268",
+        "expected_output": "1d36d7222114a45f",
+        "name": "data_leak_analysis",
+        "output_file": "output/osint/{company}_data_leak_analysis.json",
+        "output_pydantic": null
+      },
+      {
+        "agent": 0,
+        "async_execution": false,
+        "context": null,
+        "description": "57a3a7f96f13ddbd",
+        "expected_output": "58044ffea117e050",
+        "name": "competitive_web_presence_analysis",
+        "output_file": "output/osint/{company}_competitive_web_presence_analysis.json",
+        "output_pydantic": null
+      },
+      {
+        "agent": 1,
+        "async_execution": false,
+        "context": [
+          "web_presence_audit",
+          "social_media_footprint",
+          "domain_infrastructure_analysis",
+          "data_leak_analysis",
+          "competitive_web_presence_analysis"
+        ],
+        "description": "01b946e2e516d58b",
+        "expected_output": "b47a03f2da8db282",
+        "name": "consolidate_web_presence_report",
+        "output_file": "output/osint/{company}_web_presence_report.json",
+        "output_pydantic": "WebPresenceReport"
+      }
+    ],
+    "verbose": true
+  }
+}
