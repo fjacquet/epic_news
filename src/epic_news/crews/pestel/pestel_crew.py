@@ -17,6 +17,7 @@ from epic_news.config.llm_config import LLMConfig
 from epic_news.config.mcp_config import MCPConfig, get_mcp_tools_or_empty
 from epic_news.models.crews.pestel_report import PestelReport
 from epic_news.tools.capped_scrape_tool import CappedScrapeWebsiteTool
+from epic_news.tools.recent_search_tool import RecentSearchTool
 
 
 @CrewBase
@@ -35,6 +36,7 @@ class PestelCrew:
         return Agent(
             config=self.agents_config[config_key],  # type: ignore[index]
             tools=[
+                RecentSearchTool(),
                 HybridSearchTool(),
                 CappedScrapeWebsiteTool(),
                 *get_mcp_tools_or_empty(self),

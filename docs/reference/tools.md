@@ -84,6 +84,7 @@ result_json = scraper.run({"url": "https://example.com"})
 | **FirecrawlSearchTool** | Custom | Performs a targeted search within a specific website. | `FIRECRAWL_API_KEY` |
 | **ScrapeNinjaTool** | Custom | Advanced web scraping with proxy and JS extraction. | `RAPIDAPI_KEY` |
 | **CappedScrapeWebsiteTool** | CrewAI/Custom | Backup scraper (`crewai_tools` ScrapeWebsiteTool) returning JSON capped at `SCRAPE_MAX_CHARS` characters (default 12000). | No |
+| **RecentSearchTool** | In-repo | `recent_search`: Perplexity web search limited to the last 12 months (`search_recency="year"`), JSON result; on failure returns a JSON error telling the agent to use `hybrid_search`. Used by PESTEL. | `PERPLEXITY_API_KEY` |
 | **EXASearchTool** | CrewAI | Specialized search with similarity functions. | `EXA_API_KEY` |
 | **BrowserbaseLoadTool** | CrewAI | Browser-based content loading for dynamic sites. | `BROWSERBASE_API_KEY` |
 | **YoutubeVideoSearchTool** | CrewAI | Finds relevant video content on YouTube. | YouTube API Key |

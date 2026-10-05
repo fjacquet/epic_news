@@ -15,7 +15,9 @@ political_research_task:
     For every finding include a short source reference (URL or publication title
     with date). Do not speculate beyond the evidence.
     Requirements: call the search tool at least once before giving your final
-    answer (never answer from prior knowledge alone). Prefer sources published
+    answer (never answer from prior knowledge alone). Use recent_search first
+    for current developments, and hybrid_search only for background or when
+    recent_search fails. Prefer sources published
     within the 12 months before {current_date} and give each source's date.
     Make one tool Action per turn and wait for its Observation before continuing.
   expected_output: >
@@ -40,7 +42,9 @@ economic_research_task:
     For every finding include a short source reference with date. Prefer primary
     statistics offices, central banks, and reputable international institutions.
     Requirements: call the search tool at least once before giving your final
-    answer (never answer from prior knowledge alone). Prefer sources published
+    answer (never answer from prior knowledge alone). Use recent_search first
+    for current developments, and hybrid_search only for background or when
+    recent_search fails. Prefer sources published
     within the 12 months before {current_date} and give each source's date.
     Make one tool Action per turn and wait for its Observation before continuing.
   expected_output: >
@@ -63,7 +67,9 @@ social_research_task:
     Cite sources for every finding (census data, peer-reviewed studies,
     reputable polling). Flag regional variation when it matters.
     Requirements: call the search tool at least once before giving your final
-    answer (never answer from prior knowledge alone). Prefer sources published
+    answer (never answer from prior knowledge alone). Use recent_search first
+    for current developments, and hybrid_search only for background or when
+    recent_search fails. Prefer sources published
     within the 12 months before {current_date} and give each source's date.
     Make one tool Action per turn and wait for its Observation before continuing.
   expected_output: >
@@ -84,7 +90,9 @@ technological_research_task:
     - Cybersecurity and technology risk
     Cite sources for every finding. Distinguish hype from validated deployment.
     Requirements: call the search tool at least once before giving your final
-    answer (never answer from prior knowledge alone). Prefer sources published
+    answer (never answer from prior knowledge alone). Use recent_search first
+    for current developments, and hybrid_search only for background or when
+    recent_search fails. Prefer sources published
     within the 12 months before {current_date} and give each source's date.
     Make one tool Action per turn and wait for its Observation before continuing.
   expected_output: >
@@ -106,7 +114,9 @@ environmental_research_task:
     Cite sources for every finding (IPCC, national agencies, CDP/GRI). Do not
     conflate aspirational targets with measured outcomes.
     Requirements: call the search tool at least once before giving your final
-    answer (never answer from prior knowledge alone). Prefer sources published
+    answer (never answer from prior knowledge alone). Use recent_search first
+    for current developments, and hybrid_search only for background or when
+    recent_search fails. Prefer sources published
     within the 12 months before {current_date} and give each source's date.
     Make one tool Action per turn and wait for its Observation before continuing.
   expected_output: >
@@ -128,7 +138,9 @@ legal_research_task:
     Cite sources for every finding (statute references, regulator guidance,
     court decisions, reputable legal commentary). Note effective dates.
     Requirements: call the search tool at least once before giving your final
-    answer (never answer from prior knowledge alone). Prefer sources published
+    answer (never answer from prior knowledge alone). Use recent_search first
+    for current developments, and hybrid_search only for background or when
+    recent_search fails. Prefer sources published
     within the 12 months before {current_date} and give each source's date.
     Make one tool Action per turn and wait for its Observation before continuing.
   expected_output: >
