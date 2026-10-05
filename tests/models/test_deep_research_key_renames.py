@@ -1,5 +1,8 @@
 """The single DeepResearchReport accepts old key names but never invents content (S3)."""
 
+import pytest
+from pydantic import ValidationError
+
 from epic_news.models.crews.deep_research import DeepResearchReport
 
 _SOURCE = {"title": "a", "url": "https://a", "source_type": "web", "summary": "s", "relevance_score": 8}
@@ -48,3 +51,8 @@ def test_unique_sources_dedupes_by_url_then_title():
     )
     assert [(s.title, s.url) for s in report.unique_sources] == [("a", "https://a"), ("offline", None)]
     assert report.sources_count == 4  # citations, unchanged contract
+
+
+def test_non_object_input_is_rejected_not_rewritten():
+    with pytest.raises(ValidationError):
+        DeepResearchReport.model_validate(["not", "an", "object"])
