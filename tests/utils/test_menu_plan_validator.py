@@ -66,8 +66,7 @@ class TestMenuPlanValidator:
         incomplete_plan = {"week_start_date": "2025-01-27", "season": "hiver"}
 
         result = MenuPlanValidator.validate_and_fix_weekly_plan(incomplete_plan)
-        assert isinstance(result["daily_menus"], list)
-        assert len(result["daily_menus"]) == 7
+        assert result["daily_menus"] == []  # no placeholder days are invented
 
     def test_validate_and_fix_weekly_plan_malformed_daily_menus(self):
         """Test fixing malformed daily_menus."""
@@ -82,7 +81,7 @@ class TestMenuPlanValidator:
         }
 
         result = MenuPlanValidator.validate_and_fix_weekly_plan(malformed_plan)
-        assert len(result["daily_menus"]) == 7
+        assert len(result["daily_menus"]) == 1  # only the dict entry is usable
 
         # Check first menu was fixed
         first_menu = result["daily_menus"][0]
@@ -143,7 +142,7 @@ class TestMenuPlanValidator:
 
         result = MenuPlanValidator.parse_and_validate_ai_output(valid_json)
         assert isinstance(result, WeeklyMenuPlan)
-        assert len(result.daily_menus) == 7  # Should be expanded to 7 days
+        assert len(result.daily_menus) == 1  # not padded to 7 days
 
     def test_parse_and_validate_ai_output_json_string(self):
         """Test parsing JSON string AI output."""
@@ -159,8 +158,7 @@ class TestMenuPlanValidator:
             }
         )
 
-        result = MenuPlanValidator.parse_and_validate_ai_output(json_string)
-        assert isinstance(result, WeeklyMenuPlan)
+        assert MenuPlanValidator.parse_and_validate_ai_output(json_string) is None
 
     def test_parse_and_validate_ai_output_markdown_wrapped(self):
         """Test parsing markdown-wrapped JSON."""
@@ -176,8 +174,7 @@ class TestMenuPlanValidator:
 }
 ```"""
 
-        result = MenuPlanValidator.parse_and_validate_ai_output(markdown_json)
-        assert isinstance(result, WeeklyMenuPlan)
+        assert MenuPlanValidator.parse_and_validate_ai_output(markdown_json) is None
 
     def test_parse_and_validate_ai_output_invalid_json(self):
         """Test handling invalid JSON."""
@@ -287,3 +284,27 @@ class TestValidatorKeepsRealDishes:
         assert lunch.starter.name == "Soupe à l'oignon"
         assert lunch.main_course.name == "Coq au vin"
         assert result.daily_menus[0].dinner.main_course.name == "Endives au jambon"
+
+
+class TestNumDays:
+    def test_plan_truncated_to_num_days(self):
+        meal = {
+            "meal_type": "déjeuner",
+            "starter": _dish("A", "entrée"),
+            "main_course": _dish("B", "plat principal"),
+        }
+        plan = _plan(meal, meal)
+        plan["daily_menus"] = plan["daily_menus"] * 5
+        assert len(MenuPlanValidator.validate_and_fix_weekly_plan(plan, 2)["daily_menus"]) == 2
+
+    def test_short_plan_not_padded(self):
+        meal = {
+            "meal_type": "déjeuner",
+            "starter": _dish("A", "entrée"),
+            "main_course": _dish("B", "plat principal"),
+        }
+        result = MenuPlanValidator.validate_and_fix_weekly_plan(_plan(meal, meal), 3)
+        assert len(result["daily_menus"]) == 1
+
+    def test_fallback_respects_num_days(self):
+        assert len(MenuPlanValidator.create_fallback_menu_plan(2).daily_menus) == 2

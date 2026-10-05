@@ -112,6 +112,7 @@ from epic_news.utils.html.template_manager import TemplateManager
 from epic_news.utils.html.template_renderers.pestel_markdown import pestel_to_markdown
 from epic_news.utils.interrupt import RunCancelledError, install_force_quit_handler
 from epic_news.utils.logger import setup_logging
+from epic_news.utils.menu_days import DEFAULT_MENU_DAYS
 from epic_news.utils.menu_generator import MenuGenerator
 from epic_news.utils.observability import get_observability_tools, trace_task
 from epic_news.utils.recipe_export import export_recipe, recipe_from_result
@@ -752,6 +753,7 @@ class ReceptionFlow(Flow[ContentState]):
                 season=crew_inputs.get("season", "hiver"),
                 current_date=crew_inputs.get("current_date", "2025-01-27"),
                 menu_slug=crew_inputs.get("menu_slug", "menu_hebdomadaire"),
+                num_days=crew_inputs.get("num_days", DEFAULT_MENU_DAYS),
             )
 
             if menu_plan:

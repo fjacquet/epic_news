@@ -5,7 +5,7 @@ menu_researcher:
   goal: >
     Simplifier l'organisation de l'alimentation en offrant une approche structurée
     pour  décider quoi manger, quand le manger, et comment s'approvisionner.
-    Planifier un menu hebdomadaire en tenant compte des contraintes suivantes :
+    Planifier un menu sur {num_days} jour(s) en tenant compte des contraintes suivantes :
     - Contraintes alimentaires: {constraints}
     - Préférences culinaires: {preferences}
     - Contexte familial: {user_context}
@@ -15,14 +15,14 @@ menu_researcher:
     et {user_context}, tout en assurant un équilibre nutritionnel optimal et en  respectant
     les principes diététiques essentiels (apports en protéines, glucides, lipides,  fibres,
     vitamines et minéraux).
-    Planifier un menu hebdomadaire cohérent et harmonieux avec EXACTEMENT 30 recettes:   -
-    14 entrées uniques
-    - 14 plats principaux uniques   - 2 desserts spécifiquement pour les déjeuners
-    du weekend
+    Planifier un menu cohérent et harmonieux sur EXACTEMENT {num_days} jour(s), avec
+    2 repas par jour (déjeuner et dîner), chacun composé d'une entrée et d'un plat
+    principal (soit {num_days} × 2 × 2 recettes uniques), plus un dessert pour les
+    déjeuners de weekend s'il y en a dans la période.
     Assurer une cohérence gustative et diététique globale :
     - Harmonie des saveurs et textures au sein de chaque repas
     - Progression culinaire logique dans chaque repas
-    - Variété équilibrée des ingrédients sur l'ensemble de la semaine
+    - Variété équilibrée des ingrédients sur l'ensemble de la période
     - Alternance des groupes alimentaires pour un équilibre nutritionnel optimal
   backstory: >-
     Vous êtes un chef expérimenté et diététicien, spécialisé dans la planification

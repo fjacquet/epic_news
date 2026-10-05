@@ -7,6 +7,7 @@ from crewai import CrewOutput
 
 from epic_news.crews.menu_designer.menu_designer import MenuDesignerCrew
 from epic_news.models.crews.menu_designer_report import WeeklyMenuPlan
+from epic_news.utils.menu_days import DEFAULT_MENU_DAYS
 from epic_news.utils.menu_plan_validator import MenuPlanValidator
 
 logger = logging.getLogger(__name__)
@@ -28,6 +29,7 @@ class MenuDesignerService:
         season: str = "hiver",
         current_date: str = "2025-01-27",
         menu_slug: str = "menu_hebdomadaire",
+        num_days: int = DEFAULT_MENU_DAYS,
     ) -> WeeklyMenuPlan | None:
         """
         Generate a weekly menu plan with validation and error recovery.
@@ -39,6 +41,7 @@ class MenuDesignerService:
             season: Current season for seasonal ingredients
             current_date: Current date for planning
             menu_slug: Slug for output file naming
+            num_days: Number of days the menu must cover (1-7)
 
         Returns:
             WeeklyMenuPlan: Validated menu plan or None if generation fails
@@ -54,6 +57,7 @@ class MenuDesignerService:
                 "season": season,
                 "current_date": current_date,
                 "menu_slug": menu_slug,
+                "num_days": num_days,
             }
 
             # Run the crew
@@ -61,20 +65,22 @@ class MenuDesignerService:
             result = self.crew.crew().kickoff(inputs=inputs)
 
             # Handle different types of crew output
-            menu_plan = self._extract_menu_plan_from_result(result)
+            menu_plan = self._extract_menu_plan_from_result(result, num_days)
 
             if menu_plan:
                 logger.info("✅ Menu plan generated successfully!")
                 return menu_plan
             logger.warning("⚠️ Menu plan generation failed, creating fallback...")
-            return self.validator.create_fallback_menu_plan()
+            return self.validator.create_fallback_menu_plan(num_days)
 
         except Exception as e:
             logger.error(f"❌ Error in menu plan generation: {e}")
             logger.warning("🔄 Creating fallback menu plan...")
-            return self.validator.create_fallback_menu_plan()
+            return self.validator.create_fallback_menu_plan(num_days)
 
-    def _extract_menu_plan_from_result(self, result: Any) -> WeeklyMenuPlan | None:
+    def _extract_menu_plan_from_result(
+        self, result: Any, num_days: int = DEFAULT_MENU_DAYS
+    ) -> WeeklyMenuPlan | None:
         """
         Extract and validate menu plan from crew result.
 
@@ -97,12 +103,12 @@ class MenuDesignerService:
                 # Try to parse raw output
                 if hasattr(result, "raw") and result.raw:
                     logger.info("🔍 Parsing raw crew output...")
-                    return self.validator.parse_and_validate_ai_output(result.raw)
+                    return self.validator.parse_and_validate_ai_output(result.raw, num_days)
 
                 # Try to parse JSON output
                 if hasattr(result, "json") and result.json:
                     logger.info("🔍 Parsing JSON crew output...")
-                    return self.validator.parse_and_validate_ai_output(result.json)
+                    return self.validator.parse_and_validate_ai_output(result.json, num_days)
 
                 # No valid output found in CrewOutput
                 logger.warning("⚠️ No valid output found in CrewOutput")
@@ -116,12 +122,12 @@ class MenuDesignerService:
             # Handle string output
             if isinstance(result, str):
                 logger.info("🔍 Parsing string output...")
-                return self.validator.parse_and_validate_ai_output(result)
+                return self.validator.parse_and_validate_ai_output(result, num_days)
 
             # Handle dict output
             if isinstance(result, dict):
                 logger.info("🔍 Validating dict output...")
-                fixed_data = self.validator.validate_and_fix_weekly_plan(result)
+                fixed_data = self.validator.validate_and_fix_weekly_plan(result, num_days)
                 try:
                     return WeeklyMenuPlan.model_validate(fixed_data)
                 except Exception as e:
