@@ -1,4 +1,7 @@
+from typing import Any
+
 from crewai import Agent, Crew, Process, Task
+from crewai.agents.agent_builder.base_agent import BaseAgent
 from crewai.project import CrewBase, agent, crew, task
 from crewai_custom_tools import KrakenAssetListTool
 from crewai_tools import DirectoryReadTool
@@ -21,13 +24,15 @@ class FinDailyCrew:
     concurrent async execution is off across the project.
     """
 
-    agents_config = "config/agents.yaml"
-    tasks_config = "config/tasks.yaml"
+    agents_config: dict[str, Any] = "config/agents.yaml"  # type: ignore[assignment]  # CrewBase loads the YAML
+    tasks_config: dict[str, Any] = "config/tasks.yaml"  # type: ignore[assignment]
+    agents: list[BaseAgent]  # set by CrewBase from the @agent methods
+    tasks: list[Task]  # set by CrewBase from the @task methods
 
     @agent
     def stock_analyst(self) -> Agent:
         return Agent(
-            config=self.agents_config["stock_analyst"],  # type: ignore[index]
+            config=self.agents_config["stock_analyst"],
             tools=get_stock_research_tools()
             + [
                 # Reads the portfolio CSVs ({stock_csv_path}/{etf_csv_path} under data/);
@@ -48,7 +53,7 @@ class FinDailyCrew:
     @agent
     def crypto_analyst(self) -> Agent:
         return Agent(
-            config=self.agents_config["crypto_analyst"],  # type: ignore[index]
+            config=self.agents_config["crypto_analyst"],
             # get_crypto_research_tools() already includes KrakenTickerInfoTool.
             tools=get_crypto_research_tools() + [KrakenAssetListTool(), get_scraper()],
             llm=LLMConfig.get_openrouter_llm(),
@@ -59,7 +64,7 @@ class FinDailyCrew:
     @agent
     def investment_strategist(self) -> Agent:
         return Agent(
-            config=self.agents_config["investment_strategist"],  # type: ignore[index]
+            config=self.agents_config["investment_strategist"],
             # No tools - synthesizes from context provided by analyst tasks
             llm=LLMConfig.get_openrouter_llm(),
             max_iter=LLMConfig.get_max_iter(),
@@ -68,64 +73,64 @@ class FinDailyCrew:
 
     @task
     def stock_portfolio_analysis_task(self) -> Task:
-        return Task(  # type: ignore[call-arg]
-            config=self.tasks_config["stock_portfolio_analysis_task"],  # type: ignore[index, arg-type]
+        return Task(
+            config=self.tasks_config["stock_portfolio_analysis_task"],
             async_execution=False,
         )
 
     @task
     def crypto_portfolio_analysis_task(self) -> Task:
-        return Task(  # type: ignore[call-arg]
-            config=self.tasks_config["crypto_portfolio_analysis_task"],  # type: ignore[index, arg-type]
+        return Task(
+            config=self.tasks_config["crypto_portfolio_analysis_task"],
             async_execution=False,
         )
 
     # NEW: ETF portfolio analysis task
     @task
     def etf_portfolio_analysis_task(self) -> Task:
-        return Task(  # type: ignore[call-arg]
-            config=self.tasks_config["etf_portfolio_analysis_task"],  # type: ignore[index, arg-type]
+        return Task(
+            config=self.tasks_config["etf_portfolio_analysis_task"],
             # Own agent instance: shares the stock_analyst role with the stock analysis
             # task, so it keeps a distinct executor of its own.
-            agent=self.stock_analyst(),  # type: ignore[call-arg]
+            agent=self.stock_analyst(),
             async_execution=False,
         )
 
     @task
     def stock_suggestion_task(self) -> Task:
-        return Task(  # type: ignore[call-arg]
-            config=self.tasks_config["stock_suggestion_task"],  # type: ignore[index, arg-type]
+        return Task(
+            config=self.tasks_config["stock_suggestion_task"],
             # Consumes stock_portfolio_analysis_task via context.
             async_execution=False,
         )
 
     @task
     def etf_suggestion_task(self) -> Task:
-        return Task(  # type: ignore[call-arg]
-            config=self.tasks_config["etf_suggestion_task"],  # type: ignore[index, arg-type]
+        return Task(
+            config=self.tasks_config["etf_suggestion_task"],
             # Consumes its analysis task via context; see stock_suggestion_task.
             async_execution=False,
         )
 
     @task
     def crypto_suggestion_task(self) -> Task:
-        return Task(  # type: ignore[call-arg]
-            config=self.tasks_config["crypto_suggestion_task"],  # type: ignore[index, arg-type]
+        return Task(
+            config=self.tasks_config["crypto_suggestion_task"],
             # Consumes its analysis task via context; see stock_suggestion_task.
             async_execution=False,
         )
 
     @task
     def final_report_generation_task(self) -> Task:
-        return Task(  # type: ignore[call-arg]
-            config=self.tasks_config["final_report_generation_task"],  # type: ignore[index, arg-type]
+        return Task(
+            config=self.tasks_config["final_report_generation_task"],
             context=[
-                self.stock_portfolio_analysis_task(),  # type: ignore[call-arg]
-                self.crypto_portfolio_analysis_task(),  # type: ignore[call-arg]
-                self.etf_portfolio_analysis_task(),  # type: ignore[call-arg]
-                self.stock_suggestion_task(),  # type: ignore[call-arg]
-                self.etf_suggestion_task(),  # type: ignore[call-arg]
-                self.crypto_suggestion_task(),  # type: ignore[call-arg]
+                self.stock_portfolio_analysis_task(),
+                self.crypto_portfolio_analysis_task(),
+                self.etf_portfolio_analysis_task(),
+                self.stock_suggestion_task(),
+                self.etf_suggestion_task(),
+                self.crypto_suggestion_task(),
             ],
             output_pydantic=FinancialReport,
         )
@@ -134,8 +139,8 @@ class FinDailyCrew:
     def crew(self) -> Crew:
         """Creates the FinDaily crew"""
         return Crew(
-            agents=self.agents,  # type: ignore[attr-defined]
-            tasks=self.tasks,  # type: ignore[attr-defined]
+            agents=self.agents,
+            tasks=self.tasks,
             process=Process.sequential,
             verbose=True,
         )

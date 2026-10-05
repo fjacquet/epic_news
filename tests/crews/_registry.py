@@ -67,10 +67,8 @@ ALL_CREW_CLASSES = [
     WebPresenceCrew,
 ]
 
-# NOTE: there is deliberately no ASYNC_CREW_CLASSES subset any more. Every crew runs its
-# tasks sequentially (async_execution=False) because CrewAI 1.15+ concurrent async tasks
-# share one AgentExecutor and can leak a raw tool_calls list into TaskOutput.raw — see
-# test_async_agent_isolation.py, which enforces this across ALL_CREW_CLASSES.
+# Crews run their tasks sequentially except those in ASYNC_ALLOWED
+# (tests/crews/test_async_agent_isolation.py), which also checks agent isolation.
 
 
 @cache

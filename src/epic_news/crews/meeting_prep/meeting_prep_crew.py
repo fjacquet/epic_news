@@ -1,6 +1,8 @@
+from typing import Any
+
 from crewai import Agent, Crew, Process, Task
+from crewai.agents.agent_builder.base_agent import BaseAgent
 from crewai.project import CrewBase, agent, crew, task
-from dotenv import load_dotenv
 from loguru import logger
 
 from epic_news.config.llm_config import LLMConfig
@@ -8,15 +10,15 @@ from epic_news.models.crews.meeting_prep_report import MeetingPrepReport
 from epic_news.tools.finance_tools import get_yahoo_finance_tools
 from epic_news.tools.web_tools import get_scrape_tools, get_search_tools
 
-load_dotenv()
-
 
 @CrewBase
 class MeetingPrepCrew:
     """MeetingPrep crew for preparing comprehensive meeting briefings."""
 
-    agents_config = "config/agents.yaml"
-    tasks_config = "config/tasks.yaml"
+    agents_config: dict[str, Any] = "config/agents.yaml"  # type: ignore[assignment]  # CrewBase loads the YAML
+    tasks_config: dict[str, Any] = "config/tasks.yaml"  # type: ignore[assignment]
+    agents: list[BaseAgent]  # set by CrewBase from the @agent methods
+    tasks: list[Task]  # set by CrewBase from the @task methods
 
     @agent
     def lead_researcher_agent(self) -> Agent:
@@ -24,7 +26,7 @@ class MeetingPrepCrew:
         Create a lead researcher agent responsible for gathering information.
         """
         return Agent(
-            config=self.agents_config["lead_researcher_agent"],  # type: ignore[index]
+            config=self.agents_config["lead_researcher_agent"],
             tools=get_search_tools() + get_scrape_tools() + get_yahoo_finance_tools(),
             allow_delegation=False,
             verbose=True,
@@ -39,7 +41,7 @@ class MeetingPrepCrew:
         Create a product specialist agent for product-related analysis.
         """
         return Agent(
-            config=self.agents_config["product_specialist_agent"],  # type: ignore[index]
+            config=self.agents_config["product_specialist_agent"],
             tools=get_search_tools() + get_scrape_tools() + get_yahoo_finance_tools(),
             allow_delegation=False,
             verbose=True,
@@ -54,7 +56,7 @@ class MeetingPrepCrew:
         Create a sales strategist agent for developing sales approaches.
         """
         return Agent(
-            config=self.agents_config["sales_strategist_agent"],  # type: ignore[index]
+            config=self.agents_config["sales_strategist_agent"],
             tools=get_search_tools() + get_scrape_tools() + get_yahoo_finance_tools(),
             verbose=True,
             respect_context_window=True,
@@ -68,7 +70,7 @@ class MeetingPrepCrew:
         Create a briefing coordinator agent to compile the final briefing.
         """
         return Agent(
-            config=self.agents_config["briefing_coordinator_agent"],  # type: ignore[index]
+            config=self.agents_config["briefing_coordinator_agent"],
             tools=[],  # Writes the final JSON briefing; tools would add action traces
             verbose=True,
             respect_context_window=True,
@@ -82,8 +84,8 @@ class MeetingPrepCrew:
         Define the research task for gathering meeting-related information.
         """
         return Task(
-            config=self.tasks_config["research_task"],  # type: ignore[arg-type, index]
-            agent=self.lead_researcher_agent(),  # type: ignore[call-arg]
+            config=self.tasks_config["research_task"],
+            agent=self.lead_researcher_agent(),
             async_execution=False,
         )
 
@@ -93,9 +95,9 @@ class MeetingPrepCrew:
         Define the product alignment task for analyzing product fit.
         """
         return Task(
-            config=self.tasks_config["product_alignment_task"],  # type: ignore[arg-type, index]
+            config=self.tasks_config["product_alignment_task"],
             async_execution=False,
-        )  # type: ignore[call-arg]
+        )
 
     @task
     def sales_strategy_task(self) -> Task:
@@ -103,9 +105,9 @@ class MeetingPrepCrew:
         Define the sales strategy task for developing sales approaches.
         """
         return Task(
-            config=self.tasks_config["sales_strategy_task"],  # type: ignore[arg-type, index]
+            config=self.tasks_config["sales_strategy_task"],
             async_execution=False,
-        )  # type: ignore[call-arg]
+        )
 
     @task
     def meeting_preparation_task(self) -> Task:
@@ -114,11 +116,11 @@ class MeetingPrepCrew:
         Uses MeetingPrepReport Pydantic model for structured output validation.
         """
         return Task(
-            config=self.tasks_config["meeting_preparation_task"],  # type: ignore[arg-type, index]
+            config=self.tasks_config["meeting_preparation_task"],
             context=[
-                self.research_task(),  # type: ignore[call-arg]
-                self.product_alignment_task(),  # type: ignore[call-arg]
-                self.sales_strategy_task(),  # type: ignore[call-arg]
+                self.research_task(),
+                self.product_alignment_task(),
+                self.sales_strategy_task(),
             ],
             output_pydantic=MeetingPrepReport,
         )
@@ -130,8 +132,8 @@ class MeetingPrepCrew:
         """
         try:
             return Crew(
-                agents=self.agents,  # type: ignore[attr-defined]
-                tasks=self.tasks,  # type: ignore[attr-defined]
+                agents=self.agents,
+                tasks=self.tasks,
                 process=Process.sequential,
                 max_rpm=10,  # Keeping existing custom value (lower than default 20)
                 verbose=True,

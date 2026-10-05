@@ -9,7 +9,10 @@ The reporter consolidates all six dimensions into a single PestelReport.
 
 from __future__ import annotations
 
+from typing import Any
+
 from crewai import Agent, Crew, Process, Task
+from crewai.agents.agent_builder.base_agent import BaseAgent
 from crewai.project import CrewBase, agent, crew, task
 from crewai_custom_tools import HybridSearchTool
 
@@ -24,8 +27,10 @@ from epic_news.tools.recent_search_tool import RecentSearchTool
 class PestelCrew:
     """PESTEL analysis crew (6 dimension researchers + 1 reporter)."""
 
-    agents_config = "config/agents.yaml"
-    tasks_config = "config/tasks.yaml"
+    agents_config: dict[str, Any] = "config/agents.yaml"  # type: ignore[assignment]  # CrewBase loads the YAML
+    tasks_config: dict[str, Any] = "config/tasks.yaml"  # type: ignore[assignment]
+    agents: list[BaseAgent]  # set by CrewBase from the @agent methods
+    tasks: list[Task]  # set by CrewBase from the @task methods
 
     # Wikipedia MCP server: @CrewBase starts one shared adapter on the first
     # get_mcp_tools() call and stops it in an after-kickoff hook.
@@ -34,7 +39,7 @@ class PestelCrew:
     def _researcher(self, config_key: str) -> Agent:
         """Build a dimension researcher with the shared tool set."""
         return Agent(
-            config=self.agents_config[config_key],  # type: ignore[index]
+            config=self.agents_config[config_key],
             tools=[
                 RecentSearchTool(),
                 HybridSearchTool(),
@@ -75,7 +80,7 @@ class PestelCrew:
     @agent
     def pestel_reporter(self) -> Agent:
         return Agent(
-            config=self.agents_config["pestel_reporter"],  # type: ignore[index]
+            config=self.agents_config["pestel_reporter"],
             tools=[],
             llm=LLMConfig.get_openrouter_llm(task_type="long"),
             max_iter=LLMConfig.get_max_iter(),
@@ -86,58 +91,58 @@ class PestelCrew:
 
     @task
     def political_research_task(self) -> Task:
-        return Task(  # type: ignore[call-arg]
-            config=self.tasks_config["political_research_task"],  # type: ignore[index, arg-type]
+        return Task(
+            config=self.tasks_config["political_research_task"],
             async_execution=True,
         )
 
     @task
     def economic_research_task(self) -> Task:
-        return Task(  # type: ignore[call-arg]
-            config=self.tasks_config["economic_research_task"],  # type: ignore[index, arg-type]
+        return Task(
+            config=self.tasks_config["economic_research_task"],
             async_execution=True,
         )
 
     @task
     def social_research_task(self) -> Task:
-        return Task(  # type: ignore[call-arg]
-            config=self.tasks_config["social_research_task"],  # type: ignore[index, arg-type]
+        return Task(
+            config=self.tasks_config["social_research_task"],
             async_execution=True,
         )
 
     @task
     def technological_research_task(self) -> Task:
-        return Task(  # type: ignore[call-arg]
-            config=self.tasks_config["technological_research_task"],  # type: ignore[index, arg-type]
+        return Task(
+            config=self.tasks_config["technological_research_task"],
             async_execution=True,
         )
 
     @task
     def environmental_research_task(self) -> Task:
-        return Task(  # type: ignore[call-arg]
-            config=self.tasks_config["environmental_research_task"],  # type: ignore[index, arg-type]
+        return Task(
+            config=self.tasks_config["environmental_research_task"],
             async_execution=True,
         )
 
     @task
     def legal_research_task(self) -> Task:
-        return Task(  # type: ignore[call-arg]
-            config=self.tasks_config["legal_research_task"],  # type: ignore[index, arg-type]
+        return Task(
+            config=self.tasks_config["legal_research_task"],
             async_execution=True,
         )
 
     @task
     def format_pestel_report_task(self) -> Task:
         return Task(
-            config=self.tasks_config["format_pestel_report_task"],  # type: ignore[index, arg-type]
-            agent=self.pestel_reporter(),  # type: ignore[call-arg]
+            config=self.tasks_config["format_pestel_report_task"],
+            agent=self.pestel_reporter(),
             context=[
-                self.political_research_task(),  # type: ignore[call-arg]
-                self.economic_research_task(),  # type: ignore[call-arg]
-                self.social_research_task(),  # type: ignore[call-arg]
-                self.technological_research_task(),  # type: ignore[call-arg]
-                self.environmental_research_task(),  # type: ignore[call-arg]
-                self.legal_research_task(),  # type: ignore[call-arg]
+                self.political_research_task(),
+                self.economic_research_task(),
+                self.social_research_task(),
+                self.technological_research_task(),
+                self.environmental_research_task(),
+                self.legal_research_task(),
             ],
             output_pydantic=PestelReport,
         )
@@ -145,8 +150,8 @@ class PestelCrew:
     @crew
     def crew(self) -> Crew:
         return Crew(
-            agents=self.agents,  # type: ignore[attr-defined]
-            tasks=self.tasks,  # type: ignore[attr-defined]
+            agents=self.agents,
+            tasks=self.tasks,
             process=Process.sequential,
             max_rpm=LLMConfig.get_max_rpm(),
             verbose=True,

@@ -171,6 +171,13 @@ exclude = [
     "dist/",
 ]
 
+[[tool.mypy.overrides]]
+# CrewAI's documented crew form is untypable: Task(config=...) leaves description /
+# expected_output to the YAML, and @agent/@task methods are DecoratedMethod objects.
+# tests/crews/test_constructor_kwargs.py rejects unknown Agent/Task/Crew kwargs here instead.
+module = ["epic_news.crews.*"]
+disable_error_code = ["call-arg"]
+
 [tool.bandit]
 exclude_dirs = [
     "tests/",

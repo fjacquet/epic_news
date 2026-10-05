@@ -1,8 +1,8 @@
 from typing import Any
 
 from crewai import Agent, Crew, Process, Task
+from crewai.agents.agent_builder.base_agent import BaseAgent
 from crewai.project import CrewBase, agent, crew, task
-from dotenv import load_dotenv
 from loguru import logger
 
 from epic_news.config.llm_config import LLMConfig
@@ -10,7 +10,6 @@ from epic_news.models.crews.company_news_report import CompanyNewsReport
 from epic_news.utils.observability import get_observability_tools, trace_task
 
 # Load environment variables
-load_dotenv()
 
 # Initialize observability tools at the module level
 observability_tools = get_observability_tools(crew_name="company_news_crew")
@@ -35,8 +34,10 @@ class CompanyNewsCrew:
     """
 
     # Configuration file paths relative to the crew directory
-    agents_config = "config/agents.yaml"
-    tasks_config = "config/tasks.yaml"
+    agents_config: dict[str, Any] = "config/agents.yaml"  # type: ignore[assignment]  # CrewBase loads the YAML
+    tasks_config: dict[str, Any] = "config/tasks.yaml"  # type: ignore[assignment]
+    agents: list[BaseAgent]  # set by CrewBase from the @agent methods
+    tasks: list[Task]  # set by CrewBase from the @task methods
 
     def __init__(self):
         """
@@ -70,7 +71,7 @@ class CompanyNewsCrew:
             Agent: Configured researcher agent from YAML configuration
         """
         return Agent(
-            config=self.agents_config["researcher"],  # type: ignore[index]
+            config=self.agents_config["researcher"],
             tools=self.search_tools,
             verbose=True,
             llm=LLMConfig.get_openrouter_llm(),
@@ -86,7 +87,7 @@ class CompanyNewsCrew:
             Agent: Configured analyst agent from YAML configuration
         """
         return Agent(
-            config=self.agents_config["analyst"],  # type: ignore[index]
+            config=self.agents_config["analyst"],
             tools=self.search_tools,
             verbose=True,
             llm=LLMConfig.get_openrouter_llm(),
@@ -102,7 +103,7 @@ class CompanyNewsCrew:
         All output file handling must be done via CrewAI config/context, NOT in Python.
         """
         return Agent(
-            config=self.agents_config["editor"],  # type: ignore[index]
+            config=self.agents_config["editor"],
             tools=[],  # Gold standard: no tools for reporting agent
             verbose=True,
             llm=LLMConfig.get_openrouter_llm(),
@@ -125,8 +126,8 @@ class CompanyNewsCrew:
             Task: Configured research task from YAML configuration
         """
         # Create task config with dynamic topic
-        task_config: dict[str, Any] = dict(self.tasks_config["research_task"])  # type: ignore[index, arg-type]
-        return Task(  # type: ignore[call-arg]
+        task_config: dict[str, Any] = dict(self.tasks_config["research_task"])
+        return Task(
             config=task_config,
             async_execution=False,  # Parallel execution for better performance
         )
@@ -143,8 +144,8 @@ class CompanyNewsCrew:
             Task: Configured analysis task from YAML configuration
         """
         # Create task config with dynamic topic
-        task_config: dict[str, Any] = dict(self.tasks_config["analysis_task"])  # type: ignore[index, arg-type]
-        return Task(  # type: ignore[call-arg]
+        task_config: dict[str, Any] = dict(self.tasks_config["analysis_task"])
+        return Task(
             config=task_config,
             context=[self.research_task()],  # This task depends on research
         )
@@ -161,9 +162,9 @@ class CompanyNewsCrew:
             Task: Configured editing task from YAML configuration
         """
         # Create task config with dynamic topic
-        task_config: dict[str, Any] = dict(self.tasks_config["editing_task"])  # type: ignore[index, arg-type]
+        task_config: dict[str, Any] = dict(self.tasks_config["editing_task"])
 
-        return Task(  # type: ignore[call-arg]
+        return Task(
             config=task_config,
             context=[
                 self.research_task(),
@@ -186,8 +187,8 @@ class CompanyNewsCrew:
         try:
             # Configure the crew with hierarchical process and appropriate settings
             return Crew(
-                agents=self.agents,  # type: ignore[attr-defined] # Automatically created by the @agent decorator
-                tasks=self.tasks,  # type: ignore[attr-defined] # Automatically created by the @task decorator
+                agents=self.agents,  # Automatically created by the @agent decorator
+                tasks=self.tasks,  # Automatically created by the @task decorator
                 process=Process.sequential,  # Hierarchical process for parallel execution
                 verbose=True,  # Enable verbose output for better debugging
                 max_rpm=LLMConfig.get_max_rpm(),

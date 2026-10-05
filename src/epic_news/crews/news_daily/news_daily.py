@@ -1,6 +1,7 @@
 from typing import Any
 
 from crewai import Agent, Crew, Process, Task
+from crewai.agents.agent_builder.base_agent import BaseAgent
 from crewai.project import CrewBase, agent, crew, task
 
 from epic_news.config.llm_config import LLMConfig
@@ -12,8 +13,10 @@ from epic_news.tools.web_tools import get_news_tools
 class NewsDailyCrew:
     """NewsDaily crew for collecting and reporting daily news in French"""
 
-    agents_config: dict[str, Any] = "config/agents.yaml"  # type: ignore[assignment]
+    agents_config: dict[str, Any] = "config/agents.yaml"  # type: ignore[assignment]  # CrewBase loads the YAML
     tasks_config: dict[str, Any] = "config/tasks.yaml"  # type: ignore[assignment]
+    agents: list[BaseAgent]  # set by CrewBase from the @agent methods
+    tasks: list[Task]  # set by CrewBase from the @task methods
 
     def _new_researcher(self) -> Agent:
         """A fresh researcher for one region task.
@@ -49,7 +52,7 @@ class NewsDailyCrew:
     def suisse_romande_news_task(self) -> Task:
         return Task(
             config=self.tasks_config["suisse_romande_news_task"],
-            agent=self._new_researcher(),  # type: ignore[call-arg]
+            agent=self._new_researcher(),
             async_execution=True,
         )
 
@@ -57,7 +60,7 @@ class NewsDailyCrew:
     def suisse_news_task(self) -> Task:
         return Task(
             config=self.tasks_config["suisse_news_task"],
-            agent=self._new_researcher(),  # type: ignore[call-arg]
+            agent=self._new_researcher(),
             async_execution=True,
         )
 
@@ -65,7 +68,7 @@ class NewsDailyCrew:
     def france_news_task(self) -> Task:
         return Task(
             config=self.tasks_config["france_news_task"],
-            agent=self._new_researcher(),  # type: ignore[call-arg]
+            agent=self._new_researcher(),
             async_execution=True,
         )
 
@@ -73,7 +76,7 @@ class NewsDailyCrew:
     def europe_news_task(self) -> Task:
         return Task(
             config=self.tasks_config["europe_news_task"],
-            agent=self._new_researcher(),  # type: ignore[call-arg]
+            agent=self._new_researcher(),
             async_execution=True,
         )
 
@@ -81,7 +84,7 @@ class NewsDailyCrew:
     def world_news_task(self) -> Task:
         return Task(
             config=self.tasks_config["world_news_task"],
-            agent=self._new_researcher(),  # type: ignore[call-arg]
+            agent=self._new_researcher(),
             async_execution=True,
         )
 
@@ -89,7 +92,7 @@ class NewsDailyCrew:
     def wars_news_task(self) -> Task:
         return Task(
             config=self.tasks_config["wars_news_task"],
-            agent=self._new_researcher(),  # type: ignore[call-arg]
+            agent=self._new_researcher(),
             async_execution=True,
         )
 
@@ -97,7 +100,7 @@ class NewsDailyCrew:
     def economy_news_task(self) -> Task:
         return Task(
             config=self.tasks_config["economy_news_task"],
-            agent=self._new_researcher(),  # type: ignore[call-arg]
+            agent=self._new_researcher(),
             async_execution=True,
         )
 
@@ -106,13 +109,13 @@ class NewsDailyCrew:
         return Task(
             config=self.tasks_config["content_curation_task"],
             context=[
-                self.suisse_romande_news_task(),  # type: ignore[call-arg]
-                self.suisse_news_task(),  # type: ignore[call-arg]
-                self.france_news_task(),  # type: ignore[call-arg]
-                self.europe_news_task(),  # type: ignore[call-arg]
-                self.world_news_task(),  # type: ignore[call-arg]
-                self.wars_news_task(),  # type: ignore[call-arg]
-                self.economy_news_task(),  # type: ignore[call-arg]
+                self.suisse_romande_news_task(),
+                self.suisse_news_task(),
+                self.france_news_task(),
+                self.europe_news_task(),
+                self.world_news_task(),
+                self.wars_news_task(),
+                self.economy_news_task(),
             ],
         )
 
@@ -120,20 +123,20 @@ class NewsDailyCrew:
     def final_report_generation_task(self) -> Task:
         return Task(
             config=self.tasks_config["final_report_generation_task"],
-            context=[self.content_curation_task()],  # type: ignore[call-arg]
+            context=[self.content_curation_task()],
             output_pydantic=NewsDailyReport,
         )
 
     @crew
     def crew(self) -> Crew:
         """Creates the NewsDaily crew"""
-        agents = list(self.agents)  # type: ignore[attr-defined]
-        for task_ in self.tasks:  # type: ignore[attr-defined]
+        agents = list(self.agents)
+        for task_ in self.tasks:
             if task_.agent is not None and all(task_.agent is not known for known in agents):
                 agents.append(task_.agent)
         return Crew(
             agents=agents,
-            tasks=self.tasks,  # type: ignore[attr-defined]
+            tasks=self.tasks,
             process=Process.sequential,
             verbose=True,
         )

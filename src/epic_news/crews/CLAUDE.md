@@ -66,15 +66,20 @@ Routing itself is done by `ReceptionFlow` in `src/epic_news/main.py` (there is n
 ### Standard CrewBase Pattern
 
 ```python
+from typing import Any
+
 from crewai import Agent, Crew, Process, Task
+from crewai.agents.agent_builder.base_agent import BaseAgent
 from crewai.project import CrewBase, agent, crew, task
 
 @CrewBase
 class MyCrew:
     """My crew description"""
 
-    agents_config = "config/agents.yaml"
-    tasks_config = "config/tasks.yaml"
+    agents_config: dict[str, Any] = "config/agents.yaml"  # type: ignore[assignment]  # CrewBase loads the YAML
+    tasks_config: dict[str, Any] = "config/tasks.yaml"  # type: ignore[assignment]
+    agents: list[BaseAgent]  # set by CrewBase from the @agent methods
+    tasks: list[Task]  # set by CrewBase from the @task methods
 
     def __init__(self):
         # Initialize tools here
@@ -109,7 +114,9 @@ class MyCrew:
         )
 ```
 
-CrewAI silently drops unknown keyword arguments. `llm_timeout=` (any object) and `Crew(max_iter=...)` are not fields and have no effect; don't add them, and don't silence `call-arg` errors with `# type: ignore`. `tests/crews/test_constructor_kwargs.py` fails on any undeclared `Agent`/`Task`/`Crew` kwarg, and `tests/crews/test_agent_settings_contract.py` checks every built agent (LLM timeout, `max_iter`, no duplicate tools, no `FileReadTool` next to web tools). See ADR-014.
+Keep this documented CrewAI form: `Agent(...)`, `Task(...)` and `Crew(...)` written out in each decorated method, no helper around them (`tests/crews/test_crew_module_hygiene.py` checks it). Typing the four class attributes above is what keeps `self.agents_config[...]` and `Crew(agents=self.agents, ...)` free of `type: ignore`. mypy's `call-arg` check is off for `epic_news.crews.*` (`pyproject.toml`): `Task(config=...)` leaves `description`/`expected_output` to the YAML and `@agent`/`@task` methods are decorator objects, so CrewAI's own types cannot describe them. Crew modules never call `load_dotenv()`: `.env` is loaded when `epic_news.config.llm_config` is imported (every crew imports it) and by the entry point `main.py`.
+
+CrewAI silently drops unknown keyword arguments. `llm_timeout=` (any object) and `Crew(max_iter=...)` are not fields and have no effect; don't add them. `tests/crews/test_constructor_kwargs.py` fails on any undeclared `Agent`/`Task`/`Crew` kwarg, and `tests/crews/test_agent_settings_contract.py` checks every built agent (LLM timeout, `max_iter`, no duplicate tools, no `FileReadTool` next to web tools). See ADR-014.
 
 Pass the agent itself to `Task(agent=self.my_agent())`, never `agent.copy()`: CrewAI's `LLM.__copy__` drops `timeout`.
 
@@ -122,8 +129,8 @@ from epic_news.config.mcp_config import MCPConfig, get_mcp_tools_or_empty
 
 @CrewBase
 class MyCrew:
-    agents_config = "config/agents.yaml"
-    tasks_config = "config/tasks.yaml"
+    agents_config: dict[str, Any] = "config/agents.yaml"  # type: ignore[assignment]
+    tasks_config: dict[str, Any] = "config/tasks.yaml"  # type: ignore[assignment]
 
     mcp_server_params = MCPConfig.get_wikipedia_mcp()
 

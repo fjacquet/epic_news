@@ -4,7 +4,10 @@ This crew searches for information about today's saint using Wikipedia and other
 then generates a comprehensive French HTML report.
 """
 
+from typing import Any
+
 from crewai import Agent, Crew, Process, Task
+from crewai.agents.agent_builder.base_agent import BaseAgent
 from crewai.project import CrewBase, agent, crew, task
 from crewai_custom_tools import WikipediaArticleTool, WikipediaProcessingTool, WikipediaSearchTool
 
@@ -16,8 +19,10 @@ from epic_news.models.crews.saint_daily_report import SaintData
 class SaintDailyCrew:
     """SaintDailyCrew that creates comprehensive saint of the day reports."""
 
-    agents_config = "config/agents.yaml"
-    tasks_config = "config/tasks.yaml"
+    agents_config: dict[str, Any] = "config/agents.yaml"  # type: ignore[assignment]  # CrewBase loads the YAML
+    tasks_config: dict[str, Any] = "config/tasks.yaml"  # type: ignore[assignment]
+    agents: list[BaseAgent]  # set by CrewBase from the @agent methods
+    tasks: list[Task]  # set by CrewBase from the @task methods
 
     @agent
     def saint_researcher(self) -> Agent:
@@ -31,7 +36,7 @@ class SaintDailyCrew:
         research_tools = wikipedia_tools
 
         return Agent(
-            config=self.agents_config["saint_researcher"],  # type: ignore[index]
+            config=self.agents_config["saint_researcher"],
             tools=research_tools,
             verbose=True,
             llm=LLMConfig.get_openrouter_llm(),
@@ -42,7 +47,7 @@ class SaintDailyCrew:
     @agent
     def saint_reporter(self) -> Agent:
         return Agent(
-            config=self.agents_config["saint_reporter"],  # type: ignore[index]
+            config=self.agents_config["saint_reporter"],
             tools=[],  # NO TOOLS = No action traces
             verbose=True,
             llm=LLMConfig.get_openrouter_llm(),
@@ -53,16 +58,16 @@ class SaintDailyCrew:
     @task
     def saint_research_task(self) -> Task:
         return Task(
-            config=self.tasks_config["saint_research_task"],  # type: ignore[arg-type, index]
-            agent=self.saint_researcher(),  # type: ignore[call-arg]
+            config=self.tasks_config["saint_research_task"],
+            agent=self.saint_researcher(),
         )
 
     @task
     def saint_data_task(self) -> Task:
         return Task(
-            config=self.tasks_config["saint_data_task"],  # type: ignore[arg-type, index]
-            agent=self.saint_reporter(),  # type: ignore[call-arg]
-            context=[self.saint_research_task()],  # type: ignore[call-arg]
+            config=self.tasks_config["saint_data_task"],
+            agent=self.saint_reporter(),
+            context=[self.saint_research_task()],
             output_pydantic=SaintData,
         )
 
@@ -70,8 +75,8 @@ class SaintDailyCrew:
     def crew(self) -> Crew:
         """Creates the SaintDaily crew"""
         return Crew(
-            agents=self.agents,  # type: ignore[attr-defined]
-            tasks=self.tasks,  # type: ignore[attr-defined]
+            agents=self.agents,
+            tasks=self.tasks,
             process=Process.sequential,
             verbose=True,
         )
