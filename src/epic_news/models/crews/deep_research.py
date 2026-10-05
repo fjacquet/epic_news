@@ -1,116 +1,101 @@
-"""
-Modèles Pydantic pour le système de recherche approfondie CrewAI.
+"""The deep-research report: the crew's output_pydantic contract and the DOCX input.
 
-Ce module définit les structures de données pour l'échange d'informations
-entre les agents du système de recherche approfondie et la génération
-de rapports structurés en français.
+One schema (simplification S3). The before-validator accepts older key names; it never
+invents content, so a field the crew did not write stays empty.
 """
 
-from datetime import datetime
+from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class ResearchSource(BaseModel):
-    """Source de recherche avec métadonnées de crédibilité."""
+    """Individual research source information."""
 
-    url: str = Field(description="URL de la source")
-    title: str = Field(description="Titre de la source")
-    credibility_score: float = Field(description="Score de crédibilité (0.0-1.0)", ge=0.0, le=1.0)
-    extraction_date: str = Field(description="Date d'extraction (ISO format)")
-    summary: str | None = Field(default=None, description="Résumé du contenu de la source")
+    title: str = Field(..., description="Title of the source")
+    url: str | None = Field(None, description="URL of the source")
+    source_type: str = Field(..., description="Type: web, wikipedia, news, etc.")
+    summary: str = Field(..., description="Key information from this source")
+    relevance_score: int = Field(..., description="Relevance score 1-10", ge=1, le=10)
 
 
 class ResearchSection(BaseModel):
-    """Section de recherche avec contenu structuré."""
+    """Thematic section of research."""
 
-    title: str = Field(description="Titre de la section")
-    content: str = Field(description="Contenu détaillé de la section")
-    sources: list[ResearchSource] = Field(
-        default_factory=list, description="Sources utilisées pour cette section"
-    )
-    key_findings: list[str] = Field(default_factory=list, description="Découvertes clés de cette section")
-    confidence_level: float | None = Field(
-        default=None, description="Niveau de confiance dans les informations (0.0-1.0)", ge=0.0, le=1.0
-    )
-
-
-class QuantitativeAnalysis(BaseModel):
-    """Résultats d'analyse quantitative avec métriques."""
-
-    methodology: str = Field(description="Méthodologie d'analyse utilisée")
-    key_metrics: dict = Field(default_factory=dict, description="Métriques clés calculées")
-    statistical_summary: str = Field(description="Résumé statistique")
-    visualizations: list[str] = Field(
-        default_factory=list, description="Chemins vers les visualisations générées"
-    )
-    code_executed: str | None = Field(default=None, description="Code Python exécuté pour l'analyse")
+    section_title: str = Field(..., description="Title of the research section")
+    content: str = Field(..., description="Detailed content for this section")
+    sources: list[ResearchSource] = Field(default_factory=list, description="Sources supporting this section")
 
 
 class DeepResearchReport(BaseModel):
-    """Rapport de recherche approfondie complet."""
+    """Comprehensive research report model.
 
-    title: str = Field(description="Titre du rapport de recherche")
-    executive_summary: str = Field(description="Résumé exécutif")
-    methodology: str = Field(description="Méthodologie de recherche utilisée")
+    This is the crew's ``output_pydantic`` contract, so the LLM must produce it in one
+    shot. Fields the model reliably supplies stay required; three that a small model
+    intermittently omitted are made resilient, because a single omission failed the
+    whole (~9-minute) research run via ``output_pydantic`` validation:
 
+    * ``sources_count`` is *computed* from the sections below, never trusted from the
+      LLM -- counting is a deterministic job a model should not be asked to do.
+    * ``methodology`` and ``confidence_level`` default rather than hard-fail.
+    """
+
+    title: str = Field(..., description="Main title of the research report")
+    topic: str = Field(..., description="Research topic")
+    executive_summary: str = Field(..., description="High-level summary of findings")
+    key_findings: list[str] = Field(default_factory=list, description="List of key discoveries")
     research_sections: list[ResearchSection] = Field(
-        default_factory=list, description="Sections de recherche détaillées"
+        default_factory=list, description="Detailed research sections"
     )
+    methodology: str = Field("", description="Research methodology used")
+    sources_count: int = Field(0, description="Total number of sources consulted (computed)")
+    report_date: str | None = Field(None, description="Report generation date")
+    confidence_level: str = Field("Medium", description="Overall confidence in findings: High, Medium, Low")
 
-    quantitative_analysis: QuantitativeAnalysis | None = Field(
-        default=None, description="Analyse quantitative si applicable"
-    )
+    @model_validator(mode="before")
+    @classmethod
+    def _accept_old_key_names(cls, data: Any) -> Any:
+        """Rename keys older outputs used (section ``title``, top-level ``summary``).
 
-    key_findings: list[str] = Field(
-        default_factory=list, description="Découvertes principales de la recherche"
-    )
+        ``topic`` falls back to the report ``title``. Nothing else is filled in.
+        """
+        if not isinstance(data, dict):
+            return data
+        data = dict(data)
+        if "executive_summary" not in data and "summary" in data:
+            data["executive_summary"] = data["summary"]
+        if "topic" not in data and "title" in data:
+            data["topic"] = data["title"]
+        sections = data.get("research_sections")
+        if isinstance(sections, list):
+            data["research_sections"] = [
+                {**s, "section_title": s["title"]}
+                if isinstance(s, dict) and "section_title" not in s and "title" in s
+                else s
+                for s in sections
+            ]
+        return data
 
-    conclusions: str = Field(description="Conclusions de la recherche")
+    @model_validator(mode="after")
+    def _count_sources(self) -> "DeepResearchReport":
+        """Derive ``sources_count`` from the sections instead of trusting the LLM.
 
-    recommendations: list[str] = Field(
-        default_factory=list, description="Recommandations basées sur la recherche"
-    )
+        Falls back to any value supplied on the model only when no section carries a
+        source, so a hand-built report with an explicit count is preserved.
+        """
+        counted = sum(len(section.sources) for section in self.research_sections)
+        self.sources_count = counted or self.sources_count
+        return self
 
-    limitations: list[str] = Field(default_factory=list, description="Limitations de la recherche")
-
-    sources: list[ResearchSource] = Field(default_factory=list, description="Toutes les sources utilisées")
-
-    generation_date: str = Field(
-        default_factory=lambda: datetime.now().isoformat(), description="Date de génération du rapport"
-    )
-
-    research_duration: str | None = Field(default=None, description="Durée de la recherche")
-
-    quality_score: float | None = Field(
-        default=None, description="Score de qualité global (0.0-1.0)", ge=0.0, le=1.0
-    )
-
-    class Config:
-        """Configuration Pydantic."""
-
-        json_encoders = {datetime: lambda v: v.isoformat()}
-        schema_extra = {
-            "example": {
-                "title": "État de l'Art d'Apache Tomcat : Analyse Approfondie",
-                "executive_summary": "Cette recherche examine l'état actuel d'Apache Tomcat...",
-                "methodology": "Recherche documentaire combinée à une analyse quantitative...",
-                "research_sections": [
-                    {
-                        "title": "Architecture et Performance",
-                        "content": "Apache Tomcat présente une architecture modulaire...",
-                        "key_findings": ["Performance améliorée de 15% en version 10.x"],
-                        "sources": [],
-                    }
-                ],
-                "key_findings": [
-                    "Tomcat 10.x offre des performances significativement améliorées",
-                    "Migration vers Jakarta EE nécessite une planification",
-                ],
-                "conclusions": "Apache Tomcat reste une solution robuste...",
-                "recommendations": [
-                    "Migrer vers Tomcat 10.x pour les nouvelles applications",
-                    "Planifier la migration Jakarta EE pour les applications existantes",
-                ],
-            }
-        }
+    @property
+    def unique_sources(self) -> list[ResearchSource]:
+        """Sources cited across sections, first occurrence kept, keyed by URL (else title)."""
+        seen: set[str] = set()
+        unique: list[ResearchSource] = []
+        for section in self.research_sections:
+            for source in section.sources:
+                key = source.url or source.title
+                if key not in seen:
+                    seen.add(key)
+                    unique.append(source)
+        return unique

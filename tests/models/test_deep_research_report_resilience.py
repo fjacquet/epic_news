@@ -19,7 +19,7 @@ failing, and `sources_count` is derived from the sections, not trusted.
 import pytest
 from pydantic import ValidationError
 
-from epic_news.models.crews.deep_research_report import DeepResearchReport
+from epic_news.models.crews.deep_research import DeepResearchReport
 
 _SECTION = {
     "section_title": "S1",
@@ -82,8 +82,11 @@ def test_provided_values_are_respected():
 
 
 def test_genuinely_required_fields_still_hard_fail():
-    """Resilience is scoped: the report is meaningless without a title/topic/summary."""
-    for missing in ("title", "topic", "executive_summary"):
+    """Resilience is scoped: the report is meaningless without a title/summary.
+
+    ``topic`` is not listed: it falls back to ``title`` (see test_deep_research_key_renames).
+    """
+    for missing in ("title", "executive_summary"):
         payload = _minimal()
         payload.pop(missing)
         with pytest.raises(ValidationError):
