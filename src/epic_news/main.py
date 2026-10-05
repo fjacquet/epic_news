@@ -658,7 +658,9 @@ class ReceptionFlow(Flow[ContentState]):
     @trace_task(tracer)
     def generate_menu_designer(self):
         """
-        Orchestrates the end-to-end weekly menu generation process with validation and error recovery.
+        Plan the menu (MenuDesignerCrew), build its DOCX, then generate one recipe per dish.
+
+        No usable plan raises MenuPlanError and stops the run (no placeholder menu).
         """
         self.logger.info("🍽️ Starting Menu Designer Workflow with Validation")
 
