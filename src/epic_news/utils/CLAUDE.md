@@ -34,15 +34,19 @@ utils/
 ## Flow helpers (how a `generate_*` method is wired)
 
 ```python
-from epic_news.utils.flow_enforcement import kickoff_flow
-from epic_news.utils.flow_helpers import load_or_parse_model
-from epic_news.utils.docx_report.crews.poem import assemble_poem_docx
-from epic_news.utils.docx_report.dispatch import emit_report
+from epic_news.crew_registry import CREW_REGISTRY
 
-output = kickoff_flow(PoemCrew(), inputs)                      # Crew factory or Crew instance
-model = load_or_parse_model(self.state.output_file, PoemJSONOutput, output, inputs, "poem")
-emit_report(self.state, lambda: assemble_poem_docx(model, inputs, "output/poem/poem.docx"))
+@listen("go_generate_poem")
+@trace_task(tracer)
+def generate_poem(self):
+    inputs = self.state.to_crew_inputs()
+    self._run_standard(CREW_REGISTRY["POEM"], PoemCrew(), inputs)
 ```
+
+`ReceptionFlow._run_standard(spec, crew, inputs)` deletes a stale JSON, runs `kickoff_flow`
+(closing MCP in a `finally`), dumps state, loads the model with `load_or_parse_model` and calls
+`emit_report` with the spec's assembler. It returns `(output, model)`. Custom steps (RSS, menu,
+recipe, shopping, OSINT, holiday) are written out with the helpers below.
 
 - `kickoff_flow(crew_or_factory, context)`: calls `.crew()` when given a `@CrewBase` class
   instance, makes one attempt by default (`CREW_KICKOFF_ATTEMPTS` > 1 retries transient

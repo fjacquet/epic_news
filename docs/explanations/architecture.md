@@ -17,14 +17,15 @@ Reports are DOCX files and nothing else ([ADR-017](../adr/ADR-017-docx-only-repo
 
 ```python
 # Example of the flow (from ReceptionFlow.generate_poem)
-output = kickoff_flow(PoemCrew(), inputs)
+self._run_standard(CREW_REGISTRY["POEM"], PoemCrew(), inputs)
 
-# Load the JSON written by output_pydantic, or parse the raw crew output
-poem_model = load_or_parse_model(self.state.output_file, PoemJSONOutput, output, inputs, "poem")
-
-# Build the DOCX; an error here stops the run
-emit_report(self.state, lambda: assemble_poem_docx(poem_model, inputs, "output/poem/poem.docx"))
+# _run_standard does, in order:
+#   kickoff_flow(crew, inputs)                  # run the crew
+#   load_or_parse_model(json_path, ...)         # JSON written by output_pydantic, or the raw output
+#   emit_report(state, assembler closure)       # build the DOCX; an error here stops the run
 ```
+
+`_run_standard` takes its model class, paths, title and assembler from the crew's `CrewSpec` in `src/epic_news/crew_registry.py`.
 
 ### 1.2. Data Contract Between Crew and Assembler
 
