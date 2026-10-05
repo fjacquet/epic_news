@@ -1,8 +1,11 @@
 import asyncio
+from pathlib import Path
 
 import pytest
 from faker import Faker
 
+from epic_news import main
+from epic_news.crews.company_news import company_news_crew
 from epic_news.utils.observability import TraceEvent, Tracer, trace_task
 
 fake = Faker()
@@ -206,3 +209,10 @@ def test_task_start_records_only_the_task_name(tmp_path, monkeypatch):
 
     step(Big())
     assert tracer.get_events(event_type="task_start")[-1].details == {"task_name": "step"}
+
+
+def test_the_suite_writes_traces_outside_the_repo():
+    """tests/conftest.py points TRACE_DIR at a temp dir before the flow builds its tracer."""
+    repo_traces = (Path(__file__).parents[2] / "traces").resolve()
+    for tracer in (main.tracer, company_news_crew.tracer):
+        assert not Path(tracer.trace_file).resolve().is_relative_to(repo_traces)
