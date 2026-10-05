@@ -1,7 +1,8 @@
 from queue import Queue
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 from epic_news.app import DOCX_MIME, get_session_log_queue, render_report_download, run_crew_thread
+from epic_news.main import ReceptionFlow
 
 
 @patch("epic_news.app.logger")
@@ -43,50 +44,61 @@ def test_report_is_offered_as_a_docx_download_never_as_html(mock_st):
     mock_st.markdown.assert_not_called()
 
 
-@patch("epic_news.app.kickoff")
-def test_run_crew_thread_success_reads_the_docx_as_bytes(mock_kickoff, tmp_path):
+def _flow_kickoff_writing(output_file: str):
+    """Stand-in for ReceptionFlow.kickoff: the real flow leaves the report path on its state."""
+
+    def _kickoff(self):
+        self.state.output_file = output_file
+
+    return _kickoff
+
+
+def test_run_crew_thread_reads_the_report_path_from_the_flow_it_ran(tmp_path):
+    """The app runs ReceptionFlow itself and reads state.output_file from that flow.
+
+    Only ReceptionFlow.kickoff is patched, so the path from the flow object to the
+    download is the real one (main.kickoff() returns None and cannot carry it).
+    """
     docx = tmp_path / "report.docx"
     docx.write_bytes(b"PK\x03\x04\xff\xfe binary")
-    log_queue = Queue()
-    mock_flow = MagicMock()
-    mock_flow.state.output_file = str(docx)
-    mock_kickoff.return_value = mock_flow
+    log_queue: Queue = Queue()
 
-    run_crew_thread("Test request", log_queue)
+    with patch.object(
+        ReceptionFlow, "kickoff", autospec=True, side_effect=_flow_kickoff_writing(str(docx))
+    ) as mock_kickoff:
+        run_crew_thread("Test request", log_queue)
 
     results = list(log_queue.queue)
     assert ("REPORT", ("report.docx", b"PK\x03\x04\xff\xfe binary")) in results
     assert any(item[0] == "END" for item in results)
-    mock_kickoff.assert_called_once_with(user_input="Test request")
+    flow = mock_kickoff.call_args.args[0]
+    assert isinstance(flow, ReceptionFlow)
+    assert flow._user_request == "Test request"
 
 
-@patch("epic_news.app.kickoff")
-@patch("os.path.exists", return_value=False)
-def test_run_crew_thread_no_output_file(mock_exists, mock_kickoff):
-    """Test the crew thread function when the output file is not found."""
-    log_queue = Queue()
-    mock_flow = MagicMock()
-    mock_flow.state.output_file = "/path/to/nonexistent_report.docx"
-    mock_kickoff.return_value = mock_flow
+def test_run_crew_thread_no_output_file(tmp_path):
+    """A flow that ends without a report file is reported as an error, never as a download."""
+    log_queue: Queue = Queue()
+    missing = tmp_path / "nonexistent_report.docx"
 
-    run_crew_thread("Test request", log_queue)
+    with patch.object(
+        ReceptionFlow, "kickoff", autospec=True, side_effect=_flow_kickoff_writing(str(missing))
+    ):
+        run_crew_thread("Test request", log_queue)
 
     results = list(log_queue.queue)
+    assert not any(item[0] == "REPORT" for item in results)
     assert any(item[0] == "ERROR" and "no output file was found" in item[1] for item in results)
     assert any(item[0] == "END" for item in results)
 
 
-@patch("epic_news.app.kickoff", side_effect=Exception("Crew failed!"))
-def test_run_crew_thread_exception(mock_kickoff):
-    """Test the crew thread function when an exception occurs."""
-    # Arrange
-    log_queue = Queue()
-    user_request = "Test request"
+def test_run_crew_thread_exception():
+    """A flow that raises is reported as an error."""
+    log_queue: Queue = Queue()
 
-    # Act
-    run_crew_thread(user_request, log_queue)
+    with patch.object(ReceptionFlow, "kickoff", autospec=True, side_effect=Exception("Crew failed!")):
+        run_crew_thread("Test request", log_queue)
 
-    # Assert
     results = list(log_queue.queue)
     assert any(item[0] == "ERROR" and "Crew failed!" in item[1] for item in results)
     assert any(item[0] == "END" for item in results)

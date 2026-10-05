@@ -63,7 +63,9 @@ emit_report(self.state, lambda: assemble_poem_docx(model, inputs, "output/poem/p
   `instruction` + `context` that `generate_fragment` narrates with the LLM.
 - `assemble_fragments(sections, meta, output_path, llm, system)` narrates sections in
   parallel (`DOCX_FRAGMENT_CONCURRENCY`, default 3; output keeps section order), builds the
-  DOCX and refuses to write when more than half the sections degraded to placeholders.
+  DOCX. It first drops narrated sections whose context is empty or blank (info log; `ValueError`
+  if no section is left), and raises `RuntimeError` before writing if any narration degraded
+  to a placeholder.
 - `build_docx(fragments, meta, output_path)` is the deterministic Pandoc step
   (`reference.docx` styles, TOC). It runs two passes (ADR-013): Markdown → JSON with the
   `safe_images.lua` (only images under `output/`) and `strip_rules.lua` (no horizontal rules)

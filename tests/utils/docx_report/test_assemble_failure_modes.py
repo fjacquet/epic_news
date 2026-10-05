@@ -9,9 +9,10 @@ with a file containing nothing but placeholders.
 """
 
 import time
-from pathlib import Path
+import zipfile
 
 import pytest
+from loguru import logger
 
 from epic_news.utils.docx_report import Section, assemble_fragments
 
@@ -42,6 +43,11 @@ class _FlakyLLM:
 
 
 _META = {"title": "T", "author": "Epic News", "date": ""}
+
+
+def _docx_text(path) -> str:
+    with zipfile.ZipFile(path) as z:
+        return z.read("word/document.xml").decode("utf-8")
 
 
 def test_executor_shutdown_aborts_immediately(tmp_path, monkeypatch):
@@ -85,33 +91,75 @@ def test_all_narrated_sections_failing_aborts(tmp_path):
     assert not out.exists()
 
 
-def test_partial_failure_still_degrades_gracefully(tmp_path):
-    """One bad section must not discard the whole run."""
+def test_one_failed_narration_aborts_the_report(tmp_path):
+    """A report never ships a placeholder: one failed section stops the build."""
     llm = _FlakyLLM({"Budget"})
     out = tmp_path / "output" / "r.docx"
 
-    assemble_fragments(
-        [
-            Section("Intro", instruction="i", context="c"),
-            Section("Budget", instruction="i", context="c"),
-        ],
-        _META,
-        str(out),
-        llm,
-        system="sys",
-    )
+    with pytest.raises(RuntimeError, match=r"1/2 narrated sections .*Budget"):
+        assemble_fragments(
+            [
+                Section("Intro", instruction="i", context="c"),
+                Section("Budget", instruction="i", context="c"),
+            ],
+            _META,
+            str(out),
+            llm,
+            system="sys",
+        )
 
-    assert Path(out).exists()
+    assert not out.exists()
 
 
-def test_deterministic_sections_are_not_counted_as_narration(tmp_path):
-    """A deck of verbatim bodies plus one failed narration is still publishable."""
+def test_failed_narration_aborts_even_among_deterministic_sections(tmp_path):
+    """Deterministic sections do not dilute a failed narration into an acceptable ratio."""
     llm = _RaisingLLM(ValueError("provider down"))
+    out = tmp_path / "output" / "r.docx"
+
+    with pytest.raises(RuntimeError, match="placeholder"):
+        assemble_fragments(
+            [
+                Section("Prix", body="| A | 9.90 |"),
+                Section("Stock", body="| B | 3 |"),
+                Section("Intro", instruction="i", context="c"),
+            ],
+            _META,
+            str(out),
+            llm,
+            system="sys",
+        )
+
+    assert not out.exists()
+
+
+class _RecordingLLM:
+    def __init__(self):
+        self.headings: list[str] = []
+
+    def call(self, messages):
+        heading = messages[1]["content"].split("\n", 1)[0].removeprefix("Section: ")
+        self.headings.append(heading)
+        return f"## {heading}\n\nprose"
+
+
+@pytest.fixture
+def info_log():
+    lines: list[str] = []
+    sink_id = logger.add(lambda m: lines.append(m.record["message"]), level="INFO")
+    yield lines
+    logger.remove(sink_id)
+
+
+@pytest.mark.parametrize("blank", ["", "   \n\t", None])
+def test_narrated_section_with_blank_context_is_dropped(tmp_path, info_log, blank):
+    """No context, no narration: the LLM would write the section from nothing."""
+    llm = _RecordingLLM()
     out = tmp_path / "output" / "r.docx"
 
     assemble_fragments(
         [
             Section("Prix", body="| A | 9.90 |"),
+            Section("Miracles", instruction="Raconte.", context=blank),
             Section("Intro", instruction="i", context="c"),
         ],
         _META,
@@ -120,4 +168,42 @@ def test_deterministic_sections_are_not_counted_as_narration(tmp_path):
         system="sys",
     )
 
-    assert Path(out).exists()
+    assert llm.headings == ["Intro"]
+    text = _docx_text(out)
+    assert "Miracles" not in text
+    assert "Prix" in text
+    assert "9.90" in text
+    assert "Intro" in text
+    assert any("Miracles" in line and "dropped" in line for line in info_log)
+
+
+def test_deterministic_section_with_empty_context_is_kept(tmp_path):
+    """Only narrated sections depend on context; a verbatim body is unchanged."""
+    llm = _RecordingLLM()
+    out = tmp_path / "output" / "r.docx"
+
+    assemble_fragments([Section("Prix", body="| A | 9.90 |", context="")], _META, str(out), llm, system="sys")
+
+    assert llm.headings == []
+    assert "9.90" in _docx_text(out)
+
+
+def test_every_section_dropped_aborts(tmp_path):
+    """A report with no section left is not a report."""
+    llm = _RecordingLLM()
+    out = tmp_path / "output" / "r.docx"
+
+    with pytest.raises(ValueError, match="no section"):
+        assemble_fragments(
+            [
+                Section("Biographie", instruction="i", context=""),
+                Section("Miracles", instruction="i", context="  "),
+            ],
+            _META,
+            str(out),
+            llm,
+            system="sys",
+        )
+
+    assert llm.headings == []
+    assert not out.exists()

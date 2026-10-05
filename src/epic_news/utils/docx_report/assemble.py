@@ -15,13 +15,26 @@ def assemble_fragments(
 ) -> str:
     """Render each Section (deterministic body verbatim, else LLM-narrated) → DOCX.
 
-    A single failed narration degrades to a placeholder, but a report whose majority is
-    placeholders is not a report: it would silently overwrite the previous, good output
-    with an empty shell. In that case abort before writing anything.
+    A report never carries placeholder or invented content:
+    - a narrated section whose context is empty or blank is dropped before narration
+      (the LLM would write it from nothing); an info line names it. Deterministic
+      sections are kept as they are. If no section is left, raise ValueError.
+    - if any narration degrades to a placeholder, raise RuntimeError before writing,
+      so the run stops and the previous output is not overwritten.
 
     Narrated sections run in parallel (DOCX_FRAGMENT_CONCURRENCY, default 3); output keeps
     section order.
     """
+    kept: list[Section] = []
+    for section in sections:
+        if section.body is None and not (section.context or "").strip():
+            logger.info("Section '{}' dropped: no context to narrate from", section.heading)
+            continue
+        kept.append(section)
+    if not kept:
+        raise ValueError(
+            f"no section left to write after dropping empty-context sections; refusing to write {output_path}"
+        )
 
     def _render(section: Section) -> str:
         if section.body is not None:
@@ -30,24 +43,21 @@ def assemble_fragments(
             section.heading, section.instruction or "", section.context or "", llm, system
         )
 
-    bodies = bounded_map(_render, sections, "DOCX_FRAGMENT_CONCURRENCY")
-    fragments = [(s.heading, body) for s, body in zip(sections, bodies, strict=True)]
-    placeholders = sum(
-        1
-        for s, body in zip(sections, bodies, strict=True)
+    bodies = bounded_map(_render, kept, "DOCX_FRAGMENT_CONCURRENCY")
+    fragments = [(s.heading, body) for s, body in zip(kept, bodies, strict=True)]
+    narrated = [s for s in kept if s.body is None]
+    degraded = [
+        s.heading
+        for s, body in zip(kept, bodies, strict=True)
         if s.body is None and body == placeholder_for(s.heading)
-    )
+    ]
 
-    if placeholders * 2 > len(sections):
-        logger.error(
-            "💥 {}/{} sections degraded to a placeholder; refusing to write {}",
-            placeholders,
-            len(sections),
-            output_path,
+    if degraded:
+        message = (
+            f"{len(degraded)}/{len(narrated)} narrated sections degraded to a placeholder "
+            f"({', '.join(degraded)}); refusing to write {output_path}"
         )
-        raise RuntimeError(
-            f"{placeholders}/{len(sections)} sections degraded to a placeholder; "
-            f"refusing to write {output_path}"
-        )
+        logger.error("💥 {}", message)
+        raise RuntimeError(message)
 
     return build_docx(fragments, meta, output_path)

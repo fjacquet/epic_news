@@ -6,7 +6,7 @@ from threading import Thread
 import streamlit as st
 from loguru import logger
 
-from epic_news.main import kickoff
+from epic_news.main import ReceptionFlow
 
 # --- Streamlit UI Configuration ---
 st.set_page_config(page_title="Epic News CrewAI Orchestrator", layout="wide")
@@ -71,15 +71,18 @@ def render_report_download(file_name: str, data: bytes) -> None:
 def run_crew_thread(user_request: str, log_queue: Queue):
     """Runs the ReceptionFlow in a separate thread to avoid blocking the UI."""
     try:
-        # The kickoff function will run the flow. The flow's state will hold the output path.
-        flow = kickoff(user_input=user_request)
+        # Run the flow here, not through main.kickoff(): that console entry returns None
+        # (for sys.exit) and resets loguru, which would drop this session's log sink.
+        # The flow's state holds the report path once it finishes.
+        flow = ReceptionFlow(user_request=user_request)
+        flow.kickoff()
 
         # After running, put the result into the queue
-        if flow and flow.state.output_file and os.path.exists(flow.state.output_file):
+        if flow.state.output_file and os.path.exists(flow.state.output_file):
             report_path = Path(flow.state.output_file)
             log_queue.put(("REPORT", (report_path.name, report_path.read_bytes())))
         else:
-            error_message = f"Flow finished, but no output file was found at '{flow.state.output_file if flow else 'N/A'}'"
+            error_message = f"Flow finished, but no output file was found at '{flow.state.output_file}'"
             log_queue.put(("ERROR", error_message))
 
     except Exception as e:
