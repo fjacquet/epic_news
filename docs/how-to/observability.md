@@ -29,7 +29,7 @@ class ReceptionFlow(Flow[ContentState]):
         ...
 ```
 
-`task_end` carries `task_name`, `duration`, `success` and `result_type` (`None` when the
+`task_start` carries only `task_name`; `task_end` carries `task_name`, `duration`, `success` and `result_type` (`None` when the
 step failed); `task_error` carries `task_name` and `error`.
 
 ## Trace file format
@@ -37,7 +37,7 @@ step failed); `task_error` carries `task_name` and `error`.
 A trace file holds one JSON object per line, one line per event:
 
 ```json
-{"event_id": "6596c8be…", "event_type": "task_start", "source": "task:generate_saint_daily", "details": {"task_name": "generate_saint_daily", "args": "…", "kwargs": "{}"}, "timestamp": 1791220005.1}
+{"event_id": "6596c8be…", "event_type": "task_start", "source": "task:generate_saint_daily", "details": {"task_name": "generate_saint_daily"}, "timestamp": 1791220005.1}
 {"event_id": "…", "event_type": "task_end", "source": "task:generate_saint_daily", "details": {"task_name": "generate_saint_daily", "duration": 142.3, "success": true, "result_type": "NoneType"}, "timestamp": 1791220147.4}
 ```
 
