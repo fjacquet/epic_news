@@ -93,3 +93,11 @@ Both runs used `EPIC_ENABLE_EMAIL=false`. The report step adds little time: wall
 | 2026-10-05 | S3 single schema, no extractor | deep_research | 431.7 | DeepResearchCrew | 371.82 | 143188 (5 requests) | 15 | 228618 |
 
 Run with `EPIC_ENABLE_EMAIL=false`; request: "Fais une recherche approfondie sur l'état de l'art des systèmes de fichiers parallèles en 2026". `report.json` validated against the single `DeepResearchReport` on the first load (no raw-output fallback). The DOCX holds every section title (5), key finding (5) and unique source URL (12 unique of 16 citations) from `report.json`, about 10,200 words, and no placeholder text. LiteLLM calls not made by the crew requests or the extraction: 9, of which 7 are the narrated DOCX sections (executive summary, 5 research sections, methodology); the other 2 were not attributed. Narrated sections still repeat their title as a sub-heading (known, predates S3).
+
+### Crew registry and standard-step helper (S4)
+
+| Date | Change | Request | Wall (s) | Crew | Crew seconds | Crew tokens (CrewAI) | LiteLLM calls | LiteLLM total tokens |
+|---|---|---|---|---|---|---|---|---|
+| 2026-10-05 | S4 `_run_standard` | saint | 167.2 | SaintDailyCrew | 133.39 | 12013 (1 request) | 9 | 39517 |
+
+Run with `EPIC_ENABLE_EMAIL=false`. The saint step now runs through `_run_standard`; the run wrote `output/saint_daily/report.json` and `report.docx` (about 2,300 words, sections Biographie, Signification, Miracles, Lien avec la Suisse, Prière & Réflexion, Sources) and a debug dump labelled `saint` (registry key). Against the S5 saint run (276.3 s, 11 calls) the difference is the crew itself (1 request against 3); the helper adds no LLM call.
