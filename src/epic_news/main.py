@@ -787,8 +787,7 @@ class ReceptionFlow(Flow[ContentState]):
                     break
 
         if not shopping_advice_obj:
-            self.logger.warning("⚠️ Could not extract ShoppingAdviceOutput from crew result")
-            return
+            raise RuntimeError("ShoppingAdvisorCrew returned no ShoppingAdviceOutput; no report to build")
 
         self.logger.info(f"🔍 ShoppingAdviceOutput extracted: {shopping_advice_obj.product_info.name}")
 
