@@ -69,10 +69,12 @@ recorded raw outputs under `debug/` that parse today must still parse to equal m
 
 Merge the two `DeepResearchReport` schemas (`models/crews/deep_research.py:50`, used by the
 flow, state and DOCX; `models/crews/deep_research_report.py:24`, the crew's
-`output_pydantic`) into one, whose before-validator absorbs `_adapt_json_to_model`; `generate_deep_research` uses
-`load_or_parse_model` + `render_and_write_html` like other crews; delete
-`utils/extractors/`. Characterisation: the rendered HTML for a recorded deep-research output
-is unchanged.
+`output_pydantic`) into one, whose before-validator absorbs `_adapt_json_to_model` (key
+renames only — never its fabricated sources, dates or placeholder report); `generate_deep_research` uses
+`load_or_parse_model` + `emit_report` like other crews; delete `utils/extractors/`.
+Revised 2026-10-05 (DOCX only, decision 6): runs after S5, so no HTML renderer is involved.
+Characterisation: the DOCX built from a recorded deep-research output (fake LLM) keeps every
+section title, finding and source of that output; unusable output stops the run.
 
 ### S4 — Crew metadata in one place; Flow steps stay explicit
 
@@ -85,9 +87,9 @@ table, against the CrewAI Flow model.
 What changes:
 
 - `crew_registry.py` holds metadata only: one `CrewSpec(key, title, model_cls, json_path,
-  html_path, docx_assembler)` per crew. `TemplateManager` titles, `RendererFactory` keys and
-  `CrewCategories` read from it, fixing the existing drift (no COMPANY_NEWS title, "RSS" vs
-  "RSS_WEEKLY"). The registry does not route and does not run crews.
+  docx_path, docx_assembler)` per crew. Report titles and `CrewCategories` read from it,
+  fixing the existing drift ("RSS" vs "RSS_WEEKLY"). The registry does not route and does
+  not run crews.
 - A flow helper `_run_standard(spec, crew, inputs)` holds the steps the standard crews
   repeat (kickoff → dump state → load model → `emit_report`). Each standard `generate_*`
   becomes a short, readable step that prepares its inputs and calls the helper: poem,
@@ -96,17 +98,32 @@ What changes:
   shopping, deep research, OSINT and holiday.
 - The `or_(...)` list of report steps feeding `send_email` stays explicit in the decorator.
 - Existing flow wiring tests stay valid; add a test that every `CrewSpec` key has a router
-  branch, a listener and a renderer.
+  branch, a listener and a DOCX assembler.
 
-### S5 — Rendering
+### S5 — DOCX only (revised 2026-10-05, decision 6)
 
-- `TemplateManager` becomes a module function `render_report(key, data) -> str`; renderer
-  errors propagate (the flow decides; no "Erreur" page gets emailed). **Behaviour change.**
-- Shared header via `BaseRenderer.add_report_header`; drop the abstract `__init__`
-  requirement.
-- A spec-driven renderer (`SECTIONS = [(field, title, kind)]`) replaces the simple OSINT
-  renderers (hr, legal, geospatial, web_presence, tech_stack). Large custom renderers stay.
-- Characterisation: snapshot of each renderer's HTML for its fixture model before the change.
+Reports are produced in one format, DOCX, through the existing assemblers
+(`utils/docx_report/crews/*`, `utils/holiday_report/`). The HTML rendering stack is removed.
+
+- Every report step calls its DOCX assembler; `emit_report`'s format choice,
+  `OUTPUT_FORMAT` and `ContentState.output_format` go away.
+- The poem gets a deterministic DOCX assembler (no LLM); it is the only report step without one.
+- Removed: `utils/html/` (TemplateManager, RendererFactory, 27 renderers, validator),
+  `templates/`, `config/ui_theme.py`, the report CSS, `render_and_write_html`,
+  `resolve_report_html`, the RSS HTML report helper, and HTML-only tests.
+- Email: short text body plus the DOCX attachment (the path DOCX reports already use).
+- Streamlit app: download button for the DOCX instead of `st.html`.
+- A report-building error stops the run; nothing partial is emailed (decision 4 applies to
+  DOCX assembly).
+- ADR-005 (deterministic HTML rendering) and ADR-011 (consolidated report CSS) are superseded
+  by a new ADR recording this decision.
+- **Behaviour change:** every report is a Word attachment, no longer readable in the email
+  body; crews that were HTML now go through the DOCX assembler, whose narrated sections make
+  extra LLM calls (measured on a few crews before merging); system `pandoc` becomes mandatory
+  everywhere (CI and Docker already install it).
+- Characterisation: for each report step, the DOCX built from a fixture model with a fake LLM
+  (section headings and deterministic bodies), recorded before the change where an assembler
+  exists.
 
 ### S6 — Flow state
 
@@ -131,7 +148,7 @@ Delete the flow's unreachable fallback branch, make `parse_menu_structure` walk 
 
 ## Validation
 
-- Before each PR: characterisation tests that pin current outputs (rendered HTML, parsed
+- Before each PR: characterisation tests that pin current outputs (DOCX sections, parsed
   models, routing decisions) for the code being changed.
 - Each PR: full suite, ruff, mypy, ADR-014 guard tests, radon report (complexity) and a LOC
   delta in the description.
@@ -139,11 +156,11 @@ Delete the flow's unreachable fallback branch, make `parse_menu_structure` walk 
 
 ## Rollout (one PR each, in order)
 
-1. S1 — CrewAI-native crew cleanup
-2. S2 — parsing validators + `json_repair`
-3. S3 — deep research standard path
-4. S4 — crew metadata registry + standard-step helper
-5. S5 — rendering
+1. S1 — CrewAI-native crew cleanup (done, #233)
+2. S2 — parsing validators + `json_repair` (done, #235)
+3. S5 — DOCX only (moved before S3: S3 then needs no renderer)
+4. S3 — deep research standard path
+5. S4 — crew metadata registry + standard-step helper
 6. S6 — flow state
 7. S7 — menu
 8. S8 — small consolidations (Python), then infra (separate)
@@ -154,8 +171,10 @@ Delete the flow's unreachable fallback branch, make `parse_menu_structure` walk 
   characterisation tests; the Flow graph itself does not change.
 - **Parsing tolerance (S2, S3):** messy LLM output that parses today might not tomorrow;
   mitigated by replaying recorded raw outputs from `debug/`.
-- **Error propagation (S5):** a renderer bug now fails the run instead of sending a broken
-  page; this is intended but visible.
+- **Error propagation (S5):** a report-building bug now fails the run instead of sending a
+  broken report; this is intended but visible.
+- **DOCX only (S5):** reports are no longer readable in the email body; more LLM calls per
+  run for crews whose DOCX sections are narrated; a missing `pandoc` breaks every report.
 
 ## Decisions (2026-10-04)
 
@@ -167,3 +186,4 @@ Delete the flow's unreachable fallback branch, make `parse_menu_structure` walk 
    page is rendered or emailed (S5).
 5. (2026-10-05) No helper layer around CrewAI objects: crews keep `Agent(...)` / `Task(...)`
    / `Crew(...)` written out in their decorated methods (S1).
+6. (2026-10-05) Reports are DOCX only; the HTML rendering stack is removed (S5, revised S3/S4).
