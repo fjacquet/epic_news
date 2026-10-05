@@ -34,7 +34,6 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # Source layer. The manifests are bind-mounted again because the previous
 # mount did not persist them into /app, and building the project needs them.
 COPY src/ ./src
-COPY templates/ ./templates
 RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=uv.lock,target=uv.lock \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \

@@ -1,10 +1,7 @@
 """Pure helpers factoring repeated boilerplate in ReceptionFlow generate_* methods.
 
-Two module-level helpers:
-- load_or_parse_model: try deterministic JSON load → model_validate, fallback to
-  parse_crewai_output for robust JSON extraction from crew raw output.
-- render_and_write_html: render via TemplateManager and persist to disk, creating
-  the parent directory once (replaces inline os.makedirs usage).
+load_or_parse_model: try deterministic JSON load → model_validate, fallback to
+parse_crewai_output for robust JSON extraction from crew raw output.
 """
 
 from __future__ import annotations
@@ -16,7 +13,6 @@ from loguru import logger
 from pydantic import BaseModel, ValidationError
 
 from epic_news.utils.diagnostics.parsing import parse_crewai_output
-from epic_news.utils.html.template_manager import TemplateManager
 
 
 def load_or_parse_model[T: BaseModel](
@@ -46,33 +42,3 @@ def load_or_parse_model[T: BaseModel](
         return model
     except (OSError, json.JSONDecodeError, ValidationError):
         return parse_crewai_output(fallback_output, model_cls, inputs)
-
-
-def render_and_write_html(
-    selected_crew: str,
-    model: BaseModel,
-    html_path: str | Path,
-) -> Path:
-    """Render the model via TemplateManager and write the resulting HTML to disk.
-
-    Args:
-        selected_crew: Crew identifier used by TemplateManager for title/body routing.
-        model: Pydantic model providing the content data via model_dump().
-        html_path: Destination HTML file (parent directory created if missing).
-
-    Returns:
-        The final output path.
-
-    Raises:
-        ValueError: if html_path does not resolve inside the ``output/`` directory.
-    """
-    out = Path(html_path)
-    if not out.resolve().is_relative_to(Path("output").resolve()):
-        raise ValueError(f"Refusing to write report outside output/: {html_path}")
-    html = TemplateManager().render_report(
-        selected_crew=selected_crew,
-        content_data=model.model_dump(),
-    )
-    out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(html, encoding="utf-8")
-    return out

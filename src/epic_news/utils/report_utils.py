@@ -1,6 +1,6 @@
+import html
 import json
 import re
-from pathlib import Path
 from typing import Any
 
 from loguru import logger
@@ -13,7 +13,6 @@ from epic_news.models.crews.rss_weekly_report import (
     RssWeeklyReport,
 )
 from epic_news.models.rss_models import RssFeeds
-from epic_news.utils.html.template_manager import TemplateManager
 
 
 def _transform_rss_feeds_to_report(rss_feeds_model: RssFeeds, report_title: str) -> RssWeeklyReport:
@@ -78,34 +77,6 @@ def load_rss_weekly_report(
     return report_model
 
 
-def generate_rss_weekly_html_report(
-    json_file_path: str,
-    output_html_path: str,
-    report_title: str = "Veille Technologique Hebdomadaire",
-) -> None:
-    """
-    Reads translated RSS data from a JSON file, converts it to a Pydantic model,
-    then generates and saves a professional HTML report.
-
-    Accepts two JSON shapes:
-    - RssWeeklyReport (preferred — what the translator produces): top-level keys
-      ``title``, ``feeds``, ``summary``, ...
-    - RssFeeds (low-level): ``{"rss_feeds": [{"feed_url": ..., "articles": [...]}]}``
-
-    Raises on validation errors so the caller can surface the failure rather
-    than silently swallowing it.
-    """
-    logger.info("🚀 Generating HTML report from {}...", json_file_path)
-
-    report_model = load_rss_weekly_report(json_file_path, report_title)
-
-    tm = TemplateManager()
-    html = tm.render_report("RSS_WEEKLY", report_model.model_dump())
-    with open(output_html_path, "w", encoding="utf-8") as f:
-        f.write(html)
-    logger.info("✅ HTML report successfully generated at: {}", output_html_path)
-
-
 # Guaranteed-valid final fallback so a missing/empty/typo'd MAIL env var never
 # hard-fails the send with a confusing "invalid recipient". Shares the single
 # literal with content_state (no drift) but stays independent of MAIL: a malformed
@@ -121,32 +92,6 @@ def _valid_email(value: Any) -> str | None:
         return None
     value = value.strip()
     return value if _EMAIL_RE.match(value) else None
-
-
-def resolve_report_html(output_file: Any) -> str | None:
-    """Return the rendered HTML report matching ``output_file``, if one exists.
-
-    ``state.output_file`` is the crew's *write target* (usually ``report.json``), not
-    the artifact a reader wants. Crews render the HTML alongside it as ``report.html``
-    but never update the state, so the email step used to mail raw JSON as the body
-    and attach that same JSON. Prefer the HTML sibling; fall back to the file itself.
-    """
-    if not isinstance(output_file, str) or not output_file.strip():
-        return None
-
-    path = Path(output_file)
-    if path.suffix.lower() == ".html":
-        return str(path) if path.is_file() else None
-
-    sibling = path.with_suffix(".html")
-    if sibling.is_file():
-        return str(sibling)
-
-    logger.warning(
-        "📄 No rendered HTML report next to {}; the email body will not be HTML.",
-        output_file,
-    )
-    return str(path) if path.is_file() else None
 
 
 def prepare_email_params(state: Any) -> dict[str, Any]:
@@ -179,7 +124,8 @@ def prepare_email_params(state: Any) -> dict[str, Any]:
         )
         recipient = _FALLBACK_RECIPIENT
     subject = f"Epic News Report: {state.selected_crew} - {state.user_request}"
-    body = f"Please find the report for '{state.user_request}' attached."
+    # The sender posts the body as HTML, so the user request must be escaped.
+    body = f"Please find the report for '{html.escape(str(state.user_request))}' attached."
     attachment_path = getattr(state, "output_file", None)
     topic = f"{state.selected_crew} - {state.user_request}"
 

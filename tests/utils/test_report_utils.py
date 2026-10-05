@@ -69,3 +69,13 @@ def test_prepare_email_params_trims_valid_recipient(mock_state):
     mock_state.sendto = "  user@example.com  "
     params = prepare_email_params(mock_state)
     assert params["recipient_email"] == "user@example.com"
+
+
+def test_prepare_email_params_escapes_html_in_the_body(mock_state):
+    """The body is sent as HTML: a request containing markup must not be injected."""
+    mock_state.user_request = "<script>alert(1)</script> & co"
+
+    params = prepare_email_params(mock_state)
+
+    assert "<script>" not in params["body"]
+    assert "&lt;script&gt;alert(1)&lt;/script&gt; &amp; co" in params["body"]

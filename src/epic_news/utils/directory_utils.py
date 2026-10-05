@@ -40,7 +40,6 @@ def ensure_output_directories():
         "geospatial_analysis",
         "holiday",
         "hr_intelligence",
-        "html_designer",  # For professional HTML report generation
         "lead_scoring",
         "legal_analysis",
         "library",
