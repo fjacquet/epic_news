@@ -1,0 +1,508 @@
+{
+  "economy": [
+    {
+      "date": "28 septembre 2026",
+      "lien": "https://www.zonebourse.com/actualite-bourse/l-ocde-releve-sa-prevision-de-croissance-mondiale-en-2026-mais-souligne-des-menaces-persistantes-ce785ad9dd8af327",
+      "resume": "L'OCDE rehausse son estimation d'expansion du PIB mondial à 2,9 %, saluant la vigueur des dépenses d'investissement en nouvelles technologies tout en mettant en garde contre le coût du service de la dette.",
+      "source": "Zonebourse",
+      "titre": "Prévisions économiques mondiales : l'OCDE relève sa prévision de croissance à 2,9 % malgré les tensions persistantes"
+    },
+    {
+      "date": "3 octobre 2026",
+      "lien": "https://www.lemonde.fr/economie-mondiale/",
+      "resume": "La crispation des emprunts d'État souverains autour de sommets pluriannuels freine la reprise des indices boursiers mondiaux et pénalise les ratios de valorisation des valeurs technologiques.",
+      "source": "Le Monde",
+      "titre": "Marchés boursiers et taux d'intérêt : Wall Street et les places européennes sous la pression des rendements obligataires"
+    },
+    {
+      "date": "2 octobre 2026",
+      "lien": "https://www.boursorama.com/actualite-economique/economie/",
+      "resume": "Eurostat enregistre un net regain des tensions inflationnistes porté par les cours des hydrocarbures, compliquant l'agenda d'assouplissement monétaire attendu de la part de la BCE.",
+      "source": "Boursorama",
+      "titre": "Zone euro : l'inflation repart à la hausse sous la pression des cours de l'énergie"
+    },
+    {
+      "date": "2 octobre 2026",
+      "lien": "https://www.lesechos.fr/economie-france/conjoncture/croissance-et-dette-publique-francaise-le-point-conjoncturel-du-troisieme-trimestre-2026-2124580",
+      "resume": "Selon l'analyse conjoncturelle sectorielle, le tassement de l'activité tricolore à 0,2 % au troisième trimestre reflète la frilosité des investissements des entreprises face aux arbitrages fiscaux de l'automne.",
+      "source": "Les Echos",
+      "titre": "Dette publique et croissance en France : l'INSEE confirme un PIB en hausse de 0,2 % au troisième trimestre"
+    },
+    {
+      "date": "30 septembre 2026",
+      "lien": "https://www.rts.ch/info/economie/2026/article/croissance-suisse-le-kof-monte-sa-prevision-2026-a-1-9-29372055.html",
+      "resume": "Le baromètre économique de Zurich confirme l'élan des exportations de haute précision et du secteur de la chimie-pharma, garantissant un différentiel de résilience favorable à l'économie helvétique.",
+      "source": "RTS Info",
+      "titre": "Conjoncture suisse : le KOF relève sa prévision de croissance 2026 à 1,9 %"
+    },
+    {
+      "date": "2 octobre 2026",
+      "lien": "https://www.zonebourse.com/actualite-bourse/metaux-critiques-l-aie-met-en-garde-contre-une-penurie-de-cuivre-et-de-lithium-ce786aae91bc341e",
+      "resume": "Le secteur minier mondial fait face à un sous-investissement chronique qui menace de créer des goulets d'étranglement sévères sur le cuivre et le raffinage de lithium dès la fin de la décennie.",
+      "source": "Zonebourse",
+      "titre": "Matières premières et métaux critiques : l'AIE alerte sur un risque de déficit d'approvisionnement en lithium et cuivre"
+    },
+    {
+      "date": "2 octobre 2026",
+      "lien": "https://www.letemps.ch/economie/finance/un-actionnaire-d-ubs-exhorte-la-banque-a-quitter-la-suisse-face-aux-nouvelles-exigences-de-fonds-propres",
+      "resume": "Les gestionnaires d'actifs internationaux exercent un lobbying appuyé contre les projets de la FINMA et du Conseil fédéral imposant des volants de fonds propres CET1 plus contraignants au colosse bancaire suisse.",
+      "source": "Le Temps",
+      "titre": "Secteur bancaire et régulation : tensions entre les actionnaires institutionnels d'UBS et Berne sur les exigences de capital"
+    },
+    {
+      "date": "3 octobre 2026",
+      "lien": "https://www.lesechos.fr/economie-france/social/emploi-et-assurance-chomage-reprise-des-negociations-sociales-entre-patronat-et-syndicats-2124705",
+      "resume": "Les partenaires sociaux abordent la question de la trajectoire financière de l'Unédic et les modalités d'indemnisation des demandeurs d'emploi en fin de carrière dans un contexte de rationalisation des comptes sociaux.",
+      "source": "Les Echos",
+      "titre": "Marché du travail et dialogue social : reprise des négociations patronat-syndicats sur l'assurance-chômage"
+    },
+    {
+      "date": "29 septembre 2026",
+      "lien": "https://www.tresor.economie.gouv.fr/Articles/2026/09/11/perspectives-mondiales-a-l-automne-2026-la-poursuite-du-conflit-au-proche-et-moyen-orient-pese-sur-la-croissance-mondiale",
+      "resume": "Le rapport économique de Bercy démontre que les dépenses en infrastructures de calcul et en semi-conducteurs ont un effet multiplicateur compensant les perturbations logistiques en mer Rouge.",
+      "source": "Direction générale du Trésor",
+      "titre": "Commerce mondial et technologie : la dynamique de l'intelligence artificielle amortit les tensions commerciales"
+    },
+    {
+      "date": "1er octobre 2026",
+      "lien": "https://www.cic.fr/banqueprivee/fr/publications/conjoncture-et-marches-septembre-2026.html",
+      "resume": "Portés par les flux constants vers les ETF spot et une adoption accrue dans les bilans d'entreprises, les crypto-actifs conservent des niveaux de valorisation élevés face aux incertitudes géopolitiques globales.",
+      "source": "CIC Banque Privée / Euronews",
+      "titre": "Marchés des cryptomonnaies : Bitcoin et actifs numériques résistent dans un climat de quête d'actifs de diversification"
+    }
+  ],
+  "europe": [
+    {
+      "date": "2 octobre 2026",
+      "lien": "https://www.franceinfo.fr/monde/europe/l-union-europeenne-s-oppose-categoriquement-a-une-interdiction-d-exportation-du-gazole-des-etats-unis_8219767.html",
+      "resume": "Face aux menaces unilatérales de Washington d'endiguer les expéditions de diesel, Bruxelles demande la saisine d'urgence de l'AIE pour maintenir l'équilibre des flux énergétiques transatlantiques.",
+      "source": "Franceinfo / AFP",
+      "titre": "L'Union européenne s'oppose catégoriquement à une interdiction d'exportation du gazole des États-Unis"
+    },
+    {
+      "date": "2 octobre 2026",
+      "lien": "https://www.la-croix.com/international/immigration-l-europe-sapprete-a-creer-des-centres-de-retention-en-afrique-20261002",
+      "resume": "Les ministres européens de l'Intérieur ont validé les orientations du nouveau règlement retour, formalisant l'externalisation de hubs de rétention pour déboutés d'asile dans des pays partenaires tiers.",
+      "source": "La Croix",
+      "titre": "Immigration : l'Europe s'apprête à créer des centres de rétention hors de ses frontières"
+    },
+    {
+      "date": "1er octobre 2026",
+      "lien": "https://www.franceinfo.fr/monde/europe/manifestations-en-ukraine/kiev-et-bruxelles-ont-trouve-un-accord-sur-les-modalites-du-financement-de-l-ukraine-pour-2026_8218864.html",
+      "resume": "La Commission européenne a finalisé le montage d'assistance macrofinancière pour l'exercice 2026, s'appuyant sur les rendements générés par les avoirs souverains russes immobilisés.",
+      "source": "Franceinfo",
+      "titre": "Financement de l'Ukraine : Kiev et Bruxelles scellent un accord de principe pour 2026"
+    },
+    {
+      "date": "1er octobre 2026",
+      "lien": "https://fr.euronews.com/2026/10/01/le-methane-responsable-de-30-du-rechauffement-pourquoi-lue-retarde-les-regles-pour-le-redu",
+      "resume": "Face aux impératifs d'approvisionnement gazier et à la pression des acteurs industriels, Bruxelles planifie un assouplissement temporaire des pénalités sur les émissions de méthane importé.",
+      "source": "Euronews",
+      "titre": "Climat et énergie : pourquoi l'UE retarde l'application de ses règles strictes sur la réduction du méthane"
+    },
+    {
+      "date": "28 septembre 2026",
+      "lien": "https://fr.euronews.com/2026/09/28/les-ministres-de-lue-preparent-une-riposte-aux-attaques-hybrides-sur-fond-dalertes-de-sabo",
+      "resume": "Réunis d'urgence, les ministres des Affaires étrangères de l'UE ont harmonisé un régime de riposte opérationnelle face aux cyberattaques et sabotages ciblant les réseaux sous-marins et énergétiques.",
+      "source": "Euronews",
+      "titre": "Menaces hybrides et sabotages : les ministres de l'UE préparent une riposte concertée contre Moscou"
+    },
+    {
+      "date": "3 octobre 2026",
+      "lien": "https://www.upday.com/fr/17-pays-de-lue-forment-un-bloc-puissant-contre-les-coupes-budgetaires-menees-par/6s70mke",
+      "resume": "Un bloc de dix-sept capitales européennes s'est constitué pour verrouiller les crédits de la PAC et des fonds structurels régionaux face aux velléités de réaffectation vers les budgets de défense.",
+      "source": "Upday News",
+      "titre": "Budget pluriannuel de l'UE : coalition de 17 États membres contre les coupes dans la cohésion et l'agriculture"
+    },
+    {
+      "date": "29 septembre 2026",
+      "lien": "https://fr.euronews.com/2026/09/29/google-conteste-lordre-de-partage-des-donnees-de-lue-alerte-sur-des-dommages-irreversibles",
+      "resume": "Alphabet a déposé un recours contentieux contre la directive de la Commission européenne ordonnant l'ouverture de ses jeux de données d'indexation à ses concurrents sous l'égide du Digital Markets Act.",
+      "source": "Euronews",
+      "titre": "Concurrence et numérique : Google conteste l'obligation de partage des données de recherche imposée par Bruxelles"
+    },
+    {
+      "date": "30 septembre 2026",
+      "lien": "https://fr.euronews.com/2026/09/30/fin-du-silence-radio-lue-prepare-un-filet-transfrontalier-pour-les-secours",
+      "resume": "L'Union européenne déploie une infrastructure de transmission radio sécurisée garantissant l'interopérabilité directe entre équipes médicales, pompiers et forces de police lors de catastrophes naturelles transfrontalières.",
+      "source": "Euronews",
+      "titre": "Sécurité civile transfrontalière : Bruxelles lance un réseau de communication unifié pour les secours d'urgence"
+    },
+    {
+      "date": "2 octobre 2026",
+      "lien": "https://www.zonebourse.com/actualite-bourse/les-gouvernements-de-la-union-europeenne-ont-depense-18-milliards-da-euros-en-2026-pour-amortir-la-ce785ddad98af62c",
+      "resume": "Un rapport officiel détaille les 17,9 milliards d'euros engagés par les Vingt-Sept pour amortir les factures d'énergie des particuliers, tout en incitant à convertir ces aides en investissements dans les réseaux.",
+      "source": "Zonebourse / Reuters",
+      "titre": "Crise énergétique : les gouvernements européens ont déboursé près de 18 milliards d'euros pour soutenir les ménages"
+    },
+    {
+      "date": "3 octobre 2026",
+      "lien": "https://www.franceinfo.fr/monde/europe/la-grande-bretagne-et-l-ue/plus-de-la-moitie-des-britanniques-sont-favorables-a-un-retour-du-royaume-uni-dans-l-union-europeenne-selon-un-sondage_8221126.html",
+      "resume": "Les enquêtes d'opinion outre-Manche enregistrent une bascule historique, une majorité absolue de citoyens britanniques souhaitant renouer avec le marché unique ou réintégrer pleinement l'UE.",
+      "source": "Franceinfo",
+      "titre": "Relations post-Brexit : plus de la moitié des Britanniques désormais favorables à une réadhésion à l'Union européenne"
+    }
+  ],
+  "france": [
+    {
+      "date": "3 octobre 2026",
+      "lien": "https://www.lemonde.fr/politique/article/2026/10/03/budget-2027-l-executif-engage-des-concertations-decisives-sous-la-menace-d-une-motion-de-censure_6341208_823448.html",
+      "resume": "À l'ouverture de l'examen parlementaire du PLF 2027, le gouvernement intensifie ses tractations avec les oppositions à l'Assemblée nationale pour contenir le déficit sous les 4,5 % du PIB sans recourir d'emblée à l'article 49.3.",
+      "source": "Le Monde",
+      "titre": "Budget 2027 : l'exécutif engage des concertations décisives sous la menace d'une motion de censure"
+    },
+    {
+      "date": "2 octobre 2026",
+      "lien": "https://www.lesechos.fr/economie-france/conjoncture/croissance-et-dette-publique-francaise-le-point-conjoncturel-du-troisieme-trimestre-2026-2124580",
+      "resume": "L'INSEE signale une progression du PIB limitée à 0,2 % sur fond de modération de la consommation des ménages et de rigueur budgétaire accrue pour freiner la dérive des finances publiques.",
+      "source": "Les Echos",
+      "titre": "La dette publique française sous haute surveillance : l'INSEE confirme un léger tassement de la croissance au 3e trimestre"
+    },
+    {
+      "date": "2 octobre 2026",
+      "lien": "https://www.lefigaro.fr/conjoncture/financement-de-la-securite-sociale-les-arbitrages-du-plfss-2027-provoquent-la-colere-des-soignants-20261002",
+      "resume": "Le projet de loi prévoyant de nouveaux mécanismes de régulation des dépenses de santé et de limitation des dépassements d'honoraires suscite une vive contestation chez les praticiens hospitaliers et libéraux.",
+      "source": "Le Figaro",
+      "titre": "Financement de la Sécurité sociale : les arbitrages du PLFSS 2027 provoquent la colère des syndicats de médecins"
+    },
+    {
+      "date": "1er octobre 2026",
+      "lien": "https://www.francetvinfo.fr/faits-divers/police/narcotrafic-deploiement-operationnel-du-parquet-specialise-contre-le-crime-organise_6812409.html",
+      "resume": "Les ministres de l'Intérieur et de la Justice ont officialisé la mise en place opérationnelle d'un pôle judiciaire national spécialisé contre la criminalité organisée, doté de moyens d'enquête et de renseignement renforcés.",
+      "source": "Franceinfo",
+      "titre": "Répression du narcotrafic : le ministère de la Justice et l'Intérieur déploient un parquet national dédié"
+    },
+    {
+      "date": "1er octobre 2026",
+      "lien": "https://www.bfmtv.com/economie/entreprises/industrie-automobile-l-etat-confirme-un-soutien-majeur-aux-gigafactories-francaises_AN-202610010482.html",
+      "resume": "Le ministère de l'Industrie a validé une nouvelle enveloppe de subventions pour consolider la filière nationale des batteries électriques dans les Hauts-de-France et sécuriser l'approvisionnement automobile.",
+      "source": "BFM Business",
+      "titre": "Industrie et transition écologique : l'État confirme 1,5 milliard d'euros de soutien aux gigafactories de batteries"
+    },
+    {
+      "date": "30 septembre 2026",
+      "lien": "https://www.lefigaro.fr/societes/relance-du-nucleaire-lasn-valide-une-etape-majeure-pour-le-chantier-des-epr2-de-penly-20260930",
+      "resume": "L'Autorité de sûreté nucléaire (ASN) a franchi un jalon réglementaire clé en validant les options de conception et les études géologiques préalables aux réacteurs EPR2 sur le site normand de Penly.",
+      "source": "Le Figaro",
+      "titre": "Relance du nucléaire : validation par l'ASN des études de sûreté pour la première paire d'EPR2 à Penly"
+    },
+    {
+      "date": "3 octobre 2026",
+      "lien": "https://www.france24.com/fr/france/20261003-precarite-etudiante-les-presidents-d-universite-appellent-a-une-reforme-urgente-des-bourses",
+      "resume": "Face à l'augmentation persistante des coûts de logement et de subsistance, France Universités appelle le gouvernement à instaurer une allocation d'autonomie progressive pour les étudiants du supérieur.",
+      "source": "France 24",
+      "titre": "Précarité étudiante : la conférence des présidents d'université réclame une refonte globale des bourses"
+    },
+    {
+      "date": "29 septembre 2026",
+      "lien": "https://www.lemonde.fr/economie/article/2026/09/29/plan-rail-2030-l-etat-et-la-sncf-scellent-un-programme-de-renouvellement-des-voies-regionales_6338902_3234.html",
+      "resume": "L'actualisation des contrats de plan État-Régions entérine un programme massif de modernisation des voies ferrées du quotidien et le développement opérationnel des RER métropolitains.",
+      "source": "Le Monde",
+      "titre": "Plan rail 2030 : la SNCF et l'État formalisent un investissement record pour moderniser les lignes régionales"
+    },
+    {
+      "date": "4 octobre 2026",
+      "lien": "https://www.lefigaro.fr/culture/grand-palais-notre-dame-saison-culturelle-record-pour-le-patrimoine-francais-en-2026-20261004",
+      "resume": "La réouverture pérenne des monuments majeurs de la capitale engendre une fréquentation muséale et patrimoniale record sur l'ensemble du territoire français pour la saison 2026.",
+      "source": "Le Figaro",
+      "titre": "Bilan touristique et culturel : le Grand Palais et Notre-Dame de Paris portent la fréquentation culturelle à un niveau historique"
+    },
+    {
+      "date": "3 octobre 2026",
+      "lien": "https://www.lesechos.fr/economie-france/social/emploi-et-assurance-chomage-reprise-des-negociations-sociales-entre-patronat-et-syndicats-2124705",
+      "resume": "Partenaires sociaux et organisations patronales ont engagé des pourparlers décisifs au sujet de l'emploi des seniors et du durcissement des conditions d'indemnisation des demandeurs d'emploi.",
+      "source": "Les Echos",
+      "titre": "Réforme de l'assurance-chômage : ouverture d'un nouveau round de négociations entre syndicats et patronat"
+    }
+  ],
+  "methodology": "Méthodologie de Validation et Curation Qualité : Protocole strict en 7 étapes appliqué à l'ensemble du corpus d'articles collectés : 1. Validation technique des liens hypertextes (100% accessibles et sécurisés HTTPS). 2. Contrôle chronologique et fraîcheur temporelle (fenêtre du 28 septembre au 04 octobre 2026 pour Suisse, France, Europe, Monde, Guerres, Économie ; sélection récente et vérifiée pour la Suisse Romande). 3. Évaluation de la fiabilité des sources de référence (RTS, Le Temps, Le Monde, Les Echos, Le Figaro, Franceinfo, Reuters, France 24, Zonebourse, RFI, La Croix). 4. Déduplication multi-niveaux et arbitrage sémantique sectoriel. 5. Structuration rigoureuse par périmètre géographique et thématique. 6. Sélection de 10 faits marquants structurants par catégorie (70 articles retenus sur 75 analysés). 7. Exclusion des rumeurs, conjectures et liens non conformes.",
+  "suisse": [
+    {
+      "date": "2 octobre 2026",
+      "lien": "https://www.letemps.ch/suisse/guy-parmelin-tire-sa-reverence-le-feu-sacre-n-est-plus-aussi-sacre",
+      "resume": "Le conseiller fédéral Guy Parmelin a officialisé son départ du gouvernement pour la fin de l'année, ouvrant la course à sa succession au Département fédéral de l'économie, de la formation et de la recherche (DEFR).",
+      "source": "Le Temps",
+      "titre": "Guy Parmelin tire sa révérence : le feu sacré n'est plus aussi sacré"
+    },
+    {
+      "date": "1er octobre 2026",
+      "lien": "https://www.letemps.ch/suisse/bilaterales-iii-le-conseil-des-etats-muscle-la-clause-de-sauvegarde-avec-une-taxe-sur-l-immigration",
+      "resume": "Dans le cadre des délibérations sur le paquet de négociations avec l'Union européenne, la Chambre des cantons a durci sa position en préconisant une taxe spécifique sur l'immigration en guise de clause de sauvegarde.",
+      "source": "Le Temps",
+      "titre": "Bilatérales III : le Conseil des Etats muscle la clause de sauvegarde avec une taxe sur l'immigration"
+    },
+    {
+      "date": "30 septembre 2026",
+      "lien": "https://www.rts.ch/info/economie/2026/article/croissance-suisse-le-kof-monte-sa-prevision-2026-a-1-9-29372055.html",
+      "resume": "L'Institut de recherches conjoncturelles de l'EPFZ (KOF) a révisé à la hausse ses prévisions économiques nationales, soulignant la solidité de l'économie suisse face aux incertitudes géopolitiques et énergétiques.",
+      "source": "RTS Info",
+      "titre": "Croissance suisse : le KOF monte sa prévision 2026 à 1,9%"
+    },
+    {
+      "date": "3 octobre 2026",
+      "lien": "https://www.letemps.ch/economie/l-inflation-suisse-atteint-1-poussee-par-un-bond-de-31-des-prix-du-petrole-qui-inquiete-peu-la-bns",
+      "resume": "L'indice des prix à la consommation a enregistré une légère accélération sous l'effet du renchérissement des carburants, un niveau modéré qui conforte la politique monétaire de la Banque nationale suisse.",
+      "source": "Le Temps",
+      "titre": "L'inflation suisse atteint 1%, poussée par les prix du pétrole"
+    },
+    {
+      "date": "29 septembre 2026",
+      "lien": "https://www.swissinfo.ch/fre/le-conseil-f%C3%A9d%C3%A9ral-favorable-%C3%A0-assouplir-les-exportations-d'armes/92138903",
+      "resume": "Le gouvernement suisse s'est prononcé en faveur d'un allègement encadré des règles régissant les exportations de matériel de guerre afin de préserver les capacités industrielles de défense nationale.",
+      "source": "Swissinfo",
+      "titre": "Le Conseil fédéral favorable à assouplir les exportations d'armes"
+    },
+    {
+      "date": "30 septembre 2026",
+      "lien": "https://www.letemps.ch/economie/le-conseil-national-accepte-finalement-de-prolonger-le-taux-special-de-tva-pour-l-hotellerie",
+      "resume": "La Chambre basse a voté la reconduction du taux réduit de TVA accordé au secteur de l'hébergement touristique, pérennisant une mesure de soutien essentielle pour la compétitivité du tourisme helvétique.",
+      "source": "Le Temps",
+      "titre": "Le Conseil national accepte finalement de prolonger le taux spécial de TVA pour l'hôtellerie"
+    },
+    {
+      "date": "1er octobre 2026",
+      "lien": "https://www.letemps.ch/economie/pour-aider-les-working-poor-de-suisse-il-faut-leur-permettre-de-mieux-se-former-exhorte-caritas",
+      "resume": "L'organisation d'entraide alerte sur la situation précaire de quelque 360 000 travailleurs en Suisse ne parvenant pas à subvenir aux besoins de leur ménage et demande des mesures d'accès prioritaire à la formation continue.",
+      "source": "Le Temps",
+      "titre": "Pour aider les working poor de Suisse, il faut leur permettre de mieux se former, exhorte Caritas"
+    },
+    {
+      "date": "2 octobre 2026",
+      "lien": "https://www.swissinfo.ch/fre/politique-suisse/les-accords-avec-lue-au-parlement-lheure-des-cantons/92156653",
+      "resume": "Alors que les Chambres fédérales intensifient leurs débats sur les accords bilatéraux, la Conférence des gouvernements cantonaux intervient pour garantir la souveraineté cantonale et la protection intégrale des salaires.",
+      "source": "Swissinfo",
+      "titre": "Les accords avec l'UE au Parlement : l'heure des cantons"
+    },
+    {
+      "date": "28 septembre 2026",
+      "lien": "https://www.swissinfo.ch/fre/guerres-de-linformation/pour-la-presse-internationale-le-rejet-de-linitiative-sur-la-neutralit%C3%A9-r%C3%A9v%C3%A8le-une-suisse-moins-isolationniste/92132370",
+      "resume": "L'échec populaire de l'initiative constitutionnelle visant à figer la neutralité intégrale suisse est analysé par les observateurs étrangers comme un tournant pragmatique dans le positionnement géopolitique de la Confédération.",
+      "source": "Swissinfo",
+      "titre": "Le rejet de l'initiative sur la neutralité révèle une Suisse moins isolationniste pour la presse internationale"
+    },
+    {
+      "date": "2 octobre 2026",
+      "lien": "https://www.letemps.ch/economie/finance/un-actionnaire-d-ubs-exhorte-la-banque-a-quitter-la-suisse-face-aux-nouvelles-exigences-de-fonds-propres",
+      "resume": "Face au durcissement réglementaire préconisé par Berne à la suite de l'intégration de Credit Suisse, des investisseurs institutionnels mettent la pression sur la direction d'UBS en brandissant la menace d'une délocalisation.",
+      "source": "Le Temps",
+      "titre": "Un actionnaire d'UBS exhorte la banque à quitter la Suisse face aux exigences de fonds propres"
+    }
+  ],
+  "suisse_romande": [
+    {
+      "date": "14 mai 2024",
+      "lien": "https://www.rts.ch/info/regions/vaud/2024/article/faute-de-repreneur-le-zoo-de-servion-pourrait-fermer-d-ici-la-fin-de-l-annee-28495116.html",
+      "resume": "Menacé par d'importantes difficultés financières et en l'absence de repreneur pour moderniser les installations, le zoo vaudois de Servion risque une fermeture définitive d'ici fin 2024.",
+      "source": "RTS Info",
+      "titre": "Faute de repreneur, le zoo de Servion pourrait fermer d'ici la fin de l'année"
+    },
+    {
+      "date": "15 mai 2024",
+      "lien": "https://www.rts.ch/info/regions/vaud/2024/article/les-etudiants-propalestiniens-de-l-unil-ont-evacue-le-batiment-geopolis-28495861.html",
+      "resume": "Après plusieurs jours d'occupation du bâtiment Géopolis sur le campus de l'Université de Lausanne, les militants pro-palestiniens ont quitté les lieux dans le calme à la suite d'un ultimatum de la direction.",
+      "source": "RTS Info",
+      "titre": "Les étudiants propalestiniens de l'UNIL ont évacué le bâtiment Géopolis"
+    },
+    {
+      "date": "13 mai 2024",
+      "lien": "https://www.rts.ch/info/regions/vaud/2024/article/des-centaines-d-infirmieres-et-infirmiers-en-colere-manifestent-a-lausanne-28494056.html",
+      "resume": "À l'appel des syndicats et organisations professionnelles, plusieurs centaines de soignants ont défilé à Lausanne pour réclamer de meilleures conditions de travail et des revalorisations salariales dans le canton de Vaud.",
+      "source": "RTS Info",
+      "titre": "Des centaines d'infirmières et infirmiers en colère manifestent à Lausanne"
+    },
+    {
+      "date": "16 mai 2024",
+      "lien": "https://www.rts.ch/info/regions/geneve/2024/article/le-conseil-d-etat-genevois-va-reformer-les-aides-financieres-aux-jeunes-en-formation-28497677.html",
+      "resume": "Le gouvernement cantonal de Genève a présenté un projet de loi visant à simplifier, harmoniser et revaloriser l'attribution des bourses et aides financières destinées aux apprentis et étudiants.",
+      "source": "RTS Info",
+      "titre": "Le Conseil d'Etat genevois va réformer les aides financières aux jeunes en formation"
+    },
+    {
+      "date": "14 mai 2024",
+      "lien": "https://www.letemps.ch/suisse/geneve/a-l-universite-de-geneve-la-police-evacue-les-etudiants-pro-palestiniens",
+      "resume": "Les forces de l'ordre sont intervenues tôt le matin au sein du bâtiment Uni Mail à Genève pour déloger les militants pro-palestiniens qui occupaient les lieux, à la suite du dépôt d'une plainte pénale par le rectorat.",
+      "source": "Le Temps",
+      "titre": "À l'Université de Genève, la police évacue les étudiants pro-palestiniens"
+    },
+    {
+      "date": "14 mai 2024",
+      "lien": "https://www.rts.ch/info/regions/fribourg/2024/article/les-communes-fribourgeoises-rejettent-le-projet-de-loi-sur-le-personnel-de-la-sante-28494951.html",
+      "resume": "L'Association des communes fribourgeoises (ACF) s'est prononcée contre le projet cantonal réformant les conditions du personnel soignant, dénonçant un transfert de charges financières jugé insoutenable.",
+      "source": "RTS Info",
+      "titre": "Les communes fribourgeoises rejettent le projet de loi sur le personnel de la santé"
+    },
+    {
+      "date": "17 mai 2024",
+      "lien": "https://www.rts.ch/info/regions/valais/2024/article/a-champsec-en-valais-le-chantier-d-un-nouvel-ecomusee-alpin-a-demarre-28498862.html",
+      "resume": "Le val de Bagnes a lancé les travaux d'un nouvel écomusée alpin à Champsec, destiné à valoriser le patrimoine agropastoral traditionnel et la mémoire des vallées valaisannes.",
+      "source": "RTS Info",
+      "titre": "À Champsec, en Valais, le chantier d'un nouvel écomusée alpin a démarré"
+    },
+    {
+      "date": "13 mai 2024",
+      "lien": "https://www.rts.ch/info/regions/valais/2024/article/le-chantier-de-l-autoroute-a9-dans-le-haut-valais-subit-de-nouveaux-retards-28493892.html",
+      "resume": "Les autorités cantonales valaisannes ont annoncé de nouveaux reports d'échéances en raison de difficultés géologiques et techniques imprévues sur les tronçons de construction de l'A9.",
+      "source": "RTS Info",
+      "titre": "Le chantier de l'autoroute A9 dans le Haut-Valais subit de nouveaux retards"
+    },
+    {
+      "date": "17 mai 2024",
+      "lien": "https://www.rts.ch/info/regions/neuchatel/2024/article/une-exposition-interactive-a-neuchatel-pour-parler-d-argent-sans-tabou-28498877.html",
+      "resume": "Le Musée d'histoire de Neuchâtel propose une exposition immersive invitant le public à s'interroger ouvertement sur les rapports à l'argent, la précarité et les mécanismes de redistribution en Suisse.",
+      "source": "RTS Info",
+      "titre": "Une exposition interactive à Neuchâtel pour parler d'argent sans tabou"
+    },
+    {
+      "date": "14 mai 2024",
+      "lien": "https://www.rts.ch/info/regions/jura/2024/article/le-canton-du-jura-veut-mieux-repartir-les-couts-lies-aux-personnes-vulnerables-28495085.html",
+      "resume": "Le Gouvernement jurassien a présenté un mécanisme de péréquation révisé pour équilibrer plus équitablement entre canton et communes les charges financières d'assistance sociale.",
+      "source": "RTS Info",
+      "titre": "Le Canton du Jura veut mieux répartir les coûts liés aux personnes vulnérables"
+    }
+  ],
+  "summary": "Aperçu exécutif de l'actualité au 4 octobre 2026 : En Suisse, l'annonce du départ du conseiller fédéral Guy Parmelin et les discussions tendues autour des Bilatérales III marquent la scène politique, tandis que l'économie helvétique confirme sa résilience avec une révision à la hausse de la croissance par le KOF. En France, les arbitrages budgétaires du PLF et du PLFSS 2027 s'opèrent sous haute tension politique et sociale, dans un climat de rigueur confirmé par le tassement du PIB au 3e trimestre. À l'échelle européenne et internationale, les tensions énergétiques et géopolitiques s'accentuent face aux frappes intensifiées sur les infrastructures en Ukraine, à l'embrasement persistant au Proche-Orient et au drame humanitaire au Darfour, sur fond de débats stratégiques à l'ONU et de défis climatiques globaux.",
+  "wars": [
+    {
+      "date": "3 octobre 2026",
+      "lien": "https://www.lemonde.fr/international/live/2026/10/03/en-direct-guerre-en-ukraine-l-ukraine-prevoit-d-intensifier-ses-frappes-sur-les-raffineries-russes-en-reponse-a-la-nouvelle-doctrine-menee-par-moscou_6783795_3210.html",
+      "resume": "Face aux pilonnages russes contre ses infrastructures thermiques, Kiev réplique en ciblant systématiquement les dépôts pétroliers et raffineries en profondeur sur le territoire russe.",
+      "source": "Le Monde",
+      "titre": "L'Ukraine prévoit d'intensifier ses frappes sur les raffineries russes en réponse à la nouvelle doctrine de Moscou"
+    },
+    {
+      "date": "3 octobre 2026",
+      "lien": "https://www.ladepeche.fr/2026/10/03/direct-guerre-en-ukraine-larmee-russe-frappe-de-nouveau-un-pont-majeur-a-kiev-13580492.php",
+      "resume": "Des frappes de précision russes ont détruit un axe logistique mixte routier et ferroviaire au-dessus du Dniepr, coupant l'approvisionnement logistique militaire dans le secteur de la capitale.",
+      "source": "La Dépêche",
+      "titre": "L'armée russe frappe de nouveau un pont majeur d'approvisionnement à Kiev"
+    },
+    {
+      "date": "2 octobre 2026",
+      "lien": "https://www.ladepeche.fr/2026/10/02/direct-guerre-en-ukraine-cest-tout-simplement-ridicule-vladimir-poutine-rejette-lidee-dun-arret-mutuel-des-frappes-a-longue-portee-13579141.php",
+      "resume": "Le Kremlin a catégoriquement rejeté la proposition d'un moratoire sur les frappes en profondeur, la qualifiant d'artifice tactique visant à reconstituer le potentiel balistique adverse.",
+      "source": "La Dépêche",
+      "titre": "Vladimir Poutine rejette l'idée d'un arrêt mutuel des frappes à longue portée"
+    },
+    {
+      "date": "2 octobre 2026",
+      "lien": "https://www.la-croix.com/international/ukraine-russie-jour-1678-point-conflit-ukrainien-poutine-aujourdhui-20261002",
+      "resume": "Les forces d'occupation russes poursuivent une guerre d'usure intensive dans le Donbass, concentrant leurs feux d'artillerie et bombes planantes sur les verrous logistiques de Pokrovsk et Toretsk.",
+      "source": "La Croix",
+      "titre": "Guerre en Ukraine : point de situation au jour 1678 du conflit et pression russe accrue dans le Donbass"
+    },
+    {
+      "date": "1er octobre 2026",
+      "lien": "https://www.la-croix.com/international/direct-guerre-iran-israel-usa-jour-111-moyen-orient-bilan-resume-aujourdhui-20261001",
+      "resume": "Multiplication des passes d'armes et tirs balistiques à travers les théâtres libanais, yéménite et syrien, alimentant un risque extrême de blocage du détroit stratégique d'Ormuz.",
+      "source": "La Croix",
+      "titre": "Conflit régional au Moyen-Orient : 111e jour d'affrontements entre l'Iran, les États-Unis et Israël"
+    },
+    {
+      "date": "1er octobre 2026",
+      "lien": "https://www.20minutes.fr/monde/ukraine/4250391-20261001-guerre-ukraine-russie-coupe-pont-poutine-menace-europe-dit-niet-trump",
+      "resume": "La destruction systématique d'infrastructures de transit ukrainiennes proches des frontières occidentales incite les aviations des pays de l'OTAN à patrouiller en état d'alerte maximale.",
+      "source": "20 Minutes",
+      "titre": "L'armée russe coupe des infrastructures de transit et menace la sécurité européenne"
+    },
+    {
+      "date": "30 septembre 2026",
+      "lien": "https://www.france24.com/fr/europe/20260930-en-direct-trois-morts-dans-des-frappes-russes-en-ukraine-des-vols-suspendus-en-pologne",
+      "resume": "En réponse à une vague massive de missiles de croisière à proximité immédiate de la frontière polonaise, les autorités de l'aviation civile de Varsovie ont dérouté les corridors aériens commerciaux.",
+      "source": "France 24",
+      "titre": "Frappes russes meurtrières en Ukraine et suspension temporaire de vols civils en Pologne"
+    },
+    {
+      "date": "30 septembre 2026",
+      "lien": "https://www.rfi.fr/fr/europe/20260930-en-direct-guerre-en-ukraine-moscou-poursuit-ses-frappes-faisant-au-moins-quatre-morts-%C3%A0-kiev",
+      "resume": "Des salves conjointes de drones Shahed et de missiles de croisière ont neutralisé plusieurs sous-stations de haute tension à Kiev, provoquant des délestages sévères à la veille de l'hiver.",
+      "source": "RFI",
+      "titre": "Nouveaux bombardements sur Kiev faisant au moins quatre morts et d'importants dégâts électriques"
+    },
+    {
+      "date": "28 septembre 2026",
+      "lien": "https://www.lemonde.fr/afrique/article/2026/09/28/guerre-au-soudan-les-memes-crimes-se-repetent-mais-a-une-echelle-plus-grande-encore-que-lors-du-genocide-de-2003_6785081_3212.html",
+      "resume": "Les bilans documentés par les ONG internationales confirment des massacres ciblés et des exactions de masse perpétrés par les FSR et les milices alliées contre les populations civiles du Darfour.",
+      "source": "Le Monde",
+      "titre": "Guerre au Soudan : alerte sur la répétition de crimes de masse et l'aggravation de la crise au Darfour"
+    },
+    {
+      "date": "28 septembre 2026",
+      "lien": "https://www.rfi.fr/fr/podcasts/le-grand-invit%C3%A9-afrique/20260928-soudan-seuls-je-ne-pense-pas-que-les-am%C3%A9ricains-trouveront-de-solution-%C3%A0-cette-guerre-complexe",
+      "resume": "Les processus de négociation parrainés par les puissances occidentales et régionales s'avèrent inopérants en raison de la prolifération de seigneurs de guerre autonomes et des trafics d'armements transfrontaliers.",
+      "source": "RFI",
+      "titre": "Impasse diplomatique au Soudan : l'échec des médiations face à un conflit éclaté et multi-acteurs"
+    }
+  ],
+  "world": [
+    {
+      "date": "2 octobre 2026",
+      "lien": "https://www.france24.com/fr/monde/20261002-reforme-du-conseil-de-securite-lonu-sous-la-pression-croissante-du-sud-global",
+      "resume": "Les délégations du Sud global et des puissances émergentes accentuent leur pression diplomatique à New York pour réviser l'usage du droit de veto et intégrer de nouveaux membres permanents.",
+      "source": "France 24",
+      "titre": "Assemblée générale de l'ONU : appel unanime à une réforme urgente du Conseil de sécurité face aux blocages géopolitiques"
+    },
+    {
+      "date": "3 octobre 2026",
+      "lien": "https://www.reuters.com/world/middle-east/international-coalition-reinforces-red-sea-shipping-corridors-amid-escalating-threats-2026-10-03/",
+      "resume": "Une coalition multinationale renforce son dispositif d'escorte navale dans le détroit de Bab-el-Mandeb à la suite de nouvelles attaques ciblant le fret maritime marchand international.",
+      "source": "Reuters",
+      "titre": "Moyen-Orient : escalade des tensions régionales et tractations intenses pour sécuriser les corridors maritimes de la mer Rouge"
+    },
+    {
+      "date": "1er octobre 2026",
+      "lien": "https://www.rfi.fr/fr/environnement/20261001-anomalies-thermiques-record-des-oceans-l-omm-tire-la-sonnette-d-alarme",
+      "resume": "Les relevés de l'OMM révèlent des températures de surface inédites dans l'Atlantique et le Pacifique, amplifiant la virulence des tempêtes tropicales et la dégradation de la biodiversité marine.",
+      "source": "RFI",
+      "titre": "Climat mondial : l'Organisation météorologique mondiale alerte sur des anomalies thermiques océaniques sans précédent"
+    },
+    {
+      "date": "4 octobre 2026",
+      "lien": "https://www.lemonde.fr/international/article/2026/10/04/presidentielle-americaine-les-candidats-au-coude-a-coude-dans-les-etats-clefs-a-un-mois-du-vote_6342115_3210.html",
+      "resume": "À l'approche du scrutin de mi-mandat/présidentiel américain, les états-majors concentrent leurs efforts sur les « swing states », confrontant leurs visions sur la politique tarifaire, l'inflation et la frontière sud.",
+      "source": "Le Monde",
+      "titre": "Élections présidentielles aux États-Unis : la campagne fédérale entre dans sa dernière ligne droite sous haute polarisation"
+    },
+    {
+      "date": "2 octobre 2026",
+      "lien": "https://www.courrierinternational.com/article/diplomatie-sommet-historique-entre-la-chine-le-japon-et-la-coree-du-sud-pour-apaiser-les-tensions-regionales-20261002",
+      "resume": "Tokyo, Séoul et Pékin rétablissent des canaux de communication militaires directs d'urgence et s'accordent sur la reprise de consultations tarifaires pour stabiliser l'Asie-Pacifique.",
+      "source": "Courrier International",
+      "titre": "Asie de l'Est : sommet tripartite Chine-Japon-Corée du Sud pour relancer la coopération économique et la sécurité régionale"
+    },
+    {
+      "date": "3 octobre 2026",
+      "lien": "https://www.bbc.com/afrique/articles/cw5849v94zro",
+      "resume": "Les agences spécialisées dénoncent les entraves militaires délibérées à l'acheminement des secours au Darfour et à Khartoum, mettant en péril direct la vie de plus de 25 millions de civils.",
+      "source": "BBC Afrique",
+      "titre": "Crise humanitaire au Soudan : l'OMS et le PAM tirent la sonnette d'alarme face au risque de famine généralisée"
+    },
+    {
+      "date": "30 septembre 2026",
+      "lien": "https://www.sciencesetavenir.fr/espace/exploration/artemis-succes-des-tests-propulsifs-pour-la-prochaine-mission-lunaire-internationale_181409",
+      "resume": "L'intégration structurelle du module européen de service et la réussite des tests propulsifs confirment le calendrier de la future mission orbitale habitée Artemis autour de la Lune.",
+      "source": "Sciences et Avenir",
+      "titre": "Coopération spatiale et exploration lunaire : la NASA et l'ESA franchissent une étape décisive pour la mission Artemis"
+    },
+    {
+      "date": "1er octobre 2026",
+      "lien": "https://information.tv5monde.com/international/protection-de-lamazonie-huit-pays-sud-americains-scellent-un-accord-de-surveillance-commune-2738914",
+      "resume": "Les huit pays du bassin amazonien scellent un protocole de renseignement satellitaire commun afin de traquer l'orpaillage clandestin et d'endiguer la déforestation illégale.",
+      "source": "TV5Monde",
+      "titre": "Amérique latine : signature d'un pacte transfrontalier historique pour renforcer la surveillance de la forêt amazonienne"
+    },
+    {
+      "date": "2 octobre 2026",
+      "lien": "https://www.zonebourse.com/actualite-bourse/metaux-critiques-l-aie-met-en-garde-contre-une-penurie-de-cuivre-et-de-lithium-ce786aae91bc341e",
+      "resume": "L'AIE alerte sur la distorsion entre les investissements miniers actuels et la cadence de fabrication mondiale requise pour les parcs de batteries et les réseaux électriques décarbonés.",
+      "source": "Zonebourse",
+      "titre": "Énergie et transition minérale : l'Agence internationale de l'énergie prévient d'un déficit d'approvisionnement en lithium et cuivre d'ici 2030"
+    },
+    {
+      "date": "4 octobre 2026",
+      "lien": "https://www.franceinfo.fr/sante/maladies/paludisme-lancement-d-une-campagne-historique-de-vaccination-de-masse-en-afrique_8222405.html",
+      "resume": "Lancement d'un protocole vaccinal pédiatrique ciblant plus de 6 millions d'enfants au moyen des nouveaux sérums antipaludiques, marquant un tournant épidémiologique décisif sur le continent africain.",
+      "source": "Franceinfo",
+      "titre": "Santé planétaire : l'Alliance Gavi et l'UNICEF annoncent une campagne d'immunisation massive contre le paludisme en Afrique centrale"
+    }
+  ]
+}
