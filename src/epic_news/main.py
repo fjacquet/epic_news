@@ -871,7 +871,6 @@ class ReceptionFlow(Flow[ContentState]):
         to `output/sales_prospecting/report.docx` and stores the report
         in `self.state.contact_info_report`.
         """
-        self.state.output_file = "output/sales_prospecting/report.json"
         inputs = self.state.to_crew_inputs()
         company = inputs.get("company")
         # The crew's YAML prompts use {company} and {our_product}; both must be present.
@@ -885,21 +884,7 @@ class ReceptionFlow(Flow[ContentState]):
             f"Generating sales prospecting report for: {company or 'N/A'} regarding {our_product}"
         )
 
-        # Kickoff-only orchestration with JSON-first parsing
-        self.state.output_file = "output/sales_prospecting/report.json"
-        inputs["output_file"] = self.state.output_file
-        output = kickoff_flow(SalesProspectingCrew(), inputs)
-        dump_crewai_state(output, "SALES_PROSPECTING")
-
-        report_model = load_or_parse_model(
-            self.state.output_file, SalesProspectingReport, output, inputs, "sales prospecting"
-        )
-        emit_report(
-            self.state,
-            lambda: assemble_sales_prospecting_docx(
-                report_model, self.state.to_crew_inputs(), "output/sales_prospecting/report.docx"
-            ),
-        )
+        self._run_standard(CREW_REGISTRY["SALES_PROSPECTING"], SalesProspectingCrew(), inputs)
         self.logger.info(f"✅ Sales prospecting report generated → {self.state.output_file}")
 
     @listen("go_generate_deep_research")
