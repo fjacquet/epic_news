@@ -898,34 +898,15 @@ class ReceptionFlow(Flow[ContentState]):
         Sets `output_file` to `output/deep_research/report.docx` and stores the report
         in `self.state.deep_research_report`.
         """
-        output_file = "output/deep_research/report.json"
-        self.state.output_file = output_file
         topic = self.state.to_crew_inputs().get("topic", "N/A")
         self.logger.info(f"🔍 Generating deep research report for: {topic}")
 
         # Prepare inputs for the crew
         inputs = self.state.to_crew_inputs()
         inputs["current_date"] = datetime.datetime.now().strftime("%Y-%m-%d")
-        inputs["output_file"] = output_file
 
-        # A report.json left by an earlier run must not be read as this run's output.
-        Path(output_file).unlink(missing_ok=True)
-
-        deep_research_crew = DeepResearchCrew()
-        try:
-            output = kickoff_flow(deep_research_crew, inputs)
-        finally:
-            # CrewBase stops the Wikipedia MCP server only after a successful kickoff.
-            close_mcp(deep_research_crew)
-        dump_crewai_state(output, "DEEP_RESEARCH")
-
-        model = load_or_parse_model(output_file, DeepResearchReport, output, inputs, "deep_research")
+        _, model = self._run_standard(CREW_REGISTRY["DEEPRESEARCH"], DeepResearchCrew(), inputs)
         self.state.deep_research_report = model
-
-        emit_report(
-            self.state,
-            lambda: assemble_deep_research_docx(model, inputs, "output/deep_research/report.docx"),
-        )
         self.logger.info(f"✅ Deep research report generated → {self.state.output_file}")
 
     @listen("go_generate_pestel")
