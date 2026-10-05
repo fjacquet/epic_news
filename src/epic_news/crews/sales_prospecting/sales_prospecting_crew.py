@@ -4,13 +4,10 @@ from crewai import Agent, Crew, Process, Task
 from crewai.agents.agent_builder.base_agent import BaseAgent
 from crewai.project import CrewBase, agent, crew, task
 from crewai_custom_tools import HybridSearchTool
-from dotenv import load_dotenv
 
 from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.sales_prospecting_report import SalesProspectingReport
 from epic_news.tools.capped_scrape_tool import CappedScrapeWebsiteTool
-
-load_dotenv()
 
 
 @CrewBase

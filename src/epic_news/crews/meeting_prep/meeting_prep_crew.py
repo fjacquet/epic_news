@@ -3,15 +3,12 @@ from typing import Any
 from crewai import Agent, Crew, Process, Task
 from crewai.agents.agent_builder.base_agent import BaseAgent
 from crewai.project import CrewBase, agent, crew, task
-from dotenv import load_dotenv
 from loguru import logger
 
 from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.meeting_prep_report import MeetingPrepReport
 from epic_news.tools.finance_tools import get_yahoo_finance_tools
 from epic_news.tools.web_tools import get_scrape_tools, get_search_tools
-
-load_dotenv()
 
 
 @CrewBase

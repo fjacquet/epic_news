@@ -1,6 +1,9 @@
 """Crew modules stay in CrewAI's documented form and are checked by the ADR-014 guard."""
 
 import ast
+import os
+import subprocess
+import sys
 from pathlib import Path
 
 CREWS = Path("src/epic_news/crews")
@@ -25,3 +28,25 @@ def test_every_crew_module_builds_agents_tasks_and_crews_literally():
     assert len(crew_files) == 24
     for path in crew_files:
         assert {"Agent", "Task", "Crew"} <= _literal_calls(path), path
+
+
+def test_no_crew_module_calls_load_dotenv():
+    offenders = [str(p) for p in CREW_MODULES if "load_dotenv" in p.read_text(encoding="utf-8")]
+    assert offenders == []
+
+
+def test_crew_imported_alone_still_sees_dotenv(tmp_path):
+    # Entry points load .env; a crew imported on its own gets it through LLMConfig's module.
+    (tmp_path / ".env").write_text("MODEL=gemini/probe-model\n", encoding="utf-8")
+    env = {k: v for k, v in os.environ.items() if k != "MODEL"}
+    code = "import os\nimport epic_news.crews.poem.poem_crew\nprint(os.environ.get('MODEL'))\n"
+    result = subprocess.run(
+        [sys.executable, "-c", code],
+        cwd=tmp_path,
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=120,
+        check=True,
+    )
+    assert result.stdout.strip().splitlines()[-1] == "gemini/probe-model"

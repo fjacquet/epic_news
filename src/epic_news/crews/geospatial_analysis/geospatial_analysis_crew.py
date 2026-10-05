@@ -4,7 +4,6 @@ from crewai import Agent, Crew, Process, Task
 from crewai.agents.agent_builder.base_agent import BaseAgent
 from crewai.project import CrewBase, agent, crew, task
 from crewai_custom_tools import HybridSearchTool
-from dotenv import load_dotenv
 
 from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.geospatial_analysis_report import GeospatialAnalysisReport
@@ -12,8 +11,6 @@ from epic_news.models.crews.geospatial_analysis_report import GeospatialAnalysis
 # Import tool factories
 from epic_news.tools.location_tools import get_location_tools
 from epic_news.tools.scraper_factory import get_scraper
-
-load_dotenv()
 
 
 @CrewBase

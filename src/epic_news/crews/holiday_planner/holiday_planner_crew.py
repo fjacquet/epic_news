@@ -4,12 +4,9 @@ from crewai import Agent, Crew, Process, Task
 from crewai.agents.agent_builder.base_agent import BaseAgent
 from crewai.project import CrewBase, agent, crew, task
 from crewai_custom_tools import ExchangeRateTool
-from dotenv import load_dotenv
 
 from epic_news.config.llm_config import LLMConfig
 from epic_news.tools.web_tools import get_scrape_tools, get_search_tools, get_youtube_tools
-
-load_dotenv()
 
 
 @CrewBase

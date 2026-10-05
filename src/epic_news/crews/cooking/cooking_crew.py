@@ -3,7 +3,6 @@ from typing import Any
 from crewai import Agent, Crew, Process, Task
 from crewai.agents.agent_builder.base_agent import BaseAgent
 from crewai.project import CrewBase, agent, crew, task
-from dotenv import load_dotenv
 from loguru import logger
 
 from epic_news.config.llm_config import LLMConfig
@@ -14,7 +13,6 @@ from epic_news.utils.tool_logging import configure_tool_logging
 configure_tool_logging(mute_tools=True, log_level="ERROR")
 
 # Load environment variables
-load_dotenv()
 
 
 @CrewBase
