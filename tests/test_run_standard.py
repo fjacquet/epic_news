@@ -79,3 +79,11 @@ def test_mcp_is_closed_when_the_kickoff_fails(flow, monkeypatch):
     with pytest.raises(RuntimeError, match="provider down"):
         flow._run_standard(CREW_REGISTRY["POEM"], crew, flow.state.to_crew_inputs())
     assert closed == [crew]
+
+
+def test_a_crew_without_fixed_paths_is_refused(flow, monkeypatch):
+    called: list = []
+    monkeypatch.setattr(main_module, "kickoff_flow", lambda *a: called.append(a))
+    with pytest.raises(ValueError, match="COOKING is not a standard crew"):
+        flow._run_standard(CREW_REGISTRY["COOKING"], object(), flow.state.to_crew_inputs())
+    assert called == []
