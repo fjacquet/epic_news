@@ -1,9 +1,7 @@
 """DEEPRESEARCH → DOCX: narrated prose + deterministic findings/sources.
 
-Consumes the flow's ``DeepResearchReport`` (``models/crews/deep_research.py``) — the
-model ``ReceptionFlow.generate_deep_research`` and ``DeepResearchExtractor`` actually
-produce. (An earlier draft targeted the parallel ``deep_research_report.py`` model,
-which the flow never emits; see the Task 5/7 integration fix.)
+Consumes ``DeepResearchReport`` (``models/crews/deep_research.py``), the crew's own
+output schema. Sources are the unique sources cited across the research sections.
 """
 
 from typing import Any
@@ -30,7 +28,7 @@ def _sources_block(sources: list[ResearchSource]) -> str:
     if not sources:
         return "_Aucune source._"
     lines = [f"{len(sources)} sources consultées.", ""]
-    lines += [f"- {s.title} — {s.url}" for s in sources]
+    lines += [f"- {s.title} — {s.url}" if s.url else f"- {s.title}" for s in sources]
     return "\n".join(lines)
 
 
@@ -58,21 +56,15 @@ def assemble_deep_research_docx(
     for rs in research_sections[:_MAX_SECTIONS]:
         sections.append(
             Section(
-                rs.title,
+                rs.section_title,
                 instruction="Développe cette section en prose détaillée.",
                 context=rs.content or "",
             )
         )
-    if model.conclusions:
-        sections.append(Section("Conclusions", body=model.conclusions))
-    if model.recommendations:
-        sections.append(Section("Recommandations", body=_bullets(model.recommendations)))
-    if model.limitations:
-        sections.append(Section("Limitations", body=_bullets(model.limitations)))
     sections.append(
         Section("Méthodologie", instruction="Décris la méthodologie.", context=model.methodology or "")
     )
-    sections.append(Section("Sources", body=_sources_block(model.sources)))
+    sections.append(Section("Sources", body=_sources_block(model.unique_sources)))
     meta = {
         "title": model.title or "Recherche",
         "date": inputs.get("current_date", ""),

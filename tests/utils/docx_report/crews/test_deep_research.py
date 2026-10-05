@@ -18,58 +18,47 @@ def _text(p):
         return z.read("word/document.xml").decode()
 
 
+def _source(title, url):
+    return ResearchSource(title=title, url=url, source_type="web", summary="s", relevance_score=8)
+
+
 def test_deep_research_docx(tmp_path):
-    # Build the flow's actual model (models/crews/deep_research.py), not the
-    # parallel deep_research_report.py model. This is what the ReceptionFlow emits.
     model = DeepResearchReport(
         title="T",
+        topic="Topic",
         executive_summary="ES",
         methodology="method",
-        conclusions="Conclusion-Gamma",
-        recommendations=["Reco-Delta"],
-        limitations=["Limite-Epsilon"],
         key_findings=["Finding-Alpha", "Finding-Beta"],
-        research_sections=[ResearchSection(title="Sec1", content="c1")],
-        sources=[
-            ResearchSource(
-                url="https://a.example",
-                title="Source-Alpha",
-                credibility_score=0.9,
-                extraction_date="2026-07-13",
+        research_sections=[
+            ResearchSection(
+                section_title="Sec1",
+                content="c1",
+                sources=[_source("Source-Alpha", "https://a.example"), _source("Source-Offline", None)],
             ),
-            ResearchSource(
-                url="https://b.example",
-                title="Source-Beta",
-                credibility_score=0.8,
-                extraction_date="2026-07-13",
+            ResearchSection(
+                section_title="Sec2",
+                content="c2",
+                sources=[
+                    _source("Source-Alpha again", "https://a.example"),
+                    _source("Source-Beta", "https://b.example"),
+                ],
             ),
         ],
     )
     llm = _StubLLM()
     out = assemble_deep_research_docx(
-        model, {"current_date": "2026-07-13"}, str(tmp_path / "output" / "r.docx"), llm
+        model, {"current_date": "2026-10-05"}, str(tmp_path / "output" / "r.docx"), llm
     )
     txt = _text(out)
-    assert "Finding-Alpha" in txt and "Finding-Beta" in txt  # deterministic findings verbatim
-    assert "2 sources consultées" in txt  # deterministic sources count line
-    assert "Source-Alpha" in txt and "Source-Beta" in txt  # deterministic source titles verbatim
-    assert "Conclusion-Gamma" in txt  # deterministic conclusions verbatim
-    assert "Reco-Delta" in txt  # deterministic recommendations verbatim
-    assert "Limite-Epsilon" in txt  # deterministic limitations verbatim
-    # narrated: exec summary + 1 research section + methodology = 3 llm calls
-    # (Principales découvertes + Conclusions/Recommandations/Limitations/Sources are
-    # deterministic bodies → no LLM)
-    assert llm.calls == 3
-    # section headings appear in the expected order
-    headings = [
-        "Résumé exécutif",
-        "Principales découvertes",
-        "Sec1",
-        "Conclusions",
-        "Recommandations",
-        "Limitations",
-        "Méthodologie",
-        "Sources",
-    ]
+    assert "Finding-Alpha" in txt and "Finding-Beta" in txt
+    assert "3 sources consultées" in txt  # https://a.example listed once
+    assert "Source-Alpha" in txt and "Source-Beta" in txt and "Source-Offline" in txt
+    assert "Source-Alpha again" not in txt
+    assert "None" not in txt  # a source without URL prints its title alone
+    # narrated: executive summary + 2 research sections + methodology
+    assert llm.calls == 4
+    headings = ["Résumé exécutif", "Principales découvertes", "Sec1", "Sec2", "Méthodologie", "Sources"]
     indices = [txt.index(h) for h in headings]
     assert indices == sorted(indices)
+    for gone in ("Conclusions", "Recommandations", "Limitations"):
+        assert gone not in txt

@@ -13,6 +13,7 @@ import pytest
 
 from epic_news.models.crews.company_profiler_report import CompanyProfileReport
 from epic_news.models.crews.cross_reference_report import CrossReferenceReport
+from epic_news.models.crews.deep_research import DeepResearchReport
 from epic_news.models.crews.hr_intelligence_report import HRIntelligenceReport
 from epic_news.models.crews.news_daily_report import NewsDailyReport
 from epic_news.models.crews.pestel_report import PestelReport
@@ -29,6 +30,7 @@ CASES = {
     "web_presence": WebPresenceReport,
     "hr_intelligence": HRIntelligenceReport,
     "cross_reference_report": CrossReferenceReport,
+    "deep_research": DeepResearchReport,
     "newsdaily": NewsDailyReport,
     "pestel": PestelReport,
     "sales_prospecting": SalesProspectingReport,

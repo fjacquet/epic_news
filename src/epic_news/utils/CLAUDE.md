@@ -14,7 +14,6 @@ utils/
 ├── flow_helpers.py           # load_or_parse_model
 ├── directory_utils.py        # ensure_output_directories (startup), ensure_output_directory
 ├── diagnostics/              # parse_crewai_output, dump_crewai_state, analyze_crewai_output
-├── extractors/               # ContentExtractorFactory + DeepResearchExtractor, GenericExtractor (still used by deep research)
 ├── docx_report/              # DOCX pipeline: Section → fragments → Pandoc (build_docx)
 │   └── crews/                # assemble_<crew>_docx(model, inputs, output_path, llm=None)
 ├── holiday_report/           # assemble_holiday_docx (holiday planner is DOCX-only)
@@ -92,10 +91,6 @@ repairs it with `json_repair` only when it is not valid JSON, and validates. Mod
 fixes belong on the model as `mode="before"` validators. It raises `ValueError` on
 empty/invalid output. Also exported:
 `make_serializable`, `analyze_crewai_output`, `log_state_keys`.
-
-`ContentExtractorFactory.extract_content(state_data, crew_type)` /
-`get_extractor(crew_type)`: only `DEEPRESEARCH` has a dedicated extractor; everything else
-gets `GenericExtractor`.
 
 ## Other helpers
 

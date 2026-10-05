@@ -85,3 +85,11 @@ Decision (2026-10-04): the user kept the research mode; the synthesis mode was r
 | 2026-10-05 | S5 DOCX only | saint | 276.3 | SaintDailyCrew | 246.88 | 19800 (3 requests) | 11 | 46408 |
 
 Both runs used `EPIC_ENABLE_EMAIL=false`. The report step adds little time: wall clock minus the crew and extraction seconds is about 8 s for news_daily and 22 s for saint. LiteLLM calls not made by the crews or the extraction (3 for news_daily, 7 for saint) are the narrated DOCX sections. The news_daily wall clock (310.6 s, against 252.3 s for E2 with HTML) moves with NewsDailyCrew itself (295.7 s against 241.4 s; 19 against 16 requests); the report step is not the cause. No HTML baseline exists for saint. Both DOCX files hold real content: news_daily has 9 sections and 70 source links, and saint gives the biography, meaning and miracles of the day's saint (Faustina Kowalska, 5 October). Neither contains placeholder text. Narrated sections repeat their section title as a sub-heading (`# Biographie` followed by `## Biographie`); this is a fragment-prompt issue and predates S5.
+
+### Deep research on the standard path (S3)
+
+| Date | Change | Request | Wall (s) | Crew | Crew seconds | Crew tokens (CrewAI) | LiteLLM calls | LiteLLM total tokens |
+|---|---|---|---|---|---|---|---|---|
+| 2026-10-05 | S3 single schema, no extractor | deep_research | 431.7 | DeepResearchCrew | 371.82 | 143188 (5 requests) | 15 | 228618 |
+
+Run with `EPIC_ENABLE_EMAIL=false`; request: "Fais une recherche approfondie sur l'état de l'art des systèmes de fichiers parallèles en 2026". `report.json` validated against the single `DeepResearchReport` on the first load (no raw-output fallback). The DOCX holds every section title (5), key finding (5) and unique source URL (12 unique of 16 citations) from `report.json`, about 10,200 words, and no placeholder text. LiteLLM calls not made by the crew requests or the extraction: 9, of which 7 are the narrated DOCX sections (executive summary, 5 research sections, methodology); the other 2 were not attributed. Narrated sections still repeat their title as a sub-heading (known, predates S3).
