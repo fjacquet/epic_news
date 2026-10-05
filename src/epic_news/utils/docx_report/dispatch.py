@@ -1,30 +1,14 @@
-"""Select and run the report renderer for a crew based on the resolved output format."""
+"""Write a crew's report: the DOCX assembler is the only output format (spec S5, decision 6)."""
 
 from collections.abc import Callable
-from typing import Any, cast
-
-from loguru import logger
-
-from epic_news.utils.docx_report.format_selection import resolve_output_format
+from typing import Any
 
 
-def emit_report(
-    state: Any,
-    selected_crew: str,
-    render_html: Callable[[], str],
-    assemble_docx: Callable[[], str] | None = None,
-) -> str:
-    """Run the DOCX assembler when DOCX is requested and provided; else render HTML.
+def emit_report(state: Any, assemble_docx: Callable[[], str]) -> str:
+    """Run the DOCX assembler and record its path in `state.output_file`.
 
-    `render_html` runs the crew's existing HTML render and returns its path.
-    `assemble_docx` builds the DOCX and returns its path. Both are zero-arg closures
-    built at the call site. Sets and returns `state.output_file`.
+    Errors propagate: a report that cannot be built stops the run (nothing is emailed).
     """
-    fmt = resolve_output_format(state)
-    if fmt == "docx" and assemble_docx is not None:
-        state.output_file = assemble_docx()
-    else:
-        if fmt == "docx":
-            logger.warning("⚠️ DOCX requested but no assembler for {}; rendering HTML", selected_crew)
-        state.output_file = render_html()
-    return cast(str, state.output_file)
+    path = assemble_docx()
+    state.output_file = path
+    return path

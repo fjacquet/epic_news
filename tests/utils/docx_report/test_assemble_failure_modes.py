@@ -48,7 +48,7 @@ def test_executor_shutdown_aborts_immediately(tmp_path, monkeypatch):
     """Shutdown is unrecoverable: abort, stop unstarted sections, write nothing."""
     monkeypatch.setenv("DOCX_FRAGMENT_CONCURRENCY", "2")
     llm = _RaisingLLM(RuntimeError("cannot schedule new futures after shutdown"), delay=0.05)
-    out = tmp_path / "r.docx"
+    out = tmp_path / "output" / "r.docx"
 
     with pytest.raises(RuntimeError, match="cannot schedule new futures"):
         assemble_fragments(
@@ -68,7 +68,7 @@ def test_executor_shutdown_aborts_immediately(tmp_path, monkeypatch):
 def test_all_narrated_sections_failing_aborts(tmp_path):
     """A report made entirely of placeholders is not a report."""
     llm = _RaisingLLM(ValueError("provider down"))
-    out = tmp_path / "r.docx"
+    out = tmp_path / "output" / "r.docx"
 
     with pytest.raises(RuntimeError, match="placeholder"):
         assemble_fragments(
@@ -88,7 +88,7 @@ def test_all_narrated_sections_failing_aborts(tmp_path):
 def test_partial_failure_still_degrades_gracefully(tmp_path):
     """One bad section must not discard the whole run."""
     llm = _FlakyLLM({"Budget"})
-    out = tmp_path / "r.docx"
+    out = tmp_path / "output" / "r.docx"
 
     assemble_fragments(
         [
@@ -107,7 +107,7 @@ def test_partial_failure_still_degrades_gracefully(tmp_path):
 def test_deterministic_sections_are_not_counted_as_narration(tmp_path):
     """A deck of verbatim bodies plus one failed narration is still publishable."""
     llm = _RaisingLLM(ValueError("provider down"))
-    out = tmp_path / "r.docx"
+    out = tmp_path / "output" / "r.docx"
 
     assemble_fragments(
         [

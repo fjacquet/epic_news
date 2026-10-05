@@ -80,7 +80,9 @@ def _build_model(**overrides) -> WeeklyMenuPlan:
 def test_menu_docx_structure_and_fidelity(tmp_path):
     model = _build_model()
     llm = _StubLLM()
-    out = assemble_menu_docx(model, {"current_date": "2026-07-13"}, str(tmp_path / "menu.docx"), llm)
+    out = assemble_menu_docx(
+        model, {"current_date": "2026-07-13"}, str(tmp_path / "output" / "menu.docx"), llm
+    )
     txt = _text(out)
 
     # Dish names survive verbatim (never rewritten by the LLM)

@@ -52,7 +52,9 @@ def _build_model(**overrides) -> PaprikaRecipe:
 def test_cooking_docx_with_notes(tmp_path):
     model = _build_model()
     llm = _StubLLM()
-    out = assemble_cooking_docx(model, {"current_date": "2026-07-13"}, str(tmp_path / "cooking.docx"), llm)
+    out = assemble_cooking_docx(
+        model, {"current_date": "2026-07-13"}, str(tmp_path / "output" / "cooking.docx"), llm
+    )
     txt = _text(out)
 
     # Ingredients survive verbatim, line-per-item (not char-per-line)
@@ -80,7 +82,9 @@ def test_cooking_docx_with_notes(tmp_path):
 def test_cooking_docx_without_notes(tmp_path):
     model = _build_model(notes=None)
     llm = _StubLLM()
-    out = assemble_cooking_docx(model, {"current_date": "2026-07-13"}, str(tmp_path / "cooking.docx"), llm)
+    out = assemble_cooking_docx(
+        model, {"current_date": "2026-07-13"}, str(tmp_path / "output" / "cooking.docx"), llm
+    )
     txt = _text(out)
 
     # No notes -> no LLM call at all, all sections deterministic

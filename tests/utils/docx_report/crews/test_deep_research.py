@@ -46,7 +46,9 @@ def test_deep_research_docx(tmp_path):
         ],
     )
     llm = _StubLLM()
-    out = assemble_deep_research_docx(model, {"current_date": "2026-07-13"}, str(tmp_path / "r.docx"), llm)
+    out = assemble_deep_research_docx(
+        model, {"current_date": "2026-07-13"}, str(tmp_path / "output" / "r.docx"), llm
+    )
     txt = _text(out)
     assert "Finding-Alpha" in txt and "Finding-Beta" in txt  # deterministic findings verbatim
     assert "2 sources consultées" in txt  # deterministic sources count line

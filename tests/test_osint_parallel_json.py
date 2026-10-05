@@ -1,4 +1,4 @@
-"""The OSINT parallel run saves each report as JSON and clears stale ones first."""
+"""The OSINT parallel run saves each report as JSON (no HTML) and clears stale ones first."""
 
 import asyncio
 from pathlib import Path
@@ -17,15 +17,10 @@ def osint_run(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
 
     model = MagicMock()
     model.model_dump_json.return_value = '{"ok": true}'
-    model.model_dump.return_value = {}
-    renderer = MagicMock()
-    renderer.render_report.return_value = "<html></html>"
-
-    monkeypatch.setattr(main_mod, "TemplateManager", lambda: renderer)
     monkeypatch.setattr(main_mod, "dump_crewai_state", lambda *a, **k: None)
     monkeypatch.setattr(main_mod, "parse_crewai_output", lambda *a, **k: model)
 
-    async def no_cross_reference(self, inputs, template_manager):
+    async def no_cross_reference(self, inputs):
         return None
 
     monkeypatch.setattr(ReceptionFlow, "_run_cross_reference_report", no_cross_reference)
@@ -62,6 +57,7 @@ def test_successful_crew_model_is_written_as_json(osint_run):
     run()
     assert (osint_dir / "company_profile.json").read_text(encoding="utf-8") == '{"ok": true}'
     assert (osint_dir / "geospatial_analysis.json").exists()
+    assert not list(osint_dir.glob("*.html"))
 
 
 def test_stale_json_is_removed_when_its_crew_fails(osint_run):

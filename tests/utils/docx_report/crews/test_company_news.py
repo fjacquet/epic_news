@@ -51,7 +51,7 @@ def test_company_news_docx(tmp_path):
     out = assemble_company_news_docx(
         model,
         {"company": "ACME-Corp", "current_date": "2026-07-13"},
-        str(tmp_path / "r.docx"),
+        str(tmp_path / "output" / "r.docx"),
         llm,
     )
     txt = _text(out)
@@ -76,7 +76,7 @@ def test_company_news_docx_no_notes(tmp_path):
     out = assemble_company_news_docx(
         model,
         {"company": "ACME-Corp", "current_date": "2026-07-13"},
-        str(tmp_path / "r.docx"),
+        str(tmp_path / "output" / "r.docx"),
         llm,
     )
     txt = _text(out)

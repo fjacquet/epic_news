@@ -39,7 +39,9 @@ def test_book_summary_docx(tmp_path):
         references=["Ref-Un", "Ref-Deux"],
     )
     llm = _StubLLM()
-    out = assemble_book_summary_docx(model, {"current_date": "2026-07-13"}, str(tmp_path / "r.docx"), llm)
+    out = assemble_book_summary_docx(
+        model, {"current_date": "2026-07-13"}, str(tmp_path / "output" / "r.docx"), llm
+    )
     txt = _text(out)
     # deterministic TOC verbatim
     assert "TOC-Chapitre-Un" in txt and "TOC-Chapitre-Deux" in txt
@@ -73,7 +75,9 @@ def test_book_summary_docx_guards_none_summary_and_chapters(tmp_path):
         references=["Ref-Un"],
     )
     llm = _StubLLM()
-    out = assemble_book_summary_docx(model, {"current_date": "2026-07-13"}, str(tmp_path / "r2.docx"), llm)
+    out = assemble_book_summary_docx(
+        model, {"current_date": "2026-07-13"}, str(tmp_path / "output" / "r2.docx"), llm
+    )
     txt = _text(out)
     assert "Résumé" not in txt
     assert "Résumés de chapitres" not in txt

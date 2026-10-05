@@ -13,7 +13,6 @@ Two guarantees are locked in here:
 """
 
 from collections import defaultdict
-from pathlib import Path
 
 import epic_news.main as main_mod
 from epic_news.main import CLASSIFY_DECISION_FILE, ReceptionFlow
@@ -25,7 +24,6 @@ def _stub_crew_internals(monkeypatch):
     )
     monkeypatch.setattr(main_mod, "dump_crewai_state", lambda *a, **k: None)
     monkeypatch.setattr(main_mod, "load_or_parse_model", lambda *a, **k: object())
-    monkeypatch.setattr(main_mod, "render_and_write_html", lambda crew, model, path: Path(path))
     monkeypatch.setattr(main_mod, "assemble_holiday_docx", lambda *a, **k: None)
 
 

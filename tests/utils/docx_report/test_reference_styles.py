@@ -15,8 +15,11 @@ _MARKDOWN = (
 
 @pytest.fixture(scope="module")
 def docx_parts(tmp_path_factory) -> dict[str, str]:
-    out = Path(tmp_path_factory.mktemp("docx")) / "report.docx"
-    build_docx([("Section", _MARKDOWN)], {"title": "Titre", "date": "2026-10-04"}, str(out))
+    base = Path(tmp_path_factory.mktemp("docx"))
+    out = base / "output" / "report.docx"
+    with pytest.MonkeyPatch.context() as mp:
+        mp.chdir(base)  # build_docx only writes under ./output/
+        build_docx([("Section", _MARKDOWN)], {"title": "Titre", "date": "2026-10-04"}, str(out))
     with zipfile.ZipFile(out) as zf:
         return {name: zf.read(name).decode("utf-8") for name in zf.namelist() if name.endswith(".xml")}
 

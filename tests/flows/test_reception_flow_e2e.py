@@ -8,6 +8,8 @@ paths are cwd-relative).
 import json
 from types import SimpleNamespace
 
+from docx import Document
+
 from epic_news.main import ReceptionFlow
 from epic_news.models.extracted_info import ExtractedInfo
 
@@ -58,10 +60,13 @@ def test_poem_route_end_to_end(tmp_path, monkeypatch):
     flow.kickoff()
 
     assert flow.state.selected_crew == "POEM"
-    html = tmp_path / "output" / "poem" / "poem.html"
-    assert html.exists(), "poem HTML was not written"
-    content = html.read_text(encoding="utf-8")
+    assert flow.state.output_file == "output/poem/poem.docx"
+    docx_path = tmp_path / "output" / "poem" / "poem.docx"
+    assert docx_path.exists(), "poem DOCX was not written"
+    content = "\n".join(p.text for p in Document(str(docx_path)).paragraphs)
     assert "Ode to Tests" in content
+    assert "No flakes seen." in content
+    assert not (tmp_path / "output" / "poem" / "poem.html").exists()
     assert flow.state.email_sent is True  # email step ran and was gated off
 
 

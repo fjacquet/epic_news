@@ -41,7 +41,7 @@ def test_osint_docx(tmp_path):
     llm = _StubLLM()
     out = assemble_osint_docx(
         {"company": "ACME", "current_date": "2026-07-13"},
-        str(tmp_path / "report.docx"),
+        str(tmp_path / "output" / "report.docx"),
         llm,
         osint_dir=str(tmp_path),
     )

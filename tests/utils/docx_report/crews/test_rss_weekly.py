@@ -56,7 +56,7 @@ def test_assemble_rss_docx(tmp_path):
         ],
     )
     llm = _StubLLM()
-    out = assemble_rss_docx(model, {"current_date": "2026-07-13"}, str(tmp_path / "r.docx"), llm)
+    out = assemble_rss_docx(model, {"current_date": "2026-07-13"}, str(tmp_path / "output" / "r.docx"), llm)
     txt = _text(out)
     assert "Article-Titre" in txt  # deterministic article title verbatim
     assert "Résumé-Article" in txt  # deterministic article summary verbatim
@@ -137,6 +137,6 @@ def test_assemble_rss_docx_feed_name_none_uses_feed_url(tmp_path):
         ],
     )
     llm = _StubLLM()
-    out = assemble_rss_docx(model, {"current_date": "2026-07-13"}, str(tmp_path / "r2.docx"), llm)
+    out = assemble_rss_docx(model, {"current_date": "2026-07-13"}, str(tmp_path / "output" / "r2.docx"), llm)
     txt = _text(out)
     assert "https://only-url.example/rss" in txt  # heading falls back to feed_url

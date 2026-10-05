@@ -49,7 +49,8 @@ def test_docx_report_uses_summary_body_and_attaches_the_docx(tmp_path, monkeypat
     prepare_email_params nulls the body source for any ``.docx`` output_file, so
     this exercises the ``body_file is None`` else branch in send_email.
     """
-    docx_path = tmp_path / "itinerary.docx"
+    monkeypatch.chdir(tmp_path)  # build_docx only writes under ./output/
+    docx_path = tmp_path / "output" / "itinerary.docx"
     build_docx(
         fragments=[("Jour 1", "Arrivée à **Montreux**.")],
         meta={"title": "Carnet de voyage", "date": "2026-07-16"},
@@ -104,7 +105,9 @@ def test_non_docx_binary_report_triggers_unicode_decode_fallback(tmp_path, monke
 @pytest.mark.parametrize("output_file_suffix", ["itinerary.docx", "report.bin"])
 def test_binary_report_email_body_is_never_binary_bytes(tmp_path, monkeypatch, output_file_suffix):
     """Neither binary fallback path should ever leak raw bytes into the email body."""
-    path = tmp_path / output_file_suffix
+    monkeypatch.chdir(tmp_path)  # build_docx only writes under ./output/
+    path = tmp_path / "output" / output_file_suffix
+    path.parent.mkdir()
     if output_file_suffix.endswith(".docx"):
         build_docx(
             fragments=[("Intro", "Bienvenue.")],

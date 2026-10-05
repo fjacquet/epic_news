@@ -16,7 +16,7 @@ def test_generate_menu_designer_raises_and_produces_nothing(monkeypatch):
 
     monkeypatch.setattr(main_module, "MenuDesignerService", _FailingService)
     monkeypatch.setattr(main_module, "emit_report", lambda *a, **k: calls.append("emit_report"))
-    monkeypatch.setattr(main_module, "render_and_write_html", lambda *a, **k: calls.append("render"))
+    monkeypatch.setattr(main_module, "assemble_menu_docx", lambda *a, **k: calls.append("docx"))
     monkeypatch.setattr(
         ReceptionFlow, "_generate_menu_recipes", lambda self, specs: calls.append("recipes") or []
     )
