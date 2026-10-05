@@ -845,8 +845,6 @@ class ReceptionFlow(Flow[ContentState]):
         It expects a 'company' name in the inputs, falling back to 'topic' if
         'company' is not available.
         """
-        # No need to create directories as ensure_output_directories() is called at init
-
         # Prepare inputs and handle company fallback
         current_inputs = self.state.to_crew_inputs()
         company = current_inputs.get("company")
@@ -857,20 +855,10 @@ class ReceptionFlow(Flow[ContentState]):
 
         self.logger.info(f"Generating meeting prep for company: {company or 'N/A'}")
 
-        current_inputs["output_file"] = "output/meeting/meeting_preparation.json"
-        output = kickoff_flow(MeetingPrepCrew(), current_inputs)
-        dump_crewai_state(output, "MEETING_PREP")
-
-        meeting_model = load_or_parse_model(
-            current_inputs["output_file"], MeetingPrepReport, output, current_inputs, "meeting prep"
+        _, meeting_model = self._run_standard(
+            CREW_REGISTRY["MEETING_PREP"], MeetingPrepCrew(), current_inputs
         )
         self.state.meeting_prep_report = meeting_model
-        emit_report(
-            self.state,
-            lambda: assemble_meeting_prep_docx(
-                meeting_model, self.state.to_crew_inputs(), "output/meeting/meeting_preparation.docx"
-            ),
-        )
 
     @listen("go_generate_sales_prospecting_report")
     @trace_task(tracer)
