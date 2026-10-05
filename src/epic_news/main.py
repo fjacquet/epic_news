@@ -919,7 +919,6 @@ class ReceptionFlow(Flow[ContentState]):
         the consolidated report as a DOCX, the attachment-of-record for the
         email step.
         """
-        self.state.output_file = "output/pestel/report.json"
         inputs = self.state.to_crew_inputs()
         info = self.state.extracted_info
         if info is not None:
@@ -947,25 +946,9 @@ class ReceptionFlow(Flow[ContentState]):
             f"(geo={inputs['geography']}, lang={inputs['language']})"
         )
 
-        pestel_crew = PestelCrew()
-        try:
-            output = kickoff_flow(pestel_crew, inputs)
-        finally:
-            # CrewBase stops the Wikipedia MCP server only after a successful kickoff.
-            close_mcp(pestel_crew)
-        dump_crewai_state(output, "PESTEL")
-
         # No placeholder report: a parsing failure stops the run (nothing is emailed).
-        pestel_model = load_or_parse_model(self.state.output_file, PestelReport, output, inputs, "PESTEL")
-
+        _, pestel_model = self._run_standard(CREW_REGISTRY["PESTEL"], PestelCrew(), inputs)
         self.state.pestel_report = pestel_model
-
-        emit_report(
-            self.state,
-            lambda: assemble_pestel_docx(
-                pestel_model, self.state.to_crew_inputs(), "output/pestel/report.docx"
-            ),
-        )
         self.logger.info(f"✅ PESTEL report written to {self.state.output_file}")
 
     @listen("go_generate_osint")

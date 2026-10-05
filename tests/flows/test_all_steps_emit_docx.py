@@ -127,7 +127,7 @@ ERROR_CASES = [
 ]
 
 
-_STANDARD_ASSEMBLER_KEYS = {"assemble_saint_docx": "SAINT"}
+_STANDARD_ASSEMBLER_KEYS = {"assemble_saint_docx": "SAINT", "assemble_pestel_docx": "PESTEL"}
 
 
 @pytest.mark.parametrize("method,assembler,before", ERROR_CASES, ids=[c[0] for c in ERROR_CASES])
