@@ -3,6 +3,7 @@
 import pytest
 from faker import Faker
 
+from epic_news.crew_registry import CREW_REGISTRY
 from epic_news.utils.report_utils import (
     _FALLBACK_RECIPIENT,
     prepare_email_params,
@@ -27,10 +28,14 @@ def mock_state():
 def test_prepare_email_params_defaults(mocker, mock_state):
     """Test prepare_email_params with minimal state."""
     # When sendto is absent, fall back to the known-good recipient (not a crash).
+    mock_state.selected_crew = "POEM"
     params = prepare_email_params(mock_state)
 
     assert params["recipient_email"] == _FALLBACK_RECIPIENT
-    assert params["subject"] == f"Epic News Report: {mock_state.selected_crew} - {mock_state.user_request}"
+    assert (
+        params["subject"]
+        == f"Epic News — {CREW_REGISTRY[mock_state.selected_crew].title} : {mock_state.user_request}"
+    )
     assert params["body"] == f"Please find the report for '{mock_state.user_request}' attached."
     assert params["attachment_path"] == mock_state.output_file
     assert "output_file" not in params
@@ -79,3 +84,15 @@ def test_prepare_email_params_escapes_html_in_the_body(mock_state):
 
     assert "<script>" not in params["body"]
     assert "&lt;script&gt;alert(1)&lt;/script&gt; &amp; co" in params["body"]
+
+
+def test_subject_falls_back_to_the_key_for_unknown_crews(mock_state):
+    mock_state.selected_crew = "UNKNOWN"
+    params = prepare_email_params(mock_state)
+    assert params["subject"] == f"Epic News — UNKNOWN : {mock_state.user_request}"
+
+
+def test_subject_handles_a_missing_crew(mock_state):
+    mock_state.selected_crew = None
+    params = prepare_email_params(mock_state)
+    assert params["subject"] == f"Epic News — Rapport : {mock_state.user_request}"
