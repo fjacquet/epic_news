@@ -1043,13 +1043,17 @@ class ReceptionFlow(Flow[ContentState]):
         ]
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
-        # Process results and update state
-        for result in results:
+        # Every crew runs to the end; one failure then stops the run (no partial report).
+        failures: list[tuple[str, BaseException]] = []
+        for (name, *_rest), result in zip(parallel_crews, results, strict=True):
             if isinstance(result, BaseException):
-                self.logger.error(f"❌ Crew failed with error: {result}")
-            elif isinstance(result, tuple):
-                crew_name, model = result
-                self.state.osint[crew_name] = model
+                self.logger.error(f"❌ OSINT crew {name} failed: {result}")
+                failures.append((name, result))
+            else:
+                self.state.osint[name] = result[1]
+        if failures:
+            names = ", ".join(name for name, _ in failures)
+            raise RuntimeError(f"OSINT crews failed: {names}") from failures[0][1]
 
         parallel_elapsed = time.perf_counter() - start_time
         self.logger.info(f"⚡ 6 parallel crews completed in {parallel_elapsed:.2f}s")
