@@ -24,6 +24,7 @@ import datetime
 import json
 import os
 import re
+import time
 import warnings
 from pathlib import Path
 from typing import Any
@@ -33,6 +34,7 @@ from dotenv import load_dotenv
 from loguru import logger
 from pydantic import BaseModel, PydanticDeprecatedSince20, PydanticDeprecatedSince211
 
+from epic_news.config.crewai_patches import apply_crewai_patches
 from epic_news.config.mcp_config import close_mcp
 from epic_news.config.routing_guide import ROUTING_GUIDE, routing_categories
 from epic_news.crew_registry import CREW_REGISTRY, CrewKey, CrewSpec
@@ -92,7 +94,7 @@ from epic_news.utils.logger import setup_logging
 from epic_news.utils.menu_days import DEFAULT_MENU_DAYS
 from epic_news.utils.menu_generator import MenuGenerator
 from epic_news.utils.menu_plan_validator import MenuPlanError, menu_plan_from_output
-from epic_news.utils.observability import get_observability_tools, trace_task
+from epic_news.utils.observability import Tracer, trace_task
 from epic_news.utils.recipe_export import export_recipe, recipe_from_result
 from epic_news.utils.report_utils import load_rss_weekly_report, prepare_email_params
 from epic_news.utils.rss_utils import fetch_articles_from_opml
@@ -110,12 +112,10 @@ warnings.filterwarnings("ignore", message=".*`min_items` is deprecated.*", categ
 warnings.filterwarnings("ignore", category=DeprecationWarning, module="pydantic")
 
 load_dotenv()
+apply_crewai_patches()  # CrewAI LLM patches (see config/crewai_patches.py); every runtime path imports this module
 
-# Initialize observability tools at the module level
-observability_tools = get_observability_tools(crew_name="reception_flow")
-tracer = observability_tools["tracer"]
-dashboard = observability_tools["dashboard"]
-hallucination_guard = observability_tools["hallucination_guard"]
+# Trace events (task_start / task_error / task_end) for every flow step, written under traces/.
+tracer = Tracer(f"reception_flow_{int(time.time())}")
 
 # Where the classifier writes its routing decision. It is NOT a rendered report: if
 # state.output_file still points here at email time, no crew produced a report and the
@@ -223,9 +223,6 @@ class ReceptionFlow(Flow[ContentState]):
         super().__init__()
         self._user_request = user_request
         self.logger = logger
-        self.tracer = tracer
-        self.dashboard = dashboard
-        self.hallucination_guard = hallucination_guard
 
     @start()
     @trace_task(tracer)
@@ -952,8 +949,6 @@ class ReceptionFlow(Flow[ContentState]):
         This provides ~5-6x speedup compared to sequential execution.
         After parallel crews complete, runs cross-reference report sequentially.
         """
-        import time
-
         start_time = time.perf_counter()
         inputs = self.state.to_crew_inputs()
 

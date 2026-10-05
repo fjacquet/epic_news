@@ -8,7 +8,7 @@ exists in the code; check the module before relying on a signature.
 
 ```
 utils/
-├── flow_enforcement.py       # kickoff_flow / akickoff_flow (opt-in retry + tracing + cancel checks)
+├── flow_enforcement.py       # kickoff_flow / akickoff_flow: one shared retry path (opt-in retry + tracing + cancel checks)
 ├── concurrency.py            # bounded_map (ordered thread pool, limit from an env var, default 3)
 ├── recipe_export.py          # recipe_from_result, export_recipe (Paprika YAML/JSON under output/)
 ├── flow_helpers.py           # load_or_parse_model
@@ -22,7 +22,7 @@ utils/
 ├── interrupt.py              # Ctrl+C handling: RunCancelledError, raise_if_cancelled, ...
 ├── logger.py                 # setup_logging (Loguru)
 ├── tracing.py                # trace_span context manager (optional Langfuse)
-├── observability.py          # Tracer, Dashboard, HallucinationGuard, get_observability_tools
+├── observability.py          # TraceEvent, Tracer, trace_task (sync and async flow steps)
 ├── tool_logging.py           # configure_tool_logging, apply_tool_silence
 ├── menu_generator.py         # MenuGenerator (season; parse_menu_structure(WeeklyMenuPlan) -> recipe specs)
 ├── menu_plan_validator.py    # MenuPlanValidator, menu_plan_from_output, MenuPlanError
@@ -105,8 +105,9 @@ empty/invalid output. Also exported:
   arms the Ctrl+C watchdog (`EPIC_NEWS_FORCE_QUIT_GRACE_SECONDS`, default 5).
 - **Email**: `send_report_email(...)` calls Composio `GMAIL_SEND_EMAIL` directly and raises
   `EmailDeliveryError` unless delivery is confirmed; never delegate sending to an agent.
-- **Observability**: `get_observability_tools(crew_name)` returns tracer/dashboard/guard
-  (used by `company_news`); `trace_span(name, attrs)` is a no-op without Langfuse keys.
+- **Observability**: `@trace_task(Tracer(...))` records `task_start` / `task_error` / `task_end` for
+  each flow step (sync or `async def`) under `traces/` (used by `main.py` and `company_news`);
+  `trace_span(name, attrs)` is a no-op without Langfuse keys.
 
 ## Related Documentation
 

@@ -6,13 +6,13 @@ from concurrent.futures import Future
 
 import pytest
 
-from epic_news.config import llm_config
+from epic_news.config import crewai_patches
 
 
 @pytest.fixture(autouse=True)
 def _fresh_slots():
     yield
-    llm_config._reset_llm_slots()
+    crewai_patches._reset_llm_slots()
 
 
 def _measure_peak(run_one, workers: int) -> int:
@@ -38,25 +38,25 @@ def _measure_peak(run_one, workers: int) -> int:
 
 def test_sync_calls_never_exceed_cap(monkeypatch):
     monkeypatch.setenv("LLM_MAX_CONCURRENCY", "3")
-    llm_config._reset_llm_slots()
-    assert 2 <= _measure_peak(llm_config._with_llm_slot, workers=8) <= 3
+    crewai_patches._reset_llm_slots()
+    assert 2 <= _measure_peak(crewai_patches._with_llm_slot, workers=8) <= 3
 
 
 def test_cap_of_one_serialises(monkeypatch):
     monkeypatch.setenv("LLM_MAX_CONCURRENCY", "1")
-    llm_config._reset_llm_slots()
-    assert _measure_peak(llm_config._with_llm_slot, workers=4) == 1
+    crewai_patches._reset_llm_slots()
+    assert _measure_peak(crewai_patches._with_llm_slot, workers=4) == 1
 
 
 def test_invalid_value_falls_back_to_three(monkeypatch):
     monkeypatch.setenv("LLM_MAX_CONCURRENCY", "zero")
-    llm_config._reset_llm_slots()
-    assert 2 <= _measure_peak(llm_config._with_llm_slot, workers=6) <= 3
+    crewai_patches._reset_llm_slots()
+    assert 2 <= _measure_peak(crewai_patches._with_llm_slot, workers=6) <= 3
 
 
 def test_async_calls_share_the_cap(monkeypatch):
     monkeypatch.setenv("LLM_MAX_CONCURRENCY", "2")
-    llm_config._reset_llm_slots()
+    crewai_patches._reset_llm_slots()
     state = {"now": 0, "peak": 0}
 
     async def body():
@@ -67,7 +67,7 @@ def test_async_calls_share_the_cap(monkeypatch):
         return "ok"
 
     async def main():
-        return await asyncio.gather(*(llm_config._awith_llm_slot(body) for _ in range(6)))
+        return await asyncio.gather(*(crewai_patches._awith_llm_slot(body) for _ in range(6)))
 
     assert asyncio.run(main()) == ["ok"] * 6
     assert 1 <= state["peak"] <= 2
@@ -75,24 +75,24 @@ def test_async_calls_share_the_cap(monkeypatch):
 
 def test_slot_released_on_error(monkeypatch):
     monkeypatch.setenv("LLM_MAX_CONCURRENCY", "1")
-    llm_config._reset_llm_slots()
+    crewai_patches._reset_llm_slots()
 
     def boom():
         raise RuntimeError("provider down")
 
     for _ in range(3):
         with contextlib.suppress(RuntimeError):
-            llm_config._with_llm_slot(boom)
-    assert llm_config._with_llm_slot(lambda: "still works") == "still works"
+            crewai_patches._with_llm_slot(boom)
+    assert crewai_patches._with_llm_slot(lambda: "still works") == "still works"
 
 
 def test_nested_sync_slot_is_reentrant(monkeypatch):
     monkeypatch.setenv("LLM_MAX_CONCURRENCY", "1")
-    llm_config._reset_llm_slots()
+    crewai_patches._reset_llm_slots()
     result = []
     t = threading.Thread(
         target=lambda: result.append(
-            llm_config._with_llm_slot(lambda: llm_config._with_llm_slot(lambda: "in"))
+            crewai_patches._with_llm_slot(lambda: crewai_patches._with_llm_slot(lambda: "in"))
         )
     )
     t.start()
@@ -102,31 +102,31 @@ def test_nested_sync_slot_is_reentrant(monkeypatch):
 
 def test_nested_async_slot_is_reentrant(monkeypatch):
     monkeypatch.setenv("LLM_MAX_CONCURRENCY", "1")
-    llm_config._reset_llm_slots()
+    crewai_patches._reset_llm_slots()
 
     async def inner():
         return "in"
 
     async def outer():
-        return await llm_config._awith_llm_slot(inner)
+        return await crewai_patches._awith_llm_slot(inner)
 
     async def main():
-        return await asyncio.wait_for(llm_config._awith_llm_slot(outer), timeout=3)
+        return await asyncio.wait_for(crewai_patches._awith_llm_slot(outer), timeout=3)
 
     assert asyncio.run(main()) == "in"
 
 
 def test_cancelled_async_waiter_does_not_leak_slot(monkeypatch):
     monkeypatch.setenv("LLM_MAX_CONCURRENCY", "1")
-    llm_config._reset_llm_slots()
+    crewai_patches._reset_llm_slots()
 
     async def body():
         return "x"
 
     async def main():
-        slots = llm_config._slots()
+        slots = crewai_patches._slots()
         slots.acquire()  # holder
-        waiter = asyncio.create_task(llm_config._awith_llm_slot(body))
+        waiter = asyncio.create_task(crewai_patches._awith_llm_slot(body))
         await asyncio.sleep(0.1)
         waiter.cancel()
         with contextlib.suppress(asyncio.CancelledError):
@@ -135,16 +135,16 @@ def test_cancelled_async_waiter_does_not_leak_slot(monkeypatch):
         await asyncio.sleep(0.1)
 
     asyncio.run(main())
-    slots = llm_config._slots()
+    slots = crewai_patches._slots()
     assert slots.acquire(blocking=False)
     slots.release()
-    assert llm_config._with_llm_slot(lambda: "ok") == "ok"
+    assert crewai_patches._with_llm_slot(lambda: "ok") == "ok"
 
 
 def test_patched_call_path_goes_through_slot(monkeypatch):
     monkeypatch.setenv("LLM_MAX_CONCURRENCY", "1")
     monkeypatch.setenv("LLM_EMPTY_RETRIES", "0")
-    llm_config._reset_llm_slots()
+    crewai_patches._reset_llm_slots()
     lock = threading.Lock()
     state = {"now": 0, "peak": 0}
 
@@ -160,7 +160,7 @@ def test_patched_call_path_goes_through_slot(monkeypatch):
                 state["now"] -= 1
             return "text"
 
-    llm_config._wrap_call_for_react_safety(Stub)
+    crewai_patches._wrap_call_for_react_safety(Stub)
     stub = Stub()
     threads = [threading.Thread(target=stub.call) for _ in range(3)]
     for t in threads:
@@ -184,14 +184,14 @@ def test_sync_call_on_loop_thread_does_not_deadlock_when_slots_held_by_coroutine
     # sync call on that same loop thread (crewai's sync summarize_messages inside an
     # async executor) waits for a slot. Blocking the loop would hang forever.
     monkeypatch.setenv("LLM_MAX_CONCURRENCY", "3")
-    llm_config._reset_llm_slots()
+    crewai_patches._reset_llm_slots()
 
     async def holder():
-        return await llm_config._awith_llm_slot(lambda: asyncio.sleep(0.5))
+        return await crewai_patches._awith_llm_slot(lambda: asyncio.sleep(0.5))
 
     async def summariser():
         await asyncio.sleep(0.1)  # all 3 slots now held by the holders
-        return llm_config._with_llm_slot(lambda: "summary")
+        return crewai_patches._with_llm_slot(lambda: "summary")
 
     async def main():
         return await asyncio.gather(*(holder() for _ in range(3)), summariser())
@@ -203,30 +203,30 @@ def test_sync_call_on_loop_thread_does_not_deadlock_when_slots_held_by_coroutine
 
 def test_sync_call_on_loop_thread_takes_a_free_slot(monkeypatch):
     monkeypatch.setenv("LLM_MAX_CONCURRENCY", "1")
-    llm_config._reset_llm_slots()
+    crewai_patches._reset_llm_slots()
     seen: dict = {}
 
     def body():
-        slots = llm_config._slots()
+        slots = crewai_patches._slots()
         seen["slot_free_during_call"] = slots.acquire(blocking=False)
         if seen["slot_free_during_call"]:
             slots.release()
         return "ok"
 
     async def main():
-        return llm_config._with_llm_slot(body)
+        return crewai_patches._with_llm_slot(body)
 
     still_blocked, result = _run_on_loop_with_timeout(main)
     assert not still_blocked
     assert result == ["ok"]
     assert seen["slot_free_during_call"] is False  # the call held the only slot
-    slots = llm_config._slots()
+    slots = crewai_patches._slots()
     assert slots.acquire(blocking=False)  # and released it afterwards
     slots.release()
 
 
 def _assert_all_slots_free(limit: int) -> None:
-    slots = llm_config._slots()
+    slots = crewai_patches._slots()
     taken = [slots.acquire(blocking=False) for _ in range(limit + 1)]
     for ok in taken:
         if ok:
@@ -237,11 +237,13 @@ def _assert_all_slots_free(limit: int) -> None:
 def test_sync_waiter_gives_up_after_slot_wait_and_runs_uncapped(monkeypatch):
     monkeypatch.setenv("LLM_MAX_CONCURRENCY", "1")
     monkeypatch.setenv("LLM_SLOT_WAIT_SECONDS", "0.2")
-    llm_config._reset_llm_slots()
-    slots = llm_config._slots()
+    crewai_patches._reset_llm_slots()
+    slots = crewai_patches._slots()
     slots.acquire()  # held elsewhere for the whole call
     result: list = []
-    t = threading.Thread(target=lambda: result.append(llm_config._with_llm_slot(lambda: "ran")), daemon=True)
+    t = threading.Thread(
+        target=lambda: result.append(crewai_patches._with_llm_slot(lambda: "ran")), daemon=True
+    )
     t.start()
     t.join(timeout=5)
     slots.release()
@@ -253,20 +255,20 @@ def test_sync_waiter_gives_up_after_slot_wait_and_runs_uncapped(monkeypatch):
 def test_uncapped_call_is_reentrant_and_nested_call_does_not_wait(monkeypatch):
     monkeypatch.setenv("LLM_MAX_CONCURRENCY", "1")
     monkeypatch.setenv("LLM_SLOT_WAIT_SECONDS", "0.5")
-    llm_config._reset_llm_slots()
-    slots = llm_config._slots()
+    crewai_patches._reset_llm_slots()
+    slots = crewai_patches._slots()
     slots.acquire()
     seen: dict = {}
 
     def outer():
-        seen["holds"] = llm_config._holds_slot.get()
+        seen["holds"] = crewai_patches._holds_slot.get()
         start = time.monotonic()
-        seen["nested"] = llm_config._with_llm_slot(lambda: "in")
+        seen["nested"] = crewai_patches._with_llm_slot(lambda: "in")
         seen["nested_seconds"] = time.monotonic() - start
         return "out"
 
     result: list = []
-    t = threading.Thread(target=lambda: result.append(llm_config._with_llm_slot(outer)), daemon=True)
+    t = threading.Thread(target=lambda: result.append(crewai_patches._with_llm_slot(outer)), daemon=True)
     t.start()
     t.join(timeout=5)
     slots.release()
@@ -280,15 +282,15 @@ def test_uncapped_call_is_reentrant_and_nested_call_does_not_wait(monkeypatch):
 def test_async_waiter_gives_up_after_slot_wait_and_runs_uncapped(monkeypatch):
     monkeypatch.setenv("LLM_MAX_CONCURRENCY", "1")
     monkeypatch.setenv("LLM_SLOT_WAIT_SECONDS", "0.2")
-    llm_config._reset_llm_slots()
-    slots = llm_config._slots()
+    crewai_patches._reset_llm_slots()
+    slots = crewai_patches._slots()
     slots.acquire()
 
     async def body():
         return "ran"
 
     async def main():
-        return await asyncio.wait_for(llm_config._awith_llm_slot(body), timeout=5)
+        return await asyncio.wait_for(crewai_patches._awith_llm_slot(body), timeout=5)
 
     still_blocked, result = _run_on_loop_with_timeout(main)
     slots.release()
@@ -303,10 +305,10 @@ def test_multi_chunk_summary_on_helper_loop_does_not_deadlock(monkeypatch):
     # asyncio.run(_awith_llm_slot(...)) (crewai summarize_messages with several chunks).
     monkeypatch.setenv("LLM_MAX_CONCURRENCY", "3")
     monkeypatch.setenv("LLM_SLOT_WAIT_SECONDS", "0.3")
-    llm_config._reset_llm_slots()
+    crewai_patches._reset_llm_slots()
 
     async def holder():
-        return await llm_config._awith_llm_slot(lambda: asyncio.sleep(0.5))
+        return await crewai_patches._awith_llm_slot(lambda: asyncio.sleep(0.5))
 
     async def chunk():
         return "summary"
@@ -316,7 +318,7 @@ def test_multi_chunk_summary_on_helper_loop_does_not_deadlock(monkeypatch):
         # A daemon helper (not a ThreadPoolExecutor, whose workers are joined at exit)
         # so a deadlock fails the test instead of hanging the interpreter.
         future: Future = Future()
-        coro = llm_config._awith_llm_slot(chunk)
+        coro = crewai_patches._awith_llm_slot(chunk)
         threading.Thread(target=lambda: future.set_result(asyncio.run(coro)), daemon=True).start()
         return future.result()  # blocks the loop-A thread, like crewai's pool.submit(...).result()
 

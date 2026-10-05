@@ -119,7 +119,7 @@ All tool `_run()` methods must return **JSON strings** parseable by `json.loads(
 
 ## LLM Configuration
 
-All config via `LLMConfig` (`src/epic_news/config/llm_config.py`). Default model: Gemini 3.8 Flash on LiteLLM's native route (`gemini/gemini-3.8-flash`, ADR-016); any `openrouter/...` model goes through OpenRouter. The method keeps its historical name `get_openrouter_llm()` for both routes.
+All config via `LLMConfig` (`src/epic_news/config/llm_config.py`). CrewAI's LLM classes are patched (ReAct tool calling, empty-response retry, the `LLM_MAX_CONCURRENCY` slot cap, OpenRouter Anthropic detection) by `src/epic_news/config/crewai_patches.py`; `epic_news.main` applies them once with `apply_crewai_patches()`, and that module's docstring lists what to re-check on each CrewAI upgrade. Default model: Gemini 3.8 Flash on LiteLLM's native route (`gemini/gemini-3.8-flash`, ADR-016); any `openrouter/...` model goes through OpenRouter. The method keeps its historical name `get_openrouter_llm()` for both routes.
 
 - `LLMConfig.get_openrouter_llm(task_type="quick"|"default"|"long")` — LLM instance with the matching timeout (120s / 300s / 600s, from `LLMConfig.get_timeout()`) set on the LLM itself; supports opt-in `reasoning_effort` (Magistral). Gemini models get no default temperature (LiteLLM keeps 1.0); Gemini 3 reasoning defaults to `medium`
 - `LLMConfig.get_max_iter()` — pass as `max_iter=` on each `Agent` (default 15; fin_daily's stock analyst uses 30). CrewAI `Crew` has no `max_iter` field

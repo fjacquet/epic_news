@@ -117,3 +117,11 @@ Run with `EPIC_ENABLE_EMAIL=false`. Routing through `CrewKey` and the slimmer st
 | 2026-10-05 | S7 typed `parse_menu_structure`, menu crew via `kickoff_flow` | menu | 70.9 | 8/8 | 15 | 65070 |
 
 Run with `EPIC_ENABLE_EMAIL=false` (2 days, lunch and dinner, 2 people). The menu crew now runs through `kickoff_flow` (cancel check, tracing); the plan DOCX `output/menu_designer/menu_weekly_menu.docx` was written, and the 8 recipes (no desserts in this plan) carry real dish names with their codes, e.g. `lun-l-s01-veloute-onctueux-de-potimarron-aux-brisures-de-chataignes`. The E3 run (175.9 s, 28/28) planned more dishes, so wall clock is not comparable.
+
+### Small consolidations (S8)
+
+| Date | Change | Request | Wall (s) | Crew | Crew seconds | Crew tokens (CrewAI) | LiteLLM calls | LiteLLM total tokens |
+|---|---|---|---|---|---|---|---|---|
+| 2026-10-05 | S8 shared retry path, `crewai_patches`, trimmed observability | saint | 166.7 | SaintDailyCrew | 135.22 | 13292 (1 request) | 9 | 43924 |
+
+Run with `EPIC_ENABLE_EMAIL=false`. The CrewAI patches applied by `epic_news.main` drove the run: 9 LiteLLM calls, as in the S4 saint run (167.2 s, 9 calls, 1 crew request). The DOCX holds about 2,600 words. `traces/reception_flow_<ts>.json` has a `task_start`/`task_end` pair with `success: true` for every step: `feed_user_request`, `extract_info`, `classify`, `determine_crew`, `generate_saint_daily` and `send_email`.

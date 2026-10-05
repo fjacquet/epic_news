@@ -33,7 +33,6 @@ def ensure_output_directories():
         "company_profiler",
         "contact_finder",
         "cooking",
-        "dashboard_data",
         "deep_research",
         "email",
         "findaily",

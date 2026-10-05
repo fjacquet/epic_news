@@ -8,10 +8,13 @@ classifies as non-retryable, so ~19 minutes of prior agent work was discarded.
 kickoff_flow now retries that class of failure -- and only that class.
 """
 
+import asyncio
+
 import pytest
 from loguru import logger
 
 from epic_news.utils.flow_enforcement import _is_transient_error, akickoff_flow, kickoff_flow
+from epic_news.utils.interrupt import RunCancelledError, request_cancellation, reset_cancellation
 
 
 class FakeCrew:
@@ -200,3 +203,92 @@ def test_default_is_a_single_attempt(monkeypatch):
 
     attempts, _ = _retry_settings()
     assert attempts == 1
+
+
+@pytest.fixture
+def request_cancel():
+    """Set the cancel flag, and clear it after the test so other tests are not affected."""
+    reset_cancellation()
+    yield request_cancellation
+    reset_cancellation()
+
+
+@pytest.fixture
+def caplog_loguru():
+    """Loguru messages emitted during the test, as a list of strings."""
+    messages: list[str] = []
+    sink_id = logger.add(lambda m: messages.append(m.record["message"]))
+    yield messages
+    logger.remove(sink_id)
+
+
+def _crew_raising(fn, use_async):
+    """A crew whose kickoff (sync) or akickoff (async) calls ``fn``."""
+    if use_async:
+
+        class _AsyncCrew:
+            async def akickoff(self, inputs):
+                return fn()
+
+        return _AsyncCrew()
+
+    class _SyncCrew:
+        def kickoff(self, inputs):
+            return fn()
+
+    return _SyncCrew()
+
+
+@pytest.mark.parametrize("use_async", [False, True], ids=["sync", "async"])
+def test_cancel_between_attempts_stops_the_next_one(monkeypatch, use_async, request_cancel):
+    """Ctrl+C after a transient failure stops the retry, sync and async alike."""
+    monkeypatch.setenv("CREW_KICKOFF_ATTEMPTS", "3")
+    monkeypatch.setenv("CREW_KICKOFF_BACKOFF_SECONDS", "0")
+    calls: list[int] = []
+
+    def _fail_then_cancel(*_a, **_k):
+        calls.append(1)
+        request_cancel()  # the user presses Ctrl+C while the first attempt fails
+        raise RuntimeError("503 service unavailable")
+
+    crew = _crew_raising(_fail_then_cancel, use_async)
+    with pytest.raises(RunCancelledError):
+        if use_async:
+            asyncio.run(akickoff_flow(crew, {"topic": "x"}))
+        else:
+            kickoff_flow(crew, {"topic": "x"})
+    assert calls == [1]
+
+
+@pytest.mark.parametrize("use_async", [False, True], ids=["sync", "async"])
+def test_non_transient_error_fails_on_the_first_attempt(monkeypatch, use_async, caplog_loguru):
+    monkeypatch.setenv("CREW_KICKOFF_ATTEMPTS", "3")
+    calls: list[int] = []
+
+    def _bad_config(*_a, **_k):
+        calls.append(1)
+        raise ValueError("missing template variable")
+
+    crew = _crew_raising(_bad_config, use_async)
+    with pytest.raises(ValueError, match="missing template variable"):
+        if use_async:
+            asyncio.run(akickoff_flow(crew, {"topic": "x"}))
+        else:
+            kickoff_flow(crew, {"topic": "x"})
+    assert calls == [1]
+    assert any("failed after" in m and "attempt 1/3" in m for m in caplog_loguru)
+
+
+@pytest.mark.parametrize("use_async", [False, True], ids=["sync", "async"])
+def test_object_without_kickoff_is_rejected(use_async):
+    """A crew factory returning something that cannot kick off fails before any run."""
+    with pytest.raises(AttributeError, match="does not support"):
+        if use_async:
+            asyncio.run(akickoff_flow(object(), {"topic": "x"}))
+        else:
+            kickoff_flow(object(), {"topic": "x"})
+
+
+def test_async_context_must_be_a_dict():
+    with pytest.raises(ValueError, match="akickoff_flow context must be a dict"):
+        asyncio.run(akickoff_flow(object(), "topic"))  # type: ignore[arg-type]

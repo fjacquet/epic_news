@@ -90,9 +90,7 @@ WORKDIR /app
 # and chowned here, up front. Enumerated from the codebase by sweeping for both
 # `os.makedirs(` and `.mkdir(` — the second form is easy to miss:
 #   db, data, output  — compose bind-mount points
-#   traces            — utils/observability.py:29, at MODULE IMPORT time
-#   output/dashboard_data — utils/observability.py:30, also at import time
-#                           (lands inside the myuser-owned output/)
+#   traces            — utils/observability.py, at MODULE IMPORT time
 #   checkpoints       — utils/directory_utils.py:28
 #   debug             — utils/diagnostics/parsing.py:403, diagnostic path
 #   logs              — utils/logger.py:38, via setup_logging(), which is the

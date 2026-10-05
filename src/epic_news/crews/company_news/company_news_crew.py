@@ -1,3 +1,4 @@
+import time
 from typing import Any
 
 from crewai import Agent, Crew, Process, Task
@@ -7,15 +8,11 @@ from loguru import logger
 
 from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.company_news_report import CompanyNewsReport
-from epic_news.utils.observability import get_observability_tools, trace_task
+from epic_news.utils.observability import Tracer, trace_task
 
 # Load environment variables
 
-# Initialize observability tools at the module level
-observability_tools = get_observability_tools(crew_name="company_news_crew")
-tracer = observability_tools["tracer"]
-dashboard = observability_tools["dashboard"]
-hallucination_guard = observability_tools["hallucination_guard"]
+tracer = Tracer(f"company_news_crew_{int(time.time())}")
 
 
 @CrewBase
@@ -56,11 +53,6 @@ class CompanyNewsCrew:
         # Get search tools from Reddit, Twitter, and HackerNews (5 tools total)
         # These replace the deprecated COMPOSIO_SEARCH_* actions that no longer exist
         self.search_tools = composio.get_search_tools()
-
-        # Pass observability tools to instance
-        self.tracer = tracer
-        self.dashboard = dashboard
-        self.hallucination_guard = hallucination_guard
 
     # in the news analysis and reporting process
     @agent

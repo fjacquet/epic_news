@@ -10,6 +10,7 @@ regardless of the model. Construction only — zero LLM calls.
 
 import pytest
 
+from epic_news.config import crewai_patches
 from epic_news.config.llm_config import LLMConfig
 
 MODELS = [
@@ -17,6 +18,11 @@ MODELS = [
     "openrouter/mistralai/mistral-small-2603",
     "openrouter/anthropic/claude-opus-4.8-fast",
 ]
+
+
+@pytest.fixture(autouse=True, scope="module")
+def _patches_applied():
+    crewai_patches.apply_crewai_patches()
 
 
 @pytest.mark.parametrize("model", MODELS)

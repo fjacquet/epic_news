@@ -1,16 +1,9 @@
+import asyncio
+
 import pytest
 from faker import Faker
 
-from epic_news.utils.observability import (
-    Dashboard,
-    HallucinationGuard,
-    TraceEvent,
-    Tracer,
-    get_observability_tools,
-    guard_output,
-    monitor_agent,
-    trace_task,
-)
+from epic_news.utils.observability import TraceEvent, Tracer, trace_task
 
 fake = Faker()
 
@@ -33,33 +26,6 @@ def test_tracer(tmp_path):
     tracer.add_event(event)
     assert len(tracer.events) == 1
     assert tracer.events[0].event_type == "test_event"
-
-
-def test_hallucination_guard():
-    # Test that the HallucinationGuard detects hallucinations
-    guard = HallucinationGuard(confidence_threshold=0.9)
-    result = guard.check_statement("This is definitely true.", {})
-    assert result["is_likely_hallucination"]
-    result = guard.check_statement("This might be true.", {})
-    assert not result["is_likely_hallucination"]
-
-
-def test_dashboard(tmp_path):
-    # Test that the Dashboard updates metrics correctly
-    dashboard_dir = tmp_path / "dashboards"
-    dashboard_dir.mkdir()
-    dashboard = Dashboard(dashboard_id="test_dashboard")
-    dashboard.data_file = dashboard_dir / "test_dashboard.json"
-    dashboard.update_metric("test_category", "test_name", "test_metric", "test_value")
-    assert dashboard.get_metrics("test_category", "test_name")["test_metric"] == "test_value"
-
-
-def test_get_observability_tools():
-    # Test that get_observability_tools returns a dictionary of observability tools
-    tools = get_observability_tools("test_crew")
-    assert "tracer" in tools
-    assert "dashboard" in tools
-    assert "hallucination_guard" in tools
 
 
 def test_tracer_get_events_filter(tmp_path):
@@ -116,62 +82,6 @@ def test_tracer_save_load_round_trip(tmp_path, monkeypatch):
     assert empty.events == []
 
 
-def test_dashboard_unknown_category_and_name_return_empty():
-    dashboard = Dashboard(dashboard_id="unknown_lookup_test")
-    assert dashboard.get_metrics("nonexistent_category") == {}
-    assert dashboard.get_metrics("nonexistent_category", "nonexistent_name") == {}
-    # Known category, unknown name
-    assert dashboard.get_metrics("agents", "nonexistent_agent") == {}
-
-
-def test_dashboard_update_metric_then_get_metrics(tmp_path):
-    dashboard_dir = tmp_path / "dashboards"
-    dashboard_dir.mkdir()
-    dashboard = Dashboard(dashboard_id="update_test")
-    dashboard.data_file = dashboard_dir / "update_test.json"
-
-    dashboard.update_metric("agents", "researcher", "calls", 1)
-    assert dashboard.get_metrics("agents", "researcher") == {"calls": 1}
-    assert dashboard.metrics["system"]["events_count"] == 1
-
-    dashboard.update_metric("agents", "researcher", "calls", 2)
-    assert dashboard.get_metrics("agents", "researcher")["calls"] == 2
-    assert dashboard.metrics["system"]["events_count"] == 2
-
-    # Category-only lookup returns the whole category dict
-    assert dashboard.get_metrics("agents") == {"researcher": {"calls": 2}}
-
-
-def test_hallucination_guard_check_statement_confident_vs_hedged():
-    guard = HallucinationGuard(confidence_threshold=0.9)
-
-    confident = guard.check_statement("This is definitely and absolutely true.", {})
-    assert confident["is_likely_hallucination"] is True
-    assert "Overly confident language detected" in confident["warnings"]
-    assert confident["confidence"] < 0.9
-
-    hedged = guard.check_statement("This might possibly be true.", {})
-    assert hedged["is_likely_hallucination"] is False
-    assert hedged["warnings"] == []
-    assert hedged["confidence"] == 1.0
-
-
-def test_hallucination_guard_validate_output_fix_true_and_false():
-    guard = HallucinationGuard(confidence_threshold=0.9)
-    output = "This is definitely true. This might be true."
-
-    fixed_result = guard.validate_output(output, {}, fix_hallucinations=True)
-    assert fixed_result["hallucination_score"] == 0.5
-    assert fixed_result["fixed_output"] == output + (
-        "\n\nNote: Some statements in this output may require further verification."
-    )
-    assert fixed_result["warnings"] != []
-
-    unfixed_result = guard.validate_output(output, {}, fix_hallucinations=False)
-    assert unfixed_result["hallucination_score"] == 0.5
-    assert unfixed_result["fixed_output"] is None
-
-
 def test_trace_task_decorator_success(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     (tmp_path / "traces").mkdir()
@@ -217,79 +127,64 @@ def test_trace_task_decorator_exception_propagates(tmp_path, monkeypatch):
     assert error_event.details["error"] == "kaboom"
 
 
-def test_monitor_agent_decorator(tmp_path, monkeypatch):
+def test_trace_task_records_an_async_step_after_it_finishes(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
-    (tmp_path / "output" / "dashboard_data").mkdir(parents=True)
-    dashboard = Dashboard(dashboard_id="decorator_agent_test")
+    (tmp_path / "traces").mkdir()
+    tracer = Tracer(trace_id="async_success_test")
+    finished: list[bool] = []
 
-    @monitor_agent(dashboard)
-    def agent_func(x):
-        return x * 2
+    @trace_task(tracer)
+    async def step():
+        await asyncio.sleep(0)
+        finished.append(True)
+        return {"ok": True}
 
-    result = agent_func(21)
-    assert result == 42
-
-    metrics = dashboard.get_metrics("agents", "agent_func")
-    assert metrics["calls"] == 1
-    assert "last_execution_time" in metrics
-    assert "last_execution_timestamp" in metrics
-
-    agent_func(1)
-    assert dashboard.get_metrics("agents", "agent_func")["calls"] == 2
+    assert asyncio.run(step()) == {"ok": True}
+    end = tracer.get_events(event_type="task_end")[-1]
+    assert finished == [True]
+    assert end.details["success"] is True
+    assert end.details["result_type"] == "dict"
 
 
-def test_guard_output_decorator_fixes_hallucination():
-    guard = HallucinationGuard(confidence_threshold=0.9)
+def test_trace_task_records_an_async_error(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "traces").mkdir()
+    tracer = Tracer(trace_id="async_error_test")
 
-    @guard_output(guard)
-    def produce_confident_output():
-        return "This is definitely a famous and well-known fact."
+    @trace_task(tracer)
+    async def step():
+        raise RuntimeError("osint failed")
 
-    result = produce_confident_output()
-    assert result != "This is definitely a famous and well-known fact."
-    assert result.endswith("Note: Some statements in this output may require further verification.")
-
-
-def test_guard_output_decorator_passes_through_clean_output():
-    guard = HallucinationGuard(confidence_threshold=0.9)
-
-    @guard_output(guard)
-    def produce_clean_output():
-        return "The sky appears blue during the day."
-
-    result = produce_clean_output()
-    assert result == "The sky appears blue during the day."
+    with pytest.raises(RuntimeError, match="osint failed"):
+        asyncio.run(step())
+    assert tracer.get_events(event_type="task_error")[-1].details["error"] == "osint failed"
+    assert tracer.get_events(event_type="task_end")[-1].details["success"] is False
 
 
-def test_guard_output_decorator_ignores_non_string_output():
-    guard = HallucinationGuard(confidence_threshold=0.9)
+def test_unused_tools_are_gone():
+    import epic_news.utils.observability as observability
 
-    @guard_output(guard)
-    def produce_non_string():
-        return {"definitely": "not a string"}
-
-    result = produce_non_string()
-    assert result == {"definitely": "not a string"}
-
-
-def test_get_observability_tools_full_contract():
-    tools = get_observability_tools("contract_crew")
-
-    assert set(tools.keys()) == {
-        "tracer",
-        "dashboard",
-        "hallucination_guard",
-        "trace_task",
+    for name in (
+        "Dashboard",
+        "HallucinationGuard",
         "monitor_agent",
         "guard_output",
-    }
-    assert isinstance(tools["tracer"], Tracer)
-    assert isinstance(tools["dashboard"], Dashboard)
-    assert isinstance(tools["hallucination_guard"], HallucinationGuard)
-    assert tools["tracer"].trace_id.startswith("contract_crew_")
-    assert tools["dashboard"].dashboard_id == "contract_crew_dashboard"
+        "get_observability_tools",
+    ):
+        assert not hasattr(observability, name), name
 
-    # Decorator factories return callables usable as decorators
-    assert callable(tools["trace_task"]())
-    assert callable(tools["monitor_agent"]())
-    assert callable(tools["guard_output"]())
+
+def test_trace_task_records_task_end_on_keyboard_interrupt(tmp_path, monkeypatch):
+    """Ctrl+C inside a step still closes its trace with task_end only, as before S8."""
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "traces").mkdir()
+    tracer = Tracer(trace_id="interrupt_test")
+
+    @trace_task(tracer)
+    def step():
+        raise KeyboardInterrupt
+
+    with pytest.raises(KeyboardInterrupt):
+        step()
+    assert tracer.get_events(event_type="task_end")[-1].details["success"] is False
+    assert tracer.get_events(event_type="task_error") == []
