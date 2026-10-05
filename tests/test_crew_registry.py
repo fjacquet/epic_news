@@ -3,6 +3,7 @@
 import inspect
 import re
 
+from epic_news.config.routing_guide import routing_categories
 from epic_news.crew_registry import CREW_REGISTRY, STANDARD_CREWS
 from epic_news.main import ReceptionFlow
 from epic_news.models.content_state import ContentState, CrewCategories
@@ -85,6 +86,7 @@ def test_every_spec_has_a_router_branch_and_a_listener():
 def test_categories_come_from_the_registry():
     expected = {key: key for key in CREW_REGISTRY} | {"UNKNOWN": "UNKNOWN"}
     assert CrewCategories.to_dict() == expected
+    assert list(CrewCategories.to_dict()) == sorted(CREW_REGISTRY) + ["UNKNOWN"]
     assert CrewCategories.UNKNOWN == "UNKNOWN"
     assert ContentState().categories == expected
 
@@ -93,3 +95,12 @@ def test_unregistered_key_routes_to_unknown():
     flow = ReceptionFlow(user_request="x")
     flow.state.selected_crew = "NOT_A_CREW"
     assert flow.determine_crew() == "go_unknown"
+
+
+def test_routing_categories_text_is_unchanged():
+    """The classify prompt text (alphabetical, as when built from dir()) must not drift."""
+    assert routing_categories() == (
+        "BOOK_SUMMARY, COMPANY_NEWS, COOKING, DEEPRESEARCH, FINDAILY, HOLIDAY_PLANNER, "
+        "MEETING_PREP, MENU, NEWSDAILY, OPEN_SOURCE_INTELLIGENCE, PESTEL, POEM, RSS, SAINT, "
+        "SALES_PROSPECTING, SHOPPING"
+    )

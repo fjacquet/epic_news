@@ -54,7 +54,7 @@ class CrewCategories:
     @classmethod
     def to_dict(cls) -> dict[str, str]:
         """Category name -> value, as the classifier and routing guide expect."""
-        return {key: key for key in CREW_REGISTRY} | {cls.UNKNOWN: cls.UNKNOWN}
+        return {key: key for key in sorted(CREW_REGISTRY)} | {cls.UNKNOWN: cls.UNKNOWN}
 
 
 # Default values
