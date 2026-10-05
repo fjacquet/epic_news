@@ -2175,8 +2175,8 @@
         "agent": 0,
         "async_execution": false,
         "context": null,
-        "description": "bf623a75574f0f0c",
-        "expected_output": "6af766b0790de8b7",
+        "description": "d081c4d321db09d7",
+        "expected_output": "3790f6787bdbd4f6",
         "name": "research_company_task",
         "output_file": null,
         "output_pydantic": null
@@ -2185,8 +2185,8 @@
         "agent": 1,
         "async_execution": false,
         "context": null,
-        "description": "a270c672745b0bcb",
-        "expected_output": "00b08a03aea01206",
+        "description": "48b425f983ca226f",
+        "expected_output": "abcccfc5e39debd2",
         "name": "analyze_org_structure_task",
         "output_file": null,
         "output_pydantic": null
@@ -2195,8 +2195,8 @@
         "agent": 2,
         "async_execution": false,
         "context": null,
-        "description": "dd9473105d700182",
-        "expected_output": "e95b2411b7b469b2",
+        "description": "3ac8fc324c5b3ea4",
+        "expected_output": "21fd59467b29e12d",
         "name": "find_key_contacts_task",
         "output_file": null,
         "output_pydantic": null
@@ -2209,8 +2209,8 @@
           "analyze_org_structure_task",
           "find_key_contacts_task"
         ],
-        "description": "a1190262471e3b88",
-        "expected_output": "0a8080dbe3bf0691",
+        "description": "255645ba4be3e3da",
+        "expected_output": "37ad46ebdddf074a",
         "name": "generate_sales_metrics_task",
         "output_file": "{output_file}",
         "output_pydantic": "SalesProspectingReport"
