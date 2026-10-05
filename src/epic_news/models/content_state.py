@@ -91,7 +91,7 @@ class ContentState(BaseModel):
     final_report: str | None = None
     error_message: str = ""
 
-    # The validated model of the report step that ran, and its raw crew result.
+    # The validated model of the report step that ran, and its raw crew result when the step keeps one.
     report: SerializeAsAny[BaseModel] | None = None
     raw_output: Any = None
     # OSINT sub-reports by crew name (company_profile, tech_stack, ...): only the crews that succeeded.

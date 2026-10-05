@@ -396,7 +396,7 @@ class ReceptionFlow(Flow[ContentState]):
     # ... existing code ...
 
     # In determine_crew():
-    #     if self.state.selected_crew == "BOOK_RECOMMENDER":
+    #     if self.state.selected_crew == CrewKey.BOOK_RECOMMENDER:
     #         return "go_generate_book_recommendations"
 
     @listen("go_generate_book_recommendations")

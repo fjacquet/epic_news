@@ -101,3 +101,11 @@ Run with `EPIC_ENABLE_EMAIL=false`; request: "Fais une recherche approfondie sur
 | 2026-10-05 | S4 `_run_standard` | saint | 167.2 | SaintDailyCrew | 133.39 | 12013 (1 request) | 9 | 39517 |
 
 Run with `EPIC_ENABLE_EMAIL=false`. The saint step now runs through `_run_standard`; the run wrote `output/saint_daily/report.json` and `report.docx` (about 2,300 words, sections Biographie, Signification, Miracles, Lien avec la Suisse, Prière & Réflexion, Sources) and a debug dump labelled `saint` (registry key). Against the S5 saint run (276.3 s, 11 calls) the difference is the crew itself (1 request against 3); the helper adds no LLM call.
+
+### Flow state (S6)
+
+| Date | Change | Request | Wall (s) | Crew | Crew seconds | Crew tokens (CrewAI) | LiteLLM calls | LiteLLM total tokens |
+|---|---|---|---|---|---|---|---|---|
+| 2026-10-05 | S6 `report`/`raw_output`/`osint` state, `CrewKey` | saint | 196.4 | SaintDailyCrew | 164.15 | 32532 (2 requests) | 10 | 60059 |
+
+Run with `EPIC_ENABLE_EMAIL=false`. Routing through `CrewKey` and the slimmer state worked end to end: `output/saint_daily/report.json` and `report.docx` (about 2,350 words, the same six sections as the S4 run). Wall clock and calls move with the crew's own request count (2 here, 1 in the S4 run).
