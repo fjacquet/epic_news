@@ -15,6 +15,8 @@ logged by `kickoff_flow`). Model: value of `MODEL` in `.env` at run time.
   - PESTEL researchers sometimes skip live search and cite 2024 sources from memory.
   - The menu planner returns generic dish names ("Entrée du jour").
   - In the E6 comparison, the OSINT research-mode cross-reference report named the wrong company (Target Global Holdings / Pontus Shipping) for a Logitech request. `detailed_findings` is empty in both modes.
+
+  Fixed on 2026-10-05 (branch `fix/quality-bugs`): PESTEL keeps the request's subject and gets one last-12-months search per dimension before the crew runs (2025–2026 facts in all six dimensions on the check run); the menu keeps the planner's dishes and plans the requested number of days (2-day request: 2 days, 8 recipes, real dish names); the OSINT cross-reference tasks use their YAML prompts with the target and receive the six sub-reports (target Logitech, six `detailed_findings` entries).
 - **Goal 4 (measure every change):** every change has a measurement, but each is a single run, with the caveats above.
 
 | Date | Change | Request | Wall clock (s) | Crew | Crew seconds | Total tokens | Requests |
