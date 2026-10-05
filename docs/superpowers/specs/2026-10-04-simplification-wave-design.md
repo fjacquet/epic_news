@@ -27,7 +27,8 @@ itself and hides behaviour in long functions:
    stays an explicit Flow step.
 2. `main.py` ≤ 1,350 lines (every crew keeps its own Flow step); no function above
    complexity 20 (radon D) in `src`.
-3. Crew modules without repeated LLM/agent boilerplate; `type: ignore` in crews −80%.
+3. Crew modules in CrewAI's documented form without `type: ignore` noise; `type: ignore` in
+   crews −80%.
 4. Behaviour preserved: every PR is a refactor proven by tests, except where noted.
 
 ## Non-goals
@@ -39,19 +40,22 @@ itself and hides behaviour in long functions:
 
 ## Design
 
-### S1 — Crew factory helpers (mechanical, first)
+### S1 — CrewAI-native crew cleanup (mechanical, first)
 
-`crews/_factory.py`:
+Revised 2026-10-05: no factory helpers. Every crew keeps CrewAI's documented form,
+`Agent(config=self.agents_config[...], ...)` / `Task(...)` / `Crew(...)` written out inside
+`@agent` / `@task` / `@crew`. A `make_agent` / `make_task` layer was considered and rejected:
+it hides the CrewAI idiom behind a project-specific one.
 
-- `make_agent(crew, name, *, tools=(), task_type="default", **overrides) -> Agent` — reads
-  `crew.agents_config[name]`, sets `llm=LLMConfig.get_openrouter_llm(task_type=...)`,
-  `max_iter=LLMConfig.get_max_iter()`, `verbose` from `CREW_VERBOSE` (default off), and
-  applies overrides (e.g. `max_iter=30` for the stock analyst).
-- `make_task(crew, name, **kwargs) -> Task` — typed config access, removing most
-  `call-arg` ignores.
-- Crew methods become one-liners inside the existing decorators. `load_dotenv()` moves to
-  the entry points only.
+- Each crew class types what CrewBase sets at runtime (`agents_config` / `tasks_config` as
+  `dict[str, Any]`, `agents` / `tasks` as lists), removing the `index`, `arg-type` and
+  `attr-defined` ignores.
+- mypy's `call-arg` is disabled for `epic_news.crews.*`: CrewAI's `Task(config=...)` and
+  decorated methods are untypable; the ADR-014 AST guard rejects unknown kwargs instead.
+- `load_dotenv()` moves to the entry points only.
+- A snapshot of every built crew's settings is recorded first and must not change.
 - The ADR-014 guard tests (AST kwargs, agent contract) keep passing unchanged.
+- The repeated `llm=` / `max_iter=` lines stay (they are the documented CrewAI form).
 
 ### S2 — Parsing through model validators
 
@@ -135,7 +139,7 @@ Delete the flow's unreachable fallback branch, make `parse_menu_structure` walk 
 
 ## Rollout (one PR each, in order)
 
-1. S1 — crew factory helpers
+1. S1 — CrewAI-native crew cleanup
 2. S2 — parsing validators + `json_repair`
 3. S3 — deep research standard path
 4. S4 — crew metadata registry + standard-step helper
@@ -161,3 +165,5 @@ Delete the flow's unreachable fallback branch, make `parse_menu_structure` walk 
    the flow does not use.
 4. A renderer failure stops the run with a clear error in the logs; no fallback "Erreur"
    page is rendered or emailed (S5).
+5. (2026-10-05) No helper layer around CrewAI objects: crews keep `Agent(...)` / `Task(...)`
+   / `Crew(...)` written out in their decorated methods (S1).
