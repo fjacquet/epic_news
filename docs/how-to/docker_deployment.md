@@ -13,23 +13,18 @@ teaches the opposite of what the real file does.
 It is multi-stage. A `builder` stage resolves and installs the venv with `uv`
 and is never shipped. A `runtime-base` stage starts from a plain
 `python:3.13-slim-bookworm`, copies the finished venv and the source out of the
-builder, and creates the writable data directories. Three targets build on it:
+builder, and creates the writable data directories. Two targets build on it:
 
 | Target | Serves | Port(s) | Use it for |
 | --- | --- | --- | --- |
 | `api` | FastAPI via `uvicorn` | 8000 | The API on its own; what most deployments want. |
-| `streamlit` | The Streamlit UI | 8501 | The UI on its own, pointed at an external API via `API_URL`. |
-| `combined` | Both, under `supervisord` | 8000, 8501 | A single-container deployment where running two is not worth it. |
-
-`Dockerfile.code-interpreter` is separate and unrelated — it is the sandbox
-image for the code-interpreter tool, not an application image.
+| `streamlit` | The Streamlit UI | 8501 | The UI; it runs the flow in its own process. |
 
 ## Building
 
 ```bash
 docker build --target api       -t epic_news-api:latest       .
 docker build --target streamlit -t epic_news-streamlit:latest .
-docker build --target combined  -t epic_news-combined:latest  .
 ```
 
 Or through the Makefile, which is the same commands with the project's tags:
@@ -37,8 +32,7 @@ Or through the Makefile, which is the same commands with the project's tags:
 ```bash
 make docker-build-api
 make docker-build-streamlit
-make docker-build-combined
-make docker-build-all          # the three above plus code-interpreter
+make docker-build-all          # both
 ```
 
 ## Running
@@ -46,22 +40,16 @@ make docker-build-all          # the three above plus code-interpreter
 ```bash
 make docker-run-api            # publishes 8000
 make docker-run-streamlit      # publishes 8501
-make docker-run-combined       # publishes 8000 and 8501
 ```
 
-Or with compose, which adds the bind mounts for `db/`, `data/`, `output/` and
-`.env`:
+Or with `docker-compose.yml`, which adds the bind mounts for `db/`, `data/`,
+`output/` and `.env`:
 
 ```bash
-docker compose -f docker-compose.api.yml up -d --build
-docker compose -f docker-compose.streamlit.yml up -d --build
 docker compose up -d           # api + streamlit from the published GHCR images
+docker compose up -d --build   # build both from the Dockerfile targets instead
+docker compose up -d api       # the API alone
 ```
-
-`docker-compose.api.yml` and `docker-compose.streamlit.yml` build locally from
-the corresponding target. The root `docker-compose.yml` and
-`docker-compose.combined.yml` pull the published `ghcr.io/fjacquet/epic-news-*`
-images instead.
 
 ## Properties worth not breaking
 
@@ -148,10 +136,10 @@ To view container logs:
 
 ```bash
 # API logs
-docker-compose logs api
+docker compose logs api
 
 # Streamlit logs
-docker-compose logs streamlit
+docker compose logs streamlit
 ```
 
 ## Maintenance
@@ -161,13 +149,13 @@ docker-compose logs streamlit
 Pull the latest images:
 
 ```bash
-docker-compose pull
+docker compose pull
 ```
 
 Restart services with new images:
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 ### Backup

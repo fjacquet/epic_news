@@ -1,6 +1,11 @@
+# `docker compose up -d` pulls the published images; `docker compose up -d --build` builds
+# them from the Dockerfile targets; `docker compose up -d api` starts the API alone.
 services:
   api:
     image: ghcr.io/fjacquet/epic-news-api:latest
+    build:
+      context: .
+      target: api
     container_name: epic-news-api
     restart: unless-stopped
     ports:
@@ -26,6 +31,9 @@ services:
 
   streamlit:
     image: ghcr.io/fjacquet/epic-news-streamlit:latest
+    build:
+      context: .
+      target: streamlit
     container_name: epic-news-streamlit
     restart: unless-stopped
     ports:
@@ -52,8 +60,3 @@ services:
 networks:
   epic-news-network:
     driver: bridge
-
-volumes:
-  db_data:
-  app_data:
-  app_output:

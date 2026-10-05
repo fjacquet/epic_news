@@ -4,11 +4,11 @@
 
 .PHONY: help install dev build clean test coverage lint format fix \
         pre-commit security type-check deps-audit sbom \
-        docker-build-api docker-build-streamlit docker-build-combined \
-        docker-build-code-interpreter docker-build-all \
+        docker-build-api docker-build-streamlit docker-build-all \
+        docker-run-api docker-run-streamlit \
         run-streamlit run-api run-crew \
-        clean-pyc clean-test clean-build clean-all \
-        show-deps show-outdated sync lock validate ci-checks all
+        clean-pyc clean-test clean-build \
+        show-deps show-outdated sync lock validate
 
 .DEFAULT_GOAL := help
 
@@ -146,12 +146,6 @@ security: sbom ## Run security checks (bandit + osv-scanner against the SBOM)
 validate: lint type-check test ## Full validation (lint + mypy + test) — matches CI
 	@echo "$(GREEN)✓ Validation complete$(RESET)"
 
-ci-checks: lint test ## Run all CI checks (lint + test)
-	@echo "$(GREEN)✓ CI checks complete$(RESET)"
-
-all: clean dev lint test ## Full clean build (clean + dev + lint + test)
-	@echo "$(GREEN)✓ Full build complete$(RESET)"
-
 ##@ Docker Operations
 
 docker-build-api: ## Build FastAPI Docker image
@@ -162,15 +156,7 @@ docker-build-streamlit: ## Build Streamlit Docker image
 	@echo "$(GREEN)Building Streamlit image...$(RESET)"
 	$(DOCKER) build -f Dockerfile --target streamlit -t $(PROJECT_NAME)-streamlit:latest .
 
-docker-build-combined: ## Build combined Docker image
-	@echo "$(GREEN)Building combined image...$(RESET)"
-	$(DOCKER) build -f Dockerfile --target combined -t $(PROJECT_NAME)-combined:latest .
-
-docker-build-code-interpreter: ## Build code interpreter Docker image
-	@echo "$(GREEN)Building code interpreter image...$(RESET)"
-	$(DOCKER) build -f Dockerfile.code-interpreter -t $(PROJECT_NAME)-code-interpreter:latest .
-
-docker-build-all: docker-build-api docker-build-streamlit docker-build-combined docker-build-code-interpreter ## Build all Docker images
+docker-build-all: docker-build-api docker-build-streamlit ## Build both Docker images
 	@echo "$(GREEN)✓ All Docker images built$(RESET)"
 
 docker-run-api: ## Run FastAPI container (port 8000)
@@ -180,10 +166,6 @@ docker-run-api: ## Run FastAPI container (port 8000)
 docker-run-streamlit: ## Run Streamlit container (port 8501)
 	@echo "$(GREEN)Starting Streamlit container...$(RESET)"
 	$(DOCKER) run -p 8501:8501 --env-file .env $(PROJECT_NAME)-streamlit:latest
-
-docker-run-combined: ## Run combined container (ports 8000, 8501)
-	@echo "$(GREEN)Starting combined container...$(RESET)"
-	$(DOCKER) run -p 8000:8000 -p 8501:8501 --env-file .env $(PROJECT_NAME)-combined:latest
 
 ##@ Application Runtime
 
@@ -232,10 +214,8 @@ clean-build: ## Remove build artifacts
 	rm -rf .mypy_cache/
 	rm -rf debug/
 
-clean-all: clean-pyc clean-test clean-build ## Remove all artifacts
+clean: clean-pyc clean-test clean-build ## Remove all artifacts
 	@echo "$(GREEN)✓ All artifacts removed$(RESET)"
-
-clean: clean-all ## Alias for clean-all
 
 ##@ Dependency Management
 

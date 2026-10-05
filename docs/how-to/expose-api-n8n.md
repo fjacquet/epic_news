@@ -86,8 +86,7 @@ writes its report under `output/`. Handle `429` with the node's
 
 - **n8n runs in Docker on the same host**: attach n8n to the API's Docker
   network (`docker network ls` shows its exact name; Compose may prefix it with
-  the project name) and call `http://epic-news-api:8000/kickoff`
-  (`http://epic-news-combined:8000/kickoff` for the combined image).
+  the project name) and call `http://epic-news-api:8000/kickoff`.
   Container-to-container traffic does not use the published port, so keep
   `EPIC_API_BIND=127.0.0.1`.
 - **n8n runs elsewhere**: put a TLS reverse proxy in front of the API (next
