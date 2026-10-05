@@ -267,7 +267,7 @@ Standard crews run these four steps (plus the stale-JSON delete and `close_mcp`)
 
 ```python
 inputs = self.state.to_crew_inputs()
-self._run_standard(CREW_REGISTRY["POEM"], PoemCrew(), inputs)
+self._run_standard(CREW_REGISTRY[CrewKey.POEM], PoemCrew(), inputs)
 ```
 
 ## Common Crew Patterns by Type

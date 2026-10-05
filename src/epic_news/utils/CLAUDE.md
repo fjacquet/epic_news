@@ -34,18 +34,18 @@ utils/
 ## Flow helpers (how a `generate_*` method is wired)
 
 ```python
-from epic_news.crew_registry import CREW_REGISTRY
+from epic_news.crew_registry import CREW_REGISTRY, CrewKey
 
 @listen("go_generate_poem")
 @trace_task(tracer)
 def generate_poem(self):
     inputs = self.state.to_crew_inputs()
-    self._run_standard(CREW_REGISTRY["POEM"], PoemCrew(), inputs)
+    self._run_standard(CREW_REGISTRY[CrewKey.POEM], PoemCrew(), inputs)
 ```
 
 `ReceptionFlow._run_standard(spec, crew, inputs)` deletes a stale JSON, runs `kickoff_flow`
 (closing MCP in a `finally`), dumps state, loads the model with `load_or_parse_model` and calls
-`emit_report` with the spec's assembler. It returns `(output, model)`. Custom steps (RSS, menu,
+`emit_report` with the spec's assembler. After the DOCX is built it stores the model in `state.report` and the raw result in `state.raw_output` (OSINT sub-reports go in `state.osint`, keyed by crew name; `to_crew_inputs()` excludes all three). It returns `(output, model)`. Custom steps (RSS, menu,
 recipe, shopping, OSINT, holiday) are written out with the helpers below.
 
 - `kickoff_flow(crew_or_factory, context)`: calls `.crew()` when given a `@CrewBase` class

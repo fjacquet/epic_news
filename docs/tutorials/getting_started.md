@@ -361,16 +361,20 @@ def assemble_book_recommender_docx(
 
 ## Step 7: Integrate with ReceptionFlow
 
-Register the crew in `src/epic_news/crew_registry.py`. The registry key is also the
-classifier category, so a crew missing from it is never offered to the classifier:
+Register the crew in `src/epic_news/crew_registry.py`: add a member to the `CrewKey` enum
+and a `CrewSpec` keyed by it. The key is also the classifier category, so a crew missing
+from the registry is never offered to the classifier:
 
 ```python
 from epic_news.models.crews.book_recommendation_report import BookRecommendationReport
 from epic_news.utils.docx_report.crews.book_recommender import assemble_book_recommender_docx
 
+# in CrewKey:
+    BOOK_RECOMMENDER = "BOOK_RECOMMENDER"
+
 # in _SPECS:
     CrewSpec(
-        "BOOK_RECOMMENDER",
+        CrewKey.BOOK_RECOMMENDER,
         "Recommandations de lecture",
         BookRecommendationReport,
         "output/book_recommender/report.json",
@@ -378,7 +382,7 @@ from epic_news.utils.docx_report.crews.book_recommender import assemble_book_rec
         assemble_book_recommender_docx,
     ),
 
-# and add "BOOK_RECOMMENDER" to STANDARD_CREWS
+# and add CrewKey.BOOK_RECOMMENDER to STANDARD_CREWS
 ```
 
 Then edit `src/epic_news/main.py`: route the key in `determine_crew`, add a
@@ -392,7 +396,7 @@ class ReceptionFlow(Flow[ContentState]):
     # ... existing code ...
 
     # In determine_crew():
-    #     if self.state.selected_crew == "BOOK_RECOMMENDER":
+    #     if self.state.selected_crew == CrewKey.BOOK_RECOMMENDER:
     #         return "go_generate_book_recommendations"
 
     @listen("go_generate_book_recommendations")
@@ -400,7 +404,7 @@ class ReceptionFlow(Flow[ContentState]):
     def generate_book_recommendations(self):
         """Generate book recommendations for a genre."""
         inputs = self.state.to_crew_inputs()
-        self._run_standard(CREW_REGISTRY["BOOK_RECOMMENDER"], BookRecommenderCrew(), inputs)
+        self._run_standard(CREW_REGISTRY[CrewKey.BOOK_RECOMMENDER], BookRecommenderCrew(), inputs)
 ```
 
 `_run_standard` deletes a JSON left by an earlier run, runs the crew, loads the model

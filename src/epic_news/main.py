@@ -35,7 +35,7 @@ from pydantic import BaseModel, PydanticDeprecatedSince20, PydanticDeprecatedSin
 
 from epic_news.config.mcp_config import close_mcp
 from epic_news.config.routing_guide import ROUTING_GUIDE, routing_categories
-from epic_news.crew_registry import CREW_REGISTRY, CrewSpec
+from epic_news.crew_registry import CREW_REGISTRY, CrewKey, CrewSpec
 
 # Patch CrewAI's Pydantic schema parser to support Python 3.10 ``X | Y`` unions
 from epic_news.crews.classify.classify_crew import ClassifyCrew
@@ -61,7 +61,7 @@ from epic_news.crews.sales_prospecting.sales_prospecting_crew import SalesProspe
 from epic_news.crews.shopping_advisor.shopping_advisor import ShoppingAdvisorCrew
 from epic_news.crews.tech_stack.tech_stack_crew import TechStackCrew
 from epic_news.crews.web_presence.web_presence_crew import WebPresenceCrew
-from epic_news.models.content_state import ContentState, CrewCategories
+from epic_news.models.content_state import ContentState
 from epic_news.models.crews.company_profiler_report import CompanyProfileReport
 from epic_news.models.crews.cooking_recipe import PaprikaRecipe
 from epic_news.models.crews.cross_reference_report import CrossReferenceReport
@@ -160,7 +160,7 @@ def _category_from_classification(result: Any, categories: dict[str, str]) -> st
     """Category chosen by ClassifyCrew's typed output; UNKNOWN when missing or invalid."""
     model = getattr(result, "pydantic", None)
     selected = (getattr(model, "selected_crew", "") or "").strip().upper()
-    return selected if selected in categories else CrewCategories.UNKNOWN
+    return selected if selected in categories else CrewKey.UNKNOWN
 
 
 """                                                                                      """
@@ -301,7 +301,7 @@ class ReceptionFlow(Flow[ContentState]):
         self.state.output_file = CLASSIFY_DECISION_FILE
 
         candidate = (getattr(self.state.extracted_info, "selected_crew", None) or "").strip().upper()
-        if candidate in self.state.categories and candidate != CrewCategories.UNKNOWN:
+        if candidate in self.state.categories and candidate != CrewKey.UNKNOWN:
             parsed_category = candidate
             self.logger.info(f"✅ Crew selected during extraction: {parsed_category}")
         else:
@@ -335,6 +335,8 @@ class ReceptionFlow(Flow[ContentState]):
         dump_crewai_state(output, spec.key)
         model = load_or_parse_model(json_path, model_cls, output, inputs, spec.title)
         emit_report(self.state, lambda: spec.docx_assembler(model, self.state.to_crew_inputs(), docx_path))
+        self.state.report = model
+        self.state.raw_output = output
         return output, model
 
     @router("classify")
@@ -348,37 +350,37 @@ class ReceptionFlow(Flow[ContentState]):
         to execute (e.g., 'go_generate_sales_prospecting_report').
         If the crew type is not recognized, it defaults to 'go_unknown'.
         """
-        if self.state.selected_crew == "HOLIDAY_PLANNER":
+        if self.state.selected_crew == CrewKey.HOLIDAY_PLANNER:
             return "go_generate_holiday_plan"
-        if self.state.selected_crew == "MEETING_PREP":
+        if self.state.selected_crew == CrewKey.MEETING_PREP:
             return "go_generate_meeting_prep"
-        if self.state.selected_crew == "BOOK_SUMMARY":
+        if self.state.selected_crew == CrewKey.BOOK_SUMMARY:
             return "go_generate_book_summary"
-        if self.state.selected_crew == "COOKING":
+        if self.state.selected_crew == CrewKey.COOKING:
             return "go_generate_recipe"
-        if self.state.selected_crew == "MENU":
+        if self.state.selected_crew == CrewKey.MENU:
             return "go_generate_menu_designer"
-        if self.state.selected_crew == "SHOPPING":
+        if self.state.selected_crew == CrewKey.SHOPPING:
             return "go_generate_shopping_advice"
-        if self.state.selected_crew == "POEM":
+        if self.state.selected_crew == CrewKey.POEM:
             return "go_generate_poem"
-        if self.state.selected_crew == "COMPANY_NEWS":
+        if self.state.selected_crew == CrewKey.COMPANY_NEWS:
             return "go_generate_news_company"
-        if self.state.selected_crew == "OPEN_SOURCE_INTELLIGENCE":
+        if self.state.selected_crew == CrewKey.OPEN_SOURCE_INTELLIGENCE:
             return "go_generate_osint"
-        if self.state.selected_crew == "RSS":
+        if self.state.selected_crew == CrewKey.RSS:
             return "go_generate_rss_weekly"
-        if self.state.selected_crew == "FINDAILY":
+        if self.state.selected_crew == CrewKey.FINDAILY:
             return "go_generate_findaily"
-        if self.state.selected_crew == "NEWSDAILY":
+        if self.state.selected_crew == CrewKey.NEWSDAILY:
             return "go_generate_news_daily"
-        if self.state.selected_crew == "SAINT":
+        if self.state.selected_crew == CrewKey.SAINT:
             return "go_generate_saint_daily"
-        if self.state.selected_crew == "SALES_PROSPECTING":
+        if self.state.selected_crew == CrewKey.SALES_PROSPECTING:
             return "go_generate_sales_prospecting_report"
-        if self.state.selected_crew == "DEEPRESEARCH":
+        if self.state.selected_crew == CrewKey.DEEPRESEARCH:
             return "go_generate_deep_research"
-        if self.state.selected_crew == "PESTEL":
+        if self.state.selected_crew == CrewKey.PESTEL:
             return "go_generate_pestel"
         # Fallback for unhandled or unknown crew types.
         # Consider logging this event for monitoring.
@@ -414,7 +416,7 @@ class ReceptionFlow(Flow[ContentState]):
         """
         inputs = self.state.to_crew_inputs()
         self.logger.info(f"Generating poem about: {inputs.get('topic', 'N/A')}")
-        self._run_standard(CREW_REGISTRY["POEM"], PoemCrew(), inputs)
+        self._run_standard(CREW_REGISTRY[CrewKey.POEM], PoemCrew(), inputs)
 
     @listen("go_generate_news_company")
     @trace_task(tracer)
@@ -425,8 +427,7 @@ class ReceptionFlow(Flow[ContentState]):
         """
         crew_inputs = self.state.to_crew_inputs()
         self.logger.info(f"Generating news about: {crew_inputs.get('topic', 'N/A')}")
-        output, _ = self._run_standard(CREW_REGISTRY["COMPANY_NEWS"], CompanyNewsCrew(), crew_inputs)
-        self.state.company_news_report = output
+        self._run_standard(CREW_REGISTRY[CrewKey.COMPANY_NEWS], CompanyNewsCrew(), crew_inputs)
 
     @listen("go_generate_rss_weekly")
     @trace_task(tracer)
@@ -525,17 +526,16 @@ class ReceptionFlow(Flow[ContentState]):
 
         # Step 3: Generate the DOCX report (an error stops the run; nothing is emailed)
         self.logger.info("Step 3: Generating report...")
+        rss_report = load_rss_weekly_report(str(translated_report_path))
         emit_report(
             self.state,
             lambda: assemble_rss_docx(
-                load_rss_weekly_report(str(translated_report_path)),
+                rss_report,
                 self.state.to_crew_inputs(),
                 "output/rss_weekly/report.docx",
             ),
         )
-
-        # Store the final report path in the state
-        self.state.rss_weekly_report = f"Report generated at {self.state.output_file}"
+        self.state.report = rss_report
         self.logger.info(f"✅ New RSS weekly pipeline complete. Report at: {self.state.output_file}")
 
     @listen("go_generate_findaily")
@@ -547,7 +547,7 @@ class ReceptionFlow(Flow[ContentState]):
         Invokes the `FinDailyCrew` to generate a daily financial analysis report
         including stock portfolio analysis, crypto portfolio analysis, and new
         investment suggestions. Sets `output_file` to `output/findaily/report.docx`
-        and stores the report in `self.state.fin_daily_report`.
+        and stores the report in `self.state.report`.
         """
 
         self.logger.info("💰 Generating daily financial analysis report...")
@@ -560,8 +560,7 @@ class ReceptionFlow(Flow[ContentState]):
         inputs["etf_csv_path"] = os.path.abspath(etf_csv_file)
         inputs["current_date"] = datetime.datetime.now().strftime("%Y-%m-%d")
 
-        output, _ = self._run_standard(CREW_REGISTRY["FINDAILY"], FinDailyCrew(), inputs)
-        self.state.fin_daily_report = output
+        self._run_standard(CREW_REGISTRY[CrewKey.FINDAILY], FinDailyCrew(), inputs)
         self.logger.info(f"✅ Financial report generated → {self.state.output_file}")
 
     @listen("go_generate_news_daily")
@@ -573,7 +572,7 @@ class ReceptionFlow(Flow[ContentState]):
         Invokes the `NewsDailyCrew` to generate a daily news report in French
         covering top 10 news items for Suisse Romande, Suisse, France, Europe,
         World, Wars, and Economy. Sets `output_file` to `output/news_daily/report.docx`
-        and stores the report in `self.state.news_daily_report`.
+        and stores the report in `self.state.report`.
         """
         self.logger.info("📰 Generating daily news report in French...")
 
@@ -584,9 +583,7 @@ class ReceptionFlow(Flow[ContentState]):
 
         # _run_standard points output_file at the rendered report (was the intermediate
         # JSON) so the email attaches — and the UI displays — the report, not raw JSON.
-        output, news_daily_model = self._run_standard(CREW_REGISTRY["NEWSDAILY"], NewsDailyCrew(), inputs)
-        self.state.news_daily_report = output
-        self.state.news_daily_model = news_daily_model
+        self._run_standard(CREW_REGISTRY[CrewKey.NEWSDAILY], NewsDailyCrew(), inputs)
         self.logger.info(f"✅ News content generated → {self.state.output_file}")
 
     @listen("go_generate_saint_daily")
@@ -599,14 +596,10 @@ class ReceptionFlow(Flow[ContentState]):
         covering the saint of the day in Switzerland, including biography,
         significance, and connection to Swiss Catholic traditions.
         Sets `output_file` to `output/saint_daily/report.docx`
-        and stores the report in `self.state.saint_daily_report`.
+        and stores the report in `self.state.report`.
         """
         self.logger.info("⛪ Generating daily saint report in French...")
-        output, saint_model = self._run_standard(
-            CREW_REGISTRY["SAINT"], SaintDailyCrew(), self.state.to_crew_inputs()
-        )
-        self.state.saint_daily_report = output
-        self.state.saint_daily_model = saint_model
+        self._run_standard(CREW_REGISTRY[CrewKey.SAINT], SaintDailyCrew(), self.state.to_crew_inputs())
         self.logger.info(f"✅ Saint content generated → {self.state.output_file}")
 
     @listen("go_generate_recipe")
@@ -615,7 +608,7 @@ class ReceptionFlow(Flow[ContentState]):
         """
         Handles requests classified for the 'CookingCrew'.
 
-        Invokes the `CookingCrew` to generate a recipe. The result is stored in `self.state.recipe`.
+        Invokes the `CookingCrew` to generate a recipe. The result is stored in `self.state.report`.
         """
         # Set output paths using project-relative paths
         # No need to create directories as ensure_output_directories() is called at init
@@ -657,6 +650,7 @@ class ReceptionFlow(Flow[ContentState]):
             self.state,
             lambda: assemble_cooking_docx(recipe_model, self.state.to_crew_inputs(), docx_file),
         )
+        self.state.report = recipe_model
         self.logger.info("✅ Recipe generation complete")
 
     @listen("go_generate_menu_designer")
@@ -698,8 +692,7 @@ class ReceptionFlow(Flow[ContentState]):
         emit_report(self.state, lambda: assemble_menu_docx(menu_plan, crew_inputs, docx_file))
         self.logger.info(f"✅ Menu plan report written to {self.state.output_file}")
 
-        # Store the validated menu plan in state
-        self.state.menu_plan = menu_plan
+        self.state.report = menu_plan
         final_report = self.state.output_file
 
         # Convert WeeklyMenuPlan back to dict for recipe parsing (parse_menu_structure)
@@ -717,7 +710,6 @@ class ReceptionFlow(Flow[ContentState]):
         # Point output_file at the rendered report so send_email emails it (every
         # other generate_* sets this; without it send_email keeps the classify path).
         self.state.output_file = final_report
-        self.state.menu_designer_report = final_report
 
     def _generate_menu_recipe(self, recipe_spec: dict[str, Any]) -> PaprikaRecipe | None:
         """Generate and export one menu recipe; log and skip it on a provider failure."""
@@ -753,15 +745,14 @@ class ReceptionFlow(Flow[ContentState]):
 
         Invokes the `LibraryCrew` to generate a book summary. Sets the main output
         to `output/library/book_summary.json`. The summary is stored in
-        `self.state.book_summary`.
+        `self.state.report`.
         """
         inputs = self.state.to_crew_inputs()
         self.logger.info(f"Generating book summary for: {inputs.get('topic', 'N/A')}")
 
         # _run_standard records the report path in state.output_file so the
         # Streamlit UI / API (app.py reads flow.state.output_file) can locate it.
-        output, _ = self._run_standard(CREW_REGISTRY["BOOK_SUMMARY"], LibraryCrew(), inputs)
-        self.state.book_summary = output
+        self._run_standard(CREW_REGISTRY[CrewKey.BOOK_SUMMARY], LibraryCrew(), inputs)
 
     @listen("go_generate_shopping_advice")
     @trace_task(tracer)
@@ -801,8 +792,6 @@ class ReceptionFlow(Flow[ContentState]):
             return
 
         self.logger.info(f"🔍 ShoppingAdviceOutput extracted: {shopping_advice_obj.product_info.name}")
-        # Store in CrewAI state
-        self.state.shopping_advice_model = shopping_advice_obj
 
         # Set output file path
         topic = self.state.extracted_info.topic or "product-recommendation"
@@ -813,6 +802,7 @@ class ReceptionFlow(Flow[ContentState]):
             self.state,
             lambda: assemble_shopping_docx(shopping_advice_obj, self.state.to_crew_inputs(), docx_file),
         )
+        self.state.report = shopping_advice_obj
         self.logger.info(f"✅ Shopping advice content generated → {self.state.output_file}")
 
     @listen("go_generate_meeting_prep")
@@ -835,10 +825,7 @@ class ReceptionFlow(Flow[ContentState]):
 
         self.logger.info(f"Generating meeting prep for company: {company or 'N/A'}")
 
-        _, meeting_model = self._run_standard(
-            CREW_REGISTRY["MEETING_PREP"], MeetingPrepCrew(), current_inputs
-        )
-        self.state.meeting_prep_report = meeting_model
+        self._run_standard(CREW_REGISTRY[CrewKey.MEETING_PREP], MeetingPrepCrew(), current_inputs)
 
     @listen("go_generate_sales_prospecting_report")
     @trace_task(tracer)
@@ -848,8 +835,8 @@ class ReceptionFlow(Flow[ContentState]):
 
         Invokes the `SalesProspectingCrew` to generate a sales prospecting report,
         including contact information and an approach strategy. Sets `output_file`
-        to `output/sales_prospecting/report.docx` and stores the report
-        in `self.state.contact_info_report`.
+        to `output/sales_prospecting/report.docx` and stores the model in
+        `self.state.report`.
         """
         inputs = self.state.to_crew_inputs()
         company = inputs.get("company")
@@ -864,7 +851,7 @@ class ReceptionFlow(Flow[ContentState]):
             f"Generating sales prospecting report for: {company or 'N/A'} regarding {our_product}"
         )
 
-        self._run_standard(CREW_REGISTRY["SALES_PROSPECTING"], SalesProspectingCrew(), inputs)
+        self._run_standard(CREW_REGISTRY[CrewKey.SALES_PROSPECTING], SalesProspectingCrew(), inputs)
         self.logger.info(f"✅ Sales prospecting report generated → {self.state.output_file}")
 
     @listen("go_generate_deep_research")
@@ -876,7 +863,7 @@ class ReceptionFlow(Flow[ContentState]):
         Invokes the `DeepResearchCrew` to generate a comprehensive research report
         on the specified topic using web search, Wikipedia, and content analysis.
         Sets `output_file` to `output/deep_research/report.docx` and stores the report
-        in `self.state.deep_research_report`.
+        in `self.state.report`.
         """
         topic = self.state.to_crew_inputs().get("topic", "N/A")
         self.logger.info(f"🔍 Generating deep research report for: {topic}")
@@ -885,8 +872,7 @@ class ReceptionFlow(Flow[ContentState]):
         inputs = self.state.to_crew_inputs()
         inputs["current_date"] = datetime.datetime.now().strftime("%Y-%m-%d")
 
-        _, model = self._run_standard(CREW_REGISTRY["DEEPRESEARCH"], DeepResearchCrew(), inputs)
-        self.state.deep_research_report = model
+        self._run_standard(CREW_REGISTRY[CrewKey.DEEPRESEARCH], DeepResearchCrew(), inputs)
         self.logger.info(f"✅ Deep research report generated → {self.state.output_file}")
 
     @listen("go_generate_pestel")
@@ -927,8 +913,7 @@ class ReceptionFlow(Flow[ContentState]):
         )
 
         # No placeholder report: a parsing failure stops the run (nothing is emailed).
-        _, pestel_model = self._run_standard(CREW_REGISTRY["PESTEL"], PestelCrew(), inputs)
-        self.state.pestel_report = pestel_model
+        self._run_standard(CREW_REGISTRY[CrewKey.PESTEL], PestelCrew(), inputs)
         self.logger.info(f"✅ PESTEL report written to {self.state.output_file}")
 
     @listen("go_generate_osint")
@@ -949,14 +934,16 @@ class ReceptionFlow(Flow[ContentState]):
         self.logger.info("⚡ Running 6 OSINT crews in PARALLEL for maximum speed...")
 
         # Run all OSINT crews in parallel (already in async context from CrewAI flow)
-        await self._run_osint_parallel()
+        cross_output, cross_model = await self._run_osint_parallel()
 
         # The DOCX consolidates the JSON files the pipeline just wrote.
         emit_report(
             self.state, lambda: assemble_osint_docx(self.state.to_crew_inputs(), "output/osint/report.docx")
         )
+        self.state.report = cross_model
+        self.state.raw_output = cross_output
 
-    async def _run_osint_parallel(self):
+    async def _run_osint_parallel(self) -> tuple[Any, CrossReferenceReport]:
         """
         Run 6 independent OSINT crews in parallel using asyncio.gather().
 
@@ -969,14 +956,13 @@ class ReceptionFlow(Flow[ContentState]):
         inputs = self.state.to_crew_inputs()
 
         # Define the 6 independent crews to run in parallel
-        # Each is (crew_name, json_file, model_class, crew_class, state_attr, dump_label)
+        # Each is (crew_name, json_file, model_class, crew_class, dump_label)
         parallel_crews = [
             (
                 "company_profile",
                 "output/osint/company_profile.json",
                 CompanyProfileReport,
                 CompanyProfilerCrew,
-                "company_profile",
                 "COMPANY_PROFILE",
             ),
             (
@@ -984,7 +970,6 @@ class ReceptionFlow(Flow[ContentState]):
                 "output/osint/tech_stack.json",
                 TechStackReport,
                 TechStackCrew,
-                "tech_stack",
                 "TECH_STACK",
             ),
             (
@@ -992,7 +977,6 @@ class ReceptionFlow(Flow[ContentState]):
                 "output/osint/web_presence.json",
                 WebPresenceReport,
                 WebPresenceCrew,
-                "web_presence_report",
                 "WEB_PRESENCE",
             ),
             (
@@ -1000,7 +984,6 @@ class ReceptionFlow(Flow[ContentState]):
                 "output/osint/hr_intelligence.json",
                 HRIntelligenceReport,
                 HRIntelligenceCrew,
-                "hr_intelligence_report",
                 "HR_INTELLIGENCE",
             ),
             (
@@ -1008,7 +991,6 @@ class ReceptionFlow(Flow[ContentState]):
                 "output/osint/legal_analysis.json",
                 LegalAnalysisReport,
                 LegalAnalysisCrew,
-                "legal_analysis_report",
                 "LEGAL_ANALYSIS",
             ),
             (
@@ -1016,7 +998,6 @@ class ReceptionFlow(Flow[ContentState]):
                 "output/osint/geospatial_analysis.json",
                 GeospatialAnalysisReport,
                 GeospatialAnalysisCrew,
-                "geospatial_analysis",
                 "GEOSPATIAL_ANALYSIS",
             ),
         ]
@@ -1032,7 +1013,6 @@ class ReceptionFlow(Flow[ContentState]):
             json_file: str,
             model_class: type,
             crew_class: type,
-            state_attr: str,
             dump_label: str,
         ) -> tuple[str, Any]:
             """Run a single crew asynchronously."""
@@ -1056,13 +1036,13 @@ class ReceptionFlow(Flow[ContentState]):
             Path(json_file).write_text(model.model_dump_json(), encoding="utf-8")
 
             self.logger.info(f"✅ {crew_name} completed and JSON written to {json_file}")
-            return (state_attr, output)
+            return (crew_name, model)
 
         # Run all 6 crews in parallel
         self.logger.info("⚡ Launching 6 crews in parallel with asyncio.gather()...")
         tasks = [
-            run_crew(name, json_f, model_cls, crew_cls, state_attr, dump_label)
-            for name, json_f, model_cls, crew_cls, state_attr, dump_label in parallel_crews
+            run_crew(name, json_f, model_cls, crew_cls, dump_label)
+            for name, json_f, model_cls, crew_cls, dump_label in parallel_crews
         ]
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
@@ -1071,21 +1051,22 @@ class ReceptionFlow(Flow[ContentState]):
             if isinstance(result, BaseException):
                 self.logger.error(f"❌ Crew failed with error: {result}")
             elif isinstance(result, tuple):
-                state_attr, output = result
-                setattr(self.state, state_attr, output)
+                crew_name, model = result
+                self.state.osint[crew_name] = model
 
         parallel_elapsed = time.perf_counter() - start_time
         self.logger.info(f"⚡ 6 parallel crews completed in {parallel_elapsed:.2f}s")
 
         # Now run cross-reference report sequentially (depends on all parallel crews)
         self.logger.info("🔗 Running cross-reference report...")
-        await self._run_cross_reference_report(inputs)
+        cross_reference = await self._run_cross_reference_report(inputs)
 
         total_elapsed = time.perf_counter() - start_time
         self.logger.info(f"✅ Full OSINT pipeline completed in {total_elapsed:.2f}s")
+        return cross_reference
 
-    async def _run_cross_reference_report(self, inputs: dict[str, Any]) -> None:
-        """Run cross-reference report after all parallel crews complete."""
+    async def _run_cross_reference_report(self, inputs: dict[str, Any]) -> tuple[Any, CrossReferenceReport]:
+        """Run cross-reference report after all parallel crews complete; return its output and model."""
         json_file = "output/osint/global_report.json"
 
         self.state.output_file = json_file
@@ -1098,7 +1079,6 @@ class ReceptionFlow(Flow[ContentState]):
         # A previous run's report (maybe another target) must not stand in for this one.
         Path(json_file).unlink(missing_ok=True)
         output = await akickoff_flow(CrossReferenceReportCrew(), crew_inputs)
-        self.state.cross_reference_report = output
 
         dump_crewai_state(output, "CROSS_REFERENCE_REPORT")
         report_model = load_or_parse_model(
@@ -1107,6 +1087,7 @@ class ReceptionFlow(Flow[ContentState]):
         # The crew's own output_file is not always written; the OSINT DOCX reads this file.
         Path(json_file).write_text(report_model.model_dump_json(), encoding="utf-8")
         self.logger.info(f"✅ Cross reference report generated: {json_file}")
+        return output, report_model
 
     @listen("go_generate_holiday_plan")
     @trace_task(tracer)
@@ -1119,7 +1100,7 @@ class ReceptionFlow(Flow[ContentState]):
         When extraction yields no single 'destination' (e.g. a multi-stop road
         trip), falls back to the raw user request so the crew still runs. Sets
         `output_file` to `output/holiday/itinerary.docx` and stores the crew
-        result in `self.state.holiday_plan`.
+        result in `self.state.raw_output`.
         """
         current_inputs = self.state.to_crew_inputs()
         current_inputs["output_file"] = "output/holiday/itinerary.json"
@@ -1155,7 +1136,7 @@ class ReceptionFlow(Flow[ContentState]):
         docx_file = "output/holiday/itinerary.docx"
         assemble_holiday_docx(crew_result, current_inputs, docx_file)
         self.state.output_file = docx_file
-        self.state.holiday_plan = crew_result
+        self.state.raw_output = crew_result
         return "generate_holiday_plan"
 
     @listen(

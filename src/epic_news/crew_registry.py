@@ -8,6 +8,7 @@ per run (a file named after the request) or does not have.
 
 from collections.abc import Callable
 from dataclasses import dataclass
+from enum import StrEnum
 
 from pydantic import BaseModel
 
@@ -44,11 +45,33 @@ from epic_news.utils.docx_report.crews.shopping import assemble_shopping_docx
 from epic_news.utils.holiday_report import assemble_holiday_docx
 
 
+class CrewKey(StrEnum):
+    """Routing key of every crew, plus UNKNOWN. Values equal names (classifier output)."""
+
+    BOOK_SUMMARY = "BOOK_SUMMARY"
+    COMPANY_NEWS = "COMPANY_NEWS"
+    COOKING = "COOKING"
+    DEEPRESEARCH = "DEEPRESEARCH"
+    FINDAILY = "FINDAILY"
+    HOLIDAY_PLANNER = "HOLIDAY_PLANNER"
+    MEETING_PREP = "MEETING_PREP"
+    MENU = "MENU"
+    NEWSDAILY = "NEWSDAILY"
+    OPEN_SOURCE_INTELLIGENCE = "OPEN_SOURCE_INTELLIGENCE"
+    PESTEL = "PESTEL"
+    POEM = "POEM"
+    RSS = "RSS"
+    SAINT = "SAINT"
+    SALES_PROSPECTING = "SALES_PROSPECTING"
+    SHOPPING = "SHOPPING"
+    UNKNOWN = "UNKNOWN"
+
+
 @dataclass(frozen=True)
 class CrewSpec:
     """Metadata for one crew. It does not route and does not run anything."""
 
-    key: str
+    key: CrewKey
     title: str
     model_cls: type[BaseModel] | None
     json_path: str | None
@@ -58,7 +81,7 @@ class CrewSpec:
 
 _SPECS = (
     CrewSpec(
-        "POEM",
+        CrewKey.POEM,
         "Création poétique",
         PoemJSONOutput,
         "output/poem/poem.json",
@@ -66,7 +89,7 @@ _SPECS = (
         assemble_poem_docx,
     ),
     CrewSpec(
-        "COMPANY_NEWS",
+        CrewKey.COMPANY_NEWS,
         "Actualités d'entreprise",
         CompanyNewsReport,
         "output/company_news/report.json",
@@ -74,7 +97,7 @@ _SPECS = (
         assemble_company_news_docx,
     ),
     CrewSpec(
-        "FINDAILY",
+        CrewKey.FINDAILY,
         "Analyse financière quotidienne",
         FinancialReport,
         "output/findaily/report.json",
@@ -82,7 +105,7 @@ _SPECS = (
         assemble_fin_daily_docx,
     ),
     CrewSpec(
-        "NEWSDAILY",
+        CrewKey.NEWSDAILY,
         "Revue de presse quotidienne",
         NewsDailyReport,
         "output/news_daily/news_data.json",
@@ -90,7 +113,7 @@ _SPECS = (
         assemble_news_daily_docx,
     ),
     CrewSpec(
-        "SAINT",
+        CrewKey.SAINT,
         "Saint du jour",
         SaintData,
         "output/saint_daily/report.json",
@@ -98,7 +121,7 @@ _SPECS = (
         assemble_saint_docx,
     ),
     CrewSpec(
-        "BOOK_SUMMARY",
+        CrewKey.BOOK_SUMMARY,
         "Analyse littéraire",
         BookSummaryReport,
         "output/library/book_summary.json",
@@ -106,7 +129,7 @@ _SPECS = (
         assemble_book_summary_docx,
     ),
     CrewSpec(
-        "MEETING_PREP",
+        CrewKey.MEETING_PREP,
         "Préparation de réunion",
         MeetingPrepReport,
         "output/meeting/meeting_preparation.json",
@@ -114,7 +137,7 @@ _SPECS = (
         assemble_meeting_prep_docx,
     ),
     CrewSpec(
-        "SALES_PROSPECTING",
+        CrewKey.SALES_PROSPECTING,
         "Prospection commerciale",
         SalesProspectingReport,
         "output/sales_prospecting/report.json",
@@ -122,7 +145,7 @@ _SPECS = (
         assemble_sales_prospecting_docx,
     ),
     CrewSpec(
-        "PESTEL",
+        CrewKey.PESTEL,
         "Analyse PESTEL",
         PestelReport,
         "output/pestel/report.json",
@@ -130,7 +153,7 @@ _SPECS = (
         assemble_pestel_docx,
     ),
     CrewSpec(
-        "DEEPRESEARCH",
+        CrewKey.DEEPRESEARCH,
         "Recherche approfondie",
         DeepResearchReport,
         "output/deep_research/report.json",
@@ -138,17 +161,17 @@ _SPECS = (
         assemble_deep_research_docx,
     ),
     CrewSpec(
-        "RSS",
+        CrewKey.RSS,
         "Synthèse RSS hebdomadaire",
         RssWeeklyReport,
         "output/rss_weekly/final-report.json",
         "output/rss_weekly/report.docx",
         assemble_rss_docx,
     ),
-    CrewSpec("COOKING", "Recette", PaprikaRecipe, None, None, assemble_cooking_docx),
-    CrewSpec("MENU", "Menu de la semaine", WeeklyMenuPlan, None, None, assemble_menu_docx),
+    CrewSpec(CrewKey.COOKING, "Recette", PaprikaRecipe, None, None, assemble_cooking_docx),
+    CrewSpec(CrewKey.MENU, "Menu de la semaine", WeeklyMenuPlan, None, None, assemble_menu_docx),
     CrewSpec(
-        "SHOPPING",
+        CrewKey.SHOPPING,
         "Conseil d'achat",
         ShoppingAdviceOutput,
         "output/shopping_advisor/shopping_advice.json",
@@ -156,7 +179,7 @@ _SPECS = (
         assemble_shopping_docx,
     ),
     CrewSpec(
-        "HOLIDAY_PLANNER",
+        CrewKey.HOLIDAY_PLANNER,
         "Planificateur de vacances",
         None,
         "output/holiday/itinerary.json",
@@ -164,7 +187,7 @@ _SPECS = (
         assemble_holiday_docx,
     ),
     CrewSpec(
-        "OPEN_SOURCE_INTELLIGENCE",
+        CrewKey.OPEN_SOURCE_INTELLIGENCE,
         "Intelligence open source",
         CrossReferenceReport,
         "output/osint/global_report.json",
@@ -173,18 +196,18 @@ _SPECS = (
     ),
 )
 
-CREW_REGISTRY: dict[str, CrewSpec] = {spec.key: spec for spec in _SPECS}
+CREW_REGISTRY: dict[CrewKey, CrewSpec] = {spec.key: spec for spec in _SPECS}
 
 # Crews whose Flow step runs through ReceptionFlow._run_standard.
-STANDARD_CREWS: tuple[str, ...] = (
-    "POEM",
-    "COMPANY_NEWS",
-    "FINDAILY",
-    "NEWSDAILY",
-    "SAINT",
-    "BOOK_SUMMARY",
-    "MEETING_PREP",
-    "SALES_PROSPECTING",
-    "PESTEL",
-    "DEEPRESEARCH",
+STANDARD_CREWS: tuple[CrewKey, ...] = (
+    CrewKey.POEM,
+    CrewKey.COMPANY_NEWS,
+    CrewKey.FINDAILY,
+    CrewKey.NEWSDAILY,
+    CrewKey.SAINT,
+    CrewKey.BOOK_SUMMARY,
+    CrewKey.MEETING_PREP,
+    CrewKey.SALES_PROSPECTING,
+    CrewKey.PESTEL,
+    CrewKey.DEEPRESEARCH,
 )

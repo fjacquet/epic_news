@@ -26,4 +26,4 @@ def test_generate_menu_designer_raises_and_produces_nothing(monkeypatch):
         flow.generate_menu_designer()
 
     assert calls == []
-    assert not flow.state.menu_designer_report
+    assert flow.state.report is None

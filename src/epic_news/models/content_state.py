@@ -6,32 +6,12 @@ for the application during execution.
 
 import datetime
 import os
-from typing import Any, Optional
+from typing import Any
 
 from loguru import logger
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, SerializeAsAny
 
-from epic_news.crew_registry import CREW_REGISTRY
-from epic_news.models.crews.book_summary_report import BookSummaryReport
-from epic_news.models.crews.company_news_report import CompanyNewsReport
-from epic_news.models.crews.company_profiler_report import CompanyProfileReport
-from epic_news.models.crews.cooking_recipe import PaprikaRecipe
-from epic_news.models.crews.cross_reference_report import CrossReferenceReport
-from epic_news.models.crews.deep_research import DeepResearchReport
-from epic_news.models.crews.financial_report import FinancialReport
-from epic_news.models.crews.geospatial_analysis_report import GeospatialAnalysisReport
-from epic_news.models.crews.hr_intelligence_report import HRIntelligenceReport
-from epic_news.models.crews.legal_analysis_report import LegalAnalysisReport
-from epic_news.models.crews.meeting_prep_report import MeetingPrepReport
-from epic_news.models.crews.menu_designer_report import WeeklyMenuPlan
-from epic_news.models.crews.news_daily_report import NewsDailyReport
-from epic_news.models.crews.pestel_report import PestelReport
-from epic_news.models.crews.poem_report import PoemJSONOutput
-from epic_news.models.crews.rss_weekly_report import RssWeeklyReport
-from epic_news.models.crews.saint_daily_report import SaintData
-from epic_news.models.crews.shopping_advice_report import ShoppingAdviceOutput
-from epic_news.models.crews.tech_stack_report import TechStackReport
-from epic_news.models.crews.web_presence_report import WebPresenceReport
+from epic_news.crew_registry import CREW_REGISTRY, CrewKey
 from epic_news.models.extracted_info import ExtractedInfo
 from epic_news.utils.menu_days import parse_num_days
 from epic_news.utils.menu_generator import MenuGenerator
@@ -49,12 +29,14 @@ MAX_FREETEXT_CHARS = 1500
 class CrewCategories:
     """Crew categories: the registry keys plus UNKNOWN (simplification S4)."""
 
-    UNKNOWN = "UNKNOWN"
+    UNKNOWN = CrewKey.UNKNOWN
 
     @classmethod
     def to_dict(cls) -> dict[str, str]:
         """Category name -> value, as the classifier and routing guide expect."""
-        return {key: key for key in sorted(CREW_REGISTRY)} | {cls.UNKNOWN: cls.UNKNOWN}
+        return {key.value: key.value for key in sorted(CREW_REGISTRY)} | {
+            cls.UNKNOWN.value: cls.UNKNOWN.value
+        }
 
 
 # Default values
@@ -109,48 +91,11 @@ class ContentState(BaseModel):
     final_report: str | None = None
     error_message: str = ""
 
-    # Business Intelligence Reports
-    company_profile: Optional["CompanyProfileReport"] = None
-    tech_stack: Optional["TechStackReport"] = None
-    tech_stack_report: Optional["TechStackReport"] = None
-    contact_info_report: Any | None = None
-    lead_score_report: Any | None = None
-
-    # Analysis Reports
-    geospatial_analysis: Optional["GeospatialAnalysisReport"] = None
-    osint_report: Optional["CrossReferenceReport"] = None
-    hr_intelligence_report: Optional["HRIntelligenceReport"] = None
-    legal_analysis_report: Optional["LegalAnalysisReport"] = None
-    web_presence_report: Optional["WebPresenceReport"] = None
-    cross_reference_report: Optional["CrossReferenceReport"] = None
-    pestel_report: Optional["PestelReport"] = None
-
-    # Content Reports
-    news_report: Optional["NewsDailyReport"] = None
-    company_news_report: Optional["CompanyNewsReport"] = None
-    deep_research_report: Optional["DeepResearchReport"] = None
-    rss_weekly_report: Optional["RssWeeklyReport"] = None
-    fin_daily_report: Optional["FinancialReport"] = None
-    news_daily_report: Optional["NewsDailyReport"] = None
-    saint_daily_report: Optional["SaintData"] = None
-    post_report: Any | None = None
-
-    # Specialized Reports
-    location_report: Any | None = None
-    holiday_plan: Any | None = None
-    recipe: Optional["PaprikaRecipe"] = None
-    menu_designer_report: Optional["WeeklyMenuPlan"] = None
-    menu_plan: Optional["WeeklyMenuPlan"] = None
-    book_summary: Optional["BookSummaryReport"] = None
-    shopping_advice_report: Optional["ShoppingAdviceOutput"] = None
-    shopping_advice_model: ShoppingAdviceOutput | None = None
-    poem: Optional["PoemJSONOutput"] = None
-    meeting_prep_report: Optional["MeetingPrepReport"] = None
-
-    # NEW: Model-based state fields for refactored architecture
-    financial_report_model: Optional["FinancialReport"] = None
-    news_daily_model: Optional["NewsDailyReport"] = None
-    saint_daily_model: Optional["SaintData"] = None
+    # The validated model of the report step that ran, and its raw crew result when the step keeps one.
+    report: SerializeAsAny[BaseModel] | None = None
+    raw_output: Any = None
+    # OSINT sub-reports by crew name (company_profile, tech_stack, ...): only the crews that succeeded.
+    osint: dict[str, SerializeAsAny[BaseModel]] = Field(default_factory=dict)
 
     # ============================================================================
     # COMMUNICATION SETTINGS
@@ -191,7 +136,7 @@ class ContentState(BaseModel):
             dict: Flattened dictionary with all necessary inputs for crew execution
         """
         # Start with a dump of the top-level model, excluding the nested part
-        inputs = self.model_dump(exclude={"extracted_info"})
+        inputs = self.model_dump(exclude={"extracted_info", "report", "raw_output", "osint"})
 
         # Flatten extracted_info if it exists
         if self.extracted_info:

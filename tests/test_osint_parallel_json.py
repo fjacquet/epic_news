@@ -5,6 +5,7 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
+from pydantic import BaseModel
 
 from epic_news import main as main_mod
 from epic_news.main import ReceptionFlow
@@ -25,7 +26,7 @@ def osint_run(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
 
     monkeypatch.setattr(ReceptionFlow, "_run_cross_reference_report", no_cross_reference)
 
-    def run(failing_crew: type | None = None) -> None:
+    def run(failing_crew: type | None = None) -> ReceptionFlow:
         async def fake_kickoff(crew, inputs):
             if failing_crew is not None and isinstance(crew, failing_crew):
                 raise RuntimeError("boom")
@@ -34,6 +35,7 @@ def osint_run(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         monkeypatch.setattr(main_mod, "akickoff_flow", fake_kickoff)
         flow = ReceptionFlow(user_request="osint on Acme")
         asyncio.run(flow._run_osint_parallel())
+        return flow
 
     return tmp_path / "output" / "osint", run
 
@@ -69,3 +71,22 @@ def test_stale_json_is_removed_when_its_crew_fails(osint_run):
 
     assert not stale.exists()
     assert (osint_dir / "company_profile.json").exists()
+
+
+def test_state_osint_holds_the_models_of_the_crews_that_succeeded(osint_run, monkeypatch):
+    _, run = osint_run
+
+    class Fake(BaseModel):
+        ok: bool = True
+
+    monkeypatch.setattr(main_mod, "parse_crewai_output", lambda *a, **k: Fake())
+    flow = run(failing_crew=main_mod.TechStackCrew)
+
+    assert set(flow.state.osint) == {
+        "company_profile",
+        "web_presence",
+        "hr_intelligence",
+        "legal_analysis",
+        "geospatial_analysis",
+    }
+    assert all(isinstance(model, BaseModel) for model in flow.state.osint.values())

@@ -109,8 +109,8 @@ def test_generate_pestel_populates_state_and_docx(pestel_flow_env) -> None:
     assert calls["pestel_init"] == 1
 
     # State holds a fully-validated PestelReport instance.
-    assert isinstance(flow.state.pestel_report, PestelReport)
-    assert flow.state.pestel_report.topic == "Test Topic"
+    assert isinstance(flow.state.report, PestelReport)
+    assert flow.state.report.topic == "Test Topic"
 
     # output_file points at the DOCX (attachment for email); no HTML or Markdown side files.
     assert flow.state.output_file == "output/pestel/report.docx"
@@ -174,7 +174,7 @@ def test_generate_pestel_falls_back_to_raw_when_json_missing(
     flow = ReceptionFlow(user_request="PESTEL fallback")
     flow.generate_pestel()
 
-    assert isinstance(flow.state.pestel_report, PestelReport)
+    assert isinstance(flow.state.report, PestelReport)
     assert assembled[0][0].topic == "Test Topic"
 
 
@@ -386,4 +386,4 @@ def test_generate_pestel_parse_failure_stops_the_run(
 
     assert calls["assembled"] == []
     assert flow.state.output_file == "output/pestel/report.json"
-    assert flow.state.pestel_report is None
+    assert flow.state.report is None
