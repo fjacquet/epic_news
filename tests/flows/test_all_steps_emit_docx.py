@@ -5,12 +5,14 @@ the steps run from a tmp cwd so any file they write lands under tmp_path/output/
 """
 
 import asyncio
+import dataclasses
 from collections import defaultdict
 from unittest.mock import MagicMock
 
 import pytest
 
 import epic_news.main as main_mod
+from epic_news import crew_registry
 from epic_news.main import ReceptionFlow
 
 
@@ -33,6 +35,11 @@ def flow(tmp_path, monkeypatch):
     for name in dir(main_mod):
         if name.startswith("assemble_") and name.endswith("_docx"):
             monkeypatch.setattr(main_mod, name, lambda *a, **k: a[-1])
+    # The standard steps take their assembler from the registry.
+    for key, spec in crew_registry.CREW_REGISTRY.items():
+        monkeypatch.setitem(
+            crew_registry.CREW_REGISTRY, key, dataclasses.replace(spec, docx_assembler=lambda *a, **k: a[-1])
+        )
     # Recipe step
     monkeypatch.setattr(main_mod, "recipe_from_result", lambda *a, **k: MagicMock())
     monkeypatch.setattr(main_mod, "export_recipe", lambda *a, **k: None)
@@ -120,6 +127,9 @@ ERROR_CASES = [
 ]
 
 
+_STANDARD_ASSEMBLER_KEYS = {"assemble_saint_docx": "SAINT"}
+
+
 @pytest.mark.parametrize("method,assembler,before", ERROR_CASES, ids=[c[0] for c in ERROR_CASES])
 def test_assembler_error_stops_the_step(flow, monkeypatch, tmp_path, method, assembler, before):
     """A report that cannot be built raises out of the step; output_file never names a DOCX."""
@@ -127,7 +137,15 @@ def test_assembler_error_stops_the_step(flow, monkeypatch, tmp_path, method, ass
     def boom(*a, **k):
         raise RuntimeError("pandoc failed")
 
-    monkeypatch.setattr(main_mod, assembler, boom)
+    if assembler in _STANDARD_ASSEMBLER_KEYS:  # standard steps take their assembler from the registry
+        key = _STANDARD_ASSEMBLER_KEYS[assembler]
+        monkeypatch.setitem(
+            crew_registry.CREW_REGISTRY,
+            key,
+            dataclasses.replace(crew_registry.CREW_REGISTRY[key], docx_assembler=boom),
+        )
+    else:
+        monkeypatch.setattr(main_mod, assembler, boom)
     with pytest.raises(RuntimeError, match="pandoc failed"):
         result = getattr(flow, method)()
         if asyncio.iscoroutine(result):

@@ -621,25 +621,12 @@ class ReceptionFlow(Flow[ContentState]):
         Sets `output_file` to `output/saint_daily/report.docx`
         and stores the report in `self.state.saint_daily_report`.
         """
-        self.state.output_file = "output/saint_daily/report.json"
         self.logger.info("⛪ Generating daily saint report in French...")
-
-        # Prepare inputs for the crew
-        inputs = self.state.to_crew_inputs()
-
-        # Kick off the crew (kickoff-only orchestration)
-        output = kickoff_flow(SaintDailyCrew(), inputs)
-        dump_crewai_state(output, "SAINT_DAILY")
-        self.state.saint_daily_report = output
-
-        saint_model = load_or_parse_model(self.state.output_file, SaintData, output, inputs, "saint daily")
-        self.state.saint_daily_model = saint_model
-        emit_report(
-            self.state,
-            lambda: assemble_saint_docx(
-                saint_model, self.state.to_crew_inputs(), "output/saint_daily/report.docx"
-            ),
+        output, saint_model = self._run_standard(
+            CREW_REGISTRY["SAINT"], SaintDailyCrew(), self.state.to_crew_inputs()
         )
+        self.state.saint_daily_report = output
+        self.state.saint_daily_model = saint_model
         self.logger.info(f"✅ Saint content generated → {self.state.output_file}")
 
     @listen("go_generate_recipe")
