@@ -1,4 +1,4 @@
-from typing import Any, cast
+from typing import Any
 
 from crewai import Agent, Crew, Process, Task
 from crewai.agents.agent_builder.base_agent import BaseAgent
@@ -44,7 +44,7 @@ class ClassifyCrew:
     def crew(self) -> Crew:
         """Creates a simple classification crew"""
         return Crew(
-            agents=cast(list[Agent], self.agents),  # type: ignore[arg-type]
+            agents=self.agents,
             tasks=self.tasks,
             process=Process.sequential,
             verbose=True,
