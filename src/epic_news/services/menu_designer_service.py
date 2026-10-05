@@ -7,8 +7,13 @@ from loguru import logger
 
 from epic_news.crews.menu_designer.menu_designer import MenuDesignerCrew
 from epic_news.models.crews.menu_designer_report import WeeklyMenuPlan
+from epic_news.utils.interrupt import RunCancelledError
 from epic_news.utils.menu_days import DEFAULT_MENU_DAYS
 from epic_news.utils.menu_plan_validator import MenuPlanValidator
+
+
+class MenuPlanError(RuntimeError):
+    """No real menu plan could be produced; the run must stop rather than ship placeholder dishes."""
 
 
 class MenuDesignerService:
@@ -18,7 +23,6 @@ class MenuDesignerService:
         """Initialize the menu designer service."""
         self.crew = MenuDesignerCrew()
         self.validator = MenuPlanValidator()
-        self.used_fallback = False
 
     def generate_menu_plan(
         self,
@@ -29,7 +33,7 @@ class MenuDesignerService:
         current_date: str = "2025-01-27",
         menu_slug: str = "menu_hebdomadaire",
         num_days: int = DEFAULT_MENU_DAYS,
-    ) -> WeeklyMenuPlan | None:
+    ) -> WeeklyMenuPlan:
         """
         Generate a weekly menu plan with validation and error recovery.
 
@@ -43,9 +47,11 @@ class MenuDesignerService:
             num_days: Number of days the menu must cover (1-7)
 
         Returns:
-            WeeklyMenuPlan: Validated menu plan or None if generation fails
+            WeeklyMenuPlan: Validated menu plan
+
+        Raises:
+            MenuPlanError: the crew raised or returned no usable plan
         """
-        self.used_fallback = False
         try:
             logger.info("🍽️ Starting menu plan generation...")
 
@@ -70,16 +76,11 @@ class MenuDesignerService:
             if menu_plan:
                 logger.info("✅ Menu plan generated successfully!")
                 return menu_plan
-            return self._fallback("no usable menu plan in the crew output", num_days)
-
+        except RunCancelledError:
+            raise
         except Exception as e:
-            return self._fallback(f"error in menu plan generation: {e}", num_days)
-
-    def _fallback(self, reason: str, num_days: int) -> WeeklyMenuPlan:
-        """Build the placeholder plan, flagging it loudly so it is never mistaken for a real one."""
-        logger.error(f"menu plan fell back to placeholder dishes: {reason}")
-        self.used_fallback = True
-        return self.validator.create_fallback_menu_plan(num_days)
+            raise MenuPlanError(f"error in menu plan generation: {e}") from e
+        raise MenuPlanError("no usable menu plan in the crew output")
 
     @staticmethod
     def _clamp_days(plan: WeeklyMenuPlan, num_days: int) -> WeeklyMenuPlan:

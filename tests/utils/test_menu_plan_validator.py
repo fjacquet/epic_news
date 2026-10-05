@@ -183,24 +183,6 @@ class TestMenuPlanValidator:
         result = MenuPlanValidator.parse_and_validate_ai_output(invalid_json)
         assert result is None
 
-    def test_create_fallback_menu_plan(self):
-        """Test creating fallback menu plan."""
-        fallback = MenuPlanValidator.create_fallback_menu_plan()
-
-        assert isinstance(fallback, WeeklyMenuPlan)
-        assert len(fallback.daily_menus) == 7
-        assert fallback.week_start_date == "2025-01-27"
-        assert fallback.season == "hiver"
-
-        # Check each day has proper structure
-        for daily_menu in fallback.daily_menus:
-            assert daily_menu.lunch is not None
-            assert daily_menu.dinner is not None
-            assert daily_menu.lunch.starter is not None
-            assert daily_menu.lunch.main_course is not None
-            assert daily_menu.dinner.starter is not None
-            assert daily_menu.dinner.main_course is not None
-
     def test_validate_and_fix_daily_meal_missing_dishes(self):
         """Test fixing daily meal with missing dishes."""
         incomplete_meal = {"meal_type": "déjeuner"}
@@ -305,6 +287,3 @@ class TestNumDays:
         }
         result = MenuPlanValidator.validate_and_fix_weekly_plan(_plan(meal, meal), 3)
         assert len(result["daily_menus"]) == 1
-
-    def test_fallback_respects_num_days(self):
-        assert len(MenuPlanValidator.create_fallback_menu_plan(2).daily_menus) == 2
