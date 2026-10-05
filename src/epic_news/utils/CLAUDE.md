@@ -141,8 +141,10 @@ dump_crewai_state(output, "POEM")                      # writes a JSON dump unde
 model = parse_crewai_output(output, PoemJSONOutput, inputs)
 ```
 
-`parse_crewai_output` uses a pydantic output when present, else strips code fences and
-preamble text from `.raw`, repairs the JSON and validates; it raises `ValueError` on empty/invalid output. Also exported:
+`parse_crewai_output` uses a pydantic output when present, else repairs the raw JSON with
+`json_repair` (fences, prose and trailing text are ignored) and validates. Model-specific
+fixes belong on the model as `mode="before"` validators. It raises `ValueError` on
+empty/invalid output. Also exported:
 `make_serializable`, `analyze_crewai_output`, `log_state_keys`.
 
 `ContentExtractorFactory.extract_content(state_data, crew_type)` /
