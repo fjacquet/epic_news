@@ -4,7 +4,7 @@ import inspect
 import re
 
 from epic_news.config.routing_guide import routing_categories
-from epic_news.crew_registry import CREW_REGISTRY, STANDARD_CREWS
+from epic_news.crew_registry import CREW_REGISTRY, STANDARD_CREWS, CrewKey
 from epic_news.main import ReceptionFlow
 from epic_news.models.content_state import ContentState, CrewCategories
 
@@ -31,7 +31,7 @@ EXPECTED_KEYS = {
 def _router_branches() -> dict[str, str]:
     """selected_crew value -> returned step name, read from determine_crew's source."""
     source = inspect.getsource(ReceptionFlow.determine_crew)
-    pairs = re.findall(r'selected_crew == "(\w+)":\s*return "(\w+)"', source)
+    pairs = re.findall(r'selected_crew == CrewKey\.(\w+):\s*return "(\w+)"', source)
     return dict(pairs)
 
 
@@ -109,5 +109,19 @@ def test_routing_categories_text_is_unchanged():
 def test_standard_crews_are_exactly_the_steps_using_run_standard():
     """STANDARD_CREWS must list the keys main.py passes to _run_standard, no more, no less."""
     source = inspect.getsource(inspect.getmodule(ReceptionFlow))
-    used = set(re.findall(r'_run_standard\(\s*CREW_REGISTRY\["(\w+)"\]', source))
+    used = set(re.findall(r"_run_standard\(\s*CREW_REGISTRY\[CrewKey\.(\w+)\]", source))
     assert used == set(STANDARD_CREWS)
+
+
+def test_crew_keys_match_the_registry():
+    assert {key.value for key in CrewKey} == set(CREW_REGISTRY) | {"UNKNOWN"}
+    assert all(key.value == key.name for key in CrewKey)
+    assert all(isinstance(key, CrewKey) for key in CREW_REGISTRY)
+    assert CrewKey.UNKNOWN not in CREW_REGISTRY
+
+
+def test_non_member_values_route_to_unknown():
+    flow = ReceptionFlow(user_request="x")
+    for value in ("poem", "", "POEM "):
+        flow.state.selected_crew = value
+        assert flow.determine_crew() == "go_unknown", value

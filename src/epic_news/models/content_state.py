@@ -11,7 +11,7 @@ from typing import Any, Optional
 from loguru import logger
 from pydantic import BaseModel, Field
 
-from epic_news.crew_registry import CREW_REGISTRY
+from epic_news.crew_registry import CREW_REGISTRY, CrewKey
 from epic_news.models.crews.book_summary_report import BookSummaryReport
 from epic_news.models.crews.company_news_report import CompanyNewsReport
 from epic_news.models.crews.company_profiler_report import CompanyProfileReport
@@ -49,12 +49,14 @@ MAX_FREETEXT_CHARS = 1500
 class CrewCategories:
     """Crew categories: the registry keys plus UNKNOWN (simplification S4)."""
 
-    UNKNOWN = "UNKNOWN"
+    UNKNOWN = CrewKey.UNKNOWN
 
     @classmethod
     def to_dict(cls) -> dict[str, str]:
         """Category name -> value, as the classifier and routing guide expect."""
-        return {key: key for key in sorted(CREW_REGISTRY)} | {cls.UNKNOWN: cls.UNKNOWN}
+        return {key.value: key.value for key in sorted(CREW_REGISTRY)} | {
+            cls.UNKNOWN.value: cls.UNKNOWN.value
+        }
 
 
 # Default values
