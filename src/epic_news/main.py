@@ -111,7 +111,7 @@ from epic_news.utils.flow_helpers import load_or_parse_model, render_and_write_h
 from epic_news.utils.holiday_report import assemble_holiday_docx
 from epic_news.utils.html.template_manager import TemplateManager
 from epic_news.utils.html.template_renderers.pestel_markdown import pestel_to_markdown
-from epic_news.utils.interrupt import RunCancelledError, install_force_quit_handler
+from epic_news.utils.interrupt import RunCancelledError, install_force_quit_handler, raise_if_cancelled
 from epic_news.utils.logger import setup_logging
 from epic_news.utils.menu_days import DEFAULT_MENU_DAYS
 from epic_news.utils.menu_generator import MenuGenerator
@@ -206,6 +206,7 @@ def _pestel_recent_research(topic: str, geography: str) -> dict[str, str]:
     tool = RecentSearchTool()
 
     def _search(dimension: str) -> str:
+        raise_if_cancelled(f"PESTEL pre-search ({dimension})")
         query = f"{dimension} factors affecting {topic} in {geography}: latest developments"
         try:
             text = str(tool._run(query)).strip()
@@ -213,6 +214,8 @@ def _pestel_recent_research(topic: str, geography: str) -> dict[str, str]:
             if isinstance(payload, dict) and payload.get("error"):
                 logger.warning(f"PESTEL pre-search error for {dimension}: {payload['error']}")
                 return _PESTEL_NO_RECENT_RESULTS
+        except RunCancelledError:
+            raise
         except Exception as exc:  # noqa: BLE001 - a failed pre-search must not stop the analysis
             logger.warning(f"PESTEL pre-search failed for {dimension}: {exc}")
             return _PESTEL_NO_RECENT_RESULTS

@@ -17,6 +17,7 @@ from epic_news import main as main_module
 from epic_news.main import ReceptionFlow
 from epic_news.models.crews.pestel_report import PestelReport
 from epic_news.models.extracted_info import ExtractedInfo
+from epic_news.utils.interrupt import RunCancelledError
 
 _DIMS = ("political", "economic", "social", "technological", "environmental", "legal")
 
@@ -333,6 +334,16 @@ def test_pestel_recent_research_falls_back_on_error(monkeypatch: pytest.MonkeyPa
     for dim in ("economic", "social", "legal"):
         assert result[dim] == _NO_RESULTS
     assert "ok" in result["political"]
+
+
+def test_pestel_recent_research_propagates_cancellation(monkeypatch: pytest.MonkeyPatch) -> None:
+    def _run(_query: str) -> str:
+        raise RunCancelledError("Ctrl+C")
+
+    _patch_recent_tool(monkeypatch, _run)
+
+    with pytest.raises(RunCancelledError):
+        main_module._pestel_recent_research("Reyl", "global")
 
 
 def test_pestel_recent_research_uses_concurrency_env(monkeypatch: pytest.MonkeyPatch) -> None:
