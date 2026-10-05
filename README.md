@@ -39,8 +39,8 @@ The source markdown lives in [`docs/`](./docs/index.md), organized in the [Diát
 
 - **~25 specialized crews** — finance, news, OSINT, cooking, legal, sales, travel, deep research, PESTEL…
 - **Real-time data over RAG** — agents call live tools (Perplexity, Tavily, YahooFinance, …) per execution
-- **Deterministic HTML rendering** — Pydantic models → BeautifulSoup → single consolidated stylesheet inlined at render time (email-safe, print-friendly)
-- **Composable observability** — loguru trace per run, structured `PostResult` for email outcomes, page-break-aware print mode (Arial Nova Light @ 9pt)
+- **DOCX reports** — Pydantic models → one assembler per crew → pandoc → a `.docx` file under `output/`, attached to the email and offered for download in the app
+- **Composable observability** — loguru trace per run, structured `PostResult` for email outcomes
 
 ## Contributing
 

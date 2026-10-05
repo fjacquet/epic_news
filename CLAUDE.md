@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Package Management (ALWAYS use `uv`)
 
 ```bash
-uv sync && uv pip install -e .   # Install deps + editable install (required)
+uv sync --all-extras && uv pip install -e .   # Install deps (incl. pytest) + editable install (required)
 uv add package-name              # Add a package
 uv remove package-name           # Remove a package
 ```
@@ -86,21 +86,15 @@ Each crew follows: `crew_name/{config/agents.yaml, config/tasks.yaml, crew_name_
 
 Use Python 3.13 union syntax (`X | None`, `X | Y`) for all new code. Ruff auto-upgrades via UP007/UP035/UP045.
 
-### HTML Report Generation: Two-Agent Pattern
+### Reports (DOCX)
 
-Separate research (has tools, no `output_file`) from reporting (NO tools, has `output_file`). `output_pydantic` already keeps action traces out of the structured output; the split is kept so the reporting step runs tool-free. See `src/epic_news/crews/CLAUDE.md` for code examples.
+Reports are DOCX only (ADR-017). Pipeline: Crew result → Pydantic model (`load_or_parse_model`) → the crew's assembler in `src/epic_news/utils/docx_report/crews/` (holiday: `utils/holiday_report/`) → `build_docx()` (pandoc) → `emit_report(state, assemble_docx)`, which stores the path in `state.output_file`. The email attaches that file and the Streamlit app offers it for download.
 
-### HTML Rendering Architecture
-
-Pipeline: Crew result → Pydantic model (`load_or_parse_model`) → `render_and_write_html()` → `TemplateManager().render_report(selected_crew=..., content_data=...)` → `RendererFactory` → `BaseRenderer` subclass. `emit_report()` chooses HTML or DOCX.
-
-See `src/epic_news/utils/CLAUDE.md` for full rendering system docs.
-
-**Renderer rules**: `BaseRenderer` subclasses must implement `__init__` (even if empty), use `tag.attrs["class"] = [...]` (NOT `class_="..."`), use CSS variables with fallbacks, handle empty states.
-
-### Federated HTML Theme
-
-CSS theme variables are defined in `src/epic_news/config/ui_theme.py` (single source of truth). The template uses a `{{ theme_css_vars }}` placeholder injected by `TemplateManager` at render time. To change colors/typography, edit `ui_theme.py` — all reports update automatically.
+- Assemblers split a report into sections: some are written by the LLM (one call each), the rest are filled in deterministically. The poem assembler uses no LLM.
+- A step that cannot build its report raises and stops the run. Never add a stub or placeholder report.
+- `build_docx` raises `ValueError` for any path outside `output/`.
+- Look and feel come from `src/epic_news/utils/docx_report/reference.docx` (rebuild with `scripts/make_reference_docx.py`).
+- Two-agent pattern: research (has tools, no `output_file`) is separate from reporting (NO tools, has `output_file`). `output_pydantic` already keeps action traces out of the structured output; the split is kept so the reporting step runs tool-free. See `src/epic_news/crews/CLAUDE.md` for code examples.
 
 ### Information Retrieval: Real-Time, Not RAG
 
@@ -172,7 +166,7 @@ Not to be confused with `epic_news.tools.web_tools.get_search_tools()` (`Perplex
 
 ## File Access Boundary
 
-Agent-driven code reads and writes only under `output/` (ADR-015): `render_and_write_html()` refuses paths outside it, DOCX images are limited to it, and agents that need to read files get `OutputFileReadTool` (`src/epic_news/tools/output_file_read_tool.py`, `root="output"` by default; fin_daily reads portfolio CSVs with `root="data"`). Never give crewai's unscoped `FileReadTool` to an agent that also has web search/scrape tools.
+Agent-driven code reads and writes only under `output/` (ADR-015): `build_docx()` refuses paths outside it, DOCX images are limited to it, and agents that need to read files get `OutputFileReadTool` (`src/epic_news/tools/output_file_read_tool.py`, `root="output"` by default; fin_daily reads portfolio CSVs with `root="data"`). Never give crewai's unscoped `FileReadTool` to an agent that also has web search/scrape tools.
 
 ## Code Style Specifics
 
@@ -205,7 +199,7 @@ Configuration in `src/epic_news/utils/logger.py`.
 2. **Running crews directly** → Always use `crewai flow kickoff`
 3. **Tools in YAML files** → Assign tools in Python code (YAML names only resolve against `@tool` methods, else `KeyError`)
 4. **Legacy Union syntax in new code** → Use modern `X | Y` and `X | None` (Python 3.13+)
-5. **Single-agent HTML reports** → Use two-agent pattern (researcher + reporter)
+5. **Single-agent reports** → Use two-agent pattern (researcher + reporter)
 6. **Constructor injection for context** → Use `.kickoff(inputs=crew_inputs)`
 7. **Using `os.makedirs()` in crews** → Use centralized `ensure_output_directories()`
 8. **Hardcoded LLM configuration** → Always use `LLMConfig.get_openrouter_llm(task_type=...)`, `LLMConfig.get_max_iter()`, etc.
@@ -241,7 +235,7 @@ More detailed context exists in subdirectory CLAUDE.md files:
 
 - `src/epic_news/crews/CLAUDE.md`: Crew implementation patterns
 - `src/epic_news/tools/CLAUDE.md`: Tool development guide
-- `src/epic_news/utils/CLAUDE.md`: Utility modules and HTML rendering system
+- `src/epic_news/utils/CLAUDE.md`: Utility modules and DOCX report generation
 
 <!-- rtk-instructions v2 -->
 # RTK (Rust Token Killer) - Token-Optimized Commands

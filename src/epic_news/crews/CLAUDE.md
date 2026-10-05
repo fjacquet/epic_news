@@ -175,7 +175,7 @@ def reporter(self) -> Agent:
     return Agent(
         config=self.agents_config["reporter"],
         tools=[],  # NO TOOLS: formatting only
-        output_file="output/report.html",
+        output_file="output/report.json",
     )
 
 @task
@@ -259,7 +259,7 @@ Only crews listed in `ASYNC_ALLOWED` (`tests/crews/test_async_agent_isolation.py
 1. **ReceptionFlow routes request** → `generate_<crew_name>()` method in `main.py`
 2. **Kickoff with inputs** → `kickoff_flow(MyCrew(), inputs)` (calls `.crew().kickoff(inputs=...)` with retries)
 3. **Result parsing** → `load_or_parse_model(json_path, MyModel, output, inputs, label)`
-4. **Rendering** → `render_and_write_html("MY_CREW", model, html_path)`, wrapped in `emit_report(...)` when the crew also supports DOCX
+4. **Report** → `emit_report(self.state, lambda: assemble_my_crew_docx(model, inputs, "output/my_crew/report.docx"))` (DOCX only, ADR-017)
 
 **Example from main.py** (simplified):
 
@@ -267,7 +267,7 @@ Only crews listed in `ASYNC_ALLOWED` (`tests/crews/test_async_agent_isolation.py
 output = kickoff_flow(PoemCrew(), inputs)
 dump_crewai_state(output, "POEM")
 poem_model = load_or_parse_model(self.state.output_file, PoemJSONOutput, output, inputs, "poem")
-render_and_write_html("POEM", poem_model, html_file)
+emit_report(self.state, lambda: assemble_poem_docx(poem_model, inputs, "output/poem/poem.docx"))
 ```
 
 ## Common Crew Patterns by Type
@@ -317,16 +317,15 @@ render_and_write_html("POEM", poem_model, html_file)
 
 - `scraper_factory.get_scraper()` (ScrapeNinja by default, FireCrawl via `WEB_SCRAPER_PROVIDER=firecrawl`)
 
-## HTML Rendering
+## DOCX Reports
 
-Each crew that generates HTML reports must:
+Each crew that produces a report must:
 
-1. **Define Pydantic model** for structured output
-2. **Create renderer** in `src/epic_news/utils/html/template_renderers/`
-3. **Register it** in `RendererFactory._RENDERER_MAP` under the crew key
-4. **Render from the flow** with `render_and_write_html("MY_CREW", model, html_path)` (uses `TemplateManager().render_report(selected_crew=..., content_data=...)`)
+1. **Define a Pydantic model** for structured output
+2. **Write an assembler** `assemble_<crew>_docx(model, inputs, output_path, llm=None)` in `src/epic_news/utils/docx_report/crews/` (sections narrated by the LLM or filled deterministically)
+3. **Call it from the flow** through `emit_report(self.state, lambda: assemble_<crew>_docx(...))`; the output path must be under `output/`
 
-See `docs/reference/RENDERING_ARCHITECTURE.md` for complete guide.
+See `src/epic_news/utils/CLAUDE.md` (DOCX reports) and `docs/adr/ADR-017-docx-only-reports.md`.
 
 ## Creating a New Crew
 
@@ -338,7 +337,7 @@ Follow the step-by-step tutorial: `docs/tutorials/getting_started.md`
 2. Add `config/agents.yaml` and `config/tasks.yaml`
 3. Create `<crew_name>_crew.py` with @CrewBase
 4. Define Pydantic model in `src/epic_news/models/crews/<crew_name>.py`
-5. Create HTML renderer (if needed)
+5. Write the DOCX assembler in `utils/docx_report/crews/`
 6. Add `generate_<crew_name>()` method to ReceptionFlow in `main.py`
 7. Write structure tests in `tests/crews/test_<crew_name>_structure.py`
 
@@ -424,7 +423,7 @@ Set on the LLM via `LLMConfig.get_openrouter_llm(task_type=...)`:
 
 - **Tutorial**: `docs/tutorials/getting_started.md`
 - **Troubleshooting**: `docs/troubleshooting/COMMON_ERRORS.md`
-- **Rendering**: `docs/reference/RENDERING_ARCHITECTURE.md`
+- **Reports**: `docs/adr/ADR-017-docx-only-reports.md`
 - **Main CLAUDE.md**: Root-level comprehensive guide
 - **Tools**: `src/epic_news/tools/CLAUDE.md`
 - **Utilities**: `src/epic_news/utils/CLAUDE.md`
@@ -449,7 +448,7 @@ Set on the LLM via `LLMConfig.get_openrouter_llm(task_type=...)`:
 
 - Complex weekly planning with shopping list
 - Validated by `MenuPlanValidator` (via `services/menu_designer_service.py`)
-- Generates structured HTML tables
+- Generates structured weekly menus and a shopping list
 
 ### fin_daily
 

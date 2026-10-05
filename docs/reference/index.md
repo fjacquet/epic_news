@@ -14,7 +14,7 @@ Comprehensive reference information for Epic News components.
 
 | Reference | Description |
 |-----------|-------------|
-| [Rendering Architecture](RENDERING_ARCHITECTURE.md) | HTML report generation system |
+| [DOCX-only reports (ADR-017)](../adr/ADR-017-docx-only-reports.md) | Why and how reports are built as DOCX |
 
 ## Configuration Files
 

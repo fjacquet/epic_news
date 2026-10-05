@@ -1,5 +1,7 @@
 # PRD: Federated HTML Theme
 
+> Historical. The HTML theme, templates and renderers were removed when reports became DOCX only ([ADR-017](../adr/ADR-017-docx-only-reports.md)).
+
 ## Problem
 
 CSS theme variables were hardcoded in `universal_report_template.html`. Changing colors or typography required editing HTML directly, with no programmatic control for crews generating HTML via Python renderers.

@@ -2,75 +2,43 @@
 
 This document describes key architectural patterns and solutions implemented in the Epic News system, with a strong focus on ensuring reliable, maintainable, and high-quality outputs.
 
-## 1. HTML Rendering Architecture
+## 1. Report Generation (DOCX)
 
-The system employs a robust architecture for generating HTML reports, which has evolved to address several challenges. The core principle is to separate content generation from presentation, using deterministic Python-based rendering wherever possible.
+Reports are DOCX files and nothing else ([ADR-017](../adr/ADR-017-docx-only-reports.md)). The core principle is to separate content generation from presentation: the crew produces structured data, and an assembler turns it into a document.
 
-### 1.1. Deterministic Python-Based Rendering
-
-For crews with predictable and structured output (e.g., SAINT, POEM, FINDAILY), the system bypasses LLM-based HTML generation in favor of direct Python factory functions. This approach is faster, more reliable, and easier to maintain.
+### 1.1. Assemblers
 
 **Pattern:**
 
 1. **Execute Crew**: The CrewAI flow runs as usual to generate the core content. The `.kickoff()` method returns a `CrewOutput` object.
 2. **Parse to Pydantic Model**: The raw output from the crew is parsed into a structured Pydantic model (e.g., `SaintData`, `FinancialReport`).
-3. **Render in Python**: The Pydantic model is passed to `render_and_write_html()`, which calls `TemplateManager().render_report()`. The `RendererFactory` picks the crew's `BaseRenderer` subclass and the result is injected into the universal HTML template to produce the final, consistently styled report.
+3. **Assemble the DOCX**: The model goes to the crew's assembler (`utils/docx_report/crews/`). Some sections are written by one LLM call each, the others are filled in deterministically. `build_docx()` converts the Markdown fragments with pandoc, using the styles in `reference.docx`, and refuses any path outside `output/`.
+4. **Record the path**: `emit_report(state, assemble_docx)` stores the file path in `state.output_file`. The email step attaches it and the Streamlit app offers it for download.
 
 ```python
-# Example of the deterministic rendering flow (from ReceptionFlow.generate_saint_daily)
-output = kickoff_flow(SaintDailyCrew(), inputs)
+# Example of the flow (from ReceptionFlow.generate_poem)
+output = kickoff_flow(PoemCrew(), inputs)
 
 # Load the JSON written by output_pydantic, or parse the raw crew output
-saint_model = load_or_parse_model(self.state.output_file, SaintData, output, inputs, "saint daily")
+poem_model = load_or_parse_model(self.state.output_file, PoemJSONOutput, output, inputs, "poem")
 
-# Render the final HTML through TemplateManager + SaintRenderer
-render_and_write_html("SAINT", saint_model, html_file)
+# Build the DOCX; an error here stops the run
+emit_report(self.state, lambda: assemble_poem_docx(poem_model, inputs, "output/poem/poem.docx"))
 ```
 
-### 1.2. Data Routing: From Factory to Renderer
+### 1.2. Data Contract Between Crew and Assembler
 
-A common issue arises when the data structure produced by a crew's "HTML factory" does not match what the "HTML renderer" expects.
+A common issue arises when the data structure a crew produces does not match what the assembler expects.
 
 **Best Practice**:
 
-- Ensure the data structure passed from the content-generating part of the crew to the renderer is consistent.
-- Create a clear contract (e.g., via Pydantic models) between the data source and the renderer.
+- Ensure the data structure passed from the crew to the assembler is consistent.
+- Create a clear contract (e.g., via Pydantic models) between the data source and the assembler.
 - Map fields explicitly to prevent mismatches (e.g., `link` → `url`, `published` → `date`).
 
-### 1.3. HTML Rendering Best Practices
+### 1.3. Failures Stop the Run
 
-#### BeautifulSoup `class` Attribute Handling
-
-**Issue**: BeautifulSoup's `class_` parameter can result in invalid HTML (`<div class_="...">`) which breaks CSS.
-
-**Solution**: Always use the `attrs` dictionary or dictionary unpacking to set class attributes.
-
-```python
-# ✅ CORRECT - Using attrs dictionary
-tag = soup.new_tag("div")
-tag.attrs["class"] = ["container", "my-class"]
-
-# ✅ ALSO CORRECT - Using dictionary unpacking
-tag = soup.new_tag("div", **{"class": "container my-class"})
-
-# ❌ PROBLEMATIC - Avoid this
-tag = soup.new_tag("div", class_="container")
-```
-
-#### CSS Theme Compatibility
-
-**Issue**: Hard-coded colors lead to poor readability in different UI themes (light/dark).
-
-**Solution**: Use CSS variables with fallbacks for all color properties.
-
-```css
-/* ✅ CORRECT - Using CSS variables with fallbacks */
-.element {
-    color: var(--text-color, #343a40);
-    background: var(--highlight-bg, #f8f9fa);
-    border-color: var(--border-color, #dee2e6);
-}
-```
+A report that cannot be built raises. There is no placeholder report, and nothing partial is emailed. If more than half the narrated sections of a report fail, the assembler aborts instead of writing a document full of placeholders.
 
 #### Markdown Link Parsing
 
@@ -85,17 +53,6 @@ match = re.search(r"\[(.*?)\]\((.*?)\)", text_with_link)
 if match:
     link_text = match.group(1)
     link_url = match.group(2)
-```
-
-#### Empty State Handling
-
-**Issue**: Renderers may fail or produce blank pages when data is missing.
-
-**Solution**: Always check for empty data and render a user-friendly message.
-
-```python
-if not data.get("items"):
-    container.append("<div class='empty-state'><p>No data available for this report.</p></div>")
 ```
 
 ## 2. Information Retrieval Strategy
@@ -139,10 +96,9 @@ Instead of forcing the agents to conform to an overly complex model, the archite
     - `approach_strategy: str`
     - `remaining_information: str`
 
-2. **Renderer and Factory Update**: The `SalesProspectingRenderer` and `sales_prospecting_html_factory` were rewritten to work with the new, simpler model. This involved:
+2. **Assembler Update**: The sales prospecting assembler was rewritten to work with the new, simpler model. This involved:
     - Removing the logic for rendering metrics and KPIs.
-    - Adding new sections for `company_overview`, `key_contacts`, and `remaining_information`.
-    - Updating the CSS to create a modern, professional layout with cards for key contacts.
+    - Adding sections for `company_overview`, `key_contacts` (a table), and `remaining_information`.
 
 3. **Data File Correction**: The `debug/repair_attempt...json` file was updated to conform to the new, simpler Pydantic model, ensuring that tests and local development would work correctly.
 
@@ -150,4 +106,4 @@ Instead of forcing the agents to conform to an overly complex model, the archite
 
 - **Model the Data You Have**: Design Pydantic models that reflect the actual data being generated, not an idealized version.
 - **Simplicity Over Complexity**: A simpler, flatter data structure is often more robust and easier to work with than a deeply nested one.
-- **Decouple Rendering from Data Structure**: While the renderer needs to understand the data, the refactoring was made easier because the rendering logic was contained within the `SalesProspectingRenderer` and not scattered across the application.
+- **Decouple Rendering from Data Structure**: While the assembler needs to understand the data, the refactoring was made easier because the report logic was contained in one assembler and not scattered across the application.
