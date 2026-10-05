@@ -791,7 +791,10 @@ class ReceptionFlow(Flow[ContentState]):
             )
 
             if menu_plan:
-                self.logger.info("✅ Menu plan validated successfully")
+                if menu_service.used_fallback:
+                    self.logger.error("❌ Menu plan is the placeholder fallback, not a planned menu")
+                else:
+                    self.logger.info("✅ Menu plan validated successfully")
 
                 html_file = f"{output_dir}/{crew_inputs['menu_slug']}.html"
                 emit_report(
@@ -844,7 +847,9 @@ class ReceptionFlow(Flow[ContentState]):
             report_model = validator.parse_and_validate_ai_output(raw_output)
             if not report_model:
                 self.logger.warning("⚠️ Fallback validation failed, creating emergency fallback")
-                report_model = validator.create_fallback_menu_plan()
+                report_model = validator.create_fallback_menu_plan(
+                    crew_inputs.get("num_days", DEFAULT_MENU_DAYS)
+                )
 
             emit_report(
                 self.state,

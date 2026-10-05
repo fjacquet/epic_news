@@ -1,9 +1,9 @@
 """Menu Plan Validator for handling malformed AI output and providing error recovery."""
 
 import json
-import logging
 from typing import Any
 
+from loguru import logger
 from pydantic import ValidationError
 
 from epic_news.models.crews.menu_designer_report import (
@@ -15,8 +15,6 @@ from epic_news.models.crews.menu_designer_report import (
     WeeklyMenuPlan,
 )
 from epic_news.utils.menu_days import DEFAULT_MENU_DAYS
-
-logger = logging.getLogger(__name__)
 
 
 class MenuPlanValidator:
@@ -59,6 +57,7 @@ class MenuPlanValidator:
 
         # Ensure required fields are present
         if not fixed_dish.get("name"):
+            logger.warning("Menu validator injected a placeholder dish name: 'Plat traditionnel'")
             fixed_dish["name"] = "Plat traditionnel"
         if not fixed_dish.get("description"):
             fixed_dish["description"] = "Plat préparé avec des ingrédients frais"
@@ -80,7 +79,9 @@ class MenuPlanValidator:
                 meal[slot] = dish
 
     @staticmethod
-    def validate_and_fix_daily_meal(meal_data: dict[str, Any], meal_type: str) -> dict[str, Any]:
+    def validate_and_fix_daily_meal(
+        meal_data: dict[str, Any], meal_type: str, day: str = "?"
+    ) -> dict[str, Any]:
         """Validate and fix DailyMeal data with error recovery."""
         fixed_meal = meal_data.copy()
 
@@ -91,6 +92,7 @@ class MenuPlanValidator:
 
         # Fix starter
         if "starter" not in fixed_meal or not isinstance(fixed_meal["starter"], dict):
+            logger.warning(f"Menu validator injected a placeholder starter for {day} {meal_type}")
             fixed_meal["starter"] = {
                 "name": "Entrée du jour",
                 "dish_type": "entrée",
@@ -103,6 +105,7 @@ class MenuPlanValidator:
 
         # Fix main_course
         if "main_course" not in fixed_meal or not isinstance(fixed_meal["main_course"], dict):
+            logger.warning(f"Menu validator injected a placeholder main course for {day} {meal_type}")
             fixed_meal["main_course"] = {
                 "name": "Plat principal du jour",
                 "dish_type": "plat principal",
@@ -139,12 +142,16 @@ class MenuPlanValidator:
         # Fix lunch
         if "lunch" not in fixed_menu or not isinstance(fixed_menu["lunch"], dict):
             fixed_menu["lunch"] = {}
-        fixed_menu["lunch"] = MenuPlanValidator.validate_and_fix_daily_meal(fixed_menu["lunch"], "déjeuner")
+        fixed_menu["lunch"] = MenuPlanValidator.validate_and_fix_daily_meal(
+            fixed_menu["lunch"], "déjeuner", fixed_menu["day"]
+        )
 
         # Fix dinner
         if "dinner" not in fixed_menu or not isinstance(fixed_menu["dinner"], dict):
             fixed_menu["dinner"] = {}
-        fixed_menu["dinner"] = MenuPlanValidator.validate_and_fix_daily_meal(fixed_menu["dinner"], "dîner")
+        fixed_menu["dinner"] = MenuPlanValidator.validate_and_fix_daily_meal(
+            fixed_menu["dinner"], "dîner", fixed_menu["day"]
+        )
 
         return fixed_menu
 

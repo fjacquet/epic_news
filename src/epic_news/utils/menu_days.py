@@ -41,6 +41,8 @@ def parse_num_days(*texts: str | None) -> int:
         lowered = text.lower()
         if match := re.search(rf"\b{_NUMBER}\s*-?\s*{_DAY_UNIT}\b", lowered):
             return max(1, min(MAX_MENU_DAYS, _to_int(match.group(1))))
+        if re.search(r"\bweek-?\s?ends?\b", lowered):
+            return 2
         if re.search(rf"\b{_NUMBER}?\s*{_WEEK_UNIT}\b", lowered):
             return DEFAULT_MENU_DAYS
     return DEFAULT_MENU_DAYS
