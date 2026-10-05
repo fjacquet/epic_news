@@ -109,3 +109,11 @@ Run with `EPIC_ENABLE_EMAIL=false`. The saint step now runs through `_run_standa
 | 2026-10-05 | S6 `report`/`raw_output`/`osint` state, `CrewKey` | saint | 196.4 | SaintDailyCrew | 164.15 | 32532 (2 requests) | 10 | 60059 |
 
 Run with `EPIC_ENABLE_EMAIL=false`. Routing through `CrewKey` and the slimmer state worked end to end: `output/saint_daily/report.json` and `report.docx` (about 2,350 words, the same six sections as the S4 run). Wall clock and calls move with the crew's own request count (2 here, 1 in the S4 run).
+
+### Menu step folded into the flow (S7)
+
+| Date | Change | Request | Wall (s) | Recipes | LiteLLM calls | LiteLLM total tokens |
+|---|---|---|---|---|---|---|
+| 2026-10-05 | S7 typed `parse_menu_structure`, menu crew via `kickoff_flow` | menu | 70.9 | 8/8 | 15 | 65070 |
+
+Run with `EPIC_ENABLE_EMAIL=false` (2 days, lunch and dinner, 2 people). The menu crew now runs through `kickoff_flow` (cancel check, tracing); the plan DOCX `output/menu_designer/menu_weekly_menu.docx` was written, and the 8 recipes (no desserts in this plan) carry real dish names with their codes, e.g. `lun-l-s01-veloute-onctueux-de-potimarron-aux-brisures-de-chataignes`. The E3 run (175.9 s, 28/28) planned more dishes, so wall clock is not comparable.

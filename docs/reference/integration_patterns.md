@@ -436,7 +436,7 @@ For a complete reference implementation, see:
 
 ### Key Files Modified
 
-- `MenuGenerator.parse_menu_structure()` - Data structure compatibility
+- `MenuGenerator.parse_menu_structure(plan)` - walks the typed `WeeklyMenuPlan` (one recipe spec per dish)
 - `main.py` - Template variable provisioning
 - `assemble_menu_docx()` - handles both menu data formats
 

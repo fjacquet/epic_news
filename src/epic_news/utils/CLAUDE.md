@@ -24,8 +24,8 @@ utils/
 ├── tracing.py                # trace_span context manager (optional Langfuse)
 ├── observability.py          # Tracer, Dashboard, HallucinationGuard, get_observability_tools
 ├── tool_logging.py           # configure_tool_logging, apply_tool_silence
-├── menu_generator.py         # MenuGenerator (season, menu structure parsing)
-├── menu_plan_validator.py    # MenuPlanValidator (fix/validate WeeklyMenuPlan)
+├── menu_generator.py         # MenuGenerator (season; parse_menu_structure(WeeklyMenuPlan) -> recipe specs)
+├── menu_plan_validator.py    # MenuPlanValidator, menu_plan_from_output, MenuPlanError
 ├── rss_utils.py              # fetch_articles_from_opml (async)
 ├── data_normalization.py     # normalize_metric_type, normalize_trend_direction, ...
 └── string_utils.py           # create_topic_slug
