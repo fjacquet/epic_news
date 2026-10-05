@@ -150,8 +150,7 @@ make coverage         # Run tests with coverage
 - `make test` - Quick test run without coverage
 - `make coverage` - Tests with HTML + terminal coverage report
 - `make pre-commit` - Run pre-commit hooks on all files
-- `make validate` - Quick validation (lint + test)
-- `make ci-checks` - All CI checks (lint + test)
+- `make validate` - Full validation (lint + mypy + test), as in CI
 
 **Advanced Quality Checks**:
 - `make type-check` - Run mypy type checking
@@ -160,8 +159,7 @@ make coverage         # Run tests with coverage
 **Docker Operations**:
 - `make docker-build-api` - Build FastAPI image
 - `make docker-build-streamlit` - Build Streamlit image
-- `make docker-build-combined` - Build combined image
-- `make docker-build-all` - Build all Docker images
+- `make docker-build-all` - Build both images
 - `make docker-run-*` - Run respective containers
 
 **Application Runtime**:
@@ -218,7 +216,7 @@ make security         # Optional: security scan
 
 **Full quality check**:
 ```bash
-make all              # clean + install + lint + test
+make clean && make dev && make validate
 ```
 
 #### Testing & Quality Assurance

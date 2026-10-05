@@ -10,7 +10,6 @@
 !pyproject.toml
 !uv.lock
 !src/
-!supervisord.conf
 
 # Junk nested inside the allowed trees. Later patterns win, so these re-exclude
 # from within the re-included directories above.
