@@ -65,12 +65,28 @@ class MenuPlanValidator:
         return fixed_dish
 
     @staticmethod
+    def _lift_dishes_list(meal: dict[str, Any]) -> None:
+        """Move a `dishes` list into starter/main_course/dessert so real dishes are never replaced."""
+        slots = {"entrée": "starter", "plat principal": "main_course", "dessert": "dessert"}
+        dishes = meal.pop("dishes", None)
+        if not isinstance(dishes, list):
+            return
+        for dish in dishes:
+            if not isinstance(dish, dict) or not dish.get("name"):
+                continue
+            slot = slots.get(str(dish.get("dish_type", "")).strip())
+            if slot and not isinstance(meal.get(slot), dict):
+                meal[slot] = dish
+
+    @staticmethod
     def validate_and_fix_daily_meal(meal_data: dict[str, Any], meal_type: str) -> dict[str, Any]:
         """Validate and fix DailyMeal data with error recovery."""
         fixed_meal = meal_data.copy()
 
         # Ensure meal_type is correct
         fixed_meal["meal_type"] = meal_type
+
+        MenuPlanValidator._lift_dishes_list(fixed_meal)
 
         # Fix starter
         if "starter" not in fixed_meal or not isinstance(fixed_meal["starter"], dict):

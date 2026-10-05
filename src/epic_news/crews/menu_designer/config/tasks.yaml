@@ -128,53 +128,62 @@ menu_json_task:
     Un objet JSON parfaitement structuré et valide correspondant au modèle WeeklyMenuPlan.
     STRUCTURE OBLIGATOIRE - CHAQUE JOUR DOIT AVOIR CETTE STRUCTURE EXACTE:
     {
-      "title": "Menu de la semaine",
-      "week_start_date": "2024-01-15",
-      "nutritional_balance": "Équilibré en protéines, glucides et lipides",
-      "gustative_coherence": "Saveurs méditerranéennes harmonieuses",
-      "constraints_adaptation": "Adapté aux contraintes spécifiées",
-      "preferences_integration": "Intègre les préférences culinaires",
+      "week_start_date": "2025-01-27",
+      "season": "hiver",
       "daily_menus": [
         {
           "day": "Lundi",
-          "date": "2024-01-15",
+          "date": "2025-01-27",
           "lunch": {
-            "dishes": [
-              {
-                "name": "Salade de quinoa",
-                "dish_type": "entrée",
-                "seasonal_ingredients": ["quinoa", "légumes d'hiver"],
-                "nutritional_highlights": "Riche en protéines végétales"
-              }
-            ]
+            "meal_type": "déjeuner",
+            "starter": {
+              "name": "Salade de quinoa aux légumes d'hiver",
+              "dish_type": "entrée",
+              "description": "Quinoa tiède, légumes rôtis et vinaigrette citronnée",
+              "seasonal_ingredients": ["quinoa", "légumes d'hiver"],
+              "nutritional_highlights": "Riche en protéines végétales"
+            },
+            "main_course": {
+              "name": "Pot-au-feu traditionnel",
+              "dish_type": "plat principal",
+              "description": "Bœuf mijoté avec légumes d'hiver, bouillon parfumé",
+              "seasonal_ingredients": ["bœuf", "carottes", "poireaux"],
+              "nutritional_highlights": "Source de protéines et légumes de saison"
+            }
           },
           "dinner": {
-            "dishes": [
-              {
-                "name": "Saumon grillé",
-                "dish_type": "plat principal",
-                "seasonal_ingredients": ["saumon", "légumes verts"],
-                "nutritional_highlights": "Riche en oméga-3"
-              }
-            ]
+            "meal_type": "dîner",
+            "starter": {
+              "name": "Velouté de potiron",
+              "dish_type": "entrée",
+              "description": "Soupe onctueuse de potiron avec crème fraîche",
+              "seasonal_ingredients": ["potiron", "oignon"],
+              "nutritional_highlights": "Riche en bêta-carotène"
+            },
+            "main_course": {
+              "name": "Saumon grillé aux épinards",
+              "dish_type": "plat principal",
+              "description": "Filet de saumon grillé, épinards sautés à l'ail",
+              "seasonal_ingredients": ["saumon", "épinards"],
+              "nutritional_highlights": "Riche en oméga-3"
+            }
           }
         }
-      ]
+      ],
+      "nutritional_balance": "Équilibré en protéines, glucides et lipides",
+      "gustative_coherence": "Saveurs harmonieuses",
+      "constraints_adaptation": "Adapté aux contraintes spécifiées",
+      "preferences_integration": "Intègre les préférences culinaires"
     }
     VALIDATION FINALE REQUISE:
-    - JSON syntaxiquement correct
-    - Tous les champs obligatoires présents (title, week_start_date, nutritional_balance,
-    gustative_coherence, constraints_adaptation, preferences_integration, daily_menus)
-    - Chaque daily_menu DOIT avoir: day, date, lunch, dinner
-    - Chaque lunch/dinner DOIT avoir un array dishes
-    - Chaque dish DOIT avoir: name, dish_type, seasonal_ingredients, nutritional_highlights
+    - JSON syntaxiquement correct, clés exactement comme dans l'exemple
+    - Chaque repas utilise les clés starter et main_course (et dessert si prévu), jamais une liste dishes
+    - Conserver les noms de plats du plan précédent tels quels
+    - Chaque plat DOIT avoir: name, dish_type, description, seasonal_ingredients, nutritional_highlights
     - dish_type DOIT être exactement: "entrée", "plat principal", ou "dessert"
     - seasonal_ingredients DOIT être un array, jamais null
     - nutritional_highlights DOIT être une string non-vide
-    - Types de données conformes (strings, arrays, objets)
     - Aucune valeur null dans les champs requis
-    Le JSON doit être propre, sans formatage HTML, et prêt à être utilisé directement
-    par l'application.
     Format de sortie: JSON pur uniquement, sans texte explicatif.
   agent: menu_reporter
   output_file: '{output_file}'

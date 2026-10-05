@@ -60,6 +60,7 @@ class MenuDesignerCrew:
         return Task(  # type: ignore[call-arg]
             config=self.tasks_config["menu_json_task"],
             context=[self.menu_planning_task()],  # type: ignore
+            output_pydantic=WeeklyMenuPlan,
             output_file="output/menu_designer/{menu_slug}.json",
         )
 

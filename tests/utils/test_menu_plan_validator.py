@@ -226,3 +226,64 @@ class TestMenuPlanValidator:
         assert "dinner" in result
         assert result["lunch"]["meal_type"] == "déjeuner"
         assert result["dinner"]["meal_type"] == "dîner"
+
+
+def _dish(name: str, dish_type: str) -> dict:
+    return {
+        "name": name,
+        "dish_type": dish_type,
+        "description": "d",
+        "seasonal_ingredients": ["x"],
+        "nutritional_highlights": "h",
+    }
+
+
+def _plan(lunch: dict, dinner: dict) -> dict:
+    return {
+        "week_start_date": "2025-01-27",
+        "season": "hiver",
+        "daily_menus": [{"day": "Lundi", "date": "2025-01-27", "lunch": lunch, "dinner": dinner}],
+        "nutritional_balance": "n",
+        "gustative_coherence": "g",
+        "constraints_adaptation": "c",
+        "preferences_integration": "p",
+    }
+
+
+class TestValidatorKeepsRealDishes:
+    """The validator must never replace a dish that has a name."""
+
+    def test_typed_plan_names_preserved(self):
+        plan = _plan(
+            {
+                "meal_type": "déjeuner",
+                "starter": _dish("Velouté de panais", "entrée"),
+                "main_course": _dish("Blanquette de veau", "plat principal"),
+            },
+            {
+                "meal_type": "dîner",
+                "starter": _dish("Salade de lentilles", "entrée"),
+                "main_course": _dish("Dos de cabillaud", "plat principal"),
+            },
+        )
+        result = MenuPlanValidator.parse_and_validate_ai_output(json.dumps(plan))
+        assert result is not None
+        names = [
+            d.name
+            for dm in result.daily_menus[:1]
+            for meal in (dm.lunch, dm.dinner)
+            for d in (meal.starter, meal.main_course)
+        ]
+        assert names == ["Velouté de panais", "Blanquette de veau", "Salade de lentilles", "Dos de cabillaud"]
+
+    def test_dishes_list_shape_not_replaced_by_placeholders(self):
+        plan = _plan(
+            {"dishes": [_dish("Soupe à l'oignon", "entrée"), _dish("Coq au vin", "plat principal")]},
+            {"dishes": [_dish("Endives au jambon", "plat principal")]},
+        )
+        result = MenuPlanValidator.parse_and_validate_ai_output(json.dumps(plan))
+        assert result is not None
+        lunch = result.daily_menus[0].lunch
+        assert lunch.starter.name == "Soupe à l'oignon"
+        assert lunch.main_course.name == "Coq au vin"
+        assert result.daily_menus[0].dinner.main_course.name == "Endives au jambon"
