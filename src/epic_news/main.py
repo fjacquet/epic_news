@@ -62,22 +62,12 @@ from epic_news.crews.tech_stack.tech_stack_crew import TechStackCrew
 from epic_news.crews.web_presence.web_presence_crew import WebPresenceCrew
 from epic_news.crew_registry import CREW_REGISTRY, CrewSpec
 from epic_news.models.content_state import ContentState, CrewCategories
-from epic_news.models.crews.book_summary_report import BookSummaryReport
-from epic_news.models.crews.company_news_report import CompanyNewsReport
 from epic_news.models.crews.company_profiler_report import CompanyProfileReport
 from epic_news.models.crews.cooking_recipe import PaprikaRecipe
 from epic_news.models.crews.cross_reference_report import CrossReferenceReport
-from epic_news.models.crews.deep_research import DeepResearchReport
-from epic_news.models.crews.financial_report import FinancialReport
 from epic_news.models.crews.geospatial_analysis_report import GeospatialAnalysisReport
 from epic_news.models.crews.hr_intelligence_report import HRIntelligenceReport
 from epic_news.models.crews.legal_analysis_report import LegalAnalysisReport
-from epic_news.models.crews.meeting_prep_report import MeetingPrepReport
-from epic_news.models.crews.news_daily_report import NewsDailyReport
-from epic_news.models.crews.pestel_report import PestelReport
-from epic_news.models.crews.poem_report import PoemJSONOutput
-from epic_news.models.crews.saint_daily_report import SaintData
-from epic_news.models.crews.sales_prospecting_report import SalesProspectingReport
 from epic_news.models.crews.tech_stack_report import TechStackReport
 from epic_news.models.crews.web_presence_report import WebPresenceReport
 from epic_news.services.menu_designer_service import MenuDesignerService, MenuPlanError
@@ -87,20 +77,10 @@ from epic_news.utils.concurrency import bounded_map
 # Import the normalization utility
 from epic_news.utils.diagnostics import dump_crewai_state, parse_crewai_output
 from epic_news.utils.directory_utils import ensure_output_directories
-from epic_news.utils.docx_report.crews.book_summary import assemble_book_summary_docx
-from epic_news.utils.docx_report.crews.company_news import assemble_company_news_docx
 from epic_news.utils.docx_report.crews.cooking import assemble_cooking_docx
-from epic_news.utils.docx_report.crews.deep_research import assemble_deep_research_docx
-from epic_news.utils.docx_report.crews.fin_daily import assemble_fin_daily_docx
-from epic_news.utils.docx_report.crews.meeting_prep import assemble_meeting_prep_docx
 from epic_news.utils.docx_report.crews.menu import assemble_menu_docx
-from epic_news.utils.docx_report.crews.news_daily import assemble_news_daily_docx
 from epic_news.utils.docx_report.crews.osint import assemble_osint_docx
-from epic_news.utils.docx_report.crews.pestel import assemble_pestel_docx
-from epic_news.utils.docx_report.crews.poem import assemble_poem_docx
 from epic_news.utils.docx_report.crews.rss_weekly import assemble_rss_docx
-from epic_news.utils.docx_report.crews.saint import assemble_saint_docx
-from epic_news.utils.docx_report.crews.sales_prospecting import assemble_sales_prospecting_docx
 from epic_news.utils.docx_report.crews.shopping import assemble_shopping_docx
 from epic_news.utils.docx_report.dispatch import emit_report
 from epic_news.utils.email_sender import EmailDeliveryError, send_report_email
