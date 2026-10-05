@@ -1,376 +1,75 @@
-"""Parsing and JSON-repair utilities extracted from debug_utils.
+"""Parse a CrewAI output into a Pydantic model.
+
+Model-specific fixes live on the models as `mode="before"` validators; this module
+only finds the JSON (repairing it with json_repair when it is not valid) and validates.
 
 Public API:
 - parse_crewai_output
 """
 
-from __future__ import annotations
-
 import json
-import os
 import re
-import time
-from contextlib import suppress
 from typing import Any
 
+import json_repair
 from loguru import logger
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
+
+_THOUSANDS = re.compile(r"(?<=\d),(?=\d{3}(?!\d))")
+_SMART_QUOTES = str.maketrans({"“": '"', "”": '"', "‘": "'", "’": "'"})
 
 
-def _attempt_json_repair(json_str: str) -> str:
+def _sanitize(text: str) -> str:
+    """Drop thousand separators inside numbers (1,234,567) and straighten smart quotes."""
+    return _THOUSANDS.sub("", text).translate(_SMART_QUOTES)
+
+
+def _load(text: str) -> Any:
+    """First JSON value in `text`; json_repair only when it is not valid JSON.
+
+    raw_decode stops after the first value, so prose after it (citations like [1],
+    markdown, a closing fence) is ignored; json_repair would read it as more JSON.
     """
-    Attempt to repair malformed JSON with comprehensive fixes for LLM-generated content.
-
-    Args:
-        json_str: The potentially malformed JSON string
-
-    Returns:
-        str: Repaired JSON string
-    """
-    repaired = json_str
-
-    # Replace smart quotes with straight quotes
-    repaired = repaired.replace("“", '"').replace("”", '"').replace("‘", "'").replace("’", "'")
-
-    # Escape unescaped newlines within strings
-    def escape_newlines(match):
-        return match.group(0).replace("\n", "\\n")
-
-    repaired = re.sub(r'"[^"\\]*(?:\\.[^"\\]*)*"', escape_newlines, repaired)
-
-    # Try to detect and fix common JSON errors by line
-    lines = repaired.split("\n")
-    fixed_lines = []
-
-    for i, line in enumerate(lines):
-        # Fix missing commas at the end of lines
-        if i < len(lines) - 1:
-            next_line = lines[i + 1].strip()
-            if (
-                (
-                    line.strip().endswith(('"', "'", "}", "]", "true", "false", "null"))
-                    or line.strip().rstrip("0123456789").strip() != line.strip()
-                )
-                and next_line.startswith(('"', "'", "{", "["))
-                and not line.strip().endswith((",", "{", "[", ":"))
-            ):
-                line = line.rstrip() + ","
-
-        fixed_lines.append(line.strip())
-
-    # Rejoin the fixed lines
-    repaired = "\n".join(fixed_lines)
-
-    # Fix common issues
-    repaired = repaired.replace("'", '"')
-    repaired = repaired.replace("True", "true")
-    repaired = repaired.replace("False", "false")
-    repaired = repaired.replace("None", "null")
-    repaired = repaired.replace("NaN", "null")
-    repaired = repaired.replace("Infinity", "null")
-    repaired = repaired.replace("-Infinity", "null")
-
-    # Fix trailing commas in arrays and objects
-    repaired = re.sub(r",\s*}", "}", repaired)
-    repaired = re.sub(r",\s*]", "]", repaired)
-
-    # Fix missing commas between elements
-    repaired = re.sub(r'(\d+|true|false|null|"|})\s*({|\[|")', r"\1, \2", repaired)
-
-    # Fix unquoted keys
-    repaired = re.sub(r"([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:", r'\1"\2":', repaired)
-
-    # Fix single quotes used as string delimiters
-    repaired = re.sub(r"'([^']*)'\s*:", r'"\1":', repaired)
-    repaired = re.sub(r":\s*'([^']*)'([,}])", r':"\1"\2', repaired)
-
-    # Fix missing quotes around string values.
-    # Excludes the JSON literals true/false/null (already unquoted keywords at this
-    # point) so booleans/None survive as JSON literals instead of being re-wrapped
-    # into string values by this bare-identifier-quoting step.
-    repaired = re.sub(r":\s*(?!true\b|false\b|null\b)([a-zA-Z][a-zA-Z0-9_]*)\s*([,}])", r':"\1"\2', repaired)
-
-    # Fix trailing commas in JSON objects and arrays
-    repaired = re.sub(r",\s*}", "}", repaired)
-    repaired = re.sub(r",\s*]", "]", repaired)
-
-    # Fix missing commas between array elements or object properties
-    repaired = re.sub(r'("[^"]*"|\d+|true|false|null)\s*(")', r"\1, \2", repaired)
-
-    # Fix missing colons in object properties
-    repaired = re.sub(r'"([^"]+)"\s+"([^"]+)"', r'"\1": "\2"', repaired)
-
-    # Fix trailing commas before closing braces/brackets
-    repaired = re.sub(r",\s*([}\]])", r"\1", repaired)
-
-    # Fix missing commas between array/object elements
-    repaired = re.sub(r"}\s*{", r"}, {", repaired)
-    repaired = re.sub(r"]\s*\[", r"], [", repaired)
-
-    # Count and fix unmatched braces/brackets
-    open_braces = repaired.count("{")
-    close_braces = repaired.count("}")
-    open_brackets = repaired.count("[")
-    close_brackets = repaired.count("]")
-
-    # Add missing closing braces
-    if open_braces > close_braces:
-        missing_braces = open_braces - close_braces
-        repaired += "}" * missing_braces
-
-    # Add missing closing brackets
-    if open_brackets > close_brackets:
-        missing_brackets = open_brackets - close_brackets
-        repaired += "]" * missing_brackets
-
-    # Handle case where JSON ends with a comma
-    repaired = repaired.rstrip()
-    if repaired.endswith(","):
-        repaired = repaired[:-1]
-
-    # Remove escaped quotes that shouldn't be escaped
-    return re.sub(r'\\"', '"', repaired)
+    try:
+        return json.JSONDecoder().raw_decode(text)[0]
+    except ValueError:
+        return json_repair.loads(text)
 
 
 def parse_crewai_output[T: BaseModel](
     report_content: Any, model_class: type[T], inputs: dict | None = None
 ) -> T:
-    """
-    Parse CrewAI output to a Pydantic model with robust JSON cleaning.
-
-    Handles common CrewAI output patterns:
-    - Direct pydantic output in report_content.output
-    - JSON wrapped in triple backticks in report_content.raw
-    - Empty or malformed output with clear error messages
-
-    Args:
-        report_content: CrewAI output object
-        model_class: Pydantic model class to validate against
-        inputs: Optional inputs dict for error reporting
-
-    Returns:
-        Validated Pydantic model instance
+    """Return `model_class` from a CrewAI output (pydantic passthrough, or repaired raw JSON).
 
     Raises:
-        ValueError: If output is empty or invalid
+        ValueError: empty output, no JSON, unrepairable JSON, or data that does not fit the model.
     """
-    # Check if we have direct pydantic output
-    if hasattr(report_content, "output") and isinstance(report_content.output, model_class):
-        return report_content.output
+    name = model_class.__name__
+    output = getattr(report_content, "output", None)
+    if isinstance(output, model_class):
+        return output
 
-    # Extract and clean raw JSON output
-    raw_json = getattr(report_content, "raw", "")
-    if not raw_json or not raw_json.strip():
+    raw = (getattr(report_content, "raw", "") or "").strip()
+    if not raw:
         inputs_info = f" Inputs were: {inputs}" if inputs else ""
         raise ValueError(
-            f"{model_class.__name__} crew produced no output. "
-            f"Check input variables and crew configuration.{inputs_info}"
+            f"{name} crew produced no output. Check input variables and crew configuration.{inputs_info}"
         )
 
-    # Remove triple backticks if present
-    cleaned_json = raw_json.strip()
-    if cleaned_json.startswith("```") and cleaned_json.endswith("```"):
-        lines = cleaned_json.split("\n")
-        if len(lines) > 2:
-            # Extract content, assuming first line might be a language hint (e.g., "json")
-            content_lines = lines[1:-1]
-            # Find the start of the JSON content
-            start_index = 0
-            for i, line in enumerate(content_lines):
-                if line.strip().startswith("{") or line.strip().startswith("["):
-                    start_index = i
-                    break
-            cleaned_json = "\n".join(content_lines[start_index:])
+    match = re.search(r"[\[{]", raw)
+    if match is None:
+        raise ValueError(f"{name} crew produced no valid JSON. Raw output started with: {raw[:200]!r}")
+    if match.start():
+        logger.debug(f"Skipping {match.start()} characters before the JSON in {name} output")
 
-    # Strip preamble text before JSON (e.g., "Thought:", "Final Answer:", etc.)
-    # Find the first occurrence of { or [ which indicates JSON start
-    json_start_brace = cleaned_json.find("{")
-    json_start_bracket = cleaned_json.find("[")
-
-    if json_start_brace == -1 and json_start_bracket == -1:
-        # No JSON content found
-        inputs_info = f" Inputs were: {inputs}" if inputs else ""
-        raise ValueError(
-            f"{model_class.__name__} crew produced no valid JSON. "
-            f"Raw output started with: {cleaned_json[:100]}...{inputs_info}"
-        )
-
-    # Determine which comes first
-    if json_start_brace == -1:
-        json_start = json_start_bracket
-    elif json_start_bracket == -1:
-        json_start = json_start_brace
-    else:
-        json_start = min(json_start_brace, json_start_bracket)
-
-    # Strip any preamble text before the JSON
-    if json_start > 0:
-        preamble = cleaned_json[:json_start].strip()
-        if preamble:
-            logger.debug(f"Stripped preamble before JSON: {preamble[:100]}...")
-        cleaned_json = cleaned_json[json_start:]
-
-    # Also strip any trailing text after the JSON (find matching closing brace/bracket)
-    def find_json_end(text: str) -> int:
-        """Find the end of a JSON object/array by matching braces/brackets."""
-        if not text:
-            return 0
-        first_char = text[0]
-        if first_char == "{":
-            open_char, close_char = "{", "}"
-        elif first_char == "[":
-            open_char, close_char = "[", "]"
-        else:
-            return len(text)
-
-        depth = 0
-        in_string = False
-        escape_next = False
-
-        for i, char in enumerate(text):
-            if escape_next:
-                escape_next = False
-                continue
-            if char == "\\":
-                escape_next = True
-                continue
-            if char == '"' and not escape_next:
-                in_string = not in_string
-                continue
-            if in_string:
-                continue
-            if char == open_char:
-                depth += 1
-            elif char == close_char:
-                depth -= 1
-                if depth == 0:
-                    return i + 1
-        return len(text)
-
-    json_end = find_json_end(cleaned_json)
-    if json_end < len(cleaned_json):
-        trailing = cleaned_json[json_end:].strip()
-        if trailing:
-            logger.debug(f"Stripped trailing text after JSON: {trailing[:100]}...")
-        cleaned_json = cleaned_json[:json_end]
-
-    # --- Sanitize common issues -------------------------------------------------
-    def _sanitize_json(text: str) -> str:
-        """Fix common JSON issues like 1,000 style numbers and smart quotes."""
-        # Remove commas used as thousand separators inside numbers (1,234,567)
-        text = re.sub(r"(?<=\d),(?=\d{3}(?!\d))", "", text)
-        # Replace smart quotes with straight quotes
-        return text.replace("“", '"').replace("”", '"').replace("‘", "'").replace("’", "'")
-
-    cleaned_json = _sanitize_json(cleaned_json)
-
-    # Parse and validate JSON
     try:
-        parsed_data = json.loads(cleaned_json)
+        data = _load(_sanitize(raw[match.start() :]))
+    except Exception as exc:  # noqa: BLE001 - any repair failure is reported the same way
+        raise ValueError(f"Invalid JSON output from {name} crew: {exc}") from exc
+    if not isinstance(data, dict | list):
+        raise ValueError(f"Invalid JSON output from {name} crew: could not read a JSON object")
 
-        # $Special handling for BookSummaryReport: coerce table_of_contents IDs to strings
-        if model_class.__name__ == "BookSummaryReport" and "table_of_contents" in parsed_data:
-            for entry in parsed_data["table_of_contents"]:
-                if "id" in entry and not isinstance(entry["id"], str):
-                    entry["id"] = str(entry["id"])
-
-        # $Special handling for SalesProspectingReport: clean metrics list
-        if model_class.__name__ == "SalesProspectingReport" and "sales_metrics" in parsed_data:
-            try:
-                from epic_news.utils.data_normalization import normalize_metric_type
-            except ImportError:
-
-                def normalize_metric_type(v: str) -> str:  # type: ignore[misc]
-                    return v
-
-            metrics = parsed_data.get("sales_metrics", {}).get("metrics", [])
-            cleaned_metrics = []
-            for metric in metrics:
-                # Normalize metric type synonyms
-                m_type = metric.get("type")
-                if m_type:
-                    metric["type"] = normalize_metric_type(m_type)
-                # Ensure metric has a proper value dict
-                val_field = metric.get("value")
-                if not isinstance(val_field, dict):
-                    # numeric or string, wrap into dict
-                    metric["value"] = {"value": val_field, "unit": "", "trend": "flat"}
-                else:
-                    if "value" not in val_field:
-                        # Try to pick the first numeric entry as value
-                        numeric_val = None
-                        for v in val_field.values():
-                            if isinstance(v, int | float):
-                                numeric_val = v
-                                break
-                        if numeric_val is not None:
-                            metric["value"] = {"value": numeric_val, "unit": "", "trend": "flat"}
-                        else:
-                            # skip metric if cannot determine value
-                            continue
-                cleaned_metrics.append(metric)
-            parsed_data["sales_metrics"]["metrics"] = cleaned_metrics
-
-        # $Special handling for SalesProspectingReport: ensure proper metric types and trend directions
-        if model_class.__name__ == "SalesProspectingReport" and "sales_metrics" in parsed_data:
-            from epic_news.utils.data_normalization import normalize_structured_data_report
-
-            if "sales_metrics" in parsed_data:
-                parsed_data["sales_metrics"] = normalize_structured_data_report(parsed_data["sales_metrics"])
-
-        return model_class.model_validate(parsed_data)
-    except json.JSONDecodeError as e:
-        logger.error(f"JSON parsing failed at line {e.lineno}, column {e.colno}: {e.msg}")
-        logger.error(f"Error position (char {e.pos}): '{cleaned_json[max(0, e.pos - 20) : e.pos + 20]}'")
-
-        # Save problematic JSON for debugging
-        debug_file = f"debug/failed_json_{model_class.__name__.lower()}_{int(time.time())}.json"
-        os.makedirs("debug", exist_ok=True)
-        with suppress(Exception):
-            with open(debug_file, "w", encoding="utf-8") as f:
-                f.write(cleaned_json)
-            logger.info(f"Saved problematic JSON to {debug_file}")
-
-        # Try comprehensive JSON repair
-        try:
-            logger.info("Attempting comprehensive JSON repair...")
-            repaired_json = _attempt_json_repair(cleaned_json)
-
-            # Log what repairs were attempted
-            if repaired_json != cleaned_json:
-                logger.info(f"JSON repair made {len(repaired_json) - len(cleaned_json)} character changes")
-
-            parsed_data = json.loads(repaired_json)
-
-            # Apply same special handling as above
-            if model_class.__name__ == "BookSummaryReport" and "table_of_contents" in parsed_data:
-                for entry in parsed_data["table_of_contents"]:
-                    if "id" in entry and not isinstance(entry["id"], str):
-                        entry["id"] = str(entry["id"])
-
-            logger.info("Successfully repaired and parsed JSON")
-            return model_class.model_validate(parsed_data)
-        except json.JSONDecodeError as repair_error:
-            logger.error(
-                f"JSON repair failed at line {repair_error.lineno}, column {repair_error.colno}: {repair_error.msg}"
-            )
-            logger.error(
-                f"Repair error position (char {repair_error.pos}): '{repaired_json[max(0, repair_error.pos - 20) : repair_error.pos + 20]}'"
-            )
-
-            # Save repaired JSON attempt for debugging
-            repair_debug_file = f"debug/repair_attempt_{model_class.__name__.lower()}_{int(time.time())}.json"
-            with suppress(Exception):
-                with open(repair_debug_file, "w", encoding="utf-8") as f:
-                    f.write(repaired_json)
-                logger.info(f"Saved repair attempt to {repair_debug_file}")
-
-            raise ValueError(
-                f"Invalid JSON output from {model_class.__name__} crew. Original error: {e}. Repair failed: {repair_error}"
-            )
-        except Exception as repair_error:
-            logger.error(f"JSON repair attempt failed with unexpected error: {repair_error}")
-            raise ValueError(f"Invalid JSON output from {model_class.__name__} crew: {e}")
-    except Exception as e:
-        logger.error(f"Failed to validate {model_class.__name__} model: {e}")
-        raise ValueError(f"Invalid {model_class.__name__} data structure: {e}")
+    try:
+        return model_class.model_validate(data)
+    except (ValidationError, TypeError, AttributeError) as exc:  # before-validators may raise these
+        raise ValueError(f"Invalid {name} data structure: {exc}") from exc
