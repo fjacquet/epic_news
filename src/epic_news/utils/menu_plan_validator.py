@@ -1,9 +1,9 @@
 """Menu Plan Validator for handling malformed AI output and providing error recovery."""
 
 import json
-import logging
 from typing import Any
 
+from loguru import logger
 from pydantic import ValidationError
 
 from epic_news.models.crews.menu_designer_report import (
@@ -14,8 +14,7 @@ from epic_news.models.crews.menu_designer_report import (
     MealType,
     WeeklyMenuPlan,
 )
-
-logger = logging.getLogger(__name__)
+from epic_news.utils.menu_days import DEFAULT_MENU_DAYS
 
 
 class MenuPlanValidator:
@@ -58,6 +57,7 @@ class MenuPlanValidator:
 
         # Ensure required fields are present
         if not fixed_dish.get("name"):
+            logger.warning("Menu validator injected a placeholder dish name: 'Plat traditionnel'")
             fixed_dish["name"] = "Plat traditionnel"
         if not fixed_dish.get("description"):
             fixed_dish["description"] = "Plat préparé avec des ingrédients frais"
@@ -65,15 +65,34 @@ class MenuPlanValidator:
         return fixed_dish
 
     @staticmethod
-    def validate_and_fix_daily_meal(meal_data: dict[str, Any], meal_type: str) -> dict[str, Any]:
+    def _lift_dishes_list(meal: dict[str, Any]) -> None:
+        """Move a `dishes` list into starter/main_course/dessert so real dishes are never replaced."""
+        slots = {"entrée": "starter", "plat principal": "main_course", "dessert": "dessert"}
+        dishes = meal.pop("dishes", None)
+        if not isinstance(dishes, list):
+            return
+        for dish in dishes:
+            if not isinstance(dish, dict) or not dish.get("name"):
+                continue
+            slot = slots.get(str(dish.get("dish_type", "")).strip())
+            if slot and not isinstance(meal.get(slot), dict):
+                meal[slot] = dish
+
+    @staticmethod
+    def validate_and_fix_daily_meal(
+        meal_data: dict[str, Any], meal_type: str, day: str = "?"
+    ) -> dict[str, Any]:
         """Validate and fix DailyMeal data with error recovery."""
         fixed_meal = meal_data.copy()
 
         # Ensure meal_type is correct
         fixed_meal["meal_type"] = meal_type
 
+        MenuPlanValidator._lift_dishes_list(fixed_meal)
+
         # Fix starter
         if "starter" not in fixed_meal or not isinstance(fixed_meal["starter"], dict):
+            logger.warning(f"Menu validator injected a placeholder starter for {day} {meal_type}")
             fixed_meal["starter"] = {
                 "name": "Entrée du jour",
                 "dish_type": "entrée",
@@ -86,6 +105,7 @@ class MenuPlanValidator:
 
         # Fix main_course
         if "main_course" not in fixed_meal or not isinstance(fixed_meal["main_course"], dict):
+            logger.warning(f"Menu validator injected a placeholder main course for {day} {meal_type}")
             fixed_meal["main_course"] = {
                 "name": "Plat principal du jour",
                 "dish_type": "plat principal",
@@ -122,17 +142,23 @@ class MenuPlanValidator:
         # Fix lunch
         if "lunch" not in fixed_menu or not isinstance(fixed_menu["lunch"], dict):
             fixed_menu["lunch"] = {}
-        fixed_menu["lunch"] = MenuPlanValidator.validate_and_fix_daily_meal(fixed_menu["lunch"], "déjeuner")
+        fixed_menu["lunch"] = MenuPlanValidator.validate_and_fix_daily_meal(
+            fixed_menu["lunch"], "déjeuner", fixed_menu["day"]
+        )
 
         # Fix dinner
         if "dinner" not in fixed_menu or not isinstance(fixed_menu["dinner"], dict):
             fixed_menu["dinner"] = {}
-        fixed_menu["dinner"] = MenuPlanValidator.validate_and_fix_daily_meal(fixed_menu["dinner"], "dîner")
+        fixed_menu["dinner"] = MenuPlanValidator.validate_and_fix_daily_meal(
+            fixed_menu["dinner"], "dîner", fixed_menu["day"]
+        )
 
         return fixed_menu
 
     @staticmethod
-    def validate_and_fix_weekly_plan(plan_data: dict[str, Any]) -> dict[str, Any]:
+    def validate_and_fix_weekly_plan(
+        plan_data: dict[str, Any], num_days: int = DEFAULT_MENU_DAYS
+    ) -> dict[str, Any]:
         """Validate and fix WeeklyMenuPlan data with comprehensive error recovery."""
         fixed_plan = plan_data.copy()
 
@@ -146,7 +172,8 @@ class MenuPlanValidator:
         if not isinstance(fixed_plan.get("daily_menus"), list):
             fixed_plan["daily_menus"] = []
 
-        # Ensure we have exactly 7 daily menus
+        # Plan exactly num_days days. Missing days are NOT padded: padding would invent
+        # placeholder dishes ("Entrée du Lundi"), so a short plan is kept short and logged.
         days = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"]
         dates = [
             "2025-01-27",
@@ -157,56 +184,18 @@ class MenuPlanValidator:
             "2025-02-01",
             "2025-02-02",
         ]
+        num_days = max(1, min(len(days), num_days))
 
-        valid_menus = []
-        for i, day in enumerate(days):
-            if i < len(fixed_plan["daily_menus"]) and isinstance(fixed_plan["daily_menus"][i], dict):
-                menu_data = fixed_plan["daily_menus"][i]
-                menu_data["day"] = day
-                menu_data["date"] = dates[i]
-                valid_menus.append(MenuPlanValidator.validate_and_fix_daily_menu(menu_data))
-            else:
-                # Create default menu for missing days
-                valid_menus.append(
-                    {
-                        "day": day,
-                        "date": dates[i],
-                        "lunch": {
-                            "meal_type": "déjeuner",
-                            "starter": {
-                                "name": f"Entrée du {day}",
-                                "dish_type": "entrée",
-                                "description": "Entrée fraîche et savoureuse",
-                                "seasonal_ingredients": ["légumes de saison"],
-                                "nutritional_highlights": "Riche en vitamines",
-                            },
-                            "main_course": {
-                                "name": f"Plat principal du {day}",
-                                "dish_type": "plat principal",
-                                "description": "Plat principal équilibré",
-                                "seasonal_ingredients": ["protéines", "légumes"],
-                                "nutritional_highlights": "Source de protéines",
-                            },
-                        },
-                        "dinner": {
-                            "meal_type": "dîner",
-                            "starter": {
-                                "name": f"Entrée du soir - {day}",
-                                "dish_type": "entrée",
-                                "description": "Entrée légère pour le dîner",
-                                "seasonal_ingredients": ["légumes frais"],
-                                "nutritional_highlights": "Léger et digestible",
-                            },
-                            "main_course": {
-                                "name": f"Plat du soir - {day}",
-                                "dish_type": "plat principal",
-                                "description": "Plat principal pour le dîner",
-                                "seasonal_ingredients": ["protéines légères"],
-                                "nutritional_highlights": "Équilibré pour le soir",
-                            },
-                        },
-                    }
-                )
+        valid_menus: list[dict[str, Any]] = []
+        for i, menu_data in enumerate(fixed_plan["daily_menus"][:num_days]):
+            if not isinstance(menu_data, dict):
+                logger.warning(f"Skipping malformed daily menu #{i + 1}")
+                continue
+            menu_data["day"] = days[len(valid_menus)]
+            menu_data["date"] = dates[len(valid_menus)]
+            valid_menus.append(MenuPlanValidator.validate_and_fix_daily_menu(menu_data))
+        if len(valid_menus) < num_days:
+            logger.warning(f"Menu plan has {len(valid_menus)} usable day(s) out of {num_days} requested")
 
         fixed_plan["daily_menus"] = valid_menus
 
@@ -223,7 +212,9 @@ class MenuPlanValidator:
         return fixed_plan
 
     @staticmethod
-    def parse_and_validate_ai_output(ai_output: str) -> WeeklyMenuPlan | None:
+    def parse_and_validate_ai_output(
+        ai_output: str, num_days: int = DEFAULT_MENU_DAYS
+    ) -> WeeklyMenuPlan | None:
         """Parse AI output and validate/fix it to create a valid WeeklyMenuPlan."""
         try:
             # Try to parse as JSON
@@ -246,7 +237,11 @@ class MenuPlanValidator:
                 plan_data = ai_output
 
             # Validate and fix the data
-            fixed_plan_data = MenuPlanValidator.validate_and_fix_weekly_plan(plan_data)
+            fixed_plan_data = MenuPlanValidator.validate_and_fix_weekly_plan(plan_data, num_days)
+
+            if not fixed_plan_data["daily_menus"]:
+                logger.error("Menu plan has no usable day")
+                return None
 
             # Try to create the Pydantic model
             try:
@@ -261,7 +256,7 @@ class MenuPlanValidator:
             return None
 
     @staticmethod
-    def create_fallback_menu_plan() -> WeeklyMenuPlan:
+    def create_fallback_menu_plan(num_days: int = DEFAULT_MENU_DAYS) -> WeeklyMenuPlan:
         """Create a valid fallback menu plan when AI output is completely unusable."""
         days = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"]
         dates = [
@@ -275,7 +270,7 @@ class MenuPlanValidator:
         ]
 
         daily_menus = []
-        for i, day in enumerate(days):
+        for i, day in enumerate(days[: max(1, num_days)]):
             daily_menu = DailyMenu(
                 day=day,
                 date=dates[i],

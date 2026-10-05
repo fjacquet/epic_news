@@ -76,35 +76,34 @@ intelligence_product_development:
 global_reporting:
   description: >
     Create a comprehensive and extensive global intelligence report on {target} by
-     aggregating all information from the 'output/osint' directory.
-    This report must be extremely detailed and maintain the full depth of  information
-    from all source reports, including:
+    cross-referencing the six OSINT sub-reports below. They are JSON documents keyed by
+    area (company_profile, tech_stack, web_presence, hr_intelligence, legal_analysis,
+    geospatial_analysis); a report that could not be produced or read is simply absent,
+    and a long report may end with a truncation marker.
+    Use ONLY facts found in these sub-reports and in the intelligence products from the
+    previous tasks. Never invent an entity, figure or date, and never name a company
+    other than {target}. Where a sub-report is missing or thin, say so in
+    information_gaps.
+    The report must be extremely detailed and maintain the depth of the source reports:
     - A thorough executive summary capturing all key findings
-    - Exhaustive presentation of all intelligence gathered, maintaining the original
-    level of detail
-    - A highly structured organization with clear sections and subsections
-    - Complete representation of all technical details, statistics, and specialized
-    information
-    - Preservation of all nuances, context, and supporting evidence from source materials
-    Your process to generate this report is CRITICAL and MUST be followed EXACTLY:
-    1. First, use the `directory_read_tool` specifically on the 'output/osint' directory.
-     This will give you a list of filenames of the previously generated reports.
-    2. Second, for EACH AND EVERY filename obtained in step 1, you ABSOLUTELY MUST
-     use the `file_read_tool` to read the FULL TEXTUAL CONTENT of that specific file.
-     Do not summarize or list the files at this stage; your goal is to gather all
-    the raw information from within them.
-    3. Third, after you have successfully read the content from ALL files, your primary
-    task
-    is to SYNTHESIZE this collected textual information. Create a single, coherent,
-     and comprehensive global intelligence report. This report is NOT a list of files,
-     nor a summary of what files exist. It is an INTEGRATION of the INFORMATION CONTAINED
-    WITHIN those files.
-    4. The final report should be a structured JSON object that integrates the information
-    from the files, not a meta-report about the files themselves or a simple concatenation.
+    - Cross-domain patterns, links and contradictions between the sub-reports
+    - A highly structured organization with clear sections
+    - Technical details, statistics and supporting evidence from the sources
+    Your output is a structured JSON object that integrates the information from the
+    sub-reports; it is not a list of the sub-reports or a description of them.
+
+    OSINT SUB-REPORTS:
+    {osint_reports}
   expected_output: >
-    A comprehensive and extensive global intelligence report in a well-structured
-    JSON format.
-    The report must provide a complete synthesis of all gathered intelligence
-    on {target} with appropriate keys and values.
+    A comprehensive global intelligence report on {target} as a JSON object with the keys
+    target (the company name, {target}), executive_summary, detailed_findings,
+    confidence_assessment and information_gaps.
+    detailed_findings is NEVER an empty object. It has exactly these six keys
+    (company_profile, tech_stack, web_presence, hr_intelligence, legal_analysis,
+    geospatial_analysis), each a string of a few sentences with the concrete facts of that
+    area taken from the matching sub-report (for an area with no data, the string says
+    that no data was available).
+    executive_summary stays a short synthesis; the per-area facts belong in
+    detailed_findings.
   agent: osint_reporter
   output_file: '{output_file}'

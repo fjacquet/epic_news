@@ -32,6 +32,7 @@ from epic_news.models.crews.shopping_advice_report import ShoppingAdviceOutput
 from epic_news.models.crews.tech_stack_report import TechStackReport
 from epic_news.models.crews.web_presence_report import WebPresenceReport
 from epic_news.models.extracted_info import ExtractedInfo
+from epic_news.utils.menu_days import parse_num_days
 from epic_news.utils.menu_generator import MenuGenerator
 from epic_news.utils.string_utils import create_topic_slug
 
@@ -316,6 +317,7 @@ class ContentState(BaseModel):
         # Menu-specific mappings with defaults
         menu_mappings.update(
             {
+                "num_days": parse_num_days(inputs.get("duration"), inputs.get("user_request")),
                 "constraints": inputs.get("user_preferences_and_constraints")
                 or inputs.get("user_request", "none"),
                 "preferences": inputs.get("user_preferences_and_constraints")

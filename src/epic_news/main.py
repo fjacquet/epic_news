@@ -81,6 +81,7 @@ from epic_news.models.crews.sales_prospecting_report import SalesProspectingRepo
 from epic_news.models.crews.tech_stack_report import TechStackReport
 from epic_news.models.crews.web_presence_report import WebPresenceReport
 from epic_news.services.menu_designer_service import MenuDesignerService
+from epic_news.tools.recent_search_tool import RecentSearchTool
 from epic_news.utils.concurrency import bounded_map
 
 # Import the normalization utility
@@ -110,8 +111,9 @@ from epic_news.utils.flow_helpers import load_or_parse_model, render_and_write_h
 from epic_news.utils.holiday_report import assemble_holiday_docx
 from epic_news.utils.html.template_manager import TemplateManager
 from epic_news.utils.html.template_renderers.pestel_markdown import pestel_to_markdown
-from epic_news.utils.interrupt import RunCancelledError, install_force_quit_handler
+from epic_news.utils.interrupt import RunCancelledError, install_force_quit_handler, raise_if_cancelled
 from epic_news.utils.logger import setup_logging
+from epic_news.utils.menu_days import DEFAULT_MENU_DAYS
 from epic_news.utils.menu_generator import MenuGenerator
 from epic_news.utils.observability import get_observability_tools, trace_task
 from epic_news.utils.recipe_export import export_recipe, recipe_from_result
@@ -148,6 +150,40 @@ hallucination_guard = observability_tools["hallucination_guard"]
 CLASSIFY_DECISION_FILE = "output/classify/decision.md"
 
 
+OSINT_REPORT_STEMS = (
+    "company_profile",
+    "tech_stack",
+    "web_presence",
+    "hr_intelligence",
+    "legal_analysis",
+    "geospatial_analysis",
+)
+# Per-report cap (characters of JSON) so the six reports stay a bounded prompt (~30k tokens).
+OSINT_REPORT_MAX_CHARS = 20_000
+
+
+def _load_osint_reports(osint_dir: Path) -> str:
+    """Compact JSON of the OSINT sub-reports written by the parallel run, one key per stem.
+
+    Missing or unreadable reports are skipped; each report is capped at OSINT_REPORT_MAX_CHARS.
+    """
+    reports: dict[str, Any] = {}
+    for stem in OSINT_REPORT_STEMS:
+        path = osint_dir / f"{stem}.json"
+        try:
+            text = json.dumps(json.loads(path.read_text(encoding="utf-8")), ensure_ascii=False)
+        except (OSError, ValueError) as exc:
+            logger.warning(f"OSINT sub-report {path} skipped: {exc}")
+            continue
+        if len(text) > OSINT_REPORT_MAX_CHARS:
+            logger.warning(
+                f"OSINT sub-report {stem} truncated from {len(text)} to {OSINT_REPORT_MAX_CHARS} chars"
+            )
+            text = text[:OSINT_REPORT_MAX_CHARS] + "...[truncated]"
+        reports[stem] = text
+    return "\n".join(f'"{stem}": {text}' for stem, text in reports.items())
+
+
 def _category_from_classification(result: Any, categories: dict[str, str]) -> str:
     """Category chosen by ClassifyCrew's typed output; UNKNOWN when missing or invalid."""
     model = getattr(result, "pydantic", None)
@@ -158,6 +194,42 @@ def _category_from_classification(result: Any, categories: dict[str, str]) -> st
 """                                                                                      """
 """                     All the magic is here                                            """
 """                                                                                      """
+
+
+_PESTEL_DIMENSIONS = ("political", "economic", "social", "technological", "environmental", "legal")
+_PESTEL_PRESEARCH_MAX_CHARS = 8000
+_PESTEL_NO_RECENT_RESULTS = "No recent search results available; use recent_search or hybrid_search."
+
+
+def _pestel_recent_research(topic: str, geography: str) -> dict[str, str]:
+    """Run one last-12-months search per PESTEL dimension; return one text block per dimension."""
+    tool = RecentSearchTool()
+
+    def _search(dimension: str) -> str:
+        raise_if_cancelled(f"PESTEL pre-search ({dimension})")
+        query = f"{dimension} factors affecting {topic} in {geography}: latest developments"
+        try:
+            text = str(tool._run(query)).strip()
+            payload = json.loads(text) if text else None
+            if isinstance(payload, dict) and payload.get("error"):
+                logger.warning(f"PESTEL pre-search error for {dimension}: {payload['error']}")
+                return _PESTEL_NO_RECENT_RESULTS
+        except RunCancelledError:
+            raise
+        except Exception as exc:  # noqa: BLE001 - a failed pre-search must not stop the analysis
+            logger.warning(f"PESTEL pre-search failed for {dimension}: {exc}")
+            return _PESTEL_NO_RECENT_RESULTS
+        if not text:
+            logger.warning(f"PESTEL pre-search returned nothing for {dimension}")
+            return _PESTEL_NO_RECENT_RESULTS
+        if len(text) > _PESTEL_PRESEARCH_MAX_CHARS:
+            logger.info(f"PESTEL pre-search for {dimension} truncated from {len(text)} chars")
+            text = text[:_PESTEL_PRESEARCH_MAX_CHARS] + " [truncated]"
+        logger.info(f"PESTEL pre-search for {dimension}: {len(text)} chars")
+        return text
+
+    results = bounded_map(_search, _PESTEL_DIMENSIONS, "PESTEL_PRESEARCH_CONCURRENCY", 3)
+    return dict(zip(_PESTEL_DIMENSIONS, results, strict=True))
 
 
 def _stub_pestel_report(topic: str, generated_at: str, error: str) -> PestelReport:
@@ -752,10 +824,14 @@ class ReceptionFlow(Flow[ContentState]):
                 season=crew_inputs.get("season", "hiver"),
                 current_date=crew_inputs.get("current_date", "2025-01-27"),
                 menu_slug=crew_inputs.get("menu_slug", "menu_hebdomadaire"),
+                num_days=crew_inputs.get("num_days", DEFAULT_MENU_DAYS),
             )
 
             if menu_plan:
-                self.logger.info("✅ Menu plan validated successfully")
+                if menu_service.used_fallback:
+                    self.logger.error("❌ Menu plan is the placeholder fallback, not a planned menu")
+                else:
+                    self.logger.info("✅ Menu plan validated successfully")
 
                 html_file = f"{output_dir}/{crew_inputs['menu_slug']}.html"
                 emit_report(
@@ -808,7 +884,9 @@ class ReceptionFlow(Flow[ContentState]):
             report_model = validator.parse_and_validate_ai_output(raw_output)
             if not report_model:
                 self.logger.warning("⚠️ Fallback validation failed, creating emergency fallback")
-                report_model = validator.create_fallback_menu_plan()
+                report_model = validator.create_fallback_menu_plan(
+                    crew_inputs.get("num_days", DEFAULT_MENU_DAYS)
+                )
 
             emit_report(
                 self.state,
@@ -1141,7 +1219,9 @@ class ReceptionFlow(Flow[ContentState]):
         inputs = self.state.to_crew_inputs()
         info = self.state.extracted_info
         if info is not None:
-            entity = info.target_company or info.destination_location
+            # The topic stays the request's subject (company, else the extracted
+            # subject already in inputs); the location only scopes the geography.
+            entity = info.target_company or inputs.get("topic") or info.destination_location
             if entity:
                 inputs["topic"] = entity
             geo = (
@@ -1155,6 +1235,9 @@ class ReceptionFlow(Flow[ContentState]):
             inputs.setdefault("geography", "global")
             inputs.setdefault("language", "English")
         inputs["current_date"] = datetime.datetime.now().strftime("%Y-%m-%d")
+        recent = _pestel_recent_research(str(inputs.get("topic", "")), inputs["geography"])
+        for dimension, text in recent.items():
+            inputs[f"recent_{dimension}"] = text
         self.logger.info(
             f"📊 Generating PESTEL analysis for: {inputs.get('topic', 'N/A')} "
             f"(geo={inputs['geography']}, lang={inputs['language']})"
@@ -1379,6 +1462,7 @@ class ReceptionFlow(Flow[ContentState]):
 
         crew_inputs = inputs.copy()
         crew_inputs["output_file"] = json_file
+        crew_inputs["osint_reports"] = _load_osint_reports(Path("output/osint"))
         output = await akickoff_flow(CrossReferenceReportCrew(), crew_inputs)
         self.state.cross_reference_report = output
 

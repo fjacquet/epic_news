@@ -1,17 +1,16 @@
 ---
 menu_planning_task:
   description: >
-    Planifier UNIQUEMENT la structure du menu hebdomadaire français complet.
-    OBJECTIF: Créer un plan de menu hebdomadaire cohérent et équilibré comprenant
-     30 recettes harmonieusement associées.
+    Planifier UNIQUEMENT la structure du menu français sur {num_days} jour(s).
+    OBJECTIF: Créer un plan de menu cohérent et équilibré, harmonieusement associé,
+    couvrant exactement {num_days} jour(s) et pas davantage.
     STRUCTURE OBLIGATOIRE:
-    - 7 jours × 2 repas = 14 repas
-    - Chaque repas: entrée + plat principal   - Weekend déjeuners: entrée + plat principal
+    - {num_days} jour(s) × 2 repas (déjeuner et dîner)
+    - Chaque repas: entrée + plat principal
+    - Déjeuners de weekend (samedi, dimanche) s'il y en a: entrée + plat principal
     + dessert
-    - TOTAL: 30 recettes spécifiées individuellement
-    RÉPARTITION EXACTE:
-    - Lundi-Vendredi: Déjeuner (entrée + plat), Dîner (entrée + plat)  - Samedi-Dimanche:
-    Déjeuner (entrée + plat + dessert), Dîner (entrée + plat)
+    - TOTAL: {num_days} × 2 × 2 recettes (plus les éventuels desserts de weekend),
+    spécifiées individuellement
     Contraintes à respecter:
     - Saison: {season} - utiliser les produits de saison correspondant à la date {current_date}
     - Cuisine française familiale traditionnelle
@@ -23,18 +22,18 @@ menu_planning_task:
     textures, intensités)
     - Progression culinaire: entrée légère → plat principal plus consistant → dessert
     équilibré
-    - Variété sur la semaine: alterner les types de protéines, de féculents et de
+    - Variété sur la période: alterner les types de protéines, de féculents et de
     légumes
     - Équilibre nutritionnel: répartition optimale des groupes alimentaires sur la
-    semaine
-    - Rythme hebdomadaire: plats plus légers en semaine, plus élaborés le weekend
+    période
+    - Rythme: plats plus légers en semaine, plus élaborés le weekend
     - Chaque recette doit être UNIQUE et clairement spécifiée
     - Noms de recettes précis et attractifs
     IMPORTANT: Ne PAS générer les recettes détaillées - seulement la structure du
     menu avec les noms et descriptions des plats et leur information nutritionnelle.
     Les recettes seront générées séparément.
   expected_output: >
-    Un plan de menu hebdomadaire complet qui respecte SCRUPULEUSEMENT la structure
+    Un plan de menu complet sur {num_days} jour(s) qui respecte SCRUPULEUSEMENT la structure
     du modèle Pydantic `WeeklyMenuPlan`.
     STRUCTURE JSON OBLIGATOIRE - EXEMPLE COMPLET:
     {
@@ -91,7 +90,7 @@ menu_planning_task:
     - seasonal_ingredients DOIT être un array de strings, jamais null
     - nutritional_highlights DOIT être une string non-vide, jamais null
     - Tous les champs sont OBLIGATOIRES sauf dessert (weekend uniquement)
-    - daily_menus DOIT contenir exactement 7 objets DailyMenu
+    - daily_menus DOIT contenir exactement {num_days} objet(s) DailyMenu (un par jour demandé)
     - Chaque DailyMenu DOIT avoir lunch ET dinner
     RETOURNEZ UNIQUEMENT LE JSON VALIDE, AUCUN AUTRE TEXTE.
   agent: menu_researcher
@@ -106,14 +105,14 @@ menu_json_task:
     - S'assurer que seasonal_ingredients est toujours un array, jamais null
     - Garantir que nutritional_highlights est une string non-vide
     - Valider que tous les champs obligatoires sont présents
-    - Contrôler que daily_menus contient exactement 7 éléments
+    - Contrôler que daily_menus contient exactement {num_days} élément(s)
     INSTRUCTIONS TECHNIQUES:
     - Assurer que toutes les données sont correctement structurées selon le modèle
     WeeklyMenuPlan
     - Vérifier l'intégrité et la cohérence des données
     - Éliminer tout élément de formatage ou balise HTML
     CONTENU REQUIS:
-    - Organisation par jour de la semaine (Lundi à Dimanche)
+    - Organisation par jour, sur {num_days} jour(s) seulement
     - Distinction claire entre déjeuners et dîners
     - Tous les plats avec leur type (entrée, plat principal, dessert)
     - Ingrédients de saison pour chaque plat
@@ -128,53 +127,62 @@ menu_json_task:
     Un objet JSON parfaitement structuré et valide correspondant au modèle WeeklyMenuPlan.
     STRUCTURE OBLIGATOIRE - CHAQUE JOUR DOIT AVOIR CETTE STRUCTURE EXACTE:
     {
-      "title": "Menu de la semaine",
-      "week_start_date": "2024-01-15",
-      "nutritional_balance": "Équilibré en protéines, glucides et lipides",
-      "gustative_coherence": "Saveurs méditerranéennes harmonieuses",
-      "constraints_adaptation": "Adapté aux contraintes spécifiées",
-      "preferences_integration": "Intègre les préférences culinaires",
+      "week_start_date": "2025-01-27",
+      "season": "hiver",
       "daily_menus": [
         {
           "day": "Lundi",
-          "date": "2024-01-15",
+          "date": "2025-01-27",
           "lunch": {
-            "dishes": [
-              {
-                "name": "Salade de quinoa",
-                "dish_type": "entrée",
-                "seasonal_ingredients": ["quinoa", "légumes d'hiver"],
-                "nutritional_highlights": "Riche en protéines végétales"
-              }
-            ]
+            "meal_type": "déjeuner",
+            "starter": {
+              "name": "Salade de quinoa aux légumes d'hiver",
+              "dish_type": "entrée",
+              "description": "Quinoa tiède, légumes rôtis et vinaigrette citronnée",
+              "seasonal_ingredients": ["quinoa", "légumes d'hiver"],
+              "nutritional_highlights": "Riche en protéines végétales"
+            },
+            "main_course": {
+              "name": "Pot-au-feu traditionnel",
+              "dish_type": "plat principal",
+              "description": "Bœuf mijoté avec légumes d'hiver, bouillon parfumé",
+              "seasonal_ingredients": ["bœuf", "carottes", "poireaux"],
+              "nutritional_highlights": "Source de protéines et légumes de saison"
+            }
           },
           "dinner": {
-            "dishes": [
-              {
-                "name": "Saumon grillé",
-                "dish_type": "plat principal",
-                "seasonal_ingredients": ["saumon", "légumes verts"],
-                "nutritional_highlights": "Riche en oméga-3"
-              }
-            ]
+            "meal_type": "dîner",
+            "starter": {
+              "name": "Velouté de potiron",
+              "dish_type": "entrée",
+              "description": "Soupe onctueuse de potiron avec crème fraîche",
+              "seasonal_ingredients": ["potiron", "oignon"],
+              "nutritional_highlights": "Riche en bêta-carotène"
+            },
+            "main_course": {
+              "name": "Saumon grillé aux épinards",
+              "dish_type": "plat principal",
+              "description": "Filet de saumon grillé, épinards sautés à l'ail",
+              "seasonal_ingredients": ["saumon", "épinards"],
+              "nutritional_highlights": "Riche en oméga-3"
+            }
           }
         }
-      ]
+      ],
+      "nutritional_balance": "Équilibré en protéines, glucides et lipides",
+      "gustative_coherence": "Saveurs harmonieuses",
+      "constraints_adaptation": "Adapté aux contraintes spécifiées",
+      "preferences_integration": "Intègre les préférences culinaires"
     }
     VALIDATION FINALE REQUISE:
-    - JSON syntaxiquement correct
-    - Tous les champs obligatoires présents (title, week_start_date, nutritional_balance,
-    gustative_coherence, constraints_adaptation, preferences_integration, daily_menus)
-    - Chaque daily_menu DOIT avoir: day, date, lunch, dinner
-    - Chaque lunch/dinner DOIT avoir un array dishes
-    - Chaque dish DOIT avoir: name, dish_type, seasonal_ingredients, nutritional_highlights
+    - JSON syntaxiquement correct, clés exactement comme dans l'exemple
+    - Chaque repas utilise les clés starter et main_course (et dessert si prévu), jamais une liste dishes
+    - Conserver les noms de plats du plan précédent tels quels
+    - Chaque plat DOIT avoir: name, dish_type, description, seasonal_ingredients, nutritional_highlights
     - dish_type DOIT être exactement: "entrée", "plat principal", ou "dessert"
     - seasonal_ingredients DOIT être un array, jamais null
     - nutritional_highlights DOIT être une string non-vide
-    - Types de données conformes (strings, arrays, objets)
     - Aucune valeur null dans les champs requis
-    Le JSON doit être propre, sans formatage HTML, et prêt à être utilisé directement
-    par l'application.
     Format de sortie: JSON pur uniquement, sans texte explicatif.
   agent: menu_reporter
   output_file: '{output_file}'

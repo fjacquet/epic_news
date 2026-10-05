@@ -14,6 +14,16 @@ political_research_task:
     - Lobbying activity and political stakeholder mapping when relevant
     For every finding include a short source reference (URL or publication title
     with date). Do not speculate beyond the evidence.
+    Recent search results (last 12 months) for this dimension:
+    {recent_political}
+    Build on these results first; cite their sources with dates; search further
+    if they are insufficient.
+    Requirements: call the search tool at least once before giving your final
+    answer (never answer from prior knowledge alone). Use recent_search first
+    for current developments, and hybrid_search only for background or when
+    recent_search fails. Prefer sources published
+    within the 12 months before {current_date} and give each source's date.
+    Make one tool Action per turn and wait for its Observation before continuing.
   expected_output: >
     All free-text fields (summary, impact_analysis, key_factors) MUST be written
     in {language}. A structured JSON object with: summary (executive summary of
@@ -35,6 +45,16 @@ economic_research_task:
     - Access to capital, investment climate, and funding conditions
     For every finding include a short source reference with date. Prefer primary
     statistics offices, central banks, and reputable international institutions.
+    Recent search results (last 12 months) for this dimension:
+    {recent_economic}
+    Build on these results first; cite their sources with dates; search further
+    if they are insufficient.
+    Requirements: call the search tool at least once before giving your final
+    answer (never answer from prior knowledge alone). Use recent_search first
+    for current developments, and hybrid_search only for background or when
+    recent_search fails. Prefer sources published
+    within the 12 months before {current_date} and give each source's date.
+    Make one tool Action per turn and wait for its Observation before continuing.
   expected_output: >
     All free-text fields MUST be written in {language}. A structured JSON object
     with: summary, key_factors (5-10 sourced factors with numbers where
@@ -54,6 +74,16 @@ social_research_task:
     - Social-media sentiment and movements when relevant
     Cite sources for every finding (census data, peer-reviewed studies,
     reputable polling). Flag regional variation when it matters.
+    Recent search results (last 12 months) for this dimension:
+    {recent_social}
+    Build on these results first; cite their sources with dates; search further
+    if they are insufficient.
+    Requirements: call the search tool at least once before giving your final
+    answer (never answer from prior knowledge alone). Use recent_search first
+    for current developments, and hybrid_search only for background or when
+    recent_search fails. Prefer sources published
+    within the 12 months before {current_date} and give each source's date.
+    Make one tool Action per turn and wait for its Observation before continuing.
   expected_output: >
     All free-text fields MUST be written in {language}. A structured JSON object
     with: summary, key_factors (5-10 sourced factors), impact_analysis, sources.
@@ -71,6 +101,16 @@ technological_research_task:
     - Technology infrastructure (connectivity, compute, platforms)
     - Cybersecurity and technology risk
     Cite sources for every finding. Distinguish hype from validated deployment.
+    Recent search results (last 12 months) for this dimension:
+    {recent_technological}
+    Build on these results first; cite their sources with dates; search further
+    if they are insufficient.
+    Requirements: call the search tool at least once before giving your final
+    answer (never answer from prior knowledge alone). Use recent_search first
+    for current developments, and hybrid_search only for background or when
+    recent_search fails. Prefer sources published
+    within the 12 months before {current_date} and give each source's date.
+    Make one tool Action per turn and wait for its Observation before continuing.
   expected_output: >
     All free-text fields MUST be written in {language}. A structured JSON object
     with: summary, key_factors (5-10 sourced factors), impact_analysis, sources.
@@ -89,6 +129,16 @@ environmental_research_task:
     - Environmental incidents or controversies relevant to {topic}
     Cite sources for every finding (IPCC, national agencies, CDP/GRI). Do not
     conflate aspirational targets with measured outcomes.
+    Recent search results (last 12 months) for this dimension:
+    {recent_environmental}
+    Build on these results first; cite their sources with dates; search further
+    if they are insufficient.
+    Requirements: call the search tool at least once before giving your final
+    answer (never answer from prior knowledge alone). Use recent_search first
+    for current developments, and hybrid_search only for background or when
+    recent_search fails. Prefer sources published
+    within the 12 months before {current_date} and give each source's date.
+    Make one tool Action per turn and wait for its Observation before continuing.
   expected_output: >
     All free-text fields MUST be written in {language}. A structured JSON object
     with: summary, key_factors (5-10 sourced factors), impact_analysis, sources.
@@ -107,6 +157,16 @@ legal_research_task:
     - Jurisdictional scope and cross-border enforcement considerations
     Cite sources for every finding (statute references, regulator guidance,
     court decisions, reputable legal commentary). Note effective dates.
+    Recent search results (last 12 months) for this dimension:
+    {recent_legal}
+    Build on these results first; cite their sources with dates; search further
+    if they are insufficient.
+    Requirements: call the search tool at least once before giving your final
+    answer (never answer from prior knowledge alone). Use recent_search first
+    for current developments, and hybrid_search only for background or when
+    recent_search fails. Prefer sources published
+    within the 12 months before {current_date} and give each source's date.
+    Make one tool Action per turn and wait for its Observation before continuing.
   expected_output: >
     All free-text fields MUST be written in {language}. A structured JSON object
     with: summary, key_factors (5-10 sourced factors), impact_analysis, sources.
