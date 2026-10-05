@@ -1141,7 +1141,9 @@ class ReceptionFlow(Flow[ContentState]):
         inputs = self.state.to_crew_inputs()
         info = self.state.extracted_info
         if info is not None:
-            entity = info.target_company or info.destination_location
+            # The topic stays the request's subject (company, else the extracted
+            # subject already in inputs); the location only scopes the geography.
+            entity = info.target_company or inputs.get("topic") or info.destination_location
             if entity:
                 inputs["topic"] = entity
             geo = (

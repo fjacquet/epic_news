@@ -230,6 +230,23 @@ def test_generate_pestel_uses_destination_when_no_company(pestel_flow_env) -> No
     assert sent["geography"] == "global"
 
 
+def test_generate_pestel_keeps_market_subject_and_location_geography(pestel_flow_env) -> None:
+    """The subject of the request stays the topic; the location only sets the geography."""
+    _tmp_path, calls = pestel_flow_env
+
+    flow = ReceptionFlow(user_request="PESTEL du marché suisse des voitures électriques")
+    flow.state.extracted_info = ExtractedInfo(
+        main_subject_or_activity="marché suisse des voitures électriques",
+        destination_location="Suisse",
+        output_language="French",
+    )
+    flow.generate_pestel()
+
+    sent = calls["last_inputs"]
+    assert sent["topic"] == "marché suisse des voitures électriques"
+    assert sent["geography"] == "Suisse"
+
+
 def test_generate_pestel_closes_mcp_after_success(pestel_flow_env) -> None:
     _tmp_path, calls = pestel_flow_env
 
