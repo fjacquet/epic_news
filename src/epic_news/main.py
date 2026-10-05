@@ -579,23 +579,9 @@ class ReceptionFlow(Flow[ContentState]):
         inputs["stock_csv_path"] = os.path.abspath(stock_csv_file)
         inputs["etf_csv_path"] = os.path.abspath(etf_csv_file)
         inputs["current_date"] = datetime.datetime.now().strftime("%Y-%m-%d")
-        self.state.output_file = "output/findaily/report.json"
-        inputs["output_file"] = self.state.output_file
 
-        # Kickoff-only orchestration
-        output = kickoff_flow(FinDailyCrew(), inputs)
-        dump_crewai_state(output, "FIN_DAILY")
+        output, _ = self._run_standard(CREW_REGISTRY["FINDAILY"], FinDailyCrew(), inputs)
         self.state.fin_daily_report = output
-
-        financial_report_model = load_or_parse_model(
-            self.state.output_file, FinancialReport, output, inputs, "financial report"
-        )
-        emit_report(
-            self.state,
-            lambda: assemble_fin_daily_docx(
-                financial_report_model, self.state.to_crew_inputs(), "output/findaily/report.docx"
-            ),
-        )
         self.logger.info(f"✅ Financial report generated → {self.state.output_file}")
 
     @listen("go_generate_news_daily")
