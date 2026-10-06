@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [4.0.1] — 2026-10-06
+
+### Removed
+
+- **Langfuse tracing** (#249). `utils/tracing.py` called `Langfuse.span()`, which langfuse 4 no longer has: with `LANGFUSE_PUBLIC_KEY` and `LANGFUSE_SECRET_KEY` set, every crew kickoff raised `AttributeError` and stopped the run. `trace_span`, `utils/tracing.py` and the `langfuse` dependency are gone; local traces from `observability.py` are unchanged.
+
 ## [4.0.0] — 2026-10-06
 
 The 2026-10-04 codebase audit, worked through in waves (#213–#247): security hardening, LLM settings that actually reach LiteLLM, dead code removed, an efficiency pass, and a simplification pass. Reports are now DOCX only, `/kickoff` needs a bearer token, and a step that cannot build its report stops the run instead of producing a placeholder.
