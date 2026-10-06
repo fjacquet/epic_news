@@ -6,6 +6,44 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [4.0.0] — 2026-10-06
+
+The 2026-10-04 codebase audit, worked through in waves (#213–#247): security hardening, LLM settings that actually reach LiteLLM, dead code removed, an efficiency pass, and a simplification pass. Reports are now DOCX only, `/kickoff` needs a bearer token, and a step that cannot build its report stops the run instead of producing a placeholder.
+
+### Breaking
+
+- **Reports are DOCX only** (ADR-017, #236). The HTML stack is gone (`utils/html/`, `templates/`, `OUTPUT_FORMAT`, `render_and_write_html`). The email attaches the DOCX; the Streamlit app offers it as a download.
+- **`/kickoff` requires `Authorization: Bearer $EPIC_API_TOKEN`** (ADR-012, #217). Unset token returns 503 (fails closed), a wrong one 401. `user_request` is capped at 2000 characters and `EPIC_API_MAX_CONCURRENT` (default 1) returns 429 beyond it. Docker publishes the API on `${EPIC_API_BIND:-127.0.0.1}:8000` and Streamlit on `127.0.0.1:8501`.
+- **Default model is Gemini 3.8 Flash** on LiteLLM's native route (`gemini/gemini-3.8-flash`, ADR-016, #219); it needs `GEMINI_API_KEY`. `MODEL=openrouter/...` still works.
+- **Agents stop after 15 ReAct iterations** (`CREW_MAX_ITER`; 30 for the fin_daily stock analyst) instead of CrewAI's 25, and every LLM call has a timeout (#216, #220).
+- **Docker:** one `docker-compose.yml` with `api` and `streamlit` services (#242). The combined and code-interpreter images, their workflows and compose files are removed; images already on GHCR stay. `API_URL` is dropped. Make targets `ci-checks`, `all`, `clean-all` and the combined/code-interpreter targets are removed.
+- **Removed:** `HtmlToPdfTool` and WeasyPrint (#221), the RAG knowledge-base store and `make update-kb`, the `post` and `reception` crews, unused tools and extractors (#215, #237).
+
+### Security
+
+- Agents read files only under `output/` through `OutputFileReadTool` (ADR-015); crewai's unscoped `FileReadTool` is no longer given to agents with web tools (#217, #220).
+- `build_docx` refuses paths outside `output/`, and a pandoc Lua filter keeps only images under `output/` (no URLs, `file://` or `..`) (ADR-013, #217, #236).
+- The Wikipedia MCP server runs the locked venv binary instead of `uvx …@latest` (#217).
+- CI: Dependabot auto-merge for semver patch/minor only, reading the PR author from the event payload; third-party actions pinned to SHAs; least-privilege `ci.yml` (#213, #217).
+- Sample meeting participants use `example.com` (#247).
+
+### Changed
+
+- **LLM settings reach LiteLLM** (#216, #220): timeouts via `LLMConfig.get_openrouter_llm(task_type=...)` (the `llm_timeout=` kwarg was ignored), `max_iter` on each agent, no default temperature for Gemini, `medium` reasoning for Gemini 3, `num_retries=2`, two empty-response retries with backoff. An AST test rejects any `Agent`/`Task`/`Crew` kwarg that is not a declared field (ADR-014).
+- **Faster runs** (#224–#228): token usage logged per crew; a process-wide cap of `LLM_MAX_CONCURRENCY` (3) simultaneous LLM calls with bounded slot waits (`LLM_SLOT_WAIT_SECONDS`, #230); Composio imported lazily; scraper output capped (`SCRAPE_MAX_CHARS`); PESTEL dimensions, NewsDaily regions, DOCX sections and menu recipes run in parallel; the crew is picked during extraction, with `ClassifyCrew` as the fallback.
+- **Simplification** (#233–#242): a crew registry (`crew_registry.py`) and a shared standard-step helper, each crew keeping its own `@listen` step; `json_repair`-based output parsing; one `DeepResearchReport` model on the standard path; flow state holds the report, raw output and OSINT models; a shared kickoff retry path; CrewAI patches in `config/crewai_patches.py`.
+- Research tools trimmed to what each task uses; MCP servers wired through CrewBase with `close_mcp()` in a `finally` (#220).
+- Docs, ADRs and CLAUDE.md files refreshed (#222, #223).
+
+### Fixed
+
+- **No placeholder reports:** any placeholder section fails the DOCX build; the PESTEL stub, the deep-research invented fallback and the placeholder menu are gone (#232, #236, #237). A failed OSINT sub-crew (#244) or a shopping run without `ShoppingAdviceOutput` (#245) now stops the run.
+- DOCX: no horizontal rules (#218); narrated sections no longer repeat their own heading (#243); A4 reference template and system pandoc (#214).
+- OSINT consolidated report gets its six sections and stays grounded on the target (#229, #231); PESTEL keeps recent sources; menus get their dishes and days (#231).
+- Sales prospecting tasks use their YAML prompts (#234).
+- The Streamlit app showed no report: it read the return value of `kickoff()`, always `None` (#236).
+- `task_start` trace events carry only `task_name`, not the whole flow state; the test suite no longer writes to `traces/` (#246).
+
 ## [3.6.2] — 2026-10-02
 
 A maintenance release: full dependency refresh, OSV waivers re-reviewed, and the Dependabot auto-merge workflow hardened. No behaviour change.
