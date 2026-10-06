@@ -3,7 +3,7 @@ Flow enforcement utilities for Epic News crews.
 
 This module provides a small wrapper around CrewAI kickoff calls to:
 - Centralize orchestration entrypoints.
-- Add lightweight tracing/logging around runs.
+- Add lightweight logging around runs.
 - Avoid ad-hoc direct calls to internal crew or renderer methods from outside flows.
 
 Usage:
@@ -21,17 +21,6 @@ from typing import Any
 from loguru import logger
 
 from .interrupt import raise_if_cancelled
-
-try:
-    # Local, optional tracing (no hard dependency)
-    from .tracing import trace_span
-except Exception:  # pragma: no cover - fallback if tracing is unavailable
-    from contextlib import contextmanager
-
-    @contextmanager
-    def trace_span(name: str, attrs: dict[str, Any] | None = None):
-        yield
-
 
 # Substrings identifying provider-side hiccups that are worth retrying. A crew run is
 # expensive (deep_research takes ~19 min), so we only retry failures that are known to
@@ -150,7 +139,7 @@ def kickoff_flow(crew_or_factory: Any, context: dict[str, Any]) -> Any:
 
     - Accepts either a Crew factory (with .crew()) or a Crew instance.
     - Ensures context is a dict.
-    - Adds basic timing + optional tracing via trace_span.
+    - Logs timing and token usage.
     - Makes one attempt by default; with CREW_KICKOFF_ATTEMPTS > 1 it retries transient
       provider failures (see ``_TRANSIENT_ERROR_MARKERS``) with backoff.
     """
@@ -161,27 +150,24 @@ def kickoff_flow(crew_or_factory: Any, context: dict[str, Any]) -> Any:
     attempts, backoff = _retry_settings()
     start = time.perf_counter()
 
-    with trace_span("kickoff_flow", {"crew": crew_name, "keys": sorted(context.keys())}):
-        logger.info(
-            "🚀 Kicking off crew {} with context keys: {}", crew_name, ", ".join(sorted(context.keys()))
-        )
-        for attempt in range(1, attempts + 1):
-            crew = _prepare_attempt(crew_or_factory, crew_name, attempt, attempts, "kickoff")
-            try:
-                result = crew.kickoff(inputs=context)
-            except Exception as exc:
-                delay = _retry_delay(exc, crew_name, attempt, attempts, backoff, start)
-                if delay is None:
-                    raise
-                time.sleep(delay)
-                continue
-            _log_run_usage(crew_name, time.perf_counter() - start, result)
-            return result
+    logger.info("🚀 Kicking off crew {} with context keys: {}", crew_name, ", ".join(sorted(context.keys())))
+    for attempt in range(1, attempts + 1):
+        crew = _prepare_attempt(crew_or_factory, crew_name, attempt, attempts, "kickoff")
+        try:
+            result = crew.kickoff(inputs=context)
+        except Exception as exc:
+            delay = _retry_delay(exc, crew_name, attempt, attempts, backoff, start)
+            if delay is None:
+                raise
+            time.sleep(delay)
+            continue
+        _log_run_usage(crew_name, time.perf_counter() - start, result)
+        return result
 
-        # Unreachable: every iteration either returns or raises.
-        raise RuntimeError(  # pragma: no cover
-            f"Crew {crew_name} exhausted {attempts} attempts without result"
-        )
+    # Unreachable: every iteration either returns or raises.
+    raise RuntimeError(  # pragma: no cover
+        f"Crew {crew_name} exhausted {attempts} attempts without result"
+    )
 
 
 async def akickoff_flow(crew_or_factory: Any, context: dict[str, Any]) -> Any:
@@ -192,7 +178,7 @@ async def akickoff_flow(crew_or_factory: Any, context: dict[str, Any]) -> Any:
 
     - Accepts either a Crew factory (with .crew()) or a Crew instance.
     - Ensures context is a dict.
-    - Adds basic timing + optional tracing via trace_span.
+    - Logs timing and token usage.
     - Makes one attempt by default; with CREW_KICKOFF_ATTEMPTS > 1 it retries transient
       provider failures, mirroring kickoff_flow.
     """
@@ -203,26 +189,25 @@ async def akickoff_flow(crew_or_factory: Any, context: dict[str, Any]) -> Any:
     attempts, backoff = _retry_settings()
     start = time.perf_counter()
 
-    with trace_span("akickoff_flow", {"crew": crew_name, "keys": sorted(context.keys())}):
-        logger.info(
-            "🚀 Async kicking off crew {} with context keys: {}",
-            crew_name,
-            ", ".join(sorted(context.keys())),
-        )
-        for attempt in range(1, attempts + 1):
-            crew = _prepare_attempt(crew_or_factory, crew_name, attempt, attempts, "akickoff")
-            try:
-                result = await crew.akickoff(inputs=context)
-            except Exception as exc:
-                delay = _retry_delay(exc, crew_name, attempt, attempts, backoff, start)
-                if delay is None:
-                    raise
-                await asyncio.sleep(delay)
-                continue
-            _log_run_usage(crew_name, time.perf_counter() - start, result)
-            return result
+    logger.info(
+        "🚀 Async kicking off crew {} with context keys: {}",
+        crew_name,
+        ", ".join(sorted(context.keys())),
+    )
+    for attempt in range(1, attempts + 1):
+        crew = _prepare_attempt(crew_or_factory, crew_name, attempt, attempts, "akickoff")
+        try:
+            result = await crew.akickoff(inputs=context)
+        except Exception as exc:
+            delay = _retry_delay(exc, crew_name, attempt, attempts, backoff, start)
+            if delay is None:
+                raise
+            await asyncio.sleep(delay)
+            continue
+        _log_run_usage(crew_name, time.perf_counter() - start, result)
+        return result
 
-        # Unreachable: every iteration either returns or raises.
-        raise RuntimeError(  # pragma: no cover
-            f"Crew {crew_name} exhausted {attempts} attempts without result"
-        )
+    # Unreachable: every iteration either returns or raises.
+    raise RuntimeError(  # pragma: no cover
+        f"Crew {crew_name} exhausted {attempts} attempts without result"
+    )

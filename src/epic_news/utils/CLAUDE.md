@@ -21,7 +21,6 @@ utils/
 ├── email_sender.py           # send_report_email (Composio GMAIL_SEND_EMAIL, deterministic)
 ├── interrupt.py              # Ctrl+C handling: RunCancelledError, raise_if_cancelled, ...
 ├── logger.py                 # setup_logging (Loguru)
-├── tracing.py                # trace_span context manager (optional Langfuse)
 ├── observability.py          # TraceEvent, Tracer, trace_task (sync and async flow steps)
 ├── tool_logging.py           # configure_tool_logging, apply_tool_silence
 ├── menu_generator.py         # MenuGenerator (season; parse_menu_structure(WeeklyMenuPlan) -> recipe specs)
@@ -51,7 +50,7 @@ recipe, shopping, OSINT, holiday) are written out with the helpers below.
 - `kickoff_flow(crew_or_factory, context)`: calls `.crew()` when given a `@CrewBase` class
   instance, makes one attempt by default (`CREW_KICKOFF_ATTEMPTS` > 1 retries transient
   provider errors with backoff, rebuilding the crew each time), checks `raise_if_cancelled`
-  before each attempt, wraps the run in `trace_span`.
+  before each attempt.
   `akickoff_flow` is the async twin (uses `crew.akickoff`). `context` must be a dict.
 - `load_or_parse_model(json_path, model_cls, fallback_output, inputs=None, label="")`: loads
   and validates the JSON file the task wrote; on a missing/invalid file falls back to
@@ -106,8 +105,7 @@ empty/invalid output. Also exported:
 - **Email**: `send_report_email(...)` calls Composio `GMAIL_SEND_EMAIL` directly and raises
   `EmailDeliveryError` unless delivery is confirmed; never delegate sending to an agent.
 - **Observability**: `@trace_task(Tracer(...))` records `task_start` / `task_error` / `task_end` for
-  each flow step (sync or `async def`) under `traces/` (used by `main.py` and `company_news`);
-  `trace_span(name, attrs)` is a no-op without Langfuse keys.
+  each flow step (sync or `async def`) under `traces/` (used by `main.py` and `company_news`).
 
 ## Related Documentation
 

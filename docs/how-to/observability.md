@@ -1,8 +1,7 @@
 # Observability
 
 Epic News records a trace event for every `ReceptionFlow` step and for the steps of the
-company news crew. Crew timing and token usage go to the logs (`logs/`), and each crew
-kickoff opens a Langfuse span when its keys are set (`trace_span`, see `utils/tracing.py`).
+company news crew. Crew timing and token usage go to the logs (`logs/`).
 
 ## Trace events
 

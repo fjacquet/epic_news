@@ -14,7 +14,6 @@ dependencies = [
     "composio>=0.18.1",
     "composio-crewai>=0.18.1",
     "litellm>=1.94.1",
-    "langfuse>=4.14.2",
     # --- Pydantic / data ---
     "pydantic>=2.7.0",
     "loguru>=0.7.3",
