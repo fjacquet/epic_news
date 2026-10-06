@@ -48,9 +48,9 @@ FALLBACK_EMAIL = "fred.jacquet@gmail.com"
 # to a valid address instead of an empty string that breaks the email send.
 DEFAULT_EMAIL = os.getenv("MAIL") or FALLBACK_EMAIL
 DEFAULT_PARTICIPANTS = [
-    "John Doe <john.doe@pictet.com> - CEO",
-    "Jane Smith <jane.smith@pictet.com> - CTO",
-    "Bob Johnson <bob.johnson@pictet.com> - Sales Director",
+    "John Doe <john.doe@example.com> - CEO",
+    "Jane Smith <jane.smith@example.com> - CTO",
+    "Bob Johnson <bob.johnson@example.com> - Sales Director",
 ]
 
 
