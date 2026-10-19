@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Security
+
+- `mcp` moves from 1.28.1 to 2.3.0 for GHSA-84m7-p3x7-pcfv (fixed in 1.30.0). crewai pins `mcp~=1.28.1`, so `pyproject.toml` lifts it with a uv `override-dependencies` entry. `StdioServerParameters`, the only `mcp` import, is unchanged in mcp 2.
+- `aiohttp` 3.14.3 → 3.14.5 for GHSA-2g87-pp6c-29x5, GHSA-494j-54xm-rwp3 and GHSA-5wr8-gcqf-gqf3 (fixed in 3.14.4).
+
 ## [4.0.1] — 2026-10-06
 
 ### Removed
