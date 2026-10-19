@@ -221,3 +221,6 @@ DEP002 = [
 # DEP003: `pip install -e .` makes epic_news appear in the resolver's transitive
 # output, so suppress it here even though known_first_party already marks it.
 DEP003 = ["epic_news"]
+
+[tool.uv]
+override-dependencies = ["mcp>=1.30.0"]  # crewai pins mcp~=1.28.1; GHSA-84m7-p3x7-pcfv fixed in 1.30.0
