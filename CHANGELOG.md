@@ -6,10 +6,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [4.0.2] — 2026-10-24
+
 ### Security
 
-- `mcp` moves from 1.28.1 to 2.3.0 for GHSA-84m7-p3x7-pcfv (fixed in 1.30.0). crewai pins `mcp~=1.28.1`, so `pyproject.toml` lifts it with a uv `override-dependencies` entry. `StdioServerParameters`, the only `mcp` import, is unchanged in mcp 2.
-- `aiohttp` 3.14.3 → 3.14.5 for GHSA-2g87-pp6c-29x5, GHSA-494j-54xm-rwp3 and GHSA-5wr8-gcqf-gqf3 (fixed in 3.14.4).
+- `pillow` 12.3.0 → 13.0.0 for 41 advisories (5 critical, e.g. GHSA-w889-685w-c8fh and
+  GHSA-v9pv-5gc8-w2m6: heap overflows and DoS in the TIFF, JPEG, FPX, PDF and GIF decoders).
+- `filelock` → 4.2.4 for GHSA-v4x8-3wr5-3wq8 (High), GHSA-9vhv-jxww-xfm5 and GHSA-567q-5qvw-pf92,
+  through a uv `override-dependencies` entry `filelock>=4.2.1,<5`: litellm caps `filelock<4`.
+  Dependents use only `FileLock`, `SoftFileLock`, `BaseFileLock` and `Timeout`. Drop the override
+  once litellm allows filelock 4.2.1.
+- `setuptools` 84.0.0 → 84.2.1 for GHSA-xmj3-9gf7-h52w, `uv` 0.11.33 → 0.13.5 for GHSA-hq85-5cpj-mr62.
+- `mcp` → 1.30.0 for GHSA-84m7-p3x7-pcfv. crewai 1.15.30 now requires `mcp>=1.30.0,<2` itself, so the
+  uv override that had forced mcp 2.3.0 is gone; under mcp 2 the crewai-tools MCP adapter could not
+  import `mcpadapt` and the Wikipedia MCP tools were silently dropped.
+- `aiohttp` 3.14.3 → 3.14.5 for GHSA-2g87-pp6c-29x5, GHSA-494j-54xm-rwp3 and GHSA-5wr8-gcqf-gqf3.
+- Removed the `osv-scanner.toml` waiver for GHSA-8mgp-746c-j5xp: nltk 3.10.4 is outside its range.
+- Supersedes Dependabot #258, #259 and #261.
+
+### Changed
+
+- Dropped a `# type: ignore[arg-type]` in `config/llm_config.py` that mypy now reports as unused.
 
 ## [4.0.1] — 2026-10-06
 

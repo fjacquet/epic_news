@@ -1,7 +1,7 @@
 
 [project]
 name = "epic_news"
-version = "4.0.1"
+version = "4.0.2"
 description = "CrewAI flow that routes natural-language requests to specialised crews and delivers DOCX reports"
 authors = [{ name = "Frederic Jacquet", email = "fred.jacquet@gmail.com" }]
 requires-python = ">=3.13,<3.14"
@@ -223,4 +223,8 @@ DEP002 = [
 DEP003 = ["epic_news"]
 
 [tool.uv]
-override-dependencies = ["mcp>=1.30.0"]  # crewai pins mcp~=1.28.1; GHSA-84m7-p3x7-pcfv fixed in 1.30.0
+override-dependencies = [
+    "filelock>=4.2.1,<5",  # litellm caps filelock<4 (as does safety, dev); 4.2.1 fixes GHSA-v4x8-3wr5-3wq8,
+                           # GHSA-9vhv-jxww-xfm5, GHSA-567q-5qvw-pf92. Dependents use FileLock, SoftFileLock,
+                           # BaseFileLock, Timeout only. Drop once litellm allows filelock>=4.2.1.
+]
