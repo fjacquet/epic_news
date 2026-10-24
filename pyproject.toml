@@ -223,4 +223,7 @@ DEP002 = [
 DEP003 = ["epic_news"]
 
 [tool.uv]
-override-dependencies = ["mcp>=1.30.0"]  # crewai pins mcp~=1.28.1; GHSA-84m7-p3x7-pcfv fixed in 1.30.0
+override-dependencies = [
+    "mcp>=1.30.0",  # crewai pins mcp~=1.28.1; GHSA-84m7-p3x7-pcfv fixed in 1.30.0
+    "filelock>=4.2.1",  # litellm caps filelock<4; GHSA-v4x8-3wr5-3wq8 fixed in 4.2.1, dependents use only FileLock/SoftFileLock/Timeout
+]

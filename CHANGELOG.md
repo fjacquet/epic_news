@@ -11,8 +11,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Security
 
 - Full `uv lock --upgrade` refresh: `pillow` 12.3.0 → 13.0.0 (41 advisories, including critical
-  heap overflows in the TIFF/JPEG/FPX decoders), `filelock` → 4.2.4, `setuptools` and `uv` to their
+  heap overflows in the TIFF/JPEG/FPX decoders), `setuptools` and `uv` to their
   patched releases. Supersedes Dependabot #258, #259 and #261. `osv-scanner` recursive scan is clean.
+- `filelock` 3.32.7 → 4.2.4 via a uv `override-dependencies` entry, for GHSA-v4x8-3wr5-3wq8 (High)
+  and two Windows-only LOW advisories, all fixed in 4.2.1. litellm caps `filelock<4`, but its
+  dependents here use only `FileLock`, `SoftFileLock`, `Timeout` and `BaseFileLock`; filelock 4.0
+  changed only `SoftReadWriteLock`.
+- Dropped a `# type: ignore[arg-type]` in `config/llm_config.py` that mypy now reports as unused.
 
 - `mcp` moves from 1.28.1 to 2.3.0 for GHSA-84m7-p3x7-pcfv (fixed in 1.30.0). crewai pins `mcp~=1.28.1`, so `pyproject.toml` lifts it with a uv `override-dependencies` entry. `StdioServerParameters`, the only `mcp` import, is unchanged in mcp 2.
 - `aiohttp` 3.14.3 → 3.14.5 for GHSA-2g87-pp6c-29x5, GHSA-494j-54xm-rwp3 and GHSA-5wr8-gcqf-gqf3 (fixed in 3.14.4).

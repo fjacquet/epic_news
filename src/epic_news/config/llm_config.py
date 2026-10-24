@@ -156,7 +156,7 @@ class LLMConfig:
             base_url=base_url,
             temperature=temp,
             max_tokens=tokens,
-            reasoning_effort=effort,  # type: ignore[arg-type]
+            reasoning_effort=effort,
             timeout=LLMConfig.get_timeout(task_type),
             **extra,
         )
