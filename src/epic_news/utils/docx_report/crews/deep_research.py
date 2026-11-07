@@ -10,12 +10,8 @@ from loguru import logger
 
 from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.deep_research import DeepResearchReport, ResearchSource
-from epic_news.utils.docx_report import Section, assemble_fragments
+from epic_news.utils.docx_report import Section, assemble_fragments, persona
 
-_PERSONA = (
-    "Tu es un analyste de recherche. Rédige UNIQUEMENT la section demandée, en français, "
-    "en Markdown propre (titres niveau 2+, listes, gras). Pas de HTML, pas de JSON, pas de préambule."
-)
 _MAX_SECTIONS = 20
 
 
@@ -70,4 +66,6 @@ def assemble_deep_research_docx(
         "date": inputs.get("current_date", ""),
         "author": "Epic News",
     }
-    return assemble_fragments(sections, meta, output_path, llm, system=_PERSONA)
+    return assemble_fragments(
+        sections, meta, output_path, llm, system=persona("un analyste de recherche", inputs)
+    )

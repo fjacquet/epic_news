@@ -6,6 +6,7 @@ intelligence_requirements_planning:
     Collection priorities by domain  - Timeline for intelligence gathering  - Critical
     information gaps  - Success criteria for the investigation
     Format your planning as a structured JSON object.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     A comprehensive JSON object outlining intelligence requirements for
     investigating {target}. The JSON should be well-structured with appropriate keys
@@ -21,6 +22,7 @@ intelligence_collection_coordination:
     emerges   - Ensuring comprehensive coverage across all domains   - Facilitating
     information sharing between crews
     Format your coordination notes as a structured JSON object.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     A comprehensive JSON object detailing intelligence collection
     coordination for {target}. The JSON should be well-structured with appropriate
@@ -35,6 +37,7 @@ intelligence_analysis_integration:
     Validating key findings through multiple sources   - Contextualizing intelligence
     within the broader picture   - Developing integrated assessments
     Format your integrated analysis as a structured JSON object.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     A comprehensive JSON object integrating intelligence analysis from all
     crews investigating {target}. The JSON should be well-structured with appropriate
@@ -48,6 +51,7 @@ intelligence_product_development:
     and assessments   - Supporting evidence and documentation   - Confidence levels
     for major assessments   - Recommendations for further investigation
     Format your intelligence products as a structured JSON object.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     A comprehensive JSON object serving as final intelligence
     products about {target}. The JSON should be well-structured with appropriate keys
@@ -94,6 +98,7 @@ global_reporting:
 
     OSINT SUB-REPORTS:
     {osint_reports}
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     A comprehensive global intelligence report on {target} as a JSON object with the keys
     target (the company name, {target}), executive_summary, detailed_findings,

@@ -5,12 +5,7 @@ from typing import Any
 from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.company_news_report import ArticleItem, CompanyNewsReport
 from epic_news.models.crews.company_news_report import Section as CompanyNewsSection
-from epic_news.utils.docx_report import Section, assemble_fragments
-
-_PERSONA = (
-    "Tu es un analyste d'actualité d'entreprise. Rédige UNIQUEMENT la section demandée, en français, "
-    "en Markdown propre. Pas de HTML, pas de JSON, pas de préambule."
-)
+from epic_news.utils.docx_report import Section, assemble_fragments, persona
 
 
 def _articles_body(articles: list[ArticleItem]) -> str:
@@ -43,4 +38,6 @@ def assemble_company_news_docx(
         "date": inputs.get("current_date", ""),
         "author": "Epic News",
     }
-    return assemble_fragments(sections, meta, output_path, llm, system=_PERSONA)
+    return assemble_fragments(
+        sections, meta, output_path, llm, system=persona("un analyste d'actualité d'entreprise", inputs)
+    )

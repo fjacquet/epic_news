@@ -7,6 +7,7 @@ web_presence_audit:
     campaigns  - SEO performance indicators  - Website traffic estimates if available  -
     Mobile responsiveness and user experience
     Format your findings as a structured JSON object.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     A comprehensive JSON object detailing {company}'s web presence
     audit. The JSON should be well-structured with appropriate keys and values.
@@ -20,6 +21,7 @@ social_media_footprint:
     posting frequency  - Brand voice and messaging consistency  - Customer interaction
     patterns  - Employee social media presence related to the company
     Format your findings as a structured JSON object.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     A comprehensive JSON object analyzing {company}'s social media
     footprint. The JSON should be well-structured with appropriate keys and values.
@@ -33,6 +35,7 @@ domain_infrastructure_analysis:
     Email security configurations (SPF, DKIM, DMARC)  - Content delivery networks
     and third-party services
     Format your findings as a structured JSON object.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     A comprehensive JSON object analyzing {company}'s domain
     infrastructure. The JSON should be well-structured with appropriate keys and values.
@@ -45,6 +48,7 @@ data_leak_analysis:
     information  - GitHub repositories with potential leaked information  - Exposed
     API keys or configuration files  - Employee email addresses in data breach databases
     Format your findings as a structured JSON object.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     A comprehensive JSON object analyzing potential data leaks related
     to {company}. The JSON should be well-structured with appropriate keys and values.
@@ -57,6 +61,7 @@ competitive_web_presence_analysis:
     differences  - Content marketing approaches  - Online reputation management  -
     Digital marketing tactics
     Format your findings as a structured JSON object.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     A comprehensive JSON object analyzing competitors' web presence
     compared to {company}. The JSON should be well-structured with appropriate keys
@@ -71,6 +76,7 @@ consolidate_web_presence_report:
     infrastructure evaluation  - Security and data leak concerns  - Competitive positioning
     online
     Format your report as a structured JSON object.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     A comprehensive data object consolidating all web presence findings about {company},
     conforming to the WebPresenceReport Pydantic model.

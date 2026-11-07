@@ -4,12 +4,7 @@ from typing import Any
 
 from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.rss_weekly_report import RssWeeklyReport
-from epic_news.utils.docx_report import Section, assemble_fragments
-
-_PERSONA = (
-    "Tu es un rédacteur de veille technologique. Rédige UNIQUEMENT la section demandée, "
-    "en français, en Markdown propre. Pas de HTML, pas de JSON, pas de préambule."
-)
+from epic_news.utils.docx_report import Section, assemble_fragments, persona
 
 
 def _feed_body(feed) -> str:
@@ -34,4 +29,6 @@ def assemble_rss_docx(model: RssWeeklyReport, inputs: dict, output_path: str, ll
         "date": inputs.get("current_date", ""),
         "author": "Epic News",
     }
-    return assemble_fragments(sections, meta, output_path, llm, system=_PERSONA)
+    return assemble_fragments(
+        sections, meta, output_path, llm, system=persona("un rédacteur de veille technologique", inputs)
+    )

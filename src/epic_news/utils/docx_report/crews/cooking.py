@@ -9,13 +9,8 @@ from typing import Any
 
 from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.cooking_recipe import PaprikaRecipe
-from epic_news.utils.docx_report import Section, assemble_fragments
+from epic_news.utils.docx_report import Section, assemble_fragments, persona
 from epic_news.utils.docx_report.tables import md_table
-
-_PERSONA = (
-    "Tu es un chef cuisinier. Rédige UNIQUEMENT la section demandée, en français, "
-    "en Markdown propre. Ne modifie JAMAIS les quantités ni les étapes."
-)
 
 
 def _ingredients_block(ingredients: str) -> str:
@@ -58,4 +53,10 @@ def assemble_cooking_docx(model: PaprikaRecipe, inputs: dict, output_path: str, 
         "date": inputs.get("current_date", ""),
         "author": "Epic News",
     }
-    return assemble_fragments(sections, meta, output_path, llm, system=_PERSONA)
+    return assemble_fragments(
+        sections,
+        meta,
+        output_path,
+        llm,
+        system=persona("un chef cuisinier", inputs, extra="Ne modifie JAMAIS les quantités ni les étapes."),
+    )

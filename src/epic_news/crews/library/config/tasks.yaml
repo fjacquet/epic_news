@@ -13,6 +13,7 @@ research_task:
       5. Dégagez au moins 20 points essentiels, avec des métriques et des citations
     précises.
     Toutes les notes et analyses doivent être rédigées en français.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     A markdown file containing a detailed and well-structured research report
     on the specified topic, with citations and references.
@@ -45,6 +46,7 @@ reporting_task:
     - Assurez-vous que tous les champs requis sont présents
     - Chaque section doit avoir un identifiant ('id') descriptif et unique
     La sortie finale doit être un objet JSON pur, sans texte additionnel.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: |
     A valid and pure JSON object matching the BookSummaryReport Pydantic model.
     The output must be in french, syntactically correct JSON, and directly parseable.

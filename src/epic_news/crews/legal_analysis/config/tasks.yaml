@@ -6,6 +6,7 @@ legal_compliance_assessment:
     licenses and permits  - Corporate governance structure  - Ethics policies and
     implementation  - Recent regulatory changes affecting the company
     Format your findings as a structured JSON object.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     A comprehensive JSON object assessing {company}'s legal compliance
     status. The JSON should be well-structured with appropriate keys and values.
@@ -17,6 +18,7 @@ intellectual_property_analysis:
     and filing trends  - Trademark registrations  - Copyright holdings  - Trade secrets
     protection measures  - IP litigation history  - Licensing agreements (if public)
     Format your findings as a structured JSON object.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     A comprehensive JSON object analyzing {company}'s intellectual
     property portfolio. The JSON should be well-structured with appropriate keys and
@@ -30,6 +32,7 @@ regulatory_risk_assessment:
     that may impact operations  - Historical regulatory issues  - Regulatory compliance
     costs  - Relationships with regulatory bodies
     Format your findings as a structured JSON object.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     A comprehensive JSON object assessing {company}'s regulatory risks.
     The JSON should be well-structured with appropriate keys and values.
@@ -41,6 +44,7 @@ litigation_history_analysis:
     ongoing)  - Settlement patterns  - Areas of frequent litigation  - Notable court
     decisions  - Class action exposure  - Legal defense strategies
     Format your findings as a structured JSON object.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     A comprehensive JSON object analyzing {company}'s litigation
     history. The JSON should be well-structured with appropriate keys and values.
@@ -53,6 +57,7 @@ mergers_and_acquisitions_due_diligence:
     Regulatory approvals for past deals  - Post-acquisition litigation  - Divestiture
     history  - Current M&A targets or rumors
     Format your findings as a structured JSON object.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     A comprehensive data object analyzing {company}'s M&A due diligence, conforming
     to the LegalAnalysisReport Pydantic model.

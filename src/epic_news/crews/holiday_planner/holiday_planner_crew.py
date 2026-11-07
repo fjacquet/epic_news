@@ -6,6 +6,7 @@ from crewai.project import CrewBase, agent, crew, task
 from crewai_custom_tools import ExchangeRateTool
 
 from epic_news.config.llm_config import LLMConfig
+from epic_news.tools.location_tools import get_location_tools
 from epic_news.tools.web_tools import get_scrape_tools, get_search_tools, get_youtube_tools
 
 
@@ -34,7 +35,7 @@ class HolidayPlannerCrew:
     def accommodation_specialist(self) -> Agent:
         return Agent(
             config=self.agents_config["accommodation_specialist"],
-            tools=get_search_tools() + get_scrape_tools() + [ExchangeRateTool()],
+            tools=get_search_tools() + get_scrape_tools() + get_location_tools() + [ExchangeRateTool()],
             llm=LLMConfig.get_openrouter_llm(),
             verbose=False,
             allow_delegation=True,
@@ -46,7 +47,11 @@ class HolidayPlannerCrew:
     def itinerary_architect(self) -> Agent:
         return Agent(
             config=self.agents_config["itinerary_architect"],
-            tools=get_search_tools() + get_scrape_tools() + get_youtube_tools() + [ExchangeRateTool()],
+            tools=get_search_tools()
+            + get_scrape_tools()
+            + get_youtube_tools()
+            + get_location_tools()
+            + [ExchangeRateTool()],
             llm=LLMConfig.get_openrouter_llm(),
             verbose=False,
             allow_delegation=True,

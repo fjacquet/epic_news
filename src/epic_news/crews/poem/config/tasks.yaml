@@ -5,6 +5,7 @@ write_poem:
     The poem should be creative, engaging, and well-structured.
     Your final answer MUST be a JSON object with two keys: 'title' and 'poem'.
     Do not include any other text or formatting.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     A JSON object containing the title and the full text of the poem.
     Example:

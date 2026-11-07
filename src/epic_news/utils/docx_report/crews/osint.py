@@ -15,12 +15,7 @@ from typing import Any
 from loguru import logger
 
 from epic_news.config.llm_config import LLMConfig
-from epic_news.utils.docx_report import Section, assemble_fragments
-
-_PERSONA = (
-    "Tu es un analyste OSINT. Rédige UNIQUEMENT la section demandée, en français, "
-    "en Markdown propre. Pas de HTML, pas de JSON, pas de préambule."
-)
+from epic_news.utils.docx_report import Section, assemble_fragments, persona
 
 # Ordered (filename, French heading) for the six generic sub-reports.
 _SUB_REPORTS: list[tuple[str, str]] = [
@@ -131,4 +126,4 @@ def assemble_osint_docx(
         "date": inputs.get("current_date", ""),
         "author": "Epic News",
     }
-    return assemble_fragments(sections, meta, output_path, llm, system=_PERSONA)
+    return assemble_fragments(sections, meta, output_path, llm, system=persona("un analyste OSINT", inputs))

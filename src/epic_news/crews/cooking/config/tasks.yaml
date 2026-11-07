@@ -16,6 +16,7 @@ cook_task:
     CONTRÔLE QUALITÉ: Avant de finaliser, vérifiez que TOUS les éléments correspondent
     à "{topic}" et sont en français.
     PRODUIS un objet PaprikaRecipe — pas de HTML, pas d'emojis.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     Un objet PaprikaRecipe rempli pour "{topic}" UNIQUEMENT, qui sera sérialisé ensuite.
     Le titre DOIT être la traduction française de "{topic}".

@@ -6,6 +6,7 @@ leadership_team_assessment:
     style and public communication    - Board of directors composition and expertise    -
     Leadership diversity metrics    - Public perception of leadership
     Format your findings as a structured JSON object.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     A comprehensive JSON object assessing {company}'s leadership team.
     The JSON should be well-structured with appropriate keys and values.
@@ -18,6 +19,7 @@ employee_sentiment_analysis:
     reviews    - Changes in sentiment over time    - Comparison to industry benchmarks    -
     Response patterns from company management    - Employee satisfaction indicators
     Format your findings as a structured JSON object.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     A comprehensive JSON object analyzing employee sentiment at
     {company}. The JSON should be well-structured with appropriate keys and values.
@@ -30,6 +32,7 @@ organizational_culture_assessment:
     and reward systems    - Communication and transparency    - Innovation and adaptability
     indicators    - Diversity, equity, and inclusion initiatives
     Format your findings as a structured JSON object.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     A comprehensive JSON object assessing {company}'s organizational
     culture. The JSON should be well-structured with appropriate keys and values.
@@ -42,6 +45,7 @@ talent_acquisition_strategy:
     approach    - Candidate experience indicators    - Retention strategies and turnover
     patterns    - Career development opportunities
     Format your findings as a structured JSON object.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     A comprehensive JSON object analyzing {company}'s talent acquisition
     strategy. The JSON should be well-structured with appropriate keys and values.
@@ -55,6 +59,7 @@ format_hr_intelligence_report:
     trends   - Talent acquisition and retention strategies   - Recommendations for
     further HR intelligence gathering
     Format your report as a structured JSON object.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     A comprehensive data object consolidating all HR intelligence findings about {company},
     conforming to the HRIntelligenceReport Pydantic model.

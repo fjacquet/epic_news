@@ -9,6 +9,7 @@ company_core_info:
     - Corporate structure and ownership
     - Mission statement and core values
     Format your findings as a structured JSON object.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     A comprehensive JSON object containing all core information about {company}.
     The JSON should be well-structured with appropriate keys and values.
@@ -24,6 +25,7 @@ company_history:
     - Major product launches
     - Significant challenges or controversies
     Format your findings as a structured JSON object.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     A comprehensive JSON object detailing the history of {company}.
     The JSON should be well-structured with appropriate keys and values.
@@ -39,6 +41,7 @@ company_financials:
     - Debt structure
     - Recent financial news
     Format your findings as a structured JSON object.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     A comprehensive JSON object analyzing the financial performance of {company}.
     The JSON should be well-structured with appropriate keys and values.
@@ -53,6 +56,7 @@ company_market_position:
     - Growth opportunities and challenges
     - Recent market developments
     Format your findings as a structured JSON object.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     A comprehensive JSON object evaluating the market position of {company}.
     The JSON should be well-structured with appropriate keys and values.
@@ -68,6 +72,7 @@ company_products_services:
     - Product development pipeline
     - Reviews and customer sentiment
     Format your findings as a structured JSON object.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     A comprehensive JSON object detailing the products and services of {company}.
     The JSON should be well-structured with appropriate keys and values.
@@ -82,6 +87,7 @@ company_management:
     - Leadership changes and succession planning
     - Executive compensation if available
     Format your findings as a structured JSON object.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     A comprehensive JSON object analyzing the management team of {company}.
     The JSON should be well-structured with appropriate keys and values.
@@ -96,6 +102,7 @@ company_legal_compliance:
     - Regulatory filings
     - Industry-specific compliance requirements
     Format your findings as a structured JSON object.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     A comprehensive JSON object detailing the legal and regulatory aspects of
     {company}.
@@ -107,6 +114,7 @@ format_report_task:
     Format the comprehensive company profile report for {company}.
     This task will take all the previously gathered information and format it into
     a single, comprehensive, and well-structured data object.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     A comprehensive data object containing all the information about {company}, conforming
     to the CompanyProfileReport Pydantic model.

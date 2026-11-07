@@ -63,6 +63,11 @@ recipe, shopping, OSINT, holiday) are written out with the helpers below.
 
 - `docx_report.Section` describes one section: a deterministic `body`, or an
   `instruction` + `context` that `generate_fragment` narrates with the LLM.
+- `docx_report.persona(role, inputs, extra="")` is the narrators' system prompt for every assembler:
+  report language (`inputs["language"]`, set by `to_crew_inputs`), Markdown rules, and the user's
+  request, which overrides default tone and format. Put crew-specific rules in `extra`.
+- Every task of a request-driven crew receives the request (`{user_preferences_and_constraints}`,
+  `{context}` or `{constraints}`); `tests/crews/test_request_reaches_tasks.py` enforces it.
 - `assemble_fragments(sections, meta, output_path, llm, system)` narrates sections in
   parallel (`DOCX_FRAGMENT_CONCURRENCY`, default 3; output keeps section order), builds the
   DOCX. It first drops narrated sections whose context is empty or blank (info log; `ValueError`

@@ -10,12 +10,7 @@ from typing import Any
 
 from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.menu_designer_report import DailyMenu, DishInfo, WeeklyMenuPlan
-from epic_news.utils.docx_report import Section, assemble_fragments
-
-_PERSONA = (
-    "Tu es un concepteur de menus. Rédige UNIQUEMENT la section demandée, en français, "
-    "en Markdown propre. Ne modifie JAMAIS les noms de plats ni les ingrédients."
-)
+from epic_news.utils.docx_report import Section, assemble_fragments, persona
 
 
 def _dish_line(role: str, dish: DishInfo | None) -> str:
@@ -80,4 +75,12 @@ def assemble_menu_docx(model: WeeklyMenuPlan, inputs: dict, output_path: str, ll
         "date": inputs.get("current_date", ""),
         "author": "Epic News",
     }
-    return assemble_fragments(sections, meta, output_path, llm, system=_PERSONA)
+    return assemble_fragments(
+        sections,
+        meta,
+        output_path,
+        llm,
+        system=persona(
+            "un concepteur de menus", inputs, extra="Ne modifie JAMAIS les noms de plats ni les ingrédients."
+        ),
+    )

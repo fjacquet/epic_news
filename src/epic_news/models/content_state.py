@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field, SerializeAsAny
 
 from epic_news.crew_registry import CREW_REGISTRY, CrewKey
 from epic_news.models.extracted_info import ExtractedInfo
+from epic_news.utils.docx_report.persona import DEFAULT_LANGUAGE
 from epic_news.utils.menu_days import parse_num_days
 from epic_news.utils.menu_generator import MenuGenerator
 from epic_news.utils.string_utils import create_topic_slug
@@ -148,6 +149,9 @@ class ContentState(BaseModel):
         inputs["user_preferences_and_constraints"] = self._clean_brief_text(
             inputs.get("user_preferences_and_constraints")
         )
+
+        # Every report is written in the request's language (French when extraction gave none).
+        inputs["language"] = (self.extracted_info and self.extracted_info.output_language) or DEFAULT_LANGUAGE
 
         # Add computed fields
         inputs.update(self._add_computed_fields())
