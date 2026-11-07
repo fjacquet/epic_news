@@ -9,7 +9,7 @@ dependencies = [
     # --- Core runtime (CrewAI + integrations) ---
     "crewai[google-genai]>=1.15.16",
     "crewai-tools>=1.15.16",
-    "crewai-custom-tools @ git+https://github.com/fjacquet/crewai-custom-tools.git@v0.6.0",
+    "crewai-custom-tools @ git+https://github.com/fjacquet/crewai-custom-tools.git@v0.32.3",
     "composio>=0.18.1",
     "composio-crewai>=0.18.1",
     "litellm>=1.94.1,<1.106",  # 1.106 imports mcp.types.CacheableResult (mcp 2.x); crewai needs mcp<2

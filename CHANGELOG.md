@@ -19,6 +19,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   per run. Removed `config/mcp_config.py` (`MCPConfig`, `get_mcp_tools_or_empty`, `close_mcp`),
   `docs/how-to/mcp_setup.md`, and the `wikipedia-mcp-server`, direct `mcp` and `crewai-tools[mcp]`
   extra dependencies (drops `fastmcp`, `mcpadapt` and their transitive packages).
+- `crewai-custom-tools` v0.6.0 → v0.32.3. Its Wikipedia tools now send a contact User-Agent:
+  Wikimedia answered 403 to the default `python-requests` one, so `saint_daily`'s Wikipedia tools
+  had been failing silently.
 
 ## [4.0.2] — 2026-10-24
 
