@@ -4,12 +4,7 @@ from typing import Any
 
 from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.book_summary_report import BookSummaryReport
-from epic_news.utils.docx_report import Section, assemble_fragments
-
-_PERSONA = (
-    "Tu es un critique littéraire. Rédige UNIQUEMENT la section demandée, en français, "
-    "en Markdown propre (titres niveau 2+, listes, gras). Pas de HTML, pas de JSON, pas de préambule."
-)
+from epic_news.utils.docx_report import Section, assemble_fragments, persona
 
 
 def _bullets(items: list[str]) -> str:
@@ -47,4 +42,6 @@ def assemble_book_summary_docx(
         "date": inputs.get("current_date", ""),
         "author": model.author or "Epic News",
     }
-    return assemble_fragments(sections, meta, output_path, llm, system=_PERSONA)
+    return assemble_fragments(
+        sections, meta, output_path, llm, system=persona("un critique littéraire", inputs)
+    )

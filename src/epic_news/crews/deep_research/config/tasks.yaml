@@ -5,6 +5,7 @@ reformulate_task:
     recherche précise et pertinente. Clarifier l'angle d'approche, identifier les  dimensions
     clés à explorer et les enjeux essentiels liés au sujet. Évaluer les  différentes
     perspectives possibles pour aborder le sujet.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     Une formulation enrichie et structurée du sujet de recherche :
     - Clarification et délimitation précise du sujet initial ({topic})
@@ -24,6 +25,7 @@ research_planning_task:
     Définir la problématique, formuler des hypothèses de recherche claires, et concevoir
     une méthodologie robuste incluant les cadres théoriques et analytiques. Anticiper
     les biais potentiels et définir des stratégies de mitigation.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     Un protocole de recherche détaillé et rigoureux (format académique) :
     - Problématique, questions de recherche et hypothèses.
@@ -55,6 +57,7 @@ information_collection_task:
     INTERDICTION: Vous ne disposez d'aucun outil d'écriture de fichier. N'annoncez
     jamais avoir enregistré des données dans des fichiers. Le corpus que vous produisez
     est transmis directement aux tâches suivantes via le contexte.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     Un corpus de recherche structuré combinant sources web et encyclopédiques,
     restitué intégralement dans le texte de votre réponse (aucun fichier n'est écrit) :
@@ -92,6 +95,7 @@ data_analysis_task:
     Tout chiffre rapporté doit être accompagné de la source qui le fournit.
     Lorsque les données disponibles ne permettent pas de trancher une hypothèse,
     dites-le explicitement plutôt que de combler la lacune par une estimation.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     Une analyse critique de niveau recherche, entièrement traçable aux sources :
     - Évaluation de chaque hypothèse (étayée / réfutée / indéterminée) avec les preuves
@@ -116,6 +120,7 @@ report_writing_task:
     fonctionnelle. Un rapport contenant des sources sans URL sera considéré comme
     incomplet
     et devra être révisé. Les URLs sont essentielles pour la vérifiabilité de la recherche.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     Un rapport de recherche en format JSON structuré conforme au modèle DeepResearchReport:
     ```json

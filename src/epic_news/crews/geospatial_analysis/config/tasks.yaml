@@ -6,6 +6,7 @@ physical_location_mapping:
     warehouses   - Retail locations (if applicable)   - Data centers and technical
     infrastructure   - Research and development facilities
     Format your findings as a structured JSON object.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     A comprehensive JSON object mapping {company}'s physical locations.
     The JSON should be well-structured with appropriate keys and values.
@@ -18,6 +19,7 @@ geospatial_risk_assessment:
     by location   - Local regulatory environments   - Proximity to potential hazards   -
     Climate change impact projections
     Format your findings as a structured JSON object.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     A comprehensive JSON object assessing geospatial risks for
     {company}. The JSON should be well-structured with appropriate keys and values.
@@ -29,6 +31,7 @@ supply_chain_mapping:
     Transportation routes and logistics hubs   - Raw material sources   - Manufacturing
     partner locations   - Distribution networks   - Last-mile delivery infrastructure
     Format your findings as a structured JSON object.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     A comprehensive JSON object mapping {company}'s supply chain
     geospatially. The JSON should be well-structured with appropriate keys and values.
@@ -42,6 +45,7 @@ geospatial_intelligence_for_mergers_acquisitions:
     geographic integration challenges   - Location-based competitive advantages   -
     Geographic diversification opportunities
     Format your findings as a structured JSON object.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     A comprehensive data object providing geospatial intelligence for {company}'s
     M&A activities, conforming to the GeospatialAnalysisReport Pydantic model.

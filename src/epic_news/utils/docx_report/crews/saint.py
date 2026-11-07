@@ -4,12 +4,7 @@ from typing import Any
 
 from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.saint_daily_report import SaintData
-from epic_news.utils.docx_report import Section, assemble_fragments
-
-_PERSONA = (
-    "Tu es un hagiographe. Rédige UNIQUEMENT la section demandée, en français, "
-    "en Markdown propre (titres niveau 2+, listes, gras). Pas de HTML, pas de JSON, pas de préambule."
-)
+from epic_news.utils.docx_report import Section, assemble_fragments, persona
 
 
 def _bullets(items: list[str]) -> str:
@@ -52,4 +47,4 @@ def assemble_saint_docx(model: SaintData, inputs: dict, output_path: str, llm: A
         "date": inputs.get("current_date", ""),
         "author": "Epic News",
     }
-    return assemble_fragments(sections, meta, output_path, llm, system=_PERSONA)
+    return assemble_fragments(sections, meta, output_path, llm, system=persona("un hagiographe", inputs))

@@ -892,10 +892,8 @@ class ReceptionFlow(Flow[ContentState]):
                 else None
             )
             inputs["geography"] = geo or "global"
-            inputs["language"] = info.output_language or "English"
         else:
             inputs.setdefault("geography", "global")
-            inputs.setdefault("language", "English")
         inputs["current_date"] = datetime.datetime.now().strftime("%Y-%m-%d")
         recent = _pestel_recent_research(str(inputs.get("topic", "")), inputs["geography"])
         for dimension, text in recent.items():

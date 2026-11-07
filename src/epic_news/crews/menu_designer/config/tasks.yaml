@@ -32,6 +32,7 @@ menu_planning_task:
     IMPORTANT: Ne PAS générer les recettes détaillées - seulement la structure du
     menu avec les noms et descriptions des plats et leur information nutritionnelle.
     Les recettes seront générées séparément.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     Un plan de menu complet sur {num_days} jour(s) qui respecte SCRUPULEUSEMENT la structure
     du modèle Pydantic `WeeklyMenuPlan`.
@@ -123,6 +124,7 @@ menu_json_task:
     - Facilement parsable par d'autres systèmes
     Utiliser les informations de la structure du menu précédemment collectées pour
     générer un document JSON propre et structuré.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     Un objet JSON parfaitement structuré et valide correspondant au modèle WeeklyMenuPlan.
     STRUCTURE OBLIGATOIRE - CHAQUE JOUR DOIT AVOIR CETTE STRUCTURE EXACTE:

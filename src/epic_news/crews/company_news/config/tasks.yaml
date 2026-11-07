@@ -5,6 +5,7 @@ research_task:
     Use multiple search tools to gather comprehensive information from diverse sources.
     Focus on breaking news, emerging trends, and significant developments.
     The current year is {current_year}.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     A detailed research report in french  containing:
     1. At least 10 key news items related to {topic} and {company}
@@ -21,6 +22,7 @@ analysis_task:
     to {topic}, specifically for {company}.
     Look for connections between different news items and their potential implications.
     Consider financial, social, and political aspects where relevant.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     An analytical report  in french containing:
     1. Identified patterns and trends for {company}
@@ -92,6 +94,7 @@ editing_task:
     2. The source includes specific information about the topic
     3. The publication date is recent and relevant
     4. The source provides enough context for the information
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     A professionally edited news report in french about {company} containing:
     1. Executive summary of key findings

@@ -7,10 +7,10 @@ research_destination:
     - Attractions, activities, local culture, customs
     - Transportation from {origin} and within {destination}
     - Seasonal/weather considerations
-    - Special needs: {user_preferences_and_constraints}
     - Local events during travel dates
     - Safety considerations and travel advisories
     - Packing recommendations based on season/activities
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   agent: travel_researcher
   expected_output: >
     A comprehensive JSON object containing a destination guide. It should cover all
@@ -26,6 +26,7 @@ recommend_accommodation_and_dining:
     - Nearby grocery stores and markets
     - Kid-friendly options where applicable
     - Accessibility information for all recommendations
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   agent: accommodation_specialist
   expected_output: >
     A JSON object with a detailed accommodation and dining plan, including booking
@@ -40,6 +41,7 @@ plan_itinerary:
     - Downtime and relaxation periods
     - Alternative options for bad weather
     - Estimated costs for each day
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   agent: itinerary_architect
   expected_output: >
     A JSON object representing an hour-by-hour itinerary with maps, transportation
@@ -52,7 +54,9 @@ analyze_and_optimize_budget:
     - Suggest cost-saving alternatives
     - Highlight splurge-worthy experiences
     - Calculate potential savings from packages/deals
-    - Ensure all amounts are in the same currency (Swiss franc ideally)
+    - Ensure all amounts are in one currency: the one the traveler asked for,
+    else Swiss franc
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   agent: budget_manager
   expected_output: >
     A JSON object with a detailed budget analysis, including cost breakdowns and

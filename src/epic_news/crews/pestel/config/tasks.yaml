@@ -24,6 +24,7 @@ political_research_task:
     recent_search fails. Prefer sources published
     within the 12 months before {current_date} and give each source's date.
     Make one tool Action per turn and wait for its Observation before continuing.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     All free-text fields (summary, impact_analysis, key_factors) MUST be written
     in {language}. A structured JSON object with: summary (executive summary of
@@ -55,6 +56,7 @@ economic_research_task:
     recent_search fails. Prefer sources published
     within the 12 months before {current_date} and give each source's date.
     Make one tool Action per turn and wait for its Observation before continuing.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     All free-text fields MUST be written in {language}. A structured JSON object
     with: summary, key_factors (5-10 sourced factors with numbers where
@@ -84,6 +86,7 @@ social_research_task:
     recent_search fails. Prefer sources published
     within the 12 months before {current_date} and give each source's date.
     Make one tool Action per turn and wait for its Observation before continuing.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     All free-text fields MUST be written in {language}. A structured JSON object
     with: summary, key_factors (5-10 sourced factors), impact_analysis, sources.
@@ -111,6 +114,7 @@ technological_research_task:
     recent_search fails. Prefer sources published
     within the 12 months before {current_date} and give each source's date.
     Make one tool Action per turn and wait for its Observation before continuing.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     All free-text fields MUST be written in {language}. A structured JSON object
     with: summary, key_factors (5-10 sourced factors), impact_analysis, sources.
@@ -139,6 +143,7 @@ environmental_research_task:
     recent_search fails. Prefer sources published
     within the 12 months before {current_date} and give each source's date.
     Make one tool Action per turn and wait for its Observation before continuing.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     All free-text fields MUST be written in {language}. A structured JSON object
     with: summary, key_factors (5-10 sourced factors), impact_analysis, sources.
@@ -167,6 +172,7 @@ legal_research_task:
     recent_search fails. Prefer sources published
     within the 12 months before {current_date} and give each source's date.
     Make one tool Action per turn and wait for its Observation before continuing.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     All free-text fields MUST be written in {language}. A structured JSON object
     with: summary, key_factors (5-10 sourced factors), impact_analysis, sources.
@@ -189,6 +195,7 @@ format_pestel_report_task:
     Do NOT invent facts, add sources, or drop citations provided by the
     researchers. Do NOT translate URLs or proper nouns. Output MUST validate
     against the PestelReport Pydantic schema.
+    Request (follow every explicit preference, constraint and requested structure in it): {user_preferences_and_constraints}
   expected_output: >
     A single JSON object conforming exactly to the PestelReport Pydantic model,
     with all six dimensions populated, all free-text fields written in

@@ -200,7 +200,7 @@ def test_generate_pestel_uses_target_company_as_topic(pestel_flow_env) -> None:
 def test_generate_pestel_defaults_language_and_geography_when_missing(
     pestel_flow_env,
 ) -> None:
-    """No extracted_info → safe defaults (English, global)."""
+    """No extracted_info → safe defaults (French, global)."""
     _tmp_path, calls = pestel_flow_env
 
     flow = ReceptionFlow(user_request="give me a PESTEL on AI")
@@ -208,7 +208,7 @@ def test_generate_pestel_defaults_language_and_geography_when_missing(
     flow.generate_pestel()
 
     sent = calls["last_inputs"]
-    assert sent["language"] == "English"
+    assert sent["language"] == "French"
     assert sent["geography"] == "global"
 
 

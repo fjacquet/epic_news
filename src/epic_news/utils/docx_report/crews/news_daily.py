@@ -4,12 +4,7 @@ from typing import Any
 
 from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.news_daily_report import NewsDailyReport, NewsItem
-from epic_news.utils.docx_report import Section, assemble_fragments
-
-_PERSONA = (
-    "Tu es un rédacteur en chef. Rédige UNIQUEMENT la section demandée, en français, "
-    "en Markdown propre. Pas de HTML, pas de JSON, pas de préambule."
-)
+from epic_news.utils.docx_report import Section, assemble_fragments, persona
 
 _REGION_HEADINGS = [
     ("Suisse Romande", "suisse_romande"),
@@ -71,4 +66,6 @@ def assemble_news_daily_docx(model: NewsDailyReport, inputs: dict, output_path: 
         "date": inputs.get("current_date", ""),
         "author": "Epic News",
     }
-    return assemble_fragments(sections, meta, output_path, llm, system=_PERSONA)
+    return assemble_fragments(
+        sections, meta, output_path, llm, system=persona("un rédacteur en chef", inputs)
+    )

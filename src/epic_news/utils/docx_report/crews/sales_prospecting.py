@@ -4,13 +4,8 @@ from typing import Any
 
 from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.sales_prospecting_report import SalesProspectingReport
-from epic_news.utils.docx_report import Section, assemble_fragments
+from epic_news.utils.docx_report import Section, assemble_fragments, persona
 from epic_news.utils.docx_report.tables import md_table
-
-_PERSONA = (
-    "Tu es un consultant commercial. Rédige UNIQUEMENT la section demandée, en français, "
-    "en Markdown propre. Pas de HTML, pas de JSON, pas de préambule."
-)
 
 
 def assemble_sales_prospecting_docx(
@@ -61,4 +56,6 @@ def assemble_sales_prospecting_docx(
         "date": inputs.get("current_date", ""),
         "author": "Epic News",
     }
-    return assemble_fragments(sections, meta, output_path, llm, system=_PERSONA)
+    return assemble_fragments(
+        sections, meta, output_path, llm, system=persona("un consultant commercial", inputs)
+    )

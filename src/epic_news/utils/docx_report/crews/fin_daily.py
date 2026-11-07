@@ -4,13 +4,8 @@ from typing import Any
 
 from epic_news.config.llm_config import LLMConfig
 from epic_news.models.crews.financial_report import FinancialReport
-from epic_news.utils.docx_report import Section, assemble_fragments
+from epic_news.utils.docx_report import Section, assemble_fragments, persona
 from epic_news.utils.docx_report.tables import md_table
-
-_PERSONA = (
-    "Tu es un analyste financier. Rédige UNIQUEMENT la section demandée, en français, "
-    "en Markdown propre. Pas de HTML, pas de JSON, pas de chiffres inventés."
-)
 
 
 def assemble_fin_daily_docx(model: FinancialReport, inputs: dict, output_path: str, llm: Any = None) -> str:
@@ -54,4 +49,10 @@ def assemble_fin_daily_docx(model: FinancialReport, inputs: dict, output_path: s
         "date": inputs.get("current_date", ""),
         "author": "Epic News",
     }
-    return assemble_fragments(sections, meta, output_path, llm, system=_PERSONA)
+    return assemble_fragments(
+        sections,
+        meta,
+        output_path,
+        llm,
+        system=persona("un analyste financier", inputs, extra="Pas de chiffres inventés."),
+    )

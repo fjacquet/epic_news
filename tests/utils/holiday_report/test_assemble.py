@@ -57,6 +57,36 @@ def test_assemble_builds_docx_with_sections_and_days(tmp_path: Path):
     assert "Budget" in text
 
 
+class RecordingStubLLM(StubLLM):
+    """StubLLM that keeps every message list it receives."""
+
+    def __init__(self):
+        self.calls: list[list[dict]] = []
+
+    def call(self, messages):
+        self.calls.append(messages)
+        return super().call(messages)
+
+
+def test_persona_follows_request_language_and_puts_request_first(tmp_path: Path):
+    llm = RecordingStubLLM()
+    out = tmp_path / "output" / "guide.docx"
+    assemble_holiday_docx(_crew_result(), {**_inputs(), "language": "English"}, str(out), llm=llm)
+    systems = {m[0]["content"] for m in llm.calls if "stops" not in m[0]["content"]}
+    assert len(systems) == 1
+    (system,) = systems
+    assert "English" in system
+    assert "La demande de l'utilisateur prime" in system
+
+
+def test_assemble_adds_bookings_and_request_checklist_sections(tmp_path: Path):
+    out = tmp_path / "output" / "guide.docx"
+    assemble_holiday_docx(_crew_result(), _inputs(), str(out), llm=StubLLM())
+    text = "\n".join(p.text for p in Document(str(out)).paragraphs)
+    assert "Réservations & billetterie" in text
+    assert "Votre demande, point par point" in text
+
+
 def test_assemble_caps_itinerary_days(tmp_path: Path):
     """A hallucinated 100-day skeleton must not fan out past MAX_ITINERARY_DAYS fragments."""
     out = tmp_path / "output" / "guide.docx"

@@ -7,16 +7,12 @@ from typing import Any
 from loguru import logger
 
 from epic_news.config.llm_config import LLMConfig
-from epic_news.utils.docx_report import Section, assemble_fragments
+from epic_news.utils.docx_report import Section, assemble_fragments, persona
 from epic_news.utils.holiday_report.skeleton import generate_skeleton
 
 MAX_ITINERARY_DAYS = 31
 
-_PERSONA = (
-    "Tu es un rédacteur de carnet de voyage. Rédige UNIQUEMENT la section demandée, "
-    "en français, en Markdown propre (titres de niveau 2+, listes, gras, emojis). "
-    "Pas de HTML, pas de JSON, pas de préambule."
-)
+_STYLE = "Sauf demande contraire, ton clair et factuel : horaires, trajets, prix, sans superlatifs ni formules publicitaires, emojis rares."
 
 
 def _task_raw(crew_result: Any, index: int) -> str:
@@ -114,7 +110,8 @@ def assemble_holiday_docx(crew_result: Any, inputs: dict, output_path: str, llm:
         sections.append(
             Section(
                 heading,
-                f"Détaille cette journée: {day.label}. Étapes: {', '.join(day.stops) or 'à préciser'}.",
+                f"Détaille cette journée: {day.label}. Étapes: {', '.join(day.stops) or 'à préciser'}. "
+                "Respecte le découpage et les rubriques demandés ; donne horaires et temps de trajet.",
                 f"{summary}\n\nRecherche itinéraire:\n{day_slices[i - 1] if day_slices else itinerary}",
             )
         )
@@ -122,7 +119,8 @@ def assemble_holiday_docx(crew_result: Any, inputs: dict, output_path: str, llm:
     sections.append(
         Section(
             "Hébergements",
-            "Liste les hébergements recommandés avec adresse et fourchette de prix.",
+            "Indique la zone où loger et pourquoi, puis les hébergements conformes aux "
+            "préférences de la demande, avec adresse et fourchette de prix.",
             f"{summary}\n\n{lodging_dining}",
         )
     )
@@ -136,8 +134,15 @@ def assemble_holiday_docx(crew_result: Any, inputs: dict, output_path: str, llm:
     sections.append(
         Section(
             "Budget",
-            "Détaille un budget en CHF, par catégorie, avec total.",
+            "Détaille un budget par catégorie, avec total, dans la devise demandée (sinon CHF).",
             f"{summary}\n\n{budget}",
+        )
+    )
+    sections.append(
+        Section(
+            "Réservations & billetterie",
+            "Liste ce qu'il faut réserver à l'avance : quoi, quand réserver, où, créneaux.",
+            f"{summary}\n\n{itinerary}\n\n{budget}",
         )
     )
     sections.append(
@@ -147,10 +152,23 @@ def assemble_holiday_docx(crew_result: Any, inputs: dict, output_path: str, llm:
             f"{summary}\n\n{destination}",
         )
     )
+    # shortcut: checks the crew's research, not the narrated text (sections run in parallel);
+    # check the final fragments instead if a gap shows up between the two.
+    sections.append(
+        Section(
+            "Votre demande, point par point",
+            "Liste chaque demande ou contrainte explicite du voyageur (dans « Préférences »). "
+            "Pour chacune : traitée, partielle ou non traitée, avec l'élément concret qui y répond.",
+            "\n\n".join((summary, destination, lodging_dining, itinerary, budget)),
+        )
+    )
 
     meta = {
         "title": f"Carnet de voyage — {inputs.get('destination', '')}",
         "date": inputs.get("current_date", ""),
         "author": "Epic News",
     }
-    return assemble_fragments(sections, meta, output_path, llm, system=_PERSONA)
+    # shortcut: headings stay French whatever the language; translate them if non-French reports become common.
+    return assemble_fragments(
+        sections, meta, output_path, llm, system=persona("un guide de voyage", inputs, extra=_STYLE)
+    )
