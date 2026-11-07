@@ -12,6 +12,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   litellm 1.106+ imports an mcp 2.x symbol on its completion path, while crewai requires `mcp<2`.
   litellm is capped `<1.106` (locked 1.105.7) until crewai allows mcp 2; a test imports that path.
 
+### Changed
+
+- `deep_research` and `pestel` get Wikipedia from the in-process `WikipediaSearchTool` and
+  `WikipediaArticleTool` (`crewai-custom-tools`) instead of the Wikipedia MCP server: no subprocess
+  per run. Removed `config/mcp_config.py` (`MCPConfig`, `get_mcp_tools_or_empty`, `close_mcp`),
+  `docs/how-to/mcp_setup.md`, and the `wikipedia-mcp-server`, direct `mcp` and `crewai-tools[mcp]`
+  extra dependencies (drops `fastmcp`, `mcpadapt` and their transitive packages).
+
 ## [4.0.2] — 2026-10-24
 
 ### Security

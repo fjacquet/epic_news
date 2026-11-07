@@ -38,7 +38,6 @@ def _setup(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, raw: str, write_file
 
     monkeypatch.setattr(main_module, "DeepResearchCrew", _StubCrew)
     monkeypatch.setattr(main_module, "kickoff_flow", _kickoff)
-    monkeypatch.setattr(main_module, "close_mcp", lambda _crew: None)
     monkeypatch.setattr(main_module, "dump_crewai_state", lambda *_a, **_k: None)
     monkeypatch.setitem(
         crew_registry.CREW_REGISTRY,

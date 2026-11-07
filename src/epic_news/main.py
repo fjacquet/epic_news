@@ -35,7 +35,6 @@ from loguru import logger
 from pydantic import BaseModel, PydanticDeprecatedSince20, PydanticDeprecatedSince211
 
 from epic_news.config.crewai_patches import apply_crewai_patches
-from epic_news.config.mcp_config import close_mcp
 from epic_news.config.routing_guide import ROUTING_GUIDE, routing_categories
 from epic_news.crew_registry import CREW_REGISTRY, CrewKey, CrewSpec
 
@@ -316,7 +315,7 @@ class ReceptionFlow(Flow[ContentState]):
         """Run a standard crew: kickoff, debug dump, model from its JSON, DOCX report.
 
         A JSON left by an earlier run is deleted first so it is never read as this run's
-        output; an MCP server the crew started is stopped even if the kickoff fails.
+        output.
         Returns the raw crew output and the validated model.
         """
         if spec.model_cls is None or spec.json_path is None or spec.docx_path is None:
@@ -325,11 +324,7 @@ class ReceptionFlow(Flow[ContentState]):
         Path(json_path).unlink(missing_ok=True)
         self.state.output_file = json_path
         inputs["output_file"] = json_path
-        try:
-            output = kickoff_flow(crew, inputs)
-        finally:
-            # CrewBase stops an MCP server only after a successful kickoff.
-            close_mcp(crew)
+        output = kickoff_flow(crew, inputs)
         dump_crewai_state(output, spec.key)
         model = load_or_parse_model(json_path, model_cls, output, inputs, spec.title)
         emit_report(self.state, lambda: spec.docx_assembler(model, self.state.to_crew_inputs(), docx_path))

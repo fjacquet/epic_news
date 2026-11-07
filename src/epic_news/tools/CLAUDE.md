@@ -195,7 +195,7 @@ Different crews need different tool combinations. Give each agent only the tools
 
 **Research Crews** (deep_research, company_profiler):
 - `HybridSearchTool` (Perplexity → Brave → Serper fallback)
-- Wikipedia (MCP, deep_research and pestel)
+- Wikipedia (in-process tools, deep_research, pestel and saint_daily)
 - Scraper factory
 
 **Financial Crews** (fin_daily):

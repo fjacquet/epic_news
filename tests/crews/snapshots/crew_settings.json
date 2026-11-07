@@ -418,8 +418,8 @@
       },
       {
         "allow_delegation": false,
-        "backstory": "bc42f29169ea0fcf",
-        "goal": "b0ed2a2844d07fd8",
+        "backstory": "1e7f305b3da656f6",
+        "goal": "70bfa0b8c0bc5525",
         "id": 1,
         "max_iter": 15,
         "max_retry_limit": 2,
@@ -431,6 +431,8 @@
         "timeout": 600,
         "tools": [
           "Read website content",
+          "Wikipedia Article Fetcher",
+          "Wikipedia Search",
           "hybrid_search"
         ],
         "verbose": true
@@ -499,7 +501,7 @@
         "context": [
           "research_planning_task"
         ],
-        "description": "aa05deaeb788ea60",
+        "description": "2b82a3dc1ef6c375",
         "expected_output": "65da763a63900134",
         "name": "information_collection_task",
         "output_file": null,
@@ -1720,6 +1722,8 @@
         "timeout": 600,
         "tools": [
           "Read website content",
+          "Wikipedia Article Fetcher",
+          "Wikipedia Search",
           "hybrid_search",
           "recent_search"
         ],
@@ -1740,6 +1744,8 @@
         "timeout": 600,
         "tools": [
           "Read website content",
+          "Wikipedia Article Fetcher",
+          "Wikipedia Search",
           "hybrid_search",
           "recent_search"
         ],
@@ -1760,6 +1766,8 @@
         "timeout": 600,
         "tools": [
           "Read website content",
+          "Wikipedia Article Fetcher",
+          "Wikipedia Search",
           "hybrid_search",
           "recent_search"
         ],
@@ -1780,6 +1788,8 @@
         "timeout": 600,
         "tools": [
           "Read website content",
+          "Wikipedia Article Fetcher",
+          "Wikipedia Search",
           "hybrid_search",
           "recent_search"
         ],
@@ -1800,6 +1810,8 @@
         "timeout": 600,
         "tools": [
           "Read website content",
+          "Wikipedia Article Fetcher",
+          "Wikipedia Search",
           "hybrid_search",
           "recent_search"
         ],
@@ -1820,6 +1832,8 @@
         "timeout": 600,
         "tools": [
           "Read website content",
+          "Wikipedia Article Fetcher",
+          "Wikipedia Search",
           "hybrid_search",
           "recent_search"
         ],

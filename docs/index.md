@@ -34,7 +34,6 @@ This documentation follows the [Diátaxis framework](https://diataxis.fr/) for t
 ### Configuration
 - [API Keys (LLM, search, scraping)](reference/api_keys.md)
 - [Composio Integration](how-to/composio_setup.md)
-- [MCP Server Configuration](how-to/mcp_setup.md)
 
 ### Tools & APIs
 - [Tools Reference](reference/tools.md)

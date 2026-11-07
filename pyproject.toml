@@ -8,9 +8,8 @@ requires-python = ">=3.13,<3.14"
 dependencies = [
     # --- Core runtime (CrewAI + integrations) ---
     "crewai[google-genai]>=1.15.16",
-    "crewai-tools[mcp]>=1.15.16",
+    "crewai-tools>=1.15.16",
     "crewai-custom-tools @ git+https://github.com/fjacquet/crewai-custom-tools.git@v0.6.0",
-    "mcp>=1.26.0",
     "composio>=0.18.1",
     "composio-crewai>=0.18.1",
     "litellm>=1.94.1,<1.106",  # 1.106 imports mcp.types.CacheableResult (mcp 2.x); crewai needs mcp<2
@@ -30,7 +29,6 @@ dependencies = [
     "lxml-html-clean>=0.4.2",
     "newspaper3k>=0.2.8",
     "wikipedia>=1.4.0",
-    "wikipedia-mcp-server>=1.0.1",
     "tavily-python>=0.7.27",
     "firecrawl-py>=4.34.0",
     "pyairtable>=3.4.2",
@@ -201,7 +199,6 @@ DEP002 = [
     "uvicorn",          # ASGI server invoked via CLI (Dockerfile --target api, Makefile)
     "lxml",             # required transitively by newspaper3k at runtime
     "lxml-html-clean",  # required by newspaper3k (lxml.html.clean split-out)
-    "wikipedia-mcp-server",  # launched via MCP config command string, not imported
     # pytest plugins / CLI tools (used via fixtures or config, never imported)
     "pytest-cov", "pytest-asyncio", "pytest-env", "pytest-mock",
     "pytest-regressions", "coverage",

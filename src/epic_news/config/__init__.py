@@ -5,6 +5,5 @@ email sending) because importing it costs ~2 s. Import it from epic_news.config.
 """
 
 from epic_news.config.llm_config import LLMConfig
-from epic_news.config.mcp_config import MCPConfig
 
-__all__ = ["LLMConfig", "MCPConfig"]
+__all__ = ["LLMConfig"]

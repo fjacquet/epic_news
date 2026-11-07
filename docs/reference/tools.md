@@ -150,8 +150,6 @@ result_json = scraper.run({"url": "https://example.com"})
 
 ## 3. Model Context Protocol (MCP)
 
-MCP servers are configured in `src/epic_news/config/mcp_config.py` (`MCPConfig`).
-The Wikipedia MCP server (`MCPConfig.get_wikipedia_mcp()`) is used by the
-`deep_research` and `pestel` crews. New crews should declare servers through
-CrewBase `mcp_server_params` and load tools with `self.get_mcp_tools()`; CrewBase
-stops the adapter after `kickoff()`. See [MCP Setup](../how-to/mcp_setup.md).
+No MCP servers are used. Wikipedia, formerly an MCP server for `deep_research`
+and `pestel`, now comes from the in-process `WikipediaSearchTool` and
+`WikipediaArticleTool` (see the table above).

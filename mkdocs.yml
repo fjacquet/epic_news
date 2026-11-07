@@ -76,7 +76,6 @@ nav:
       - how-to/index.md
       - Development Setup: how-to/development_setup.md
       - Composio Setup: how-to/composio_setup.md
-      - MCP Setup: how-to/mcp_setup.md
       - Docker Deployment: how-to/docker_deployment.md
       - Expose the API to n8n: how-to/expose-api-n8n.md
       - Observability: how-to/observability.md

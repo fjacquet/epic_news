@@ -30,7 +30,6 @@ def flow(tmp_path, monkeypatch):
     model = MagicMock()
     model.model_dump_json.return_value = '{"ok": true}'
     monkeypatch.setattr(main_mod, "load_or_parse_model", lambda *a, **k: model)
-    monkeypatch.setattr(main_mod, "close_mcp", lambda crew: None)
     # Every assembler but OSINT takes (model, inputs, output_path, ...); OSINT takes (inputs, output_path).
     for name in dir(main_mod):
         if name.startswith("assemble_") and name.endswith("_docx"):
@@ -50,7 +49,7 @@ def flow(tmp_path, monkeypatch):
 
     monkeypatch.setattr(main_mod, "fetch_articles_from_opml", fake_fetch)
     monkeypatch.setattr(main_mod, "load_rss_weekly_report", lambda path: MagicMock())
-    # Deep research step (no Wikipedia MCP)
+    # Deep research step
     monkeypatch.setattr(main_mod, "DeepResearchCrew", type("DeepResearchCrew", (), {}))
     # Menu step: a validated plan, no recipe crews
     monkeypatch.setattr(main_mod, "menu_plan_from_output", lambda output, num_days: MagicMock())

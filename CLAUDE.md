@@ -135,17 +135,9 @@ Key `.env` settings: `MODEL` (default: `gemini/gemini-3.8-flash`), `GEMINI_API_K
 
 **NEVER** hardcode model names or timeout values — always use `LLMConfig` methods.
 
-## MCP Servers
+## Wikipedia
 
-Wikipedia MCP (`wikipedia-mcp-server`, locked in `uv.lock` and run from the venv's `wikipedia-mcp` script, never fetched at runtime) configured in `src/epic_news/config/mcp_config.py` via `MCPConfig.get_wikipedia_mcp()`. Used by: `deep_research`, `pestel`.
-
-Wire MCP servers through CrewBase:
-
-- set `mcp_server_params = MCPConfig.get_wikipedia_mcp()` on the crew class;
-- in `@agent` methods use `*get_mcp_tools_or_empty(self)` (wraps `get_mcp_tools()`; a server that cannot start logs a warning, the crew runs without its tools, and the failed start is not retried by the other agents);
-- CrewBase stops the adapter only after a *successful* kickoff, so the flow calls `close_mcp(crew)` in a `finally` around `kickoff_flow(...)`.
-
-Do not hand-build a `MCPServerAdapter` (it spawns a subprocess that leaks if never stopped).
+No MCP servers. Wikipedia comes from the in-process `WikipediaSearchTool` / `WikipediaArticleTool` (plus `WikipediaProcessingTool` in `saint_daily`) from `crewai-custom-tools`. Used by: `deep_research`, `pestel`, `saint_daily`. Prefer in-process tools over MCP servers: no subprocess to start or leak.
 
 ## Composio Tools
 
