@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- Every run crashed at the classify step with `cannot import name 'CacheableResult' from 'mcp.types'`:
+  litellm 1.106+ imports an mcp 2.x symbol on its completion path, while crewai requires `mcp<2`.
+  litellm is capped `<1.106` (locked 1.105.7) until crewai allows mcp 2; a test imports that path.
+
 ## [4.0.2] — 2026-10-24
 
 ### Security

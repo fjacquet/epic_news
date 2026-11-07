@@ -13,7 +13,7 @@ dependencies = [
     "mcp>=1.26.0",
     "composio>=0.18.1",
     "composio-crewai>=0.18.1",
-    "litellm>=1.94.1",
+    "litellm>=1.94.1,<1.106",  # 1.106 imports mcp.types.CacheableResult (mcp 2.x); crewai needs mcp<2
     # --- Pydantic / data ---
     "pydantic>=2.7.0",
     "loguru>=0.7.3",
