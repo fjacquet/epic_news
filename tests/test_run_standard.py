@@ -67,20 +67,6 @@ def test_stale_json_is_deleted_before_the_kickoff(flow, monkeypatch):
     assert built == []
 
 
-def test_mcp_is_closed_when_the_kickoff_fails(flow, monkeypatch):
-    closed: list = []
-    crew = object()
-
-    def _kickoff(_crew, _inputs):
-        raise RuntimeError("provider down")
-
-    monkeypatch.setattr(main_module, "kickoff_flow", _kickoff)
-    monkeypatch.setattr(main_module, "close_mcp", closed.append)
-    with pytest.raises(RuntimeError, match="provider down"):
-        flow._run_standard(CREW_REGISTRY["POEM"], crew, flow.state.to_crew_inputs())
-    assert closed == [crew]
-
-
 def test_a_crew_without_fixed_paths_is_refused(flow, monkeypatch):
     called: list = []
     monkeypatch.setattr(main_module, "kickoff_flow", lambda *a: called.append(a))

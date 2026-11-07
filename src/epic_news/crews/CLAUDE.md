@@ -122,39 +122,6 @@ Pass the agent itself to `Task(agent=self.my_agent())`, never `agent.copy()`: Cr
 
 **Tool hygiene**: give each agent only the tools its tasks use. An agent with web search/scrape tools must not also hold crewai's unscoped `FileReadTool`; use `OutputFileReadTool` (`tools/output_file_read_tool.py`, scoped to `output/` by default, `root=` to change it).
 
-### MCP Tools (CrewBase-managed)
-
-```python
-from epic_news.config.mcp_config import MCPConfig, get_mcp_tools_or_empty
-
-@CrewBase
-class MyCrew:
-    agents_config: dict[str, Any] = "config/agents.yaml"  # type: ignore[assignment]
-    tasks_config: dict[str, Any] = "config/tasks.yaml"  # type: ignore[assignment]
-
-    mcp_server_params = MCPConfig.get_wikipedia_mcp()
-
-    @agent
-    def researcher(self) -> Agent:
-        return Agent(
-            config=self.agents_config["researcher"],
-            tools=[HybridSearchTool(), *get_mcp_tools_or_empty(self)],  # one shared adapter
-            llm=LLMConfig.get_openrouter_llm(task_type="long"),
-            max_iter=LLMConfig.get_max_iter(),
-        )
-```
-
-- `get_mcp_tools_or_empty(self)` wraps CrewBase's `get_mcp_tools()`: if the server cannot start it logs a warning and returns `[]`, and remembers the failure so the other agents don't retry.
-- CrewBase stops the adapter only after a **successful** kickoff. The flow must call `close_mcp(crew)` in a `finally` (`_run_standard` in `main.py` does this for standard crews; custom steps write it out):
-
-```python
-crew = MyCrew()
-try:
-    output = kickoff_flow(crew, inputs)
-finally:
-    close_mcp(crew)  # safe after CrewBase's own stop, safe to call twice
-```
-
 ### Two-Agent Pattern (Research + Tool-Free Reporting)
 
 **Why**: `output_pydantic` already keeps tool action traces out of the structured result. The split is kept so the reporting step runs with no tools: it only formats the research context into the Pydantic model.
@@ -261,7 +228,7 @@ Only crews listed in `ASYNC_ALLOWED` (`tests/crews/test_async_agent_isolation.py
 3. **Result parsing** → `load_or_parse_model(json_path, MyModel, output, inputs, label)`
 4. **Report** → `emit_report(self.state, lambda: assemble_my_crew_docx(model, inputs, "output/my_crew/report.docx"))` (DOCX only, ADR-017)
 
-Standard crews run these four steps (plus the stale-JSON delete and `close_mcp`) through `ReceptionFlow._run_standard(spec, crew, inputs)`, with the `CrewSpec` from `src/epic_news/crew_registry.py`.
+Standard crews run these four steps (plus the stale-JSON delete) through `ReceptionFlow._run_standard(spec, crew, inputs)`, with the `CrewSpec` from `src/epic_news/crew_registry.py`.
 
 **Example from main.py**:
 
@@ -306,7 +273,7 @@ self._run_standard(CREW_REGISTRY[CrewKey.POEM], PoemCrew(), inputs)
 ### Research Crews
 
 - `HybridSearchTool` (Perplexity → Brave → Serper fallback), `PerplexitySearchTool` via `web_tools.get_search_tools()`
-- Wikipedia (via MCP: `deep_research`, `pestel`)
+- Wikipedia: `WikipediaSearchTool`, `WikipediaArticleTool` from `crewai_custom_tools` (`deep_research`, `pestel`, `saint_daily`)
 
 ### Financial Crews
 

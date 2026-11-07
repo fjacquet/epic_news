@@ -14,10 +14,9 @@ from typing import Any
 from crewai import Agent, Crew, Process, Task
 from crewai.agents.agent_builder.base_agent import BaseAgent
 from crewai.project import CrewBase, agent, crew, task
-from crewai_custom_tools import HybridSearchTool
+from crewai_custom_tools import HybridSearchTool, WikipediaArticleTool, WikipediaSearchTool
 
 from epic_news.config.llm_config import LLMConfig
-from epic_news.config.mcp_config import MCPConfig, get_mcp_tools_or_empty
 from epic_news.models.crews.pestel_report import PestelReport
 from epic_news.tools.capped_scrape_tool import CappedScrapeWebsiteTool
 from epic_news.tools.recent_search_tool import RecentSearchTool
@@ -32,10 +31,6 @@ class PestelCrew:
     agents: list[BaseAgent]  # set by CrewBase from the @agent methods
     tasks: list[Task]  # set by CrewBase from the @task methods
 
-    # Wikipedia MCP server: @CrewBase starts one shared adapter on the first
-    # get_mcp_tools() call and stops it in an after-kickoff hook.
-    mcp_server_params = MCPConfig.get_wikipedia_mcp()
-
     def _researcher(self, config_key: str) -> Agent:
         """Build a dimension researcher with the shared tool set."""
         return Agent(
@@ -44,7 +39,8 @@ class PestelCrew:
                 RecentSearchTool(),
                 HybridSearchTool(),
                 CappedScrapeWebsiteTool(),
-                *get_mcp_tools_or_empty(self),
+                WikipediaSearchTool(),
+                WikipediaArticleTool(),
             ],
             llm=LLMConfig.get_openrouter_llm(task_type="long"),
             max_iter=LLMConfig.get_max_iter(),

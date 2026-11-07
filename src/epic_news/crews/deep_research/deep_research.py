@@ -3,10 +3,9 @@ from typing import Any
 from crewai import Agent, Crew, Process, Task
 from crewai.agents.agent_builder.base_agent import BaseAgent
 from crewai.project import CrewBase, agent, crew, task
-from crewai_custom_tools import HybridSearchTool
+from crewai_custom_tools import HybridSearchTool, WikipediaArticleTool, WikipediaSearchTool
 
 from epic_news.config.llm_config import LLMConfig
-from epic_news.config.mcp_config import MCPConfig, get_mcp_tools_or_empty
 from epic_news.models.crews.deep_research import DeepResearchReport
 from epic_news.tools.capped_scrape_tool import CappedScrapeWebsiteTool
 
@@ -27,10 +26,6 @@ class DeepResearchCrew:
     agents: list[BaseAgent]  # set by CrewBase from the @agent methods
     tasks: list[Task]  # set by CrewBase from the @task methods
 
-    # Wikipedia MCP server: @CrewBase starts it lazily on the first get_mcp_tools()
-    # call and stops it in an after-kickoff hook.
-    mcp_server_params = MCPConfig.get_wikipedia_mcp()
-
     # Research Strategist - Planning and methodology
     @agent
     def research_strategist(self) -> Agent:
@@ -46,15 +41,16 @@ class DeepResearchCrew:
     # Information Collector - Web and encyclopedic research
     @agent
     def information_collector(self) -> Agent:
-        """Information collector agent with web search, scraping AND Wikipedia MCP tools."""
+        """Information collector agent with web search, scraping AND Wikipedia tools."""
         return Agent(
             config=self.agents_config["information_collector"],
             tools=[
                 # Hybrid search (Perplexity → Brave → Serper cascading fallback)
                 HybridSearchTool(),
                 CappedScrapeWebsiteTool(),
-                # Wikipedia MCP tools (encyclopedic research)
-                *get_mcp_tools_or_empty(self),  # Adds search and fetch tools from Wikipedia MCP
+                # Wikipedia (encyclopedic research)
+                WikipediaSearchTool(),
+                WikipediaArticleTool(),
             ],
             llm=LLMConfig.get_openrouter_llm(task_type="long"),
             max_iter=LLMConfig.get_max_iter(),

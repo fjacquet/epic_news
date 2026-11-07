@@ -65,12 +65,11 @@ def pestel_flow_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     output_dir.mkdir(parents=True, exist_ok=True)
     (output_dir / "report.json").write_text(json.dumps(_valid_pestel_payload()), encoding="utf-8")
 
-    calls = {"kickoff": 0, "dump": 0, "pestel_init": 0, "closed": [], "assembled": []}
+    calls = {"kickoff": 0, "dump": 0, "pestel_init": 0, "assembled": []}
 
     def _fake_kickoff_flow(crew, inputs):
         calls["kickoff"] += 1
         calls["last_inputs"] = inputs
-        calls["crew"] = crew
         return SimpleNamespace(raw=json.dumps(_valid_pestel_payload()))
 
     def _fake_dump(_output, _label):
@@ -83,7 +82,6 @@ def pestel_flow_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(main_module, "kickoff_flow", _fake_kickoff_flow)
     monkeypatch.setattr(main_module, "dump_crewai_state", _fake_dump)
     monkeypatch.setattr(main_module, "PestelCrew", _StubPestelCrew)
-    monkeypatch.setattr(main_module, "close_mcp", calls["closed"].append)
     monkeypatch.setitem(
         crew_registry.CREW_REGISTRY,
         "PESTEL",
@@ -247,34 +245,6 @@ def test_generate_pestel_keeps_market_subject_and_location_geography(pestel_flow
     sent = calls["last_inputs"]
     assert sent["topic"] == "marché suisse des voitures électriques"
     assert sent["geography"] == "Suisse"
-
-
-def test_generate_pestel_closes_mcp_after_success(pestel_flow_env) -> None:
-    _tmp_path, calls = pestel_flow_env
-
-    ReceptionFlow(user_request="PESTEL Reyl").generate_pestel()
-
-    assert calls["closed"] == [calls["crew"]]
-
-
-def test_generate_pestel_closes_mcp_when_every_kickoff_fails(
-    pestel_flow_env, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    """CrewBase only stops the MCP server after a successful kickoff; the flow must
-    stop it when kickoff_flow gives up too."""
-    _tmp_path, calls = pestel_flow_env
-    seen = []
-
-    def _failing_kickoff(crew, _inputs):
-        seen.append(crew)
-        raise RuntimeError("provider down")
-
-    monkeypatch.setattr(main_module, "kickoff_flow", _failing_kickoff)
-
-    with pytest.raises(RuntimeError, match="provider down"):
-        ReceptionFlow(user_request="PESTEL Reyl").generate_pestel()
-
-    assert calls["closed"] == seen
 
 
 _NO_RESULTS = "No recent search results available; use recent_search or hybrid_search."

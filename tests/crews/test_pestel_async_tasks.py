@@ -1,9 +1,7 @@
 from epic_news.crews.pestel import pestel_crew
 
 
-def test_dimension_tasks_are_async_and_report_waits(monkeypatch):
-    # Never spawn the Wikipedia MCP server in unit tests.
-    monkeypatch.setattr(pestel_crew, "get_mcp_tools_or_empty", lambda crew: [])
+def test_dimension_tasks_are_async_and_report_waits():
     crew = pestel_crew.PestelCrew().crew()
 
     research = [t for t in crew.tasks if t.output_pydantic is None]
