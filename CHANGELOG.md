@@ -6,6 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [4.1.0] — 2026-11-07
+
+### Fixed
+
+- Request-driven crews ignored most of what the user asked: the enriched request reached at most
+  one task (a London holiday ignored the traveler's Accor/Radisson loyalty cards, the requested
+  structure and the neighbourhood advice). Every task of the 15 request-driven crews now receives
+  it (`{user_preferences_and_constraints}`); `tests/crews/test_request_reaches_tasks.py` enforces it.
+
+### Changed
+
+- `docx_report.persona(role, inputs, extra)` replaces the 15 copied `_PERSONA` prompts. Narrated
+  sections follow the user's request (tone, format, sections, constraints), list one bullet per line,
+  and are written in the request's language (`to_crew_inputs` sets `language`, French by default).
+- Holiday report: factual default tone, lodging section starts with where to stay, budget in the
+  requested currency, new "Réservations & billetterie" and "Votre demande, point par point" sections;
+  the lodging and itinerary agents get Geoapify place search.
+
 ## [4.0.3] — 2026-11-07
 
 ### Fixed
