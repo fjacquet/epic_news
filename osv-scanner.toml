@@ -45,7 +45,7 @@
 
 [[IgnoredVulns]]
 id = "GHSA-f4j7-r4q5-qw2c"  # CVE-2026-45829 — chromadb pre-auth RCE ("ChromaToast", CVSS 9.3)
-ignoreUntil = 2026-12-01
+effectiveUntil = 2026-12-01
 reason = """
 Critical code-injection in ChromaDB's network SERVER API \
 (/api/v2/.../collections with trust_remote_code), affecting chromadb 1.0.0-1.5.9 \
@@ -57,7 +57,7 @@ relaxes the pin."""
 
 [[IgnoredVulns]]
 id = "GHSA-36p7-vc44-83pf"  # CVE-2026-45833 — chromadb code injection via trust_remote_code (CVSS 9.4)
-ignoreUntil = 2026-12-01
+effectiveUntil = 2026-12-01
 reason = """
 The same trust_remote_code code-injection sink as GHSA-f4j7-r4q5-qw2c above, \
 republished by OSV under a separate CVE (45833 vs 45829) and NOT cross-linked as \
@@ -68,7 +68,7 @@ no patched version. epic_news exposes no such endpoint — embedded use only."""
 
 [[IgnoredVulns]]
 id = "GHSA-2wm9-hf6c-p5cr"  # CVE-2026-45830 — chromadb cross-tenant data access (CVSS 8.8)
-ignoreUntil = 2026-12-01
+effectiveUntil = 2026-12-01
 reason = """
 Missing authorization validation lets any authenticated user read, write, update \
 or delete data in another tenant's collection. Affects 0.4.17 through 1.5.9 with no \
@@ -78,7 +78,7 @@ remote callers, so there is no cross-tenant boundary to breach."""
 
 [[IgnoredVulns]]
 id = "GHSA-xph7-9rjv-w5fr"  # CVE-2026-45831 — chromadb SimpleRBACAuthorizationProvider scope bypass (CVSS 8.8)
-ignoreUntil = 2026-12-01
+effectiveUntil = 2026-12-01
 reason = """
 SimpleRBACAuthorizationProvider checks that a user holds a permission but never \
 which tenant/database/collection it applies to, allowing cross-tenant actions. \
