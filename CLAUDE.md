@@ -56,7 +56,7 @@ uv run pre-commit run --all-files   # or: make pre-commit
 ### Security Checks
 
 ```bash
-make security    # Runs bandit (code) + safety (deps)
+make security    # Runs bandit (code) + osv-scanner (SBOM)
 ```
 
 ### Useful Makefile Targets
@@ -69,7 +69,7 @@ Run `make help` to see all targets. Key ones: `install`, `dev`, `test`, `lint`, 
 
 The application uses a **single flow orchestration** pattern (`src/epic_news/main.py`):
 
-1. **ReceptionFlow** is the main entry point with ~25 `generate_*` methods
+1. **ReceptionFlow** is the main entry point with one `generate_*` method per crew
 2. Each method corresponds to a specialized crew (e.g., `generate_poem` → `PoemCrew`)
 3. Flow methods call `.kickoff(inputs=crew_inputs)` and handle the result
 4. User requests are classified and routed to the appropriate crew method

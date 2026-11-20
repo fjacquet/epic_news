@@ -4,11 +4,10 @@ This directory contains all custom tools and tool factories for the Epic News sy
 
 ## Directory Contents
 
-**Note (post tools-migration cleanup)**: most standalone per-provider tools
-(web search/scrape, finance/crypto quotes, GitHub, email/OSINT lookup) now live
-in the sibling `crewai_custom_tools` package, e.g.
-`from crewai_custom_tools import ScrapeNinjaTool, PerplexitySearchTool`. The files
-below are what remains in `src/epic_news/tools/`.
+Most standalone per-provider tools (web search/scrape, finance/crypto quotes, GitHub,
+email/OSINT lookup) live in the sibling `crewai_custom_tools` package, e.g.
+`from crewai_custom_tools import ScrapeNinjaTool, PerplexitySearchTool`. This directory
+holds the factories and the helpers below.
 
 ### Tool Categories
 
@@ -99,7 +98,7 @@ class MyCustomTool(BaseTool):
     description: str = "What this tool does"
     
     def _run(self, **kwargs) -> str:
-        \"\"\"
+        """
         Execute tool logic.
         
         Args:
@@ -107,7 +106,7 @@ class MyCustomTool(BaseTool):
             
         Returns:
             str: JSON string of results
-        \"\"\"
+        """
         # Implementation
         result = self._fetch_data(kwargs)
         return ensure_json_str(result)
@@ -207,8 +206,7 @@ Different crews need different tool combinations. Give each agent only the tools
 - Web scraper factory
 
 **Business Crews** (sales_prospecting, hr_intelligence):
-- GitHub tools (tech companies)
-- Hunter.io (email finding, from `crewai_custom_tools`)
+- `HybridSearchTool`, `CappedScrapeWebsiteTool` (sales_prospecting)
 
 **Planning Crews** (holiday_planner, menu_designer):
 - Location tools (Geoapify)
@@ -278,10 +276,8 @@ uv run pytest tests/tools/ -v
 
 ### 1. Search Tools
 
-Search tools now live in `crewai_custom_tools` (the `search_base.py` base
-class was removed from this directory in the tools migration). Import the
-concrete tool you need, e.g. `from crewai_custom_tools import TavilyTool`,
-rather than subclassing a local base class.
+Search tools live in `crewai_custom_tools`. Import the concrete tool you need,
+e.g. `from crewai_custom_tools import TavilyTool`.
 
 ### 2. Financial Data Tools
 
@@ -289,7 +285,7 @@ Pattern: Fetch, parse, return JSON
 
 ```python
 class MyFinanceTool(BaseTool):
-    name = "Finance Data Fetcher"
+    name: str = "Finance Data Fetcher"
     
     def _run(self, ticker: str) -> str:
         # Fetch from API
@@ -309,27 +305,14 @@ class MyFinanceTool(BaseTool):
 
 Use scraper factory for consistency:
 
-```python
-from epic_news.tools.scraper_factory import get_scraper
-
-class MyScrapingTool(BaseTool):
-    def __init__(self):
-        super().__init__()
-        self.scraper = get_scraper()
-    
-    def _run(self, url: str) -> str:
-        result = self.scraper.run({"url": url})
-        return result  # Already JSON from scraper
-```
+Call `get_scraper().run({"url": url})` from the tool's `_run`; the scraper already returns JSON.
 
 ## Performance & Optimization
 
 ### Caching
 
-`cache_manager.py` was removed from this directory in the tools migration
-(its only consumers were migrated/deleted tools). Tools that still need
-caching should implement it locally or rely on caching provided by
-`crewai_custom_tools`.
+No shared cache layer: a tool that needs caching implements it locally or relies on
+caching provided by `crewai_custom_tools`.
 
 **When to cache**:
 - Expensive API calls
@@ -341,23 +324,6 @@ caching should implement it locally or rely on caching provided by
 - Real-time data (stock prices, news)
 - User-specific data
 - Rapidly changing information
-
-### Async Execution
-
-For independent, I/O-bound operations:
-
-```python
-import asyncio
-import httpx
-
-async def _run_async(self, urls: list[str]) -> str:
-    async with httpx.AsyncClient() as client:
-        tasks = [client.get(url) for url in urls]
-        responses = await asyncio.gather(*tasks)
-    
-    results = [r.json() for r in responses]
-    return ensure_json_str(results)
-```
 
 ## Troubleshooting
 
@@ -374,31 +340,6 @@ def _run(self, param: str) -> str:
     result = self._process(param)
     return ensure_json_str(result)  # Always return JSON string
 ```
-
-### Issue: API key not found
-
-**Symptom**: Tool initialization fails or returns empty results
-
-**Solution**: Check `.env` file and factory graceful degradation
-
-```python
-def get_my_tools():
-    api_key = os.getenv("MY_API_KEY")
-    if not api_key:
-        logger.warning("MY_API_KEY not set, tool unavailable")
-        return []  # Graceful degradation
-    return [MyTool(api_key=api_key)]
-```
-
-### Issue: Rate limit exceeded
-
-**Symptom**: 429 errors from API
-
-**Solutions**:
-1. Implement caching
-2. Add request delays
-3. Use rate-limited queue
-4. Switch to alternative provider via factory
 
 ### Issue: Scraper fails on dynamic content
 
@@ -450,7 +391,6 @@ ACCUWEATHER_API_KEY=    # Weather forecasts
 GEOAPIFY_API_KEY=       # Place search (uses free tier if not set)
 
 # Business Intelligence
-HUNTER_API_KEY=         # Email finding
 GITHUB_TOKEN=           # GitHub API (uses public API if not set)
 
 # Productivity

@@ -322,14 +322,9 @@ def reporter(self) -> Agent:
     return Agent(
         config=self.agents_config["reporter"],
         tools=[],
-        system_template="""You are a JSON formatting expert.
-
-        CRITICAL: Escape all special characters in JSON strings:
-        - Use \\" for quotes inside strings
-        - Use \\\\ for backslashes
-        - French apostrophes MUST be escaped: "l'amour" → "l\\'amour"
-
-        Output ONLY valid JSON with properly escaped strings."""
+        system_template="""You write JSON. Escape quotes and backslashes inside strings,
+        and escape French apostrophes ("l'amour" becomes "l\\'amour"), because the
+        output is parsed with json.loads."""
     )
 ```
 
