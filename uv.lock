@@ -513,7 +513,7 @@ wheels = [
 
 [[package]]
 name = "composio"
-version = "0.32.0"
+version = "0.33.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "certifi" },
@@ -528,36 +528,36 @@ dependencies = [
     { name = "urllib3" },
     { name = "websocket-client" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ca/2b/d895c31fa216120a1d808ddba6f827a0122d3999c41d8c3a69410c842b63/composio-0.32.0.tar.gz", hash = "sha256:c92eecba4bf223cf59dc2a08320885498a86e12d09f7c1222c6b47a5fe1afe2e", size = 475123, upload-time = "2026-11-09T09:35:58.478Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/c2/78/3e4f7ea5b96aacf1753fc98d0a5d0912e1fe0edcebd14db68902e95cc9ff/composio-0.33.0.tar.gz", hash = "sha256:471f51d8f0560a7b1c6c37ac66dffa151dcb8eb6058a1f2f48244d2c3f036ad2", size = 483519, upload-time = "2026-11-17T15:49:01.769Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/67/af/425abf5c444f09f6e7b50e71a75515bc5490fefe34d956f0303cc1de7498/composio-0.32.0-py3-none-any.whl", hash = "sha256:519ba2dd31ef26b867fb4ef2a844c01cd309a147fd8ef6b095de6d3536a86161", size = 256488, upload-time = "2026-11-09T09:35:40.945Z" },
+    { url = "https://files.pythonhosted.org/packages/c5/95/0f196077ba1a8c6dbc0062a57f267597c7cdd96911a9aa4a697e6798a3ae/composio-0.33.0-py3-none-any.whl", hash = "sha256:4ce82c3a88a6613ac82187c63aba73507db4154c0e36529c10b970cd24fa1447", size = 259341, upload-time = "2026-11-17T15:48:44.808Z" },
 ]
 
 [[package]]
 name = "composio-client"
-version = "2.1.0"
+version = "2.1.33"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "httpx" },
     { name = "pydantic" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/d9/ab/d3d66a62c13db1c6dfac59630ee26171d1b038f3d4894310abbf82c2d8d4/composio_client-2.1.0.tar.gz", hash = "sha256:58bfa5cd3cd6da1dd9a70692ca795f1a88074f64c5d853d1c219cce4df346234", size = 592013, upload-time = "2026-11-05T12:11:37.958Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/93/29/47947f15d6ae91a915cd988098f6f8e253163c8efd5c9dca876394b4c2fb/composio_client-2.1.33.tar.gz", hash = "sha256:58f1d793e73f402125429c7d923b532f3af183c58dab522a67ae38fabcf0220a", size = 593104, upload-time = "2026-11-16T10:09:23.183Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c0/8f/9e64de6f670dbefbec7aaa03b3fca52c28b44b204478861475062a683be7/composio_client-2.1.0-py3-none-any.whl", hash = "sha256:6b1a57ead7fecae314b65b3f10c6f2e537e51de3c9013151f6888208d4997fe4", size = 478016, upload-time = "2026-11-05T12:11:36.218Z" },
+    { url = "https://files.pythonhosted.org/packages/dc/1a/a0a5c05e884ea2a2ae02db5ab5a435ceada1838ef9f193609fe10df39141/composio_client-2.1.33-py3-none-any.whl", hash = "sha256:e6cb94de1bf34c17b9540c8630bdc9fbc5fdc6b5454573fe2964c85ca3c6e622", size = 478671, upload-time = "2026-11-16T10:09:21.509Z" },
 ]
 
 [[package]]
 name = "composio-crewai"
-version = "0.32.0"
+version = "0.33.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "composio" },
     { name = "crewai" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/8b/33/8aa48be31a18cda5c9800558a7166fcd904e2797aa3fb3cfe7b4d71d42bf/composio_crewai-0.32.0.tar.gz", hash = "sha256:3edb25004a6502e4bfc4c0f8eeb975dbbf33ef26af24276c492a5ccffe2bfe94", size = 3637, upload-time = "2026-11-09T09:36:02.431Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ac/6b/49b97369313fe24bfc4980d76bfa779f39519d924a1aa38dfe2e5b9ecfc2/composio_crewai-0.33.0.tar.gz", hash = "sha256:7c3906bbab6b13f7fe75a9d11a0af94a31ff685fa559d9bdb5f4645a953f6d58", size = 3641, upload-time = "2026-11-17T15:49:05.489Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/71/5f/3ccbd10dce459a6a6566c5bcee5af32b01637ff9b3ccafc5a6409cc082d7/composio_crewai-0.32.0-py3-none-any.whl", hash = "sha256:75e3c02f020a431fed735c85d3a16b14660df72bd489010d8379d20f65629770", size = 3853, upload-time = "2026-11-09T09:35:46.182Z" },
+    { url = "https://files.pythonhosted.org/packages/a0/48/b118a35cf56ae74750ae2bcacad6761a16de6dbcfc324cc1dd2ae64ca1e6/composio_crewai-0.33.0-py3-none-any.whl", hash = "sha256:4fa68c512c5f9d3e5a0ecf70d4775fa6116037e2919fa9b1be55b668e0be9642", size = 3853, upload-time = "2026-11-17T15:48:49.887Z" },
 ]
 
 [[package]]
@@ -1041,7 +1041,7 @@ wheels = [
 
 [[package]]
 name = "fastapi"
-version = "0.162.7"
+version = "0.163.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "annotated-doc" },
@@ -1052,9 +1052,9 @@ dependencies = [
     { name = "typing-extensions" },
     { name = "typing-inspection" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ea/82/6b9764e52f89a8aaf68a5005093bcb8fdcadcb6ba30571def786c0d3bfc0/fastapi-0.162.7.tar.gz", hash = "sha256:b7503029c8ef2d2d5fea9049294cf8d0f2805c6621f4677ede269fce19f01efb", size = 535511, upload-time = "2026-11-13T17:47:18.517Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/bf/2f/d173f9bf5aba1285067ff47fd06b7e35bb922e3a1e52588fb7b31319d4ad/fastapi-0.163.2.tar.gz", hash = "sha256:e605c4c9b94be78b43aa8239a62ccf7b6684346cdc9e053633feab0ab21b87c7", size = 547696, upload-time = "2026-11-17T18:29:03.57Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a0/49/2d76050f652082f1435f34a8ac9af6207b9aed8b81cde42e0bb121fa7c5a/fastapi-0.162.7-py3-none-any.whl", hash = "sha256:fa3be857122ec8d91d4d234e86ac19acf4ef23f5c6c3dfcce78ec0c27c0c5ab4", size = 152411, upload-time = "2026-11-13T17:47:16.598Z" },
+    { url = "https://files.pythonhosted.org/packages/58/ef/bf79bc47e914dfabc56657bb6a2d33340b1faa5a514b0b92e842aa088d1e/fastapi-0.163.2-py3-none-any.whl", hash = "sha256:825a8fdd18d7bfcb1b86735e9805c59b7400d55c4060d3df5331b62ae452f004", size = 154717, upload-time = "2026-11-17T18:29:02.025Z" },
 ]
 
 [[package]]
@@ -3055,15 +3055,15 @@ wheels = [
 
 [[package]]
 name = "pytest-env"
-version = "1.8.5"
+version = "1.8.6"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pytest" },
     { name = "python-dotenv" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/2d/ae/a9397814bd3361623e49198bc110e316c7ac79d2d9d5b993182376a8c8e7/pytest_env-1.8.5.tar.gz", hash = "sha256:992c37efdc1bde2f0783975080ac4cdcea85f36df9d6fe3a835edd01a7e06584", size = 52398, upload-time = "2026-11-04T05:10:54.11Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/c6/0b/68d9ba18cf4fd7690d9833b54d96b281411733df3b8b875c9be163ef0e85/pytest_env-1.8.6.tar.gz", hash = "sha256:2bfa4c2f911b6e8239291dd4652a4547dbf6a44050942e12eea300204b168162", size = 59367, upload-time = "2026-11-17T23:16:07.993Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/4c/da/584de88bdcbd8ecb66a1af87ddfc2bc57cd58fa21e974138ac6cb2f78a1b/pytest_env-1.8.5-py3-none-any.whl", hash = "sha256:0e3b3a4c84d3303904005e3b62eab51e197c36735f5862bed229c0ac6f1fd739", size = 10035, upload-time = "2026-11-04T05:10:52.777Z" },
+    { url = "https://files.pythonhosted.org/packages/5c/5f/1d806c209ccf2f65369e234ea0d55824d40f98c0d1671da2eaf92753c56f/pytest_env-1.8.6-py3-none-any.whl", hash = "sha256:11f3b45cddb4b03fce83ef0b9661f50e9ffdac93581e86d8a88a1a4d1c85587d", size = 63384, upload-time = "2026-11-17T23:16:06.665Z" },
 ]
 
 [[package]]
