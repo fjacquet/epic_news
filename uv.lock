@@ -912,7 +912,7 @@ wheels = [
 
 [[package]]
 name = "epic-news"
-version = "4.1.0"
+version = "4.1.1"
 source = { editable = "." }
 dependencies = [
     { name = "composio" },
