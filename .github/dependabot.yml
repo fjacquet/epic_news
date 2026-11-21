@@ -8,6 +8,11 @@ updates:
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
+    ignore:
+      # litellm >= 1.106 imports mcp.types.CacheableResult (mcp 2.x only) but crewai needs
+      # mcp<2; tests/test_litellm_mcp_compat.py guards it. Drop once crewai allows mcp 2.
+      - dependency-name: "litellm"
+        versions: [">=1.106"]
     groups:
       python-minor-patch:
         update-types:
